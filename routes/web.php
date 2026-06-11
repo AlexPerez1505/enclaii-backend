@@ -20,5 +20,9 @@ Route::middleware('auth')->group(function () {
         return view('dashboard');
     })->name('dashboard');
 
+    Route::get('/ia-reportes', function () {
+        return view('ia-reportes.index');
+    })->name('ia-reportes');
+
     Route::post('/logout', [EndoCareAuthController::class, 'logout'])->name('logout');
 });

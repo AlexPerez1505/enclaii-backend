@@ -374,7 +374,7 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
       Informes
     </a>
-    <a class="nav-item {{ $active === 'ia-reportes' ? 'active' : '' }}" href="#">
+    <a class="nav-item {{ $active === 'ia-reportes' ? 'active' : '' }}" href="{{ url('/ia-reportes') }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>
       IA Reportes
     </a>
