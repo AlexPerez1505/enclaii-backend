@@ -1,0 +1,2139 @@
+@extends('layouts.app')
+
+@section('title', 'Pacientes')
+@section('active', 'pacientes')
+@section('header-title', 'Pacientes')
+@section('header-sub')
+  Gestiona y consulta la información de tus pacientes
+@endsection
+
+@push('styles')
+<style>
+/* ============ ESTILOS DE PACIENTES ============ */
+
+/* Toolbar con buscador y botones */
+.toolbar{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-bottom:22px;
+  flex-wrap:wrap;
+}
+.search-box{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex:1;
+  min-width:280px;
+  max-width:420px;
+  padding:12px 16px;
+  border-radius:var(--r-md);
+  border:1px solid var(--stroke);
+  background:var(--panel-2);
+}
+.search-box svg{
+  width:18px;
+  height:18px;
+  color:var(--txt-soft);
+  flex:none;
+}
+.search-box input{
+  flex:1;
+  background:transparent;
+  border:0;
+  font:inherit;
+  font-size:14px;
+  color:var(--txt);
+  outline:none;
+}
+.search-box input::placeholder{color:var(--txt-soft)}
+
+.btn-filter, .btn-new{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:12px 18px;
+  border-radius:var(--r-md);
+  font-size:14px;
+  font-weight:600;
+  transition:background-color 150ms ease, transform 160ms var(--ease-out);
+}
+.btn-filter{
+  border:1px solid var(--stroke);
+  background:var(--panel-2);
+  color:var(--txt);
+}
+.btn-new{
+  border:1px solid var(--cyan);
+  background:rgba(56,199,244,.12);
+  color:var(--cyan);
+}
+.btn-filter:active, .btn-new:active{transform:scale(.97)}
+@media (hover:hover) and (pointer:fine){
+  .btn-filter:hover{background:var(--card)}
+  .btn-new:hover{background:rgba(56,199,244,.2)}
+}
+
+/* Tabla de pacientes */
+.patients-card{
+  background:linear-gradient(180deg,var(--card),var(--panel-2));
+  border:1px solid var(--stroke);
+  border-radius:var(--r-lg);
+  overflow:hidden;
+}
+.table-header{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1.5fr 1fr 100px;
+  gap:12px;
+  padding:16px 20px;
+  background:var(--panel-2);
+  border-bottom:1px solid var(--stroke);
+}
+.table-header span{
+  font-size:12px;
+  font-weight:600;
+  color:var(--txt-soft);
+  text-transform:uppercase;
+  letter-spacing:0.05em;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.table-header span svg{
+  width:14px;
+  height:14px;
+}
+
+.patient-row{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1.5fr 1fr 100px;
+  gap:12px;
+  padding:16px 20px;
+  align-items:center;
+  border-bottom:1px solid rgba(110,160,255,.08);
+  transition:background-color 150ms ease;
+  cursor:pointer;
+}
+.patient-row:last-child{border-bottom:0}
+.patient-row:hover{background:rgba(110,160,255,.08)}
+.patient-row.active{
+  background:rgba(46,123,246,.15);
+  border-left:3px solid var(--blue);
+}
+
+/* Celda paciente */
+.patient-info{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.patient-avatar{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  background:rgba(46,123,246,.2);
+  border:1px solid var(--stroke-strong);
+  display:grid;
+  place-items:center;
+  font-size:12px;
+  font-weight:700;
+  color:var(--cyan);
+  flex:none;
+}
+.patient-name{
+  font-weight:600;
+  font-size:14px;
+}
+.patient-meta{
+  font-size:12px;
+  color:var(--txt-soft);
+  margin-top:2px;
+}
+
+/* Celdas comunes */
+.cell{
+  font-size:13.5px;
+  color:var(--txt);
+}
+.cell-muted{
+  font-size:13px;
+  color:var(--txt-soft);
+}
+.cell-study{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.cell-study .date{
+  font-size:13.5px;
+  font-weight:500;
+  color:var(--txt);
+}
+.cell-study .type{
+  font-size:12px;
+  color:var(--txt-soft);
+}
+
+/* Estados */
+.status{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 12px;
+  border-radius:8px;
+  font-size:12px;
+  font-weight:600;
+}
+.status::before{
+  content:'';
+  width:6px;
+  height:6px;
+  border-radius:50%;
+}
+.status.completed{
+  background:rgba(61,220,151,.12);
+  color:var(--green);
+  border:1px solid rgba(61,220,151,.4);
+}
+.status.completed::before{background:var(--green)}
+.status.waiting{
+  background:rgba(245,158,45,.12);
+  color:var(--orange);
+  border:1px solid rgba(245,158,45,.4);
+}
+.status.waiting::before{background:var(--orange)}
+.status.cancelled{
+  background:rgba(255,90,110,.12);
+  color:var(--red);
+  border:1px solid rgba(255,90,110,.4);
+}
+.status.cancelled::before{background:var(--red)}
+
+/* Acciones */
+.actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.btn-action{
+  width:32px;
+  height:32px;
+  border-radius:8px;
+  display:grid;
+  place-items:center;
+  border:1px solid var(--stroke);
+  background:transparent;
+  color:var(--txt-soft);
+  transition:all 150ms ease;
+}
+.btn-action svg{width:16px;height:16px}
+.btn-action:hover{
+  border-color:var(--stroke-strong);
+  color:var(--txt);
+  background:rgba(110,160,255,.1);
+}
+.btn-more{
+  width:32px;
+  height:32px;
+  border-radius:8px;
+  display:grid;
+  place-items:center;
+  border:0;
+  background:transparent;
+  color:var(--txt-soft);
+  font-size:16px;
+  font-weight:700;
+  cursor:pointer;
+  transition:all 150ms ease;
+}
+.btn-more:hover{color:var(--txt)}
+
+/* Menú desplegable de acciones */
+.actions-dropdown{
+  position:absolute;
+  right:0;
+  top:100%;
+  margin-top:8px;
+  min-width:260px;
+  background:linear-gradient(180deg,var(--card),var(--panel-2));
+  border:1px solid var(--stroke-strong);
+  border-radius:var(--r-lg);
+  padding:10px;
+  z-index:100;
+  box-shadow:0 10px 40px rgba(0,0,0,.4);
+  opacity:0;
+  visibility:hidden;
+  transform:translateY(-10px);
+  transition:all 200ms var(--ease-out);
+}
+.actions-dropdown.active{
+  opacity:1;
+  visibility:visible;
+  transform:translateY(0);
+}
+.actions-dropdown a{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 14px;
+  border-radius:10px;
+  font-size:14px;
+  color:var(--txt);
+  transition:all 150ms ease;
+}
+.actions-dropdown a:hover{
+  background:rgba(110,160,255,.1);
+}
+.actions-dropdown a svg{
+  width:18px;
+  height:18px;
+  flex:none;
+}
+.actions-dropdown .danger{
+  color:var(--red);
+}
+.actions-dropdown .danger:hover{
+  background:rgba(255,90,110,.1);
+}
+.actions-wrapper{
+  position:relative;
+}
+
+/* Footer tabla */
+.table-footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:16px 20px;
+  border-top:1px solid var(--stroke);
+  font-size:13px;
+  color:var(--txt-soft);
+  position:sticky;
+  bottom:0;
+  background:var(--card);
+  z-index:10;
+}
+
+/* ============ PANEL LATERAL DETALLE PACIENTE ============ */
+.content-with-panel{
+  display:grid;
+  grid-template-columns:1fr 0;
+  gap:0;
+  transition:grid-template-columns 300ms var(--ease-out);
+  overflow:hidden;
+}
+.content-with-panel.panel-open{
+  grid-template-columns:1fr 420px;
+  gap:20px;
+}
+
+.patient-detail-panel{
+  background:linear-gradient(180deg,var(--card) 0%,var(--panel-2) 100%);
+  border:1px solid var(--stroke-strong);
+  border-radius:var(--r-lg);
+  overflow-y:auto;
+  padding:24px;
+  opacity:0;
+  visibility:hidden;
+  transform:translateX(20px);
+  transition:all 300ms var(--ease-out);
+  height:100%;
+}
+/* Ocultar columna ESTADO cuando el panel está abierto */
+.content-with-panel.panel-open .col-status{
+  display:none;
+}
+.content-with-panel.panel-open .table-header,
+.content-with-panel.panel-open .patient-row{
+  grid-template-columns:2fr 1fr 1fr 1.5fr 100px;
+}
+.content-with-panel.panel-open .patient-detail-panel{
+  opacity:1;
+  visibility:visible;
+  transform:translateX(0);
+}
+
+/* Header del panel */
+.panel-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  margin-bottom:20px;
+}
+.patient-identity{
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+.panel-avatar{
+  width:72px;
+  height:72px;
+  border-radius:50%;
+  background:linear-gradient(135deg,var(--blue),var(--cyan));
+  display:grid;
+  place-items:center;
+  font-family:'Sora',sans-serif;
+  font-size:24px;
+  font-weight:700;
+  color:#fff;
+  flex:none;
+}
+.patient-title h3{
+  font-family:'Sora',sans-serif;
+  font-size:18px;
+  font-weight:700;
+  margin-bottom:4px;
+}
+.patient-title .folio{
+  font-size:13px;
+  color:var(--txt-soft);
+}
+.btn-close-panel{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  border:1px solid var(--stroke);
+  background:transparent;
+  color:var(--txt-soft);
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  transition:all 150ms ease;
+}
+.btn-close-panel:hover{
+  border-color:var(--red);
+  color:var(--red);
+  background:rgba(255,90,110,.1);
+}
+
+/* Meta info rápida */
+.quick-meta{
+  display:flex;
+  gap:20px;
+  margin-bottom:20px;
+  padding-bottom:16px;
+  border-bottom:1px solid var(--stroke);
+}
+.meta-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:13px;
+  color:var(--txt-soft);
+}
+.meta-item svg{
+  width:16px;
+  height:16px;
+  color:var(--cyan);
+}
+
+/* Tabs */
+.panel-tabs{
+  display:flex;
+  gap:0;
+  margin-bottom:20px;
+  border-bottom:1px solid var(--stroke);
+}
+.tab-btn{
+  padding:10px 16px;
+  border-radius:0;
+  border:0;
+  border-bottom:2px solid transparent;
+  margin-bottom:-1px;
+  background:transparent;
+  color:var(--txt-soft);
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all 150ms ease;
+}
+.tab-btn:hover{
+  color:var(--txt);
+  background:transparent;
+}
+.tab-btn.active{
+  color:#2B7FFF;
+  background:transparent;
+  border-bottom:2px solid #2B7FFF;
+  font-weight:700;
+}
+
+/* Sección info general */
+.info-section h4{
+  font-size:14px;
+  font-weight:600;
+  margin-bottom:16px;
+  color:var(--txt);
+}
+.info-grid{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  margin-bottom:20px;
+}
+.info-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.info-label{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:13px;
+}
+.info-label svg{
+  width:18px;
+  height:18px;
+  color:var(--txt-soft);
+}
+.info-label span{
+  color:var(--txt-soft);
+}
+.info-value{
+  font-size:13px;
+  color:var(--txt);
+  text-align:right;
+}
+
+/* Layout info + holograma */
+.info-holo-container{
+  display:grid;
+  grid-template-columns:1fr 100px;
+  gap:16px;
+  margin-bottom:20px;
+  align-items:start;
+}
+
+/* Holograma en panel */
+.panel-hologram{
+  width:90px;
+  height:130px;
+  position:relative;
+  align-self:center;
+}
+.panel-hologram svg{
+  width:100%;
+  height:100%;
+  filter:drop-shadow(0 0 15px rgba(56,199,244,.4));
+}
+.holo-body{
+  fill:none;
+  stroke:var(--cyan);
+  stroke-width:1.5;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  opacity:0.8;
+}
+.holo-organs{
+  fill:rgba(56,199,244,.15);
+  stroke:var(--cyan);
+  stroke-width:1;
+}
+.holo-highlight{
+  fill:rgba(245,158,45,.25);
+  stroke:var(--orange);
+  stroke-width:1.5;
+  animation:pulse 2s ease-in-out infinite;
+}
+
+/* Cards inferiores */
+.panel-cards{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-bottom:16px;
+}
+.mini-card{
+  background:var(--panel-2);
+  border:1px solid var(--stroke);
+  border-radius:var(--r-md);
+  padding:16px;
+}
+.mini-card-header{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+  color:var(--txt-soft);
+  margin-bottom:8px;
+}
+.mini-card-header svg{
+  width:16px;
+  height:16px;
+}
+.mini-card-value{
+  font-size:14px;
+  font-weight:600;
+  color:var(--txt);
+}
+.mini-card-sub{
+  font-size:12px;
+  color:var(--txt-soft);
+  margin-top:4px;
+}
+.status-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 12px;
+  border-radius:8px;
+  font-size:12px;
+  font-weight:600;
+  background:rgba(61,220,151,.12);
+  color:var(--green);
+  border:1px solid rgba(61,220,151,.4);
+}
+.status-badge::before{
+  content:'';
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:var(--green);
+}
+
+/* Notas rápidas */
+.notes-section{
+  background:var(--panel-2);
+  border:1px solid var(--stroke);
+  border-radius:var(--r-md);
+  padding:16px;
+}
+.notes-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:12px;
+}
+.notes-header h4{
+  font-size:14px;
+  font-weight:600;
+}
+.notes-header button{
+  font-size:12px;
+  color:var(--cyan);
+  background:transparent;
+  border:0;
+  cursor:pointer;
+}
+.notes-text{
+  font-size:13px;
+  color:var(--txt-soft);
+  line-height:1.5;
+}
+
+/* Sección de Historial */
+.tab-content{
+  display:none;
+}
+.tab-content.active{
+  display:block;
+}
+.historial-section h4{
+  font-size:14px;
+  font-weight:600;
+  margin-bottom:16px;
+  color:var(--txt);
+}
+.historial-list{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  margin-bottom:20px;
+}
+.historial-item{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  padding:14px;
+  background:var(--panel-2);
+  border:1px solid var(--stroke);
+  border-radius:var(--r-md);
+  transition:all 150ms ease;
+}
+.historial-item:hover{
+  border-color:var(--stroke-strong);
+  background:var(--card);
+}
+.historial-icon{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  background:rgba(56,199,244,.15);
+  display:grid;
+  place-items:center;
+  flex:none;
+}
+.historial-icon svg{
+  width:18px;
+  height:18px;
+  color:var(--cyan);
+}
+.historial-icon.green{
+  background:rgba(61,220,151,.15);
+}
+.historial-icon.green svg{
+  color:var(--green);
+}
+.historial-icon.orange{
+  background:rgba(245,158,45,.15);
+}
+.historial-icon.orange svg{
+  color:var(--orange);
+}
+.historial-icon.purple{
+  background:rgba(139,92,246,.15);
+}
+.historial-icon.purple svg{
+  color:#8b5cf6;
+}
+.historial-info{
+  flex:1;
+}
+.historial-title{
+  font-size:13px;
+  font-weight:600;
+  color:var(--txt);
+  margin-bottom:4px;
+}
+.historial-doctor{
+  font-size:12px;
+  color:var(--txt-soft);
+}
+.historial-right{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:6px;
+}
+.historial-date{
+  font-size:12px;
+  color:var(--txt-soft);
+}
+.status-tag{
+  padding:4px 10px;
+  border-radius:6px;
+  font-size:11px;
+  font-weight:600;
+}
+.status-tag.urgente{
+  background:rgba(255,90,110,.15);
+  color:var(--red);
+}
+.status-tag.espera{
+  background:rgba(245,158,45,.15);
+  color:var(--orange);
+}
+.status-tag.completado{
+  background:rgba(61,220,151,.15);
+  color:var(--green);
+}
+.btn-view-all{
+  width:100%;
+  padding:12px;
+  border-radius:var(--r-md);
+  border:1px solid var(--stroke);
+  background:transparent;
+  color:var(--cyan);
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all 150ms ease;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+.btn-view-all:hover{
+  background:rgba(56,199,244,.1);
+  border-color:var(--cyan);
+}
+
+/* Filtro de Estado en Header */
+.estado-filter-container{
+  position:relative;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.estado-filter-btn{
+  background:none;
+  border:none;
+  color:var(--txt-soft);
+  cursor:pointer;
+  padding:2px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:4px;
+  transition:all 150ms ease;
+}
+.estado-filter-btn:hover{
+  background:rgba(255,255,255,.1);
+  color:var(--txt);
+}
+.estado-filter-btn svg{
+  width:14px;
+  height:14px;
+}
+.estado-filter-dropdown{
+  position:absolute;
+  top:calc(100% + 8px);
+  right:0;
+  background:var(--panel);
+  border:1px solid var(--stroke);
+  border-radius:var(--r-md);
+  padding:8px 0;
+  min-width:160px;
+  box-shadow:0 8px 24px rgba(0,0,0,.3);
+  z-index:100;
+  display:none;
+  opacity:0;
+  transform:translateY(-10px);
+  transition:opacity 200ms ease, transform 200ms var(--ease-out);
+}
+.estado-filter-dropdown.active{
+  display:block;
+  opacity:1;
+  transform:translateY(0);
+}
+.filter-option{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 16px;
+  cursor:pointer;
+  font-size:12px;
+  color:var(--txt);
+  transition:background 150ms ease;
+}
+.filter-option:hover{
+  background:var(--panel-2);
+}
+.status-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  flex:none;
+}
+.status-dot.green{
+  background:var(--green);
+}
+.status-dot.yellow{
+  background:var(--orange);
+}
+.status-dot.red{
+  background:var(--red);
+}
+.status-dot.gray{
+  background:var(--txt-soft);
+}
+
+/* Ordenar dropdown (Paciente y Último Estudio) */
+.ordenar-container{
+  position:relative;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.ordenar-btn{
+  background:none;
+  border:none;
+  color:var(--txt-soft);
+  cursor:pointer;
+  padding:2px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:4px;
+  transition:all 150ms ease;
+}
+.ordenar-btn:hover{
+  background:rgba(255,255,255,.1);
+  color:var(--txt);
+}
+.ordenar-btn svg{
+  width:14px;
+  height:14px;
+}
+.ordenar-dropdown{
+  position:absolute;
+  top:calc(100% + 8px);
+  right:0;
+  background:var(--panel);
+  border:1px solid var(--stroke);
+  border-radius:var(--r-md);
+  padding:8px 0;
+  min-width:180px;
+  box-shadow:0 8px 24px rgba(0,0,0,.3);
+  z-index:100;
+  display:none;
+  opacity:0;
+  transform:translateY(-10px);
+  transition:opacity 200ms ease, transform 200ms var(--ease-out);
+}
+.ordenar-dropdown.active{
+  display:block;
+  opacity:1;
+  transform:translateY(0);
+}
+.ordenar-option{
+  padding:8px 16px;
+  cursor:pointer;
+  font-size:12px;
+  color:var(--txt);
+  transition:background 150ms ease;
+}
+.ordenar-option:hover{
+  background:var(--panel-2);
+}
+.ordenar-option.active{
+  background:var(--blue);
+  color:var(--white);
+}
+
+/* Sección de Estudios */
+.estudios-section h4{
+  font-size:14px;
+  font-weight:600;
+  margin-bottom:16px;
+  color:var(--txt);
+}
+.categorias-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+  margin-bottom:24px;
+}
+.categoria-card{
+  background:var(--panel-2);
+  border:1px solid var(--stroke);
+  border-radius:var(--r-md);
+  padding:14px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  transition:all 150ms ease;
+  cursor:pointer;
+}
+.categoria-card:hover{
+  border-color:var(--stroke-strong);
+  background:var(--card);
+}
+.categoria-icon{
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  flex:none;
+}
+.categoria-icon.blue{
+  background:rgba(56,199,244,.15);
+}
+.categoria-icon.blue svg{
+  color:var(--cyan);
+}
+.categoria-icon.beige{
+  background:rgba(210,170,130,.2);
+}
+.categoria-icon.beige svg{
+  color:#d2aa82;
+}
+.categoria-icon.yellow{
+  background:rgba(245,200,45,.15);
+}
+.categoria-icon.yellow svg{
+  color:#f5c82d;
+}
+.categoria-icon.green{
+  background:rgba(61,220,151,.15);
+}
+.categoria-icon.green svg{
+  color:var(--green);
+}
+.categoria-icon.purple{
+  background:rgba(139,92,246,.15);
+}
+.categoria-icon.purple svg{
+  color:#8b5cf6;
+}
+.categoria-icon.red{
+  background:rgba(255,90,110,.15);
+}
+.categoria-icon.red svg{
+  color:var(--red);
+}
+.categoria-info{
+  flex:1;
+}
+.categoria-title{
+  font-size:13px;
+  font-weight:600;
+  color:var(--txt);
+  margin-bottom:2px;
+}
+.categoria-count{
+  font-size:12px;
+  color:var(--txt-soft);
+}
+.ultimo-estudio{
+  background:var(--panel-2);
+  border:1px solid var(--stroke);
+  border-radius:var(--r-md);
+  padding:14px;
+  margin-bottom:20px;
+}
+.ultimo-estudio h4{
+  margin-bottom:12px;
+}
+.estudio-card{
+  display:flex;
+  gap:14px;
+  align-items:center;
+}
+.estudio-img{
+  width:80px;
+  height:60px;
+  border-radius:var(--r-sm);
+  background:linear-gradient(135deg,#1a2a3a 0%,#0f1a24 100%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  flex:none;
+}
+.estudio-img svg{
+  width:32px;
+  height:32px;
+  color:var(--cyan);
+  opacity:.7;
+}
+.estudio-info{
+  flex:1;
+}
+.estudio-title{
+  font-size:13px;
+  font-weight:600;
+  color:var(--txt);
+  margin-bottom:4px;
+}
+.estudio-meta{
+  font-size:12px;
+  color:var(--txt-soft);
+  margin-bottom:2px;
+}
+.estudio-doctor{
+  font-size:12px;
+  color:var(--txt-soft);
+}
+.btn-ver-detalles{
+  font-size:12px;
+  color:var(--cyan);
+  font-weight:600;
+  white-space:nowrap;
+}
+
+/* Sección de Reportes IA */
+.reportes-section h4{
+  font-size:14px;
+  font-weight:600;
+  margin-bottom:16px;
+  color:var(--txt);
+}
+.ia-summary-card{
+  background:var(--panel-2);
+  border:1px solid var(--stroke);
+  border-radius:var(--r-md);
+  padding:16px;
+  margin-bottom:20px;
+}
+.ia-patient-header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:16px;
+}
+.ia-patient-avatar{
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  background:var(--blue);
+  display:grid;
+  place-items:center;
+  font-size:14px;
+  font-weight:700;
+  color:#fff;
+  flex:none;
+}
+.ia-patient-info{
+  flex:1;
+}
+.ia-patient-label{
+  font-size:11px;
+  color:var(--txt-soft);
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  margin-bottom:2px;
+}
+.ia-patient-name{
+  font-size:14px;
+  font-weight:600;
+  color:var(--txt);
+}
+.ia-study-meta{
+  font-size:12px;
+  color:var(--txt-soft);
+  margin-top:4px;
+}
+.ia-stomach-icon{
+  width:60px;
+  height:60px;
+  opacity:.8;
+}
+.ia-stomach-icon svg{
+  width:100%;
+  height:100%;
+  color:var(--cyan);
+}
+.ia-probability-section{
+  background:var(--card);
+  border:1px solid var(--stroke);
+  border-radius:var(--r-md);
+  padding:20px;
+  display:flex;
+  align-items:center;
+  gap:20px;
+}
+.ia-probability-left{
+  flex:1;
+}
+.ia-probability-label{
+  font-size:12px;
+  color:var(--txt-soft);
+  margin-bottom:8px;
+}
+.ia-probability-value{
+  font-size:42px;
+  font-weight:800;
+  color:var(--blue);
+  line-height:1;
+}
+.ia-probability-desc{
+  font-size:11px;
+  color:var(--txt-soft);
+  margin-top:8px;
+  line-height:1.4;
+}
+.ia-gauge-container{
+  width:100px;
+  height:100px;
+  position:relative;
+  flex:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.ia-gauge-svg{
+  width:100%;
+  height:100%;
+  transform:rotate(-90deg);
+}
+.ia-gauge-bg{
+  fill:none;
+  stroke:rgba(56,199,244,.15);
+  stroke-width:8;
+  stroke-linecap:round;
+  stroke-dasharray:283;
+}
+.ia-gauge-fill{
+  fill:none;
+  stroke:var(--blue);
+  stroke-width:8;
+  stroke-linecap:round;
+  stroke-dasharray:283;
+  stroke-dashoffset:283;
+  transition:stroke-dashoffset 1.5s ease-out;
+}
+.ia-gauge-percentage{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  font-size:20px;
+  font-weight:700;
+  color:var(--blue);
+  line-height:1;
+}
+.ia-recommendations{
+  background:var(--panel-2);
+  border:1px solid var(--stroke);
+  border-radius:var(--r-md);
+  padding:16px;
+  margin-bottom:20px;
+}
+.ia-recommendations h5{
+  font-size:13px;
+  font-weight:600;
+  color:var(--txt);
+  margin-bottom:12px;
+}
+.ia-rec-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:12px;
+  color:var(--txt-soft);
+  margin-bottom:8px;
+}
+.ia-rec-item:last-child{
+  margin-bottom:0;
+}
+.ia-rec-icon{
+  width:20px;
+  height:20px;
+  border-radius:50%;
+  background:rgba(61,220,151,.15);
+  display:grid;
+  place-items:center;
+  flex:none;
+}
+.ia-rec-icon svg{
+  width:12px;
+  height:12px;
+  color:var(--green);
+}
+
+@media (max-width:1200px){
+  .content-with-panel.panel-open{
+    grid-template-columns:1fr;
+  }
+  .patient-detail-panel{
+    right:0;
+    top:0;
+    bottom:0;
+    width:100%;
+    max-width:420px;
+    border-radius:0;
+    border-left:1px solid var(--stroke-strong);
+    z-index:200;
+    transform:translateX(100%);
+  }
+  .content-with-panel.panel-open .patient-detail-panel{
+    transform:translateX(0);
+  }
+}
+.table-footer a{
+  color:var(--blue);
+  font-weight:600;
+  transition:color 150ms ease;
+}
+.table-footer a:hover{color:var(--cyan)}
+
+/* Responsive */
+@media (max-width:1024px){
+  .table-header,
+  .patient-row{
+    grid-template-columns:2fr 1fr 1fr 1fr 80px;
+  }
+  .table-header span:nth-child(4),
+  .patient-row .cell-study{display:none}
+}
+@media (max-width:768px){
+  .table-header,
+  .patient-row{
+    grid-template-columns:2fr 1fr 1fr 60px;
+  }
+  .table-header span:nth-child(3),
+  .patient-row .cell-fecha{display:none}
+}
+</style>
+@endpush
+
+@section('content')
+
+  {{-- Toolbar con búsqueda y acciones --}}
+  <section class="toolbar rise d2">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Busca por nombre del paciente">
+    </div>
+    <button class="btn-filter">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      Filtros
+    </button>
+    <a href="{{ route('pacientes.create') }}" class="btn-new">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nuevo paciente
+    </a>
+  </section>
+
+{{-- Wrapper con layout grid para tabla + panel --}}
+<div class="content-with-panel" id="contentWrapper">
+
+  {{-- Tabla de pacientes --}}
+  <section class="patients-card rise d3">
+    <div class="table-header">
+      <span class="col-paciente ordenar-container">
+        PACIENTE
+        <button type="button" class="ordenar-btn" onclick="toggleOrdenar('paciente')" title="Ordenar pacientes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div id="ordenarPacienteDropdown" class="ordenar-dropdown">
+          <div class="ordenar-option" onclick="ordenarPor('paciente', 'default')">
+            Predeterminado
+          </div>
+          <div class="ordenar-option" onclick="ordenarPor('paciente', 'nombre-asc')">
+            Nombre: A-Z
+          </div>
+          <div class="ordenar-option" onclick="ordenarPor('paciente', 'nombre-desc')">
+            Nombre: Z-A
+          </div>
+        </div>
+      </span>
+      <span>FOLIO</span>
+      <span>FECHA DE NAC.</span>
+      <span class="col-estudio ordenar-container">
+        ÚLTIMO ESTUDIO
+        <button type="button" class="ordenar-btn" onclick="toggleOrdenar('estudio')" title="Ordenar estudios">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div id="ordenarEstudioDropdown" class="ordenar-dropdown">
+          <div class="ordenar-option" onclick="ordenarPor('estudio', 'default')">
+            Predeterminado
+          </div>
+          <div class="ordenar-option" onclick="ordenarPor('estudio', 'fecha-reciente')">
+            Fecha: más reciente
+          </div>
+          <div class="ordenar-option" onclick="ordenarPor('estudio', 'fecha-antigua')">
+            Fecha: más antigua
+          </div>
+        </div>
+      </span>
+      <span class="col-status estado-filter-container">
+        ESTADO
+        <button type="button" class="estado-filter-btn" onclick="toggleEstadoFilter()" title="Filtrar por estado">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div id="estadoFilterDropdown" class="estado-filter-dropdown">
+          <div class="filter-option" onclick="filterByEstado('all')">
+            <span class="status-dot gray"></span> Todos
+          </div>
+          <div class="filter-option" onclick="filterByEstado('completado')">
+            <span class="status-dot green"></span> Completado
+          </div>
+          <div class="filter-option" onclick="filterByEstado('espera')">
+            <span class="status-dot yellow"></span> En espera
+          </div>
+          <div class="filter-option" onclick="filterByEstado('cancelado')">
+            <span class="status-dot red"></span> Cancelado
+          </div>
+        </div>
+      </span>
+      <span>ACCIONES</span>
+    </div>
+
+    @php
+      $patients = [
+        ['name' => 'María Gonzales', 'initials' => 'MG', 'age' => '45 años', 'gender' => 'Femenino', 'folio' => '00045', 'dob' => '16/04/1979', 'study_date' => '22 Mayo 2024', 'study_type' => 'Endoscopia diagnóstica', 'status' => 'completed', 'status_text' => 'Completado'],
+        ['name' => 'María Gonzales', 'initials' => 'MG', 'age' => '45 años', 'gender' => 'Femenino', 'folio' => '00045', 'dob' => '16/04/1979', 'study_date' => '22 Mayo 2024', 'study_type' => 'Endoscopia diagnóstica', 'status' => 'waiting', 'status_text' => 'En espera'],
+        ['name' => 'María Gonzales', 'initials' => 'MG', 'age' => '45 años', 'gender' => 'Femenino', 'folio' => '00045', 'dob' => '16/04/1979', 'study_date' => '22 Mayo 2024', 'study_type' => 'Endoscopia diagnóstica', 'status' => 'completed', 'status_text' => 'Completado'],
+        ['name' => 'María Gonzales', 'initials' => 'MG', 'age' => '45 años', 'gender' => 'Femenino', 'folio' => '00045', 'dob' => '16/04/1979', 'study_date' => '22 Mayo 2024', 'study_type' => 'Endoscopia diagnóstica', 'status' => 'completed', 'status_text' => 'Completado'],
+        ['name' => 'María Gonzales', 'initials' => 'MG', 'age' => '45 años', 'gender' => 'Femenino', 'folio' => '00045', 'dob' => '16/04/1979', 'study_date' => '22 Mayo 2024', 'study_type' => 'Endoscopia diagnóstica', 'status' => 'completed', 'status_text' => 'Completado'],
+        ['name' => 'María Gonzales', 'initials' => 'MG', 'age' => '45 años', 'gender' => 'Femenino', 'folio' => '00045', 'dob' => '16/04/1979', 'study_date' => '22 Mayo 2024', 'study_type' => 'Endoscopia diagnóstica', 'status' => 'cancelled', 'status_text' => 'Cancelado'],
+        ['name' => 'María Gonzales', 'initials' => 'MG', 'age' => '45 años', 'gender' => 'Femenino', 'folio' => '00045', 'dob' => '16/04/1979', 'study_date' => '22 Mayo 2024', 'study_type' => 'Endoscopia diagnóstica', 'status' => 'completed', 'status_text' => 'Completado'],
+        ['name' => 'María Gonzales', 'initials' => 'MG', 'age' => '45 años', 'gender' => 'Femenino', 'folio' => '00045', 'dob' => '16/04/1979', 'study_date' => '22 Mayo 2024', 'study_type' => 'Endoscopia diagnóstica', 'status' => 'completed', 'status_text' => 'Completado'],
+        ['name' => 'María Gonzales', 'initials' => 'MG', 'age' => '45 años', 'gender' => 'Femenino', 'folio' => '00045', 'dob' => '16/04/1979', 'study_date' => '22 Mayo 2024', 'study_type' => 'Endoscopia diagnóstica', 'status' => 'completed', 'status_text' => 'Completado'],
+      ];
+    @endphp
+
+    @foreach($patients as $index => $patient)
+    <div class="patient-row" onclick="openPanel({{ $index }})" data-index="{{ $index }}" data-status="{{ $patient['status'] }}">
+      <div class="patient-info">
+        <div class="patient-avatar">{{ $patient['initials'] }}</div>
+        <div>
+          <div class="patient-name">{{ $patient['name'] }}</div>
+          <div class="patient-meta">{{ $patient['age'] }} · {{ $patient['gender'] }}</div>
+        </div>
+      </div>
+      <div class="cell">{{ $patient['folio'] }}</div>
+      <div class="cell cell-fecha cell-muted">{{ $patient['dob'] }}</div>
+      <div class="cell-study">
+        <span class="date">{{ $patient['study_date'] }}</span>
+        <span class="type">{{ $patient['study_type'] }}</span>
+      </div>
+      <div class="col-status">
+        <span class="status {{ $patient['status'] }}">{{ $patient['status_text'] }}</span>
+      </div>
+      <div class="actions-wrapper">
+        <div class="actions">
+          <button class="btn-action" aria-label="Ver paciente">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+          <button class="btn-more" aria-label="Más opciones" onclick="event.stopPropagation(); toggleMenu(this)">⋮</button>
+        </div>
+        <div class="actions-dropdown">
+          <a href="#">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Crear informe
+          </a>
+          <a href="{{ route('pacientes.edit') }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Editar información
+          </a>
+          <a href="#">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/><line x1="12" y1="17" x2="12" y2="22"/></svg>
+            Iniciar estudio
+          </a>
+          <a href="#">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><path d="M9 22h6"/><circle cx="12" cy="11" r="1" fill="currentColor"/></svg>
+            Generar informe por IA
+          </a>
+          <a href="#">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Programar cita
+          </a>
+          <a href="#">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.292-.995-.69-2.058-.997a4.88 4.88 0 0 0-.82-.166c-.197.233-.486.652-.675.99-.785 1.4-2.055 1.412-2.839 0-.189-.338-.478-.757-.675-.99a4.88 4.88 0 0 0-.82.166c-1.063.307-1.761.705-2.058.997-.09.092-.09.242 0 .333.297.298.995.705 2.058 1.012.82.236 1.638.178 2.189-.089.12-.055.235-.117.345-.185.11.068.225.13.345.185.55.267 1.369.325 2.189.089 1.063-.307 1.761-.714 2.058-1.012.09-.091.09-.241 0-.333zM12 2C6.486 2 2 6.486 2 12s4.486 10 10 10c1.468 0 2.861-.332 4.113-.912 1.29-.596 2.4-1.476 3.245-2.563a9.95 9.95 0 0 0 1.542-4.06A9.95 9.95 0 0 0 22 12c0-5.514-4.486-10-10-10zm0 18c-4.411 0-8-3.589-8-8 0-1.473.403-2.85 1.105-4.033a2 2 0 0 1 2.034-.967c.96.13 1.846.516 2.555 1.098a5.96 5.96 0 0 1 2.612 0c.709-.582 1.595-.968 2.555-1.098a2 2 0 0 1 2.034.967A7.963 7.963 0 0 1 20 12c0 4.411-3.589 8-8 8z"/></svg>
+            Enviar WhatsApp/correo
+          </a>
+          <a href="#">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            Descargar expediente PDF
+          </a>
+          <a href="#" class="danger">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            Eliminar paciente
+          </a>
+        </div>
+      </div>
+    </div>
+    @endforeach
+
+    <div class="table-footer">
+      <span>Mostrando 1 a 9 de 128 pacientes</span>
+      <a href="#">Ver todos los pacientes</a>
+    </div>
+  </section>
+
+  {{-- Panel lateral de detalle del paciente --}}
+  <aside class="patient-detail-panel" id="patientPanel">
+    <div class="panel-header">
+      <div class="patient-identity">
+        <div class="panel-avatar" id="panelAvatar">MG</div>
+        <div class="patient-title">
+          <h3 id="panelName">María Gonzales</h3>
+          <span class="folio" id="panelFolio">Folio: 00045</span>
+        </div>
+      </div>
+      <button class="btn-close-panel" onclick="closePanel()" aria-label="Cerrar panel">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="quick-meta">
+      <div class="meta-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span id="panelAge">45 años</span>
+      </div>
+      <div class="meta-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span id="panelGender">Femenino</span>
+      </div>
+      <div class="meta-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span id="panelDob">16/04/1979</span>
+      </div>
+    </div>
+
+    <div class="panel-tabs">
+      <button class="tab-btn active" onclick="showTab('resumen')">Resumen</button>
+      <button class="tab-btn" onclick="showTab('historial')">Historial</button>
+      <button class="tab-btn" onclick="showTab('estudios')">Estudios</button>
+      <button class="tab-btn" onclick="showTab('reportes')">Reportes IA</button>
+    </div>
+
+    {{-- Contenido Tab Resumen --}}
+    <div id="tab-resumen" class="tab-content active">
+    <div class="info-holo-container">
+      <div class="info-section">
+        <h4>Información general</h4>
+        <div class="info-grid">
+          <div class="info-row">
+            <div class="info-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <span>Teléfono</span>
+            </div>
+            <div class="info-value" id="panelPhone">+52 722 162 0815</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              <span>Correo</span>
+            </div>
+            <div class="info-value" id="panelEmail">carlos@gmail.com</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span>Dirección</span>
+            </div>
+            <div class="info-value" id="panelAddress">Temaya, Francisco 01</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span>Médico</span>
+            </div>
+            <div class="info-value">Dr. Victor</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-hologram">
+        <svg viewBox="0 0 200 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="100" cy="25" r="15" class="holo-body"/>
+          <line x1="100" y1="40" x2="100" y2="50" class="holo-body"/>
+          <path d="M70 55 Q100 48 130 55 L125 100 L75 100 Z" class="holo-body"/>
+          <ellipse cx="85" cy="75" rx="12" ry="15" class="holo-organs"/>
+          <ellipse cx="115" cy="75" rx="12" ry="15" class="holo-organs"/>
+          <ellipse cx="100" cy="115" rx="20" ry="25" class="holo-highlight"/>
+          <path d="M85 100 Q100 95 115 100 L110 130 Q100 135 90 130 Z" class="holo-highlight"/>
+          <line x1="70" y1="55" x2="55" y2="140" class="holo-body"/>
+          <line x1="130" y1="55" x2="145" y2="140" class="holo-body"/>
+          <circle cx="55" cy="145" r="6" class="holo-body"/>
+          <circle cx="145" cy="145" r="6" class="holo-body"/>
+          <path d="M75 120 Q100 125 125 120 L120 160 L80 160 Z" class="holo-body"/>
+          <line x1="85" y1="160" x2="80" y2="240" class="holo-body"/>
+          <line x1="115" y1="160" x2="120" y2="240" class="holo-body"/>
+          <ellipse cx="80" cy="245" rx="10" ry="5" class="holo-body"/>
+          <ellipse cx="120" cy="245" rx="10" ry="5" class="holo-body"/>
+          <line x1="100" y1="50" x2="100" y2="160" class="holo-body" stroke-dasharray="3 2"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="panel-cards">
+      <div class="mini-card">
+        <div class="mini-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Próxima cita
+        </div>
+        <div class="mini-card-value">22 Mayo 2024</div>
+        <div class="mini-card-sub">10:30 AM</div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          Estado actual
+        </div>
+        <span class="status-badge">Estable</span>
+        <div class="mini-card-sub" style="margin-top:6px">Sin complicaciones reportadas</div>
+      </div>
+    </div>
+
+    <div class="notes-section">
+      <div class="notes-header">
+        <h4>Notas rápidas</h4>
+        <button>Editar</button>
+      </div>
+      <p class="notes-text">Paciente con antecedentes de gastritis crónica.</p>
+    </div>
+    </div>
+
+    {{-- Contenido Tab Historial --}}
+    <div id="tab-historial" class="tab-content">
+      <div class="historial-section">
+        <h4>Resumen de historial</h4>
+        <div class="historial-list">
+          <div class="historial-item">
+            <div class="historial-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            </div>
+            <div class="historial-info">
+              <div class="historial-title">Endoscopia diagnóstica</div>
+              <div class="historial-doctor">Dr. Victor</div>
+            </div>
+            <div class="historial-right">
+              <div class="historial-date">20 Mayo 2026</div>
+              <span class="status-tag urgente">Urgente</span>
+            </div>
+          </div>
+          <div class="historial-item">
+            <div class="historial-icon orange">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div class="historial-info">
+              <div class="historial-title">Consulta médica</div>
+              <div class="historial-doctor">Dr. Victor</div>
+            </div>
+            <div class="historial-right">
+              <div class="historial-date">15 Feb 2026</div>
+              <span class="status-tag espera">En espera</span>
+            </div>
+          </div>
+          <div class="historial-item">
+            <div class="historial-icon green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+            </div>
+            <div class="historial-info">
+              <div class="historial-title">Consulta médica</div>
+              <div class="historial-doctor">Dr. Victor</div>
+            </div>
+            <div class="historial-right">
+              <div class="historial-date">28 Sep 2025</div>
+              <span class="status-tag completado">Completado</span>
+            </div>
+          </div>
+          <div class="historial-item">
+            <div class="historial-icon green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            </div>
+            <div class="historial-info">
+              <div class="historial-title">Endoscopia diagnóstica</div>
+              <div class="historial-doctor">Dr. Victor</div>
+            </div>
+            <div class="historial-right">
+              <div class="historial-date">10 Jul 2024</div>
+              <span class="status-tag completado">Completado</span>
+            </div>
+          </div>
+          <div class="historial-item">
+            <div class="historial-icon purple">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            </div>
+            <div class="historial-info">
+              <div class="historial-title">Resultados de laboratorio</div>
+              <div class="historial-doctor">Dr. Victor</div>
+            </div>
+            <div class="historial-right">
+              <div class="historial-date">02 Jul 2024</div>
+              <span class="status-tag completado">Completado</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn-view-all">
+          Ver todo el resumen de historial
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </div>
+    </div>
+
+    {{-- Contenido Tab Estudios --}}
+    <div id="tab-estudios" class="tab-content">
+      <div class="estudios-section">
+        <h4>Categorías de estudios</h4>
+        <div class="categorias-grid">
+          <div class="categoria-card">
+            <div class="categoria-icon blue">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            </div>
+            <div class="categoria-info">
+              <div class="categoria-title">Endoscopias</div>
+              <div class="categoria-count">4 estudios</div>
+            </div>
+          </div>
+          <div class="categoria-card">
+            <div class="categoria-icon beige">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            </div>
+            <div class="categoria-info">
+              <div class="categoria-title">Colonoscopias</div>
+              <div class="categoria-count">2 estudios</div>
+            </div>
+          </div>
+          <div class="categoria-card">
+            <div class="categoria-icon yellow">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><line x1="4" y1="9" x2="20" y2="9"/><line x1="8" y1="5" x2="8" y2="21"/><line x1="16" y1="5" x2="16" y2="21"/></svg>
+            </div>
+            <div class="categoria-info">
+              <div class="categoria-title">Cápsula endoscópica</div>
+              <div class="categoria-count">1 estudio</div>
+            </div>
+          </div>
+          <div class="categoria-card">
+            <div class="categoria-icon green">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            </div>
+            <div class="categoria-info">
+              <div class="categoria-title">Estudios de imagen</div>
+              <div class="categoria-count">3 estudios</div>
+            </div>
+          </div>
+          <div class="categoria-card">
+            <div class="categoria-icon purple">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            </div>
+            <div class="categoria-info">
+              <div class="categoria-title">Laboratorio</div>
+              <div class="categoria-count">6 estudios</div>
+            </div>
+          </div>
+          <div class="categoria-card">
+            <div class="categoria-icon red">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+            </div>
+            <div class="categoria-info">
+              <div class="categoria-title">Otros estudios</div>
+              <div class="categoria-count">2 estudios</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ultimo-estudio">
+          <h4>Último estudio realizado</h4>
+          <div class="estudio-card">
+            <div class="estudio-img">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            </div>
+            <div class="estudio-info">
+              <div class="estudio-title">Endoscopia diagnóstica</div>
+              <div class="estudio-meta">22 Mayo 2026</div>
+              <div class="estudio-doctor">Dr. Victor</div>
+            </div>
+            <a href="#" class="btn-ver-detalles">Ver detalles</a>
+          </div>
+        </div>
+
+        <button class="btn-view-all">
+          Ver todos los estudios
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </div>
+    </div>
+
+    {{-- Contenido Tab Reportes IA --}}
+    <div id="tab-reportes" class="tab-content">
+      <div class="reportes-section">
+        <h4>Resumen de análisis IA</h4>
+        
+        <div class="ia-summary-card">
+          <div class="ia-patient-header">
+            <div class="ia-patient-avatar">MG</div>
+            <div class="ia-patient-info">
+              <div class="ia-patient-label">paciente</div>
+              <div class="ia-patient-name">María Gonzales</div>
+              <div class="ia-study-meta">Estudio: Endoscopia digestiva alta</div>
+              <div class="ia-study-meta">Fecha: 08/05/2025</div>
+            </div>
+            <div class="ia-stomach-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            </div>
+          </div>
+          
+          <div class="ia-probability-section">
+            <div class="ia-probability-left">
+              <div class="ia-probability-label">Probabilidad de gastritis</div>
+              <div class="ia-probability-value">82%</div>
+              <div class="ia-probability-desc">Basado en patrones<br>detectados por IA</div>
+            </div>
+            <div class="ia-gauge-container">
+              <svg class="ia-gauge-svg" viewBox="0 0 100 100">
+                <circle class="ia-gauge-bg" cx="50" cy="50" r="45"/>
+                <circle id="gaugeFill" class="ia-gauge-fill" cx="50" cy="50" r="45" data-percentage="82"/>
+              </svg>
+              <div class="ia-gauge-percentage" id="gaugePercentage">0%</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="ia-recommendations">
+          <h5>Recomendaciones IA</h5>
+          <div class="ia-rec-item">
+            <div class="ia-rec-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+            </div>
+            <span>Comparar con estudio previo del 2024</span>
+          </div>
+          <div class="ia-rec-item">
+            <div class="ia-rec-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+            </div>
+            <span>Seguimiento en 3 meses</span>
+          </div>
+        </div>
+        
+        <button class="btn-view-all">
+          Ver reporte de IA
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+@endsection
+
+@push('scripts')
+<script>
+// Datos de pacientes
+const patientsData = [
+  {name: 'María Gonzales', initials: 'MG', age: '45 años', gender: 'Femenino', folio: '00045', dob: '16/04/1979', phone: '+52 722 162 0815', email: 'maria.g@email.com', address: 'Temaya, Francisco 01'},
+  {name: 'Sofia Lozano', initials: 'SL', age: '28 años', gender: 'Femenino', folio: '00046', dob: '22/05/1996', phone: '+52 722 123 4567', email: 'sofia.l@email.com', address: 'Av. Hidalgo 123'},
+  {name: 'Juan Pérez', initials: 'JP', age: '35 años', gender: 'Masculino', folio: '00047', dob: '10/03/1989', phone: '+52 722 987 6543', email: 'juan.p@email.com', address: 'Calle Reforma 45'},
+  {name: 'Ana Ramírez', initials: 'AR', age: '40 años', gender: 'Femenino', folio: '00048', dob: '03/04/1984', phone: '+52 722 456 7890', email: 'ana.r@email.com', address: 'Av. Juárez 789'},
+  {name: 'Carlos López', initials: 'CL', age: '32 años', gender: 'Masculino', folio: '00049', dob: '15/08/1992', phone: '+52 722 789 0123', email: 'carlos.l@email.com', address: 'Calle Madero 234'},
+  {name: 'Laura Martínez', initials: 'LM', age: '29 años', gender: 'Femenino', folio: '00050', dob: '25/12/1994', phone: '+52 722 321 6547', email: 'laura.m@email.com', address: 'Av. Insurgentes 567'},
+  {name: 'Pedro Sánchez', initials: 'PS', age: '50 años', gender: 'Masculino', folio: '00051', dob: '08/07/1974', phone: '+52 722 654 3210', email: 'pedro.s@email.com', address: 'Calle 5 de Mayo 890'},
+  {name: 'Marta Díaz', initials: 'MD', age: '38 años', gender: 'Femenino', folio: '00052', dob: '12/11/1986', phone: '+52 722 147 2583', email: 'marta.d@email.com', address: 'Av. Morelos 147'},
+  {name: 'Roberto Ruiz', initials: 'RR', age: '42 años', gender: 'Masculino', folio: '00053', dob: '18/02/1982', phone: '+52 722 369 8521', email: 'roberto.r@email.com', address: 'Calle Allende 369'}
+];
+
+function toggleMenu(btn) {
+  document.querySelectorAll('.actions-dropdown.active').forEach(menu => {
+    if (menu !== btn.closest('.actions-wrapper').querySelector('.actions-dropdown')) {
+      menu.classList.remove('active');
+    }
+  });
+  const dropdown = btn.closest('.actions-wrapper').querySelector('.actions-dropdown');
+  dropdown.classList.toggle('active');
+}
+
+function openPanel(index) {
+  const patient = patientsData[index] || patientsData[0];
+  
+  document.getElementById('panelAvatar').textContent = patient.initials;
+  document.getElementById('panelName').textContent = patient.name;
+  document.getElementById('panelFolio').textContent = 'Folio: ' + patient.folio;
+  document.getElementById('panelAge').textContent = patient.age;
+  document.getElementById('panelGender').textContent = patient.gender;
+  document.getElementById('panelDob').textContent = patient.dob;
+  document.getElementById('panelPhone').textContent = patient.phone;
+  document.getElementById('panelEmail').textContent = patient.email;
+  document.getElementById('panelAddress').textContent = patient.address;
+  
+  document.getElementById('contentWrapper').classList.add('panel-open');
+  
+  document.querySelectorAll('.patient-row').forEach(row => row.classList.remove('active'));
+  document.querySelector('[data-index="' + index + '"]').classList.add('active');
+}
+
+function closePanel() {
+  document.getElementById('contentWrapper').classList.remove('panel-open');
+  document.querySelectorAll('.patient-row').forEach(row => row.classList.remove('active'));
+}
+
+// Tabs interactivos
+function showTab(tabName) {
+  // Actualizar botones
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  event.target.classList.add('active');
+  
+  // Mostrar contenido correspondiente
+  document.querySelectorAll('.tab-content').forEach(content => {
+    content.classList.remove('active');
+  });
+  document.getElementById('tab-' + tabName).classList.add('active');
+  
+  // Animar gauge si es la pestaña de Reportes IA
+  if (tabName === 'reportes') {
+    setTimeout(animateGauge, 100);
+  }
+}
+
+// Animar gauge circular
+function animateGauge() {
+  const gaugeFill = document.getElementById('gaugeFill');
+  const percentageText = document.getElementById('gaugePercentage');
+  
+  if (!gaugeFill || !percentageText) return;
+  
+  // Obtener porcentaje objetivo
+  const targetPercentage = parseInt(gaugeFill.dataset.percentage) || 0;
+  const circumference = 283; // 2 * PI * 45
+  
+  // Resetear gauge
+  gaugeFill.style.strokeDashoffset = circumference;
+  percentageText.textContent = '0%';
+  
+  // Animar después de un pequeño delay
+  setTimeout(() => {
+    const offset = circumference - (targetPercentage / 100) * circumference;
+    gaugeFill.style.strokeDashoffset = offset;
+    
+    // Animar el número
+    animateNumber(percentageText, 0, targetPercentage, 1500);
+  }, 100);
+}
+
+// Animar número de 0 a target
+function animateNumber(element, start, target, duration) {
+  const startTime = performance.now();
+  
+  function update(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    
+    // Easing: ease-out
+    const easeOut = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(start + (target - start) * easeOut);
+    
+    element.textContent = current + '%';
+    
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    }
+  }
+  
+  requestAnimationFrame(update);
+}
+
+// Cerrar menús al hacer click fuera
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.actions-wrapper')) {
+    document.querySelectorAll('.actions-dropdown.active').forEach(menu => {
+      menu.classList.remove('active');
+    });
+  }
+
+  // Cerrar filtro de estado al hacer clic fuera
+  if (!e.target.closest('.estado-filter-container')) {
+    const estadoDropdown = document.getElementById('estadoFilterDropdown');
+    if (estadoDropdown) {
+      estadoDropdown.classList.remove('active');
+    }
+  }
+});
+
+// ============ FUNCIONES DE FILTRO POR ESTADO ============
+
+// Mostrar/ocultar dropdown de filtro
+toggleEstadoFilter = function() {
+  const dropdown = document.getElementById('estadoFilterDropdown');
+  if (dropdown) {
+    dropdown.classList.toggle('active');
+  }
+};
+
+// Variable para guardar el filtro actual
+let currentEstadoFilter = 'all';
+
+// Filtrar pacientes por estado
+filterByEstado = function(estado) {
+  currentEstadoFilter = estado;
+  
+  // Cerrar dropdown
+  const dropdown = document.getElementById('estadoFilterDropdown');
+  if (dropdown) {
+    dropdown.classList.remove('active');
+  }
+  
+  // Obtener todas las filas de pacientes
+  const rows = document.querySelectorAll('.patient-row');
+  
+  // Convertir NodeList a Array para ordenar
+  const rowsArray = Array.from(rows);
+  
+  // Orden de prioridad: Completado primero, En espera segundo, Cancelado tercero
+  const ordenEstados = {
+    'completed': 1,
+    'waiting': 2,
+    'cancelled': 3
+  };
+  
+  // Ordenar por estado según la selección
+  if (estado === 'all') {
+    // Mostrar todos y ordenar: Completados primero, En espera segundo, Cancelados tercero
+    rowsArray.sort((a, b) => {
+      const estadoA = a.dataset.status || '';
+      const estadoB = b.dataset.status || '';
+      return (ordenEstados[estadoA] || 99) - (ordenEstados[estadoB] || 99);
+    });
+  } else {
+    // Filtrar por estado específico y ordenar
+    const estadoMapping = {
+      'completado': 'completed',
+      'espera': 'waiting',
+      'cancelado': 'cancelled'
+    };
+    const targetStatus = estadoMapping[estado];
+    
+    // Mostrar solo el estado seleccionado primero, luego los demás
+    rowsArray.sort((a, b) => {
+      const estadoA = a.dataset.status || '';
+      const estadoB = b.dataset.status || '';
+      
+      if (estadoA === targetStatus && estadoB !== targetStatus) return -1;
+      if (estadoB === targetStatus && estadoA !== targetStatus) return 1;
+      
+      // Si ambos son del mismo grupo, ordenar por orden de estados
+      return (ordenEstados[estadoA] || 99) - (ordenEstados[estadoB] || 99);
+    });
+  }
+  
+  // Reordenar en el DOM
+  const tableBody = document.querySelector('.patients-card');
+  rowsArray.forEach(row => {
+    // Insertar cada fila al final para reordenar
+    tableBody.appendChild(row);
+  });
+  
+  // Actualizar indicador visual en el header (opcional)
+  updateEstadoFilterIndicator(estado);
+};
+
+// Actualizar indicador visual del filtro
+updateEstadoFilterIndicator = function(estado) {
+  const btn = document.querySelector('.estado-filter-btn');
+  if (!btn) return;
+  
+  // Quitar clases anteriores
+  btn.classList.remove('active-filter-green', 'active-filter-yellow', 'active-filter-red');
+  
+  // Agregar clase según el filtro activo
+  if (estado === 'completado') {
+    btn.style.color = 'var(--green)';
+  } else if (estado === 'espera') {
+    btn.style.color = 'var(--orange)';
+  } else if (estado === 'cancelado') {
+    btn.style.color = 'var(--red)';
+  } else {
+    btn.style.color = 'var(--txt-soft)';
+  }
+};
+
+// ============ FUNCIONES DE ORDENAMIENTO ============
+
+// Mostrar/ocultar dropdown de ordenamiento
+toggleOrdenar = function(tipo) {
+  const dropdownPaciente = document.getElementById('ordenarPacienteDropdown');
+  const dropdownEstudio = document.getElementById('ordenarEstudioDropdown');
+  
+  if (tipo === 'paciente') {
+    dropdownPaciente.classList.toggle('active');
+    dropdownEstudio.classList.remove('active');
+  } else if (tipo === 'estudio') {
+    dropdownEstudio.classList.toggle('active');
+    dropdownPaciente.classList.remove('active');
+  }
+};
+
+// Variable para guardar el orden actual
+let currentOrden = {
+  paciente: 'default',
+  estudio: 'default'
+};
+
+// Ordenar pacientes
+ordenarPor = function(tipo, criterio) {
+  // Guardar criterio actual
+  currentOrden[tipo] = criterio;
+  
+  // Cerrar dropdown
+  if (tipo === 'paciente') {
+    document.getElementById('ordenarPacienteDropdown').classList.remove('active');
+  } else if (tipo === 'estudio') {
+    document.getElementById('ordenarEstudioDropdown').classList.remove('active');
+  }
+  
+  // Actualizar opción activa visualmente
+  updateOrdenActiveOption(tipo, criterio);
+  
+  // Obtener todas las filas
+  const rows = document.querySelectorAll('.patient-row');
+  const rowsArray = Array.from(rows);
+  
+  // Ordenar según el criterio
+  if (tipo === 'paciente') {
+    // Ordenar por nombre de paciente
+    rowsArray.sort((a, b) => {
+      const nombreA = a.querySelector('.patient-name')?.textContent?.toLowerCase() || '';
+      const nombreB = b.querySelector('.patient-name')?.textContent?.toLowerCase() || '';
+      
+      if (criterio === 'default') {
+        // Volver al orden por índice
+        const indexA = parseInt(a.dataset.index || 0);
+        const indexB = parseInt(b.dataset.index || 0);
+        return indexA - indexB;
+      } else if (criterio === 'nombre-asc') {
+        return nombreA.localeCompare(nombreB, 'es');
+      } else if (criterio === 'nombre-desc') {
+        return nombreB.localeCompare(nombreA, 'es');
+      }
+      return 0;
+    });
+  } else if (tipo === 'estudio') {
+    // Ordenar por fecha de estudio
+    rowsArray.sort((a, b) => {
+      const fechaA = a.querySelector('.study-date')?.textContent || '';
+      const fechaB = b.querySelector('.study-date')?.textContent || '';
+      
+      if (criterio === 'default') {
+        // Volver al orden por índice
+        const indexA = parseInt(a.dataset.index || 0);
+        const indexB = parseInt(b.dataset.index || 0);
+        return indexA - indexB;
+      } else {
+        // Parsear fechas (formato: "22 Mayo 2024")
+        const parseFecha = (fechaStr) => {
+          if (!fechaStr) return 0;
+          const meses = {
+            'enero': 0, 'febrero': 1, 'marzo': 2, 'abril': 3, 'mayo': 4, 'junio': 5,
+            'julio': 6, 'agosto': 7, 'septiembre': 8, 'octubre': 9, 'noviembre': 10, 'diciembre': 11
+          };
+          const partes = fechaStr.toLowerCase().split(' ');
+          if (partes.length >= 3) {
+            const dia = parseInt(partes[0]) || 1;
+            const mes = meses[partes[1]] || 0;
+            const año = parseInt(partes[2]) || 2000;
+            return new Date(año, mes, dia).getTime();
+          }
+          return 0;
+        };
+        
+        const timeA = parseFecha(fechaA);
+        const timeB = parseFecha(fechaB);
+        
+        if (criterio === 'fecha-reciente') {
+          return timeB - timeA; // Más reciente primero
+        } else if (criterio === 'fecha-antigua') {
+          return timeA - timeB; // Más antigua primero
+        }
+      }
+      return 0;
+    });
+  }
+  
+  // Reordenar en el DOM
+  const tableBody = document.querySelector('.patients-card');
+  rowsArray.forEach(row => {
+    tableBody.appendChild(row);
+  });
+};
+
+// Actualizar opción activa visualmente
+updateOrdenActiveOption = function(tipo, criterio) {
+  const dropdown = tipo === 'paciente' 
+    ? document.getElementById('ordenarPacienteDropdown')
+    : document.getElementById('ordenarEstudioDropdown');
+  
+  if (!dropdown) return;
+  
+  // Quitar clase active de todas las opciones
+  dropdown.querySelectorAll('.ordenar-option').forEach(opt => {
+    opt.classList.remove('active');
+  });
+  
+  // Agregar clase active a la opción seleccionada
+  const opciones = dropdown.querySelectorAll('.ordenar-option');
+  opciones.forEach(opt => {
+    const onclick = opt.getAttribute('onclick') || '';
+    if (onclick.includes(criterio)) {
+      opt.classList.add('active');
+    }
+  });
+};
+
+// Cerrar dropdowns al hacer clic fuera (agregar al evento existente)
+const originalClickHandler = document.onclick;
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.ordenar-container')) {
+    document.getElementById('ordenarPacienteDropdown')?.classList.remove('active');
+    document.getElementById('ordenarEstudioDropdown')?.classList.remove('active');
+  }
+});
+</script>
+@endpush

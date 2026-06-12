@@ -16,22 +16,9 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
-    
-    Route::get('/pacientes', function () {
-        return view('pacientes.index');
-    })->name('pacientes');
-
-    Route::get('/pacientes/nuevo', function () {
-        return view('pacientes.create');
-    })->name('pacientes.create');
-
-    Route::get('/pacientes/editar', function () {
-        return view('pacientes.edit');
-    })->name('pacientes.edit');
 
     Route::post('/logout', [EndoCareAuthController::class, 'logout'])->name('logout');
 });
