@@ -24,5 +24,29 @@ Route::middleware('auth')->group(function () {
         return view('ia-reportes.index');
     })->name('ia-reportes');
 
+    Route::get('/ia-reportes/generar', function () {
+        return view('ia-reportes.generar');
+    })->name('ia-reportes.generar');
+
+    Route::get('/ia-reportes/hallazgos', function () {
+        return view('ia-reportes.hallazgos');
+    })->name('ia-reportes.hallazgos');
+
+    Route::get('/ia-reportes/reportes', function () {
+        return view('ia-reportes.reportes');
+    })->name('ia-reportes.todos');
+
+    Route::get('/ia-reportes/editar', function () {
+        return view('ia-reportes.editar');
+    })->name('ia-reportes.editar');
+
+    Route::get('/ia-reportes/ver', function () {
+        return view('ia-reportes.ver');
+    })->name('ia-reportes.ver');
+
+    Route::get('/ia-reportes/analisis', function () {
+        return view('ia-reportes.analisis');
+    })->name('ia-reportes.analisis');
+
     Route::post('/logout', [EndoCareAuthController::class, 'logout'])->name('logout');
 });
