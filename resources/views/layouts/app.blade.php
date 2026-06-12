@@ -53,7 +53,7 @@ html[data-theme="light"] .nav-item.active{color:#fff}
 html[data-theme="light"] .side-help .orb{box-shadow:0 0 18px rgba(46,123,246,.3)}
 html[data-theme="light"] .bell .dot{color:#fff}
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%}
+html,body{height:100%;width:100%}
 body{
   font-family:'Hanken Grotesk',sans-serif;
   background:var(--bg);
@@ -70,7 +70,7 @@ a{color:inherit;text-decoration:none}
   grid-template-columns:264px 1fr;
   min-height:100vh;
 }
-.main{padding:28px 30px 36px;min-width:0}
+.main{padding:28px 30px 36px;min-width:0;max-width:100%}
 
 /* ================= SIDEBAR ================= */
 .side{
@@ -309,7 +309,9 @@ a{color:inherit;text-decoration:none}
     flex-direction:row;align-items:center;
     overflow-x:auto;gap:8px;
     padding:14px 16px;
+    scrollbar-width:none;
   }
+  .side::-webkit-scrollbar{display:none}
   .side-brand{flex-direction:row;margin-bottom:0;gap:10px;flex:none}
   .side-brand img{width:42px;margin-bottom:0}
   .side-brand-tag{display:none}
@@ -323,6 +325,26 @@ a{color:inherit;text-decoration:none}
 }
 @media (max-width:720px){
   .btn-ai span{display:none}
+  .btn-ai{padding:10px 12px}
+  .head{gap:10px;margin-bottom:16px}
+  .head h1{font-size:18px}
+  .head .sub{font-size:13px}
+  .head-right{gap:8px}
+}
+@media (max-width:480px){
+  /* Sidebar: solo iconos, sin texto */
+  .nav-item{font-size:0;padding:10px 12px;gap:0;min-width:40px;justify-content:center}
+  .nav-item svg{width:20px;height:20px;flex:none}
+  .side-brand-name,.side-brand-tag{display:none}
+  .side-brand img{width:36px}
+  .side{padding:10px 12px;gap:4px}
+  /* Header compacto: título arriba, acciones abajo */
+  .head{flex-direction:column;align-items:flex-start;gap:6px;margin-bottom:14px}
+  .head h1{font-size:17px}
+  .head .sub{font-size:12px}
+  .head-right{width:100%;justify-content:flex-end;gap:8px}
+  .btn-ai{display:none}
+  .main{padding:12px 12px 24px}
 }
 
 /* Toggle de tema: luna en modo oscuro (ir a claro: sol), y viceversa */
@@ -362,7 +384,7 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
       Dashboard
     </a>
-    <a class="nav-item {{ $active === 'agenda' ? 'active' : '' }}" href="#">
+    <a class="nav-item {{ $active === 'agenda' ? 'active' : '' }}" href="{{ route('agenda') }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       Agenda
     </a>

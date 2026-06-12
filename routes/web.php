@@ -13,12 +13,21 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/registro', [EndoCareAuthController::class, 'showRegister'])->name('register');
     Route::post('/registro', [EndoCareAuthController::class, 'register'])->name('register.post');
-});
+    });
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
+
+    Route::get('/agenda', function () {
+        return view('agenda.index');
+    })->name('agenda');
+
+    Route::get('/agendar', function () {
+        return view('agendar.index');
+    })->name('agendar');
 
     Route::post('/logout', [EndoCareAuthController::class, 'logout'])->name('logout');
 });
