@@ -6,6 +6,7 @@
 {{-- ---- CSS ---- --}}
 <style>
 #evPopup{display:none;position:fixed;z-index:999;width:230px;background:#000B1E;border:1.84px solid #168BD9;box-shadow:inset 0 0 0 1.84px rgba(0,0,0,.47),0 16px 48px rgba(0,0,0,.7);border-radius:11.06px;padding:14px;pointer-events:auto}
+#evPopup::before{content:'';position:absolute;left:-12px;top:-12px;right:-12px;bottom:-12px;z-index:-1;pointer-events:auto}
 #evPopup.visible{display:block}
 .ev-pop-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .ev-pop-avatar{width:40px;height:40px;flex:none;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,var(--blue),var(--cyan));display:grid;place-items:center;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;color:#fff;border:2px solid rgba(22,139,217,.4)}
@@ -110,7 +111,7 @@ html[data-theme="light"] .ev-pop-badge.soon{background:#F3ECFF;border-color:#B26
       }
     }
 
-    function showPopup(el, e) {
+    window.__showPopup = function(el, e) {
       let d;
       const isDayEvent = el.classList.contains('day-event');
       if (isDayEvent && el.dataset.name) {
@@ -168,26 +169,41 @@ html[data-theme="light"] .ev-pop-badge.soon{background:#F3ECFF;border-color:#B26
     }
 
     let popupAnchoredEl = null;
+    let popupCloseTimer = null;
+
+    function hidePopup() {
+      popupAnchoredEl = null;
+      evPopup.classList.remove('visible');
+    }
+
+    function scheduleHide() {
+      if (popupCloseTimer) clearTimeout(popupCloseTimer);
+      popupCloseTimer = setTimeout(() => {
+        if (!evPopup.matches(':hover') && !popupAnchoredEl?.matches(':hover')) {
+          hidePopup();
+        }
+      }, 200);
+    }
+
+    function cancelHide() {
+      if (popupCloseTimer) { clearTimeout(popupCloseTimer); popupCloseTimer = null; }
+    }
 
     /* ---- Desktop: hover en cal/week events ---- */
     document.addEventListener('mouseover', e => {
       if (window.innerWidth < 600) return;
       const ev = e.target.closest('.cal-event, .wk-event');
       if (ev) {
-        if (popupAnchoredEl !== ev) { popupAnchoredEl = ev; showPopup(ev, e); }
+        cancelHide();
+        if (popupAnchoredEl !== ev) { popupAnchoredEl = ev; __showPopup(ev, e); }
         return;
       }
-      if (e.target.closest('#evPopup')) return;
-      popupAnchoredEl = null;
-      evPopup.classList.remove('visible');
+      if (e.target.closest('#evPopup')) { cancelHide(); return; }
+      scheduleHide();
     });
-    evPopup.addEventListener('mouseleave', e => {
-      if (window.innerWidth < 600) return;
-      if (!e.relatedTarget || !e.relatedTarget.closest('.cal-event, .wk-event')) {
-        popupAnchoredEl = null;
-        evPopup.classList.remove('visible');
-      }
-    });
+
+    evPopup.addEventListener('mouseenter', cancelHide);
+    evPopup.addEventListener('mouseleave', scheduleHide);
 
     /* ---- Móvil + Día: click en day-event / cal-event / wk-event ---- */
     document.addEventListener('click', e => {
@@ -204,7 +220,7 @@ html[data-theme="light"] .ev-pop-badge.soon{background:#F3ECFF;border-color:#B26
           return;
         }
         popupAnchoredEl = ev;
-        showPopup(ev, e);
+        __showPopup(ev, e);
         return;
       }
       if (e.target.closest('#evPopup')) return;

@@ -56,7 +56,8 @@
           <button class="view-tab">Semana</button>
           <button class="view-tab active">Mes</button>
         </div>
-        <div class="month-nav">
+        <div class="toolbar-right">
+          <div class="month-nav">
           <button aria-label="Mes anterior">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
@@ -74,6 +75,43 @@
           </div>
           <button aria-label="Mes siguiente">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          </div>
+          <button class="toolbar-filter-btn" id="toolbarFilterBtn" title="Mostrar filtros" aria-label="Filtros">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+            </svg>
+          </button>
+          {{-- Dropdown de filtros (solo visible cuando está expandido) --}}
+          <div class="filter-dropdown" id="toolbarFilterDropdown">
+            <h4>Filtrar citas</h4>
+            <div class="filter-list">
+              <label class="filter-row" data-filter="ev-done">
+                <input type="checkbox" checked>
+                <span class="filter-indicator done"></span>
+                <span class="filter-text">Completado</span>
+              </label>
+              <label class="filter-row" data-filter="ev-wait">
+                <input type="checkbox" checked>
+                <span class="filter-indicator wait"></span>
+                <span class="filter-text">En espera</span>
+              </label>
+              <label class="filter-row" data-filter="ev-cancel">
+                <input type="checkbox" checked>
+                <span class="filter-indicator cancel"></span>
+                <span class="filter-text">Cancelado</span>
+              </label>
+              <label class="filter-row" data-filter="ev-soon">
+                <input type="checkbox" checked>
+                <span class="filter-indicator soon"></span>
+                <span class="filter-text">Próximo</span>
+              </label>
+            </div>
+          </div>
+          <button class="agenda-expand-btn" id="agendaExpandBtn" title="Expandir/Colapsar sidebar" aria-label="Expandir">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+            </svg>
           </button>
         </div>
       </div>
@@ -187,13 +225,15 @@
 
   function setView(view) {
     curView = view;
-    const calGrid  = document.getElementById('calWrap');
-    const weekGrid = document.getElementById('weekGrid');
-    const dayView  = document.getElementById('dayView');
-    const monthNav = document.querySelector('.month-nav');
+    const calGrid    = document.getElementById('calWrap');
+    const weekGrid   = document.getElementById('weekGrid');
+    const dayView    = document.getElementById('dayView');
+    const monthNav   = document.querySelector('.month-nav');
+    const agLeft     = document.querySelector('.agenda-left');
     calGrid.classList.remove('active');
     weekGrid.classList.remove('active');
     dayView.classList.remove('active');
+    agLeft.classList.toggle('day-view-active', view === 'dia');
     if (view === 'mes')         { calGrid.classList.add('active');  buildCal(cur);  monthNav.style.display = ''; }
     else if (view === 'semana') { weekGrid.classList.add('active'); buildWeek(cur); monthNav.style.display = ''; }
     else if (view === 'dia')    { dayView.classList.add('active');  buildDayAndSync(cur); monthNav.style.display = 'none'; }
@@ -283,6 +323,41 @@
   window.__initPopup(EVENTS, MESES, cur_ref, DIAS_ES);
   window.__initDayPicker(function(date) { buildDayAndSync(date); });
   window.__initBloqueos(EVENTS, MESES, DIAS_ES, buildDayAndSync);
+
+  /* ---- Botón expandir sidebar ---- */
+  const agendaExpandBtn = document.getElementById('agendaExpandBtn');
+  const agLeft = document.querySelector('.agenda-left');
+  if (agendaExpandBtn && agLeft) {
+    agendaExpandBtn.addEventListener('click', () => {
+      agLeft.classList.toggle('expanded');
+      // Cerrar dropdown de filtros al colapsar
+      if (!agLeft.classList.contains('expanded')) {
+        toolbarFilterDropdown.classList.remove('open');
+      }
+      // Re-renderizar vista día si está activa para mostrar/ocultar botón +X citas
+      const dayView = document.getElementById('dayView');
+      if (dayView && dayView.classList.contains('active') && typeof buildDay === 'function') {
+        buildDay(cur);
+      }
+    });
+  }
+
+  /* ---- Botón y dropdown de filtros ---- */
+  const toolbarFilterBtn = document.getElementById('toolbarFilterBtn');
+  const toolbarFilterDropdown = document.getElementById('toolbarFilterDropdown');
+  if (toolbarFilterBtn && toolbarFilterDropdown) {
+    toolbarFilterBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toolbarFilterDropdown.classList.toggle('open');
+    });
+    // Cerrar al hacer clic fuera
+    document.addEventListener('click', () => {
+      toolbarFilterDropdown.classList.remove('open');
+    });
+    toolbarFilterDropdown.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+  }
 
 })();
 </script>

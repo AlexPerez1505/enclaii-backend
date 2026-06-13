@@ -5,13 +5,14 @@
 <style>
 /* Mini calendario */
 .cal-ag-wrap{
-  display:flex;flex-direction:column;gap:14px;
+  display:flex;flex-direction:column;gap:10px;
   background:linear-gradient(to bottom,rgba(255,255,255,.60) 0%,rgba(255,255,255,.10) 100%);
   backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
   border:1.5px solid rgba(255,255,255,.25);
-  border-radius:16px;
-  padding:16px 14px 14px;
+  border-radius:14px;
+  padding:12px 12px 10px;
   box-shadow:0 16px 48px rgba(0,0,0,.45);
+  flex:1;
 }
 .cal-ag-nav-header{
   display:grid;grid-template-columns:1fr 1fr;gap:8px;
@@ -101,12 +102,12 @@ html[data-theme="light"] .legend-item{color:#5B6A99}
     <div class="cal-ag-grid" id="calAgGrid"></div>
   </div>
 
-  <div style="margin-top:16px">
+  <div style="margin-top:12px">
     <div class="slots-title" id="slotsTitle">Horarios disponibles</div>
     <div class="slots-grid" id="slotsGrid"></div>
     <div class="slots-legend">
-      <div class="legend-item"><span class="legend-dot libre"></span> Disponible</div>
-      <div class="legend-item"><span class="legend-dot espera"></span> En espera</div>
+      <div class="legend-item"><span class="legend-dot libre"></span> Libre</div>
+      <div class="legend-item"><span class="legend-dot espera"></span> Espera</div>
       <div class="legend-item"><span class="legend-dot ocupado"></span> Ocupado</div>
     </div>
   </div>

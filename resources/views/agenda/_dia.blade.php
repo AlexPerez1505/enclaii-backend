@@ -5,8 +5,11 @@
 
 {{-- ---- CSS ---- --}}
 <style>
-.day-view{display:none;gap:14px}
-.day-view.active{display:grid;grid-template-columns:1fr 260px}
+.day-view{display:none}
+.day-view.active{display:flex;flex-direction:column;gap:0}
+.day-view-body{display:grid;grid-template-columns:1fr 260px;align-items:start;gap:14px;margin-top:14px}
+.agenda-left.expanded .day-view-body{grid-template-columns:1fr}
+.agenda-left.expanded .day-panel{display:none}
 .day-left{min-width:0;overflow:visible}
 .day-nav-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .day-nav-btn{padding:7px 18px;border-radius:8px;font-size:12.5px;font-weight:700;background:#001525;border:1px solid rgba(22,139,217,.4);color:#EAF1FF;cursor:pointer;transition:background 150ms ease}
@@ -24,30 +27,30 @@
 .day-date-picker.open{display:block}
 .ddp-header{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.15)}
 .ddp-nav-group{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.1);border-radius:10px;padding:5px 8px}
-.ddp-nav-btn{width:24px;height:24px;border-radius:6px;border:none;background:transparent;color:#fff;cursor:pointer;display:grid;place-items:center;transition:background 120ms,color 120ms}
-.ddp-nav-btn:hover{background:rgba(22,139,217,.25);color:#EAF1FF}
-.ddp-title{font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:#fff;text-align:center;flex:1}
+.ddp-nav-btn{width:24px;height:24px;border-radius:6px;border:none;background:transparent;color:#0E1530;cursor:pointer;display:grid;place-items:center;transition:background 120ms,color 120ms}
+.ddp-nav-btn:hover{background:rgba(22,139,217,.25);color:#0040A0}
+.ddp-title{font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:#0E1530;text-align:center;flex:1}
 .ddp-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-top:2px}
-.ddp-dow{font-size:10px;font-weight:700;color:rgba(255,255,255,.7);text-align:center;padding:4px 0 8px;letter-spacing:.03em}
-.ddp-day{height:36px;border-radius:8px;border:none;background:transparent;color:#fff;font-size:13px;font-weight:500;cursor:pointer;transition:background 120ms,color 120ms;display:grid;place-items:center}
+.ddp-dow{font-size:10px;font-weight:700;color:rgba(14,21,48,.5);text-align:center;padding:4px 0 8px;letter-spacing:.03em}
+.ddp-day{height:36px;border-radius:8px;border:none;background:transparent;color:#0E1530;font-size:13px;font-weight:500;cursor:pointer;transition:background 120ms,color 120ms;display:grid;place-items:center}
 .ddp-day:hover{background:rgba(46,100,200,.28);color:#EAF1FF}
-.ddp-day.today{color:#5AB4F7;font-weight:700}
+.ddp-day.today{color:#1668D9;font-weight:700}
 .ddp-day.selected{background:linear-gradient(135deg,#1668D9,#0040A0);color:#fff;font-weight:700;box-shadow:0 4px 14px -4px rgba(22,104,217,.55)}
-.ddp-day.other-month{opacity:.35;color:#fff}
-.ddp-label{font-family:'Sora',sans-serif;font-size:11px;font-weight:600;color:#fff;margin-bottom:10px;text-align:center;letter-spacing:.05em;text-transform:uppercase}
-.day-schedule{display:flex;flex-direction:column;gap:0;max-height:480px;overflow-y:auto}
+.ddp-day.other-month{opacity:.35;color:#0E1530}
+.ddp-label{font-family:'Sora',sans-serif;font-size:11px;font-weight:600;color:#0E1530;margin-bottom:10px;text-align:center;letter-spacing:.05em;text-transform:uppercase}
+.day-schedule{display:flex;flex-direction:column;gap:0;max-height:408px;overflow-y:auto}
 .day-row{display:grid;grid-template-columns:52px 1fr;border-bottom:1px solid rgba(110,160,255,.07);min-height:68px}
 .day-hour{font-size:11px;color:var(--txt-soft);display:flex;align-items:flex-start;padding:10px 8px 0 0;justify-content:flex-end;white-space:nowrap;border-right:1px solid rgba(110,160,255,.1)}
 .day-slot{padding:6px 12px 6px 10px;display:flex;flex-direction:column;gap:4px}
-.day-event{display:grid;grid-template-columns:42px 1fr auto auto;align-items:center;gap:10px;background:#001525;border:1.5px solid rgba(22,139,217,.7);box-shadow:0 0 0 1px rgba(22,139,217,.18),0 2px 12px rgba(22,139,217,.1);border-radius:9px;padding:9px 14px;cursor:pointer;transition:opacity 150ms ease}
+.day-event{display:grid;grid-template-columns:34px 1fr auto auto;align-items:center;gap:7px;background:#001525;border:1.5px solid rgba(22,139,217,.7);box-shadow:0 0 0 1px rgba(22,139,217,.18),0 2px 12px rgba(22,139,217,.1);border-radius:9px;padding:7px 10px;cursor:pointer;transition:opacity 150ms ease}
 .day-event:hover{opacity:.85}
-.day-event-thumb{width:42px;height:42px;border-radius:8px;flex:none}
+.day-event-thumb{width:34px;height:34px;border-radius:7px;flex:none}
 .day-event-thumb.ev-done  {background:linear-gradient(to bottom,#042226 20%,#4C9242 80%);border:1.38px solid #284D23}
 .day-event-thumb.ev-wait  {background:linear-gradient(to bottom,#351909 29%,#9B491A 100%);border:1.24px solid #E75D01}
 .day-event-thumb.ev-cancel{background:linear-gradient(to bottom,#251117 38%,#D90000 100%);border:1.27px solid #D90000}
 .day-event-thumb.ev-soon  {background:linear-gradient(to bottom,#0B1331 43%,#B263FF 100%);border:1.27px solid #B263FF}
-.day-event-thumb.ev-block {width:42px;height:42px;border-radius:8px;background:rgba(110,160,255,.15);display:flex;align-items:center;justify-content:center;flex:none}
-.day-event.ev-block{grid-template-columns:42px 1fr;border-color:rgba(110,160,255,.35);box-shadow:0 0 0 1px rgba(110,160,255,.1),0 2px 10px rgba(110,160,255,.06)}
+.day-event-thumb.ev-block {width:34px;height:34px;border-radius:7px;background:rgba(110,160,255,.15);display:flex;align-items:center;justify-content:center;flex:none}
+.day-event.ev-block{grid-template-columns:34px 1fr;border-color:rgba(110,160,255,.35);box-shadow:0 0 0 1px rgba(110,160,255,.1),0 2px 10px rgba(110,160,255,.06)}
 .day-event-info strong{display:block;font-size:13px;font-weight:700;color:#EAF1FF;line-height:1.3}
 .day-event-info span{display:block;font-size:11px;color:rgba(234,241,255,.55)}
 .day-event-status{font-size:12px;font-weight:700;white-space:nowrap}
@@ -57,7 +60,15 @@
 .day-event-status.ev-soon  {color:#B263FF}
 .day-event-status.ev-block {color:var(--txt-soft)}
 .day-event-icon{width:24px;height:24px;flex:none;opacity:.8}
-.day-panel{display:flex;flex-direction:column;gap:12px;overflow-y:auto;max-height:600px}
+
+/* Botón +X más en vista día (solo cuando expandido) */
+.day-more-btn{display:none;width:100%;margin-top:4px;padding:4px 8px;font-size:10px;font-weight:600;color:#8FA3CF;background:transparent;border:1.5px dashed rgba(110,160,255,.4);border-radius:6px;cursor:pointer;transition:all 150ms ease;text-align:center}
+.day-more-btn:hover{color:#EAF1FF;background:rgba(110,160,255,.15);border-color:rgba(110,160,255,.6)}
+.agenda-left.expanded .day-more-btn{display:block}
+html[data-theme="light"] .day-more-btn{color:#5B6A99;border-color:rgba(20,50,120,.25)}
+html[data-theme="light"] .day-more-btn:hover{color:#0E1530;background:rgba(20,50,120,.1);border-color:rgba(20,50,120,.4)}
+
+.day-panel{display:flex;flex-direction:column;gap:12px;overflow-y:auto;height:408px}
 .day-panel-card{background:#001525;border:1px solid rgba(22,139,217,.2);border-radius:11px;padding:14px}
 .day-pc-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .day-pc-avatar{width:42px;height:42px;border-radius:50%;flex:none;overflow:hidden;background:linear-gradient(135deg,var(--blue),var(--cyan));display:grid;place-items:center;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;color:#fff;border:2px solid rgba(22,139,217,.4)}
@@ -69,19 +80,19 @@
 
 /* ---- Responsive día ---- */
 @media(max-width:900px){
-  .day-view.active{grid-template-columns:1fr}
+  .day-view-body{grid-template-columns:1fr}
   .day-panel{display:none}
   .day-nav-bar{gap:4px}
   .day-nav-btn{padding:7px 10px;font-size:11.5px;flex:none;white-space:nowrap}
   .day-nav-title{padding:0 2px;flex:1;min-width:0;text-align:center}
   .day-title-btn{font-size:clamp(10px,2.8vw,13px);padding:6px 10px;gap:5px;width:100%;justify-content:center}
-  .day-schedule{max-height:420px}
+  .day-schedule{max-height:408px}
 }
 @media(max-width:600px){
   .day-nav-btn{padding:6px 10px;font-size:11px}
   .day-title-btn{font-size:12px;padding:5px 8px;gap:5px}
   .day-hour{font-size:10.5px;padding:8px 6px 0 0}
-  .day-schedule{max-height:380px}
+  .day-schedule{max-height:408px}
   /* Evento en modo stack: thumb | (nombre + proc + status) */
   .day-row{min-height:auto}
   .day-event{
@@ -136,8 +147,8 @@ html[data-theme="light"] .ddp-day{color:#0E1530}
 html[data-theme="light"] .ddp-day:hover{background:rgba(20,50,120,.12);color:#0E1530}
 html[data-theme="light"] .ddp-day.today{color:#1668D9}
 html[data-theme="light"] .ddp-day.other-month{color:rgba(14,21,48,.35);opacity:1}
-html[data-theme="light"] .day-hour{color:#5B6A99;border-right-color:rgba(20,50,120,.1)}
-html[data-theme="light"] .day-row{border-bottom-color:rgba(20,50,120,.07)}
+html[data-theme="light"] .day-hour{color:#5B6A99;border-right-color:rgba(20,50,120,.3)}
+html[data-theme="light"] .day-row{border-bottom-color:rgba(20,50,120,.18)}
 html[data-theme="light"] .day-event{background:#F6F8FE;border-color:rgba(20,50,120,.45);box-shadow:0 0 0 1px rgba(20,50,120,.08),0 2px 10px rgba(20,50,120,.06)}
 html[data-theme="light"] .day-event-info strong{color:#0E1530}
 html[data-theme="light"] .day-event-info span{color:rgba(14,21,48,.5)}
@@ -153,42 +164,71 @@ html[data-theme="light"] .day-pc-name{color:#0E1530}
 html[data-theme="light"] .day-pc-age{color:rgba(14,21,48,.5)}
 html[data-theme="light"] .day-pc-info{color:rgba(14,21,48,.7)}
 html[data-theme="light"] .day-pc-info b{color:#0E1530}
+
+/* Modal de día para modo expandido */
+.day-modal-overlay{position:fixed;inset:0;z-index:1000;background:rgba(0,11,30,.75);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px}
+.day-modal-overlay.open{display:flex}
+.day-modal{background:#000B1E;border:1.84px solid #168BD9;box-shadow:inset 0 0 0 1.84px rgba(0,0,0,.47),0 24px 64px rgba(0,0,0,.5);border-radius:16px;width:100%;max-width:320px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column}
+.day-modal-header{padding:16px 18px;border-bottom:1px solid rgba(110,160,255,.2);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.day-modal-title{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;color:#EAF1FF}
+.day-modal-close{width:28px;height:28px;border-radius:8px;border:none;background:transparent;color:#8FA3CF;cursor:pointer;display:grid;place-items:center;transition:all 150ms ease}
+.day-modal-close:hover{background:rgba(110,160,255,.15);color:#EAF1FF}
+.day-modal-body{padding:14px 18px;overflow-y:auto}
+.day-modal-body .day-panel-card{margin:0}
+html[data-theme="light"] .day-modal{background:#FFFFFF;border-color:rgba(20,50,120,.2);box-shadow:0 16px 48px rgba(20,50,120,.15)}
+html[data-theme="light"] .day-modal-title{color:#0E1530}
+html[data-theme="light"] .day-modal-close{color:#5B6A99}
+html[data-theme="light"] .day-modal-close:hover{background:rgba(20,50,120,.1);color:#0E1530}
+html[data-theme="light"] .day-modal-header{border-bottom-color:rgba(20,50,120,.12)}
 </style>
 
 {{-- ---- HTML ---- --}}
 <div class="day-view" id="dayView">
-  <div class="day-left">
-    <div class="day-nav-bar">
-      <button class="day-nav-btn" id="dayPrev">Anterior</button>
-      <div class="day-nav-title" id="dayTitle">
-        <button class="day-title-btn" id="dayTitleBtn">
-          <svg class="ico-cal" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          <span id="dayTitleText"></span>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
-        <div class="day-date-picker" id="dayDatePicker">
-          <div class="ddp-label">Selecciona un día</div>
-          <div class="ddp-header">
-            <div class="ddp-nav-group">
-              <button class="ddp-nav-btn" id="ddpYearPrev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
-              <span class="ddp-title" id="ddpYear"></span>
-              <button class="ddp-nav-btn" id="ddpYearNext"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
-            </div>
-            <div class="ddp-nav-group">
-              <button class="ddp-nav-btn" id="ddpMonthPrev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
-              <span class="ddp-title" id="ddpMonth"></span>
-              <button class="ddp-nav-btn" id="ddpMonthNext"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
-            </div>
+  <div class="day-nav-bar">
+    <button class="day-nav-btn" id="dayPrev">Anterior</button>
+    <div class="day-nav-title" id="dayTitle">
+      <button class="day-title-btn" id="dayTitleBtn">
+        <svg class="ico-cal" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span id="dayTitleText"></span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="day-date-picker" id="dayDatePicker">
+        <div class="ddp-label">Selecciona un día</div>
+        <div class="ddp-header">
+          <div class="ddp-nav-group">
+            <button class="ddp-nav-btn" id="ddpYearPrev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+            <span class="ddp-title" id="ddpYear"></span>
+            <button class="ddp-nav-btn" id="ddpYearNext"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
           </div>
-          <div class="ddp-grid" id="ddpGrid"></div>
+          <div class="ddp-nav-group">
+            <button class="ddp-nav-btn" id="ddpMonthPrev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+            <span class="ddp-title" id="ddpMonth"></span>
+            <button class="ddp-nav-btn" id="ddpMonthNext"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+          </div>
         </div>
+        <div class="ddp-grid" id="ddpGrid"></div>
       </div>
-      <button class="day-nav-btn" id="dayNext">Siguiente</button>
     </div>
-    <div class="day-schedule" id="daySchedule"></div>
+    <button class="day-nav-btn" id="dayNext">Siguiente</button>
   </div>
-  <div class="day-panel" id="dayPanel">
-    <div class="day-panel-title">Pacientes</div>
+  <div class="day-view-body">
+    <div class="day-left">
+      <div class="day-schedule" id="daySchedule"></div>
+    </div>
+    <div class="day-panel" id="dayPanel">
+      <div class="day-panel-title">Pacientes</div>
+    </div>
+  </div>
+</div>
+
+{{-- Modal de día para modo expandido --}}
+<div class="day-modal-overlay" id="dayModalOverlay">
+  <div class="day-modal">
+    <div class="day-modal-header">
+      <div class="day-modal-title" id="dayModalTitle">Detalle de cita</div>
+      <button class="day-modal-close" id="dayModalClose" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="day-modal-body" id="dayModalBody"></div>
   </div>
 </div>
 
@@ -209,6 +249,61 @@ html[data-theme="light"] .day-pc-info b{color:#0E1530}
     'ev-wait':  [{label:'Iniciar Estudio',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
     'ev-cancel':[{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
     'ev-soon':  [{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
+  };
+
+  /* ---- Modal de día ---- */
+  const dayModalOverlay = document.getElementById('dayModalOverlay');
+  const dayModalTitle   = document.getElementById('dayModalTitle');
+  const dayModalBody    = document.getElementById('dayModalBody');
+  const dayModalClose   = document.getElementById('dayModalClose');
+
+  function closeDayModal() {
+    dayModalOverlay.classList.remove('open');
+  }
+  dayModalClose.addEventListener('click', closeDayModal);
+  dayModalOverlay.addEventListener('click', (e) => {
+    if (e.target === dayModalOverlay) closeDayModal();
+  });
+
+  const MESES_DIA = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+  window.openDayModal = function(ev, dayNames, dow, d, m, y) {
+    const text = ev.t.trim();
+    const timeM = text.match(/^(\d+:\d+)/);
+    const time = timeM ? timeM[1] : '';
+    const rest = text.replace(/^\d+:\d+\s*/,'');
+    const parts = rest.split('·').map(s=>s.trim());
+    const name = parts[0] || 'Paciente';
+    const proc = parts[1] || 'Procedimiento';
+    const inits = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const endHr = parseInt(time) + 1;
+
+    dayModalTitle.textContent = `${time} – ${name}`;
+    dayModalBody.innerHTML = '';
+
+    const card = document.createElement('div');
+    card.className = 'day-panel-card';
+    const head = document.createElement('div');
+    head.className = 'day-pc-head';
+    head.innerHTML = `<div class="day-pc-avatar">${inits}</div><div><div class="day-pc-name">${name}</div></div>`;
+    const info = document.createElement('div');
+    info.className = 'day-pc-info';
+    info.innerHTML =
+      `<b>Motivo:</b> ${proc}<br>` +
+      `<b>Fecha:</b> ${dayNames[dow]} ${d} de ${MESES_DIA[m]}<br>` +
+      `<b>Tiempo:</b> ${time} AM – ${endHr}:00 PM<br>` +
+      `<b>Habitación:</b> Sala 3`;
+    card.appendChild(head);
+    card.appendChild(info);
+    (DAY_BUTTONS[ev.cls] || []).forEach((b,i) => {
+      const btn = document.createElement('button');
+      btn.className = 'ev-pop-btn ' + b.cls;
+      btn.style.marginBottom = i < (DAY_BUTTONS[ev.cls].length-1) ? '6px' : '0';
+      btn.textContent = b.label;
+      card.appendChild(btn);
+    });
+    dayModalBody.appendChild(card);
+    dayModalOverlay.classList.add('open');
   };
 
   window.__buildDay = function(date, EVENTS, MESES, updateSumCards, countEvents) {
@@ -241,54 +336,82 @@ html[data-theme="light"] .day-pc-info b{color:#0E1530}
       const slot = document.createElement('div');
       slot.className = 'day-slot';
 
-      dayEvs.filter(ev => ev.h === hr).forEach(ev => {
-        const text = ev.t.trim();
-        const timeM = text.match(/^(\d+:\d+)/);
-        const time = timeM ? timeM[1] : '';
-        const rest = text.replace(/^\d+:\d+\s*/,'');
-        const parts = rest.split('·').map(s=>s.trim());
-        const name = parts[0] || 'Paciente';
-        const proc = parts[1] || 'Procedimiento';
-        const inits = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      const hourEvs = dayEvs.filter(ev => ev.h === hr);
+      const isExpanded = document.querySelector('.agenda-left')?.classList.contains('expanded');
+      
+      // Si está expandido y hay 2+ eventos, mostrar botón +X más
+      if (isExpanded && hourEvs.length >= 2) {
+        const moreBtn = document.createElement('button');
+        moreBtn.className = 'day-more-btn';
+        moreBtn.textContent = `+${hourEvs.length} citas`;
+        moreBtn.addEventListener('click', () => {
+          if (window.openWeekModal) {
+            const dummyDate = new Date(y, m, d);
+            const dayName = dayNames[dow];
+            window.openWeekModal(hourEvs, dummyDate, hr, dayName);
+          }
+        });
+        slot.appendChild(moreBtn);
+      } else {
+        // Mostrar eventos individualmente
+        hourEvs.forEach(ev => {
+          const text = ev.t.trim();
+          const timeM = text.match(/^(\d+:\d+)/);
+          const time = timeM ? timeM[1] : '';
+          const rest = text.replace(/^\d+:\d+\s*/,'');
+          const parts = rest.split('·').map(s=>s.trim());
+          const name = parts[0] || 'Paciente';
+          const proc = parts[1] || 'Procedimiento';
+          const inits = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
 
-        const card = document.createElement('div');
-        card.className = 'day-event ' + ev.cls;
-        card.dataset.evcls = ev.cls;
-        card.dataset.name = name;
-        card.dataset.proc = proc;
-        card.dataset.time = time;
-        card.dataset.inits = inits;
-        card.dataset.fechatxt = `${dayNames[dow]} ${d} de ${MESES[m]}`;
-        if (ev.cls === 'ev-block' && ev.blockId !== undefined) {
-          card.dataset.blockid    = ev.blockId;
-          card.dataset.blockkey   = key;
-          card.dataset.blocklabel = name;
-        }
+          const card = document.createElement('div');
+          card.className = 'day-event ' + ev.cls;
+          card.dataset.evcls = ev.cls;
+          card.dataset.name = name;
+          card.dataset.proc = proc;
+          card.dataset.time = time;
+          card.dataset.inits = inits;
+          card.dataset.fechatxt = `${dayNames[dow]} ${d} de ${MESES[m]}`;
+          if (ev.cls === 'ev-block' && ev.blockId !== undefined) {
+            card.dataset.blockid    = ev.blockId;
+            card.dataset.blockkey   = key;
+            card.dataset.blocklabel = name;
+          }
 
-        const thumb = document.createElement('div');
-        thumb.className = 'day-event-thumb ' + ev.cls;
+          const thumb = document.createElement('div');
+          thumb.className = 'day-event-thumb ' + ev.cls;
 
-        if (ev.cls === 'ev-block') {
-          thumb.innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#8FA3CF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
-          const info2 = document.createElement('div');
-          info2.className = 'day-event-info';
-          info2.innerHTML = `<strong>Bloqueo de Tiempo</strong><span>${name.replace(/^\d+:\d+\s*/,'')}</span>`;
-          card.appendChild(thumb); card.appendChild(info2);
-        } else {
-          const info = document.createElement('div');
-          info.className = 'day-event-info';
-          info.innerHTML = `<strong>${name}</strong><span>${proc}</span>`;
-          const status = document.createElement('div');
-          status.className = 'day-event-status ' + ev.cls;
-          status.textContent = STATUS_LABEL_DAY[ev.cls] || '';
-          const icon = document.createElement('div');
-          icon.className = 'day-event-icon';
-          icon.innerHTML = STATUS_ICONS_SVG[ev.cls] || '';
-          card.appendChild(thumb); card.appendChild(info);
-          card.appendChild(status); card.appendChild(icon);
-        }
-        slot.appendChild(card);
-      });
+          if (ev.cls === 'ev-block') {
+            thumb.innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#8FA3CF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
+            const info2 = document.createElement('div');
+            info2.className = 'day-event-info';
+            info2.innerHTML = `<strong>Bloqueo de Tiempo</strong><span>${name.replace(/^\d+:\d+\s*/,'')}</span>`;
+            card.appendChild(thumb); card.appendChild(info2);
+          } else {
+            const info = document.createElement('div');
+            info.className = 'day-event-info';
+            info.innerHTML = `<strong>${name}</strong><span>${proc}</span>`;
+            const status = document.createElement('div');
+            status.className = 'day-event-status ' + ev.cls;
+            status.textContent = STATUS_LABEL_DAY[ev.cls] || '';
+            const icon = document.createElement('div');
+            icon.className = 'day-event-icon';
+            icon.innerHTML = STATUS_ICONS_SVG[ev.cls] || '';
+            card.appendChild(thumb); card.appendChild(info);
+            card.appendChild(status); card.appendChild(icon);
+            // Click handler para modo expandido con 1 cita
+            card.addEventListener('click', (e) => {
+              const isExpanded = document.querySelector('.agenda-left')?.classList.contains('expanded');
+              console.log('Click en day-event, expanded:', isExpanded, 'openDayModal:', !!window.openDayModal);
+              if (isExpanded && window.openDayModal) {
+                e.stopPropagation();
+                window.openDayModal(ev, dayNames, dow, d, m, y);
+              }
+            });
+          }
+          slot.appendChild(card);
+        });
+      }
       row.appendChild(slot);
       sched.appendChild(row);
     });

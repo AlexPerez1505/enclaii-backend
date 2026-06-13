@@ -22,9 +22,11 @@
 .ag-card{background:var(--ag-card);border:1.5px solid var(--ag-stroke);border-radius:var(--ag-r);padding:20px 22px}
 .ag-card-title{display:flex;align-items:center;gap:10px;font-family:'Sora',sans-serif;font-size:14px;font-weight:700;color:var(--ag-txt);margin-bottom:16px}
 
-/* Grid layout */
-.ag-grid-main{display:grid;grid-template-columns:1fr 1fr 1.1fr;gap:18px;align-items:start}
-.ag-grid-bottom{display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:start}
+/* Grid layout - más compacto y sin espacios vacíos */
+.ag-grid-main{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:stretch}
+.ag-grid-main > div{display:flex;flex-direction:column}
+.ag-grid-main .ag-card{flex:1;display:flex;flex-direction:column}
+.ag-grid-bottom{display:grid;grid-template-columns:1fr 320px;gap:14px;align-items:stretch}
 
 /* Input */
 .ag-label{font-size:11.5px;color:var(--ag-soft);margin-bottom:5px;display:block}
@@ -54,14 +56,28 @@ html[data-theme="light"] .ag-label{color:#5B6A99}
 html[data-theme="light"] .ag-back{color:#5B6A99}
 
 /* ---- Responsive ---- */
-@media(max-width:900px){
-  .ag-grid-main{grid-template-columns:1fr}
+@media(max-width:1200px){
+  .ag-grid-main{grid-template-columns:repeat(2,1fr)}
+  .ag-grid-main > div:last-child{grid-column:1/-1}
   .ag-grid-bottom{grid-template-columns:1fr}
 }
-@media(max-width:540px){
-  .ag-card{padding:14px 14px}
-  .ag-title{font-size:17px}
+@media(max-width:900px){
+  .ag-grid-main{grid-template-columns:1fr}
+  .ag-grid-main > div:last-child{grid-column:auto}
+  .ag-grid-bottom{grid-template-columns:1fr}
+  .ag-header{flex-wrap:wrap;gap:12px}
+  .ag-title{font-size:18px;order:-1;width:100%;text-align:left}
+  .ag-back{order:0}
+}
+@media(max-width:600px){
+  .ag-wrap{gap:12px}
+  .ag-card{padding:14px 16px}
+  .ag-card-title{font-size:13px;margin-bottom:12px}
+  .ag-title{font-size:16px}
   .ag-row{grid-template-columns:1fr}
-  .ag-row-3{grid-template-columns:1fr 1fr}
+  .ag-row-3{grid-template-columns:1fr}
+  .ag-field{margin-bottom:10px}
+  .ag-input{padding:9px 12px;font-size:12px}
+  .ag-btn-primary,.ag-btn-secondary{padding:10px 18px;font-size:13px}
 }
 </style>

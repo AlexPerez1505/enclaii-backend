@@ -3,7 +3,7 @@
      Paso 5: Confirmación + Info importante
      ============================================================ --}}
 <style>
-.confirm-row{display:flex;flex-wrap:wrap;gap:18px;align-items:center}
+.confirm-row{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center}
 .confirm-item{display:flex;align-items:center;gap:8px;min-width:0}
 .confirm-item svg{color:var(--ag-soft);flex:none}
 .confirm-lbl{font-size:10.5px;color:var(--ag-soft);margin-bottom:1px}
@@ -17,7 +17,8 @@
 .info-item svg{color:#4C9242;flex:none;margin-top:1px}
 .info-item:last-child{margin-bottom:0}
 
-.ag-grid-confirm{display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start}
+.ag-grid-confirm{display:grid;grid-template-columns:1fr 300px;gap:14px;align-items:stretch}
+.ag-grid-confirm > div{display:flex;flex-direction:column}
 
 /* Tema claro */
 html[data-theme="light"] .confirm-val{color:#0E1530}

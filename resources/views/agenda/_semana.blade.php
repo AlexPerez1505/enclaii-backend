@@ -5,8 +5,10 @@
 
 {{-- ---- CSS ---- --}}
 <style>
-.week-grid{display:none;width:100%;overflow-x:auto;max-height:480px;overflow-y:auto}
+.week-grid{display:none;width:100%;overflow-x:auto;max-height:480px;overflow-y:auto;min-width:0}
 .week-grid.active{display:block}
+.agenda-left.expanded .week-grid{max-height:none;overflow:visible;width:100%}
+.agenda-left.expanded .week-table{min-width:100%}
 .week-table{width:100%;border-collapse:collapse;table-layout:fixed}
 .week-table thead tr th{
   text-align:center;font-size:10.5px;font-weight:600;color:#8FA3CF;padding:5px 3px;
@@ -20,8 +22,10 @@
 .week-table .hr-label{font-size:9.5px;color:var(--txt-soft);text-align:right;padding:0 5px 0 0;width:38px;vertical-align:top;padding-top:3px;border-right:1px solid rgba(110,160,255,.1);white-space:nowrap}
 .week-table td.wk-cell{vertical-align:top;border:1px solid rgba(110,160,255,.06);padding:2px 3px;height:40px;position:relative}
 .week-table td.wk-cell.wk-today-col{background:rgba(22,139,217,.05)}
-.wk-event{border-radius:4px;padding:2px 5px;font-size:9.5px;font-weight:600;line-height:1.3;margin-bottom:1px;cursor:pointer;transition:opacity 150ms ease;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;display:flex;align-items:center;gap:3px}
+.wk-event{border-radius:4px;padding:2px 5px;font-size:9.5px;font-weight:600;line-height:1.2;margin-bottom:1px;cursor:pointer;transition:opacity 150ms ease;word-wrap:break-word;hyphens:auto}
 .wk-event:hover{opacity:.8}
+.wk-line1{font-weight:700;line-height:1.2}
+.wk-line2{font-size:8.5px;opacity:.9;line-height:1.2;margin-top:1px}
 .wk-event.ev-done{background:linear-gradient(to bottom,#042226 20%,#4C9242 80%);color:#fff;border:1.38px solid #284D23}
 .wk-event.ev-wait{background:linear-gradient(to bottom,#351909 29%,#9B491A 100%);color:#fff;border:1.24px solid #E75D01}
 .wk-event.ev-cancel{background:linear-gradient(to bottom,#251117 38%,#D90000 100%);color:#fff;border:1.27px solid #D90000}
@@ -37,6 +41,55 @@ html[data-theme="light"] .wk-event.ev-done{background:#EBF7EA;color:#1B4518;bord
 html[data-theme="light"] .wk-event.ev-wait{background:#FEF3E7;color:#7A2F00;border-color:#E75D01}
 html[data-theme="light"] .wk-event.ev-cancel{background:#FDE8E8;color:#6B0000;border-color:#D90000}
 html[data-theme="light"] .wk-event.ev-soon{background:#F3ECFF;color:#4A1A8A;border-color:#B263FF}
+html[data-theme="light"] .wk-line1{color:#0E1530}
+html[data-theme="light"] .wk-line2{color:rgba(14,21,48,.6)}
+
+/* Eventos de ancho completo */
+.wk-event{display:block;width:100%;box-sizing:border-box}
+.wk-event:only-child{height:100%;display:flex;flex-direction:column;justify-content:center}
+
+/* Botón +X más */
+.wk-more-btn{display:block;width:100%;margin-top:2px;padding:3px 5px;font-size:9px;font-weight:600;color:#8FA3CF;background:transparent;border:1.5px dashed rgba(110,160,255,.4);border-radius:4px;cursor:pointer;transition:all 150ms ease;text-align:center}
+.wk-more-btn:hover{color:#EAF1FF;background:rgba(110,160,255,.15);border-color:rgba(110,160,255,.6)}
+html[data-theme="light"] .wk-more-btn{color:#5B6A99;border-color:rgba(20,50,120,.25)}
+html[data-theme="light"] .wk-more-btn:hover{color:#0E1530;background:rgba(20,50,120,.1);border-color:rgba(20,50,120,.4)}
+
+/* Modal de citas */
+.wk-modal-overlay{position:fixed;inset:0;z-index:1000;background:rgba(0,11,30,.75);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px}
+.wk-modal-overlay.open{display:flex}
+.wk-modal{background:#000B1E;border:1.84px solid #168BD9;box-shadow:inset 0 0 0 1.84px rgba(0,0,0,.47),0 24px 64px rgba(0,0,0,.5);border-radius:16px;width:100%;max-width:420px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column}
+.wk-modal-header{padding:16px 18px;border-bottom:1px solid rgba(110,160,255,.2);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.wk-modal-title{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;color:#EAF1FF}
+.wk-modal-close{width:28px;height:28px;border-radius:8px;border:none;background:transparent;color:#8FA3CF;cursor:pointer;display:grid;place-items:center;transition:all 150ms ease}
+.wk-modal-close:hover{background:rgba(110,160,255,.15);color:#EAF1FF}
+.wk-modal-body{padding:14px 18px;overflow-y:auto;flex:1}
+.wk-modal-item{display:flex;align-items:center;gap:12px;padding:12px;background:#001525;border:1px solid rgba(22,139,217,.25);border-radius:10px;margin-bottom:10px;cursor:pointer;transition:all 150ms ease}
+.wk-modal-item:hover{background:rgba(22,139,217,.12);border-color:rgba(22,139,217,.4)}
+.wk-modal-item:last-child{margin-bottom:0}
+.wk-modal-avatar{width:38px;height:38px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;color:#fff;border:2px solid rgba(22,139,217,.4);background:linear-gradient(135deg,var(--blue),var(--cyan))}
+.wk-modal-info{flex:1;min-width:0}
+.wk-modal-name{font-size:13px;font-weight:700;color:#EAF1FF;margin-bottom:3px}
+.wk-modal-proc{font-size:11px;color:rgba(234,241,255,.55)}
+.wk-modal-badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.wk-modal-badge.done{background:rgba(76,146,66,.2);color:#4C9242;border:1px solid rgba(76,146,66,.4)}
+.wk-modal-badge.wait{background:rgba(231,93,1,.15);color:#E75D01;border:1px solid rgba(231,93,1,.35)}
+.wk-modal-badge.cancel{background:rgba(217,0,0,.15);color:#D90000;border:1px solid rgba(217,0,0,.35)}
+.wk-modal-badge.soon{background:rgba(178,99,255,.15);color:#B263FF;border:1px solid rgba(178,99,255,.35)}
+
+/* Modal tema claro */
+html[data-theme="light"] .wk-modal{background:#FFFFFF;border-color:rgba(20,50,120,.2);box-shadow:0 16px 48px rgba(20,50,120,.15)}
+html[data-theme="light"] .wk-modal-title{color:#0E1530}
+html[data-theme="light"] .wk-modal-close{color:#5B6A99}
+html[data-theme="light"] .wk-modal-close:hover{background:rgba(20,50,120,.1);color:#0E1530}
+html[data-theme="light"] .wk-modal-header{border-bottom-color:rgba(20,50,120,.12)}
+html[data-theme="light"] .wk-modal-item{background:#F6F8FE;border-color:rgba(20,50,120,.15)}
+html[data-theme="light"] .wk-modal-item:hover{background:rgba(20,50,120,.08);border-color:rgba(20,50,120,.25)}
+html[data-theme="light"] .wk-modal-name{color:#0E1530}
+html[data-theme="light"] .wk-modal-proc{color:rgba(14,21,48,.5)}
+html[data-theme="light"] .wk-modal-badge.done{background:#EBF7EA;color:#1B4518;border-color:#4C9242}
+html[data-theme="light"] .wk-modal-badge.wait{background:#FEF3E7;color:#7A2F00;border-color:#E75D01}
+html[data-theme="light"] .wk-modal-badge.cancel{background:#FDE8E8;color:#6B0000;border-color:#D90000}
+html[data-theme="light"] .wk-modal-badge.soon{background:#F3ECFF;color:#4A1A8A;border-color:#B263FF}
 </style>
 
 {{-- ---- HTML ---- --}}
@@ -45,6 +98,17 @@ html[data-theme="light"] .wk-event.ev-soon{background:#F3ECFF;color:#4A1A8A;bord
     <thead id="weekHead"></thead>
     <tbody id="weekBody"></tbody>
   </table>
+</div>
+
+{{-- Modal de citas semana --}}
+<div class="wk-modal-overlay" id="wkModalOverlay">
+  <div class="wk-modal">
+    <div class="wk-modal-header">
+      <div class="wk-modal-title" id="wkModalTitle"></div>
+      <button class="wk-modal-close" id="wkModalClose" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="wk-modal-body" id="wkModalBody"></div>
+  </div>
 </div>
 
 {{-- ---- JS ---- --}}
@@ -101,16 +165,104 @@ html[data-theme="light"] .wk-event.ev-soon{background:#F3ECFF;color:#4A1A8A;bord
         td.className = 'wk-cell';
         if (d.toDateString() === today.toDateString()) td.classList.add('wk-today-col');
         const key = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
-        (EVENTS[key] || []).filter(ev => ev.h === hr).forEach(ev => {
+        const cellEvents = (EVENTS[key] || []).filter(ev => ev.h === hr);
+        const MAX_VISIBLE = 2;
+        cellEvents.slice(0, MAX_VISIBLE).forEach(ev => {
           const div = document.createElement('div');
           div.className = 'wk-event ' + ev.cls;
-          div.textContent = ev.t;
+          // Separar ev.t en partes: "11:00 Habib Perez · Endoscopia"
+          const parts = ev.t.split('·').map(s => s.trim());
+          const timeAndName = parts[0] || '';
+          const proc = parts[1] || '';
+          div.innerHTML = `<div class="wk-line1">${timeAndName}</div><div class="wk-line2">${proc}</div>`;
+          div.dataset.name = timeAndName;
+          div.dataset.proc = proc;
+          div.dataset.cls = ev.cls;
           td.appendChild(div);
         });
+        if (cellEvents.length > MAX_VISIBLE) {
+          const moreBtn = document.createElement('button');
+          moreBtn.className = 'wk-more-btn';
+          moreBtn.textContent = `+${cellEvents.length - MAX_VISIBLE} más`;
+          moreBtn.dataset.day = d.toDateString();
+          moreBtn.dataset.hour = hr;
+          moreBtn.dataset.key = key;
+          moreBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            openWeekModal(cellEvents, d, hr, DIAS_CORTO[i]);
+          });
+          td.appendChild(moreBtn);
+        }
         tr.appendChild(td);
       });
       tbody.appendChild(tr);
     });
   };
+
+  /* ---- Modal de citas ---- */
+  const wkModalOverlay = document.getElementById('wkModalOverlay');
+  const wkModalTitle   = document.getElementById('wkModalTitle');
+  const wkModalBody    = document.getElementById('wkModalBody');
+  const wkModalClose   = document.getElementById('wkModalClose');
+
+  const STATUS_LABELS = {'ev-done':'Completado','ev-wait':'En espera','ev-cancel':'Cancelado','ev-soon':'Próximamente'};
+
+  window.openWeekModal = function(events, date, hour, dayName) {
+    const dStr = `${dayName} ${date.getDate()}`;
+    wkModalTitle.textContent = `${dStr} – ${hour}:00`;
+    wkModalBody.innerHTML = '';
+    events.forEach(ev => {
+      const parts = ev.t.split('·').map(s => s.trim());
+      const name = parts[0] || 'Paciente';
+      const proc = parts[1] || 'Procedimiento';
+      const inits = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+      const cls = ev.cls;
+      const statusKey = cls.replace('ev-', '');
+      const statusLabel = STATUS_LABELS[cls] || statusKey;
+
+      const item = document.createElement('div');
+      item.className = 'wk-modal-item';
+      item.dataset.name = name;
+      item.dataset.proc = proc;
+      item.dataset.cls = cls;
+      item.innerHTML = `
+        <div class="wk-modal-avatar">${inits}</div>
+        <div class="wk-modal-info">
+          <div class="wk-modal-name">${name}</div>
+          <div class="wk-modal-proc">${proc}</div>
+        </div>
+        <div class="wk-modal-badge ${statusKey}">${statusLabel}</div>
+      `;
+      item.addEventListener('click', () => {
+        // Crear elemento temporal para el popup
+        const fakeEl = document.createElement('div');
+        fakeEl.className = 'wk-event ' + cls;
+        fakeEl.dataset.name = name;
+        fakeEl.dataset.proc = proc;
+        fakeEl.dataset.time = `${hour}:00`;
+        fakeEl.dataset.evcls = cls;
+        fakeEl.textContent = ev.t;
+        // Posicionar popup centrado si no hay evento mouse
+        const rect = item.getBoundingClientRect();
+        const fakeE = { clientX: rect.left + rect.width/2, clientY: rect.top };
+        if (window.__showPopup) window.__showPopup(fakeEl, fakeE);
+        closeWkModal();
+      });
+      wkModalBody.appendChild(item);
+    });
+    wkModalOverlay.classList.add('open');
+  };
+
+  function closeWkModal() {
+    wkModalOverlay.classList.remove('open');
+  }
+
+  wkModalClose.addEventListener('click', closeWkModal);
+  wkModalOverlay.addEventListener('click', e => {
+    if (e.target === wkModalOverlay) closeWkModal();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && wkModalOverlay.classList.contains('open')) closeWkModal();
+  });
 })();
 </script>
