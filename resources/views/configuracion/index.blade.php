@@ -201,6 +201,12 @@
 @push('scripts')
 <script>
 (function(){
+  /* Configuración del usuario (desde la base de datos) */
+  const SETTINGS = @json($userSettings ?? []);
+  const SAVE_URL = "{{ route('configuracion.general.update') }}";
+  const CSRF = document.querySelector('meta[name="csrf-token"]')?.content
+    || "{{ csrf_token() }}";
+
   /* Pestañas */
   const tabs = document.querySelectorAll('.cfg-tab');
   const panels = document.querySelectorAll('.cfg-panel');
@@ -236,16 +242,6 @@
     });
   }
 
-  /* Selector de tema sincronizado con el toggle global */
-  const themeSel = document.getElementById('cfgTheme');
-  if (themeSel) {
-    themeSel.value = document.documentElement.dataset.theme || 'dark';
-    themeSel.addEventListener('change', () => {
-      document.documentElement.dataset.theme = themeSel.value;
-      localStorage.setItem('enclaii-theme', themeSel.value);
-    });
-  }
-
   /* Selector de idioma: aplica traducción global ES/EN */
   const langSel = document.getElementById('cfgLang');
   if (langSel) {
@@ -257,6 +253,92 @@
       else { localStorage.setItem('enclaii-lang', langSel.value); location.reload(); }
     });
   }
+
+  /* ===== Preferencias generales persistentes (base de datos) ===== */
+  function applyEffect(effect, on){
+    if (effect === 'animations') {
+      document.documentElement.dataset.animations = on ? 'on' : 'off';
+      // Espejo en localStorage para el render temprano del layout en otras páginas.
+      try { localStorage.setItem('enclaii-pref-animations', on ? '1' : '0'); } catch (e) {}
+    } else if (effect === 'compact') {
+      document.documentElement.dataset.compact = on ? 'on' : 'off';
+      try { localStorage.setItem('enclaii-pref-compact', on ? '1' : '0'); } catch (e) {}
+    } else if (effect === 'reading') {
+      document.documentElement.dataset.reading = on ? 'on' : 'off';
+      try { localStorage.setItem('enclaii-pref-reading_mode', on ? '1' : '0'); } catch (e) {}
+    } else if (effect === 'push' && on && 'Notification' in window) {
+      if (Notification.permission === 'default') Notification.requestPermission();
+    }
+  }
+
+  /* Cola de guardado con debounce: agrupa cambios y los manda al backend */
+  let pending = {};
+  let saveTimer = null;
+  function queueSave(key, value){
+    pending[key] = value;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(flushSave, 450);
+  }
+  async function flushSave(){
+    if (Object.keys(pending).length === 0) return;
+    const payload = pending; pending = {};
+    try {
+      const res = await fetch(SAVE_URL, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': CSRF,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      toast('Configuración guardada');
+    } catch (err) {
+      toast('No se pudo guardar la configuración');
+    }
+  }
+
+  function toast(msg){
+    let t = document.getElementById('cfgToast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'cfgToast';
+      t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);'
+        + 'background:var(--card);color:var(--txt);border:1px solid var(--stroke-strong);'
+        + 'padding:10px 18px;border-radius:12px;font-size:13.5px;font-weight:600;z-index:9999;'
+        + 'box-shadow:0 12px 30px -10px rgba(0,0,0,.5);opacity:0;transition:opacity .2s,transform .2s;pointer-events:none';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    requestAnimationFrame(() => { t.style.opacity = '1'; t.style.transform = 'translateX(-50%) translateY(0)'; });
+    clearTimeout(t._h);
+    t._h = setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(-50%) translateY(10px)'; }, 1600);
+  }
+
+  document.querySelectorAll('[data-setting]').forEach(el => {
+    if (el.id === 'cfgTheme' || el.id === 'cfgLang') return; // ya tienen manejo propio
+    const key = el.dataset.setting;
+    const saved = SETTINGS[key];
+
+    if (el.type === 'checkbox') {
+      if (saved !== undefined) el.checked = !!saved;
+      if (el.dataset.effect) applyEffect(el.dataset.effect, el.checked);
+      el.addEventListener('change', () => {
+        if (el.dataset.effect) applyEffect(el.dataset.effect, el.checked);
+        queueSave(key, el.checked);
+      });
+    } else { // select: el value de cada opción es su texto
+      if (saved !== undefined && saved !== null) {
+        const match = Array.from(el.options).find(o => o.value === saved || o.text === saved);
+        if (match) el.value = match.value;
+      }
+      el.addEventListener('change', () => {
+        queueSave(key, el.value);
+      });
+    }
+  });
 })();
 </script>
 @endpush

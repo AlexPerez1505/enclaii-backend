@@ -554,6 +554,7 @@
     'Ej. Juan Pérez': 'e.g. John Smith',
 
     /* ---- Comunes ---- */
+    'Preferencia guardada': 'Preference saved',
     'Guardar': 'Save',
     'Cancelar': 'Cancel',
     'Eliminar': 'Delete',

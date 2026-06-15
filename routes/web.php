@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\EndoCareAuthController;
 use App\Http\Controllers\IaReporteController;
+use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -56,8 +57,13 @@ Route::middleware('auth')->group(function () {
     })->name('ia-reportes.analisis');
 
     Route::get('/configuracion', function () {
-        return view('configuracion.index');
+        return view('configuracion.index', [
+            'userSettings' => request()->user()->resolvedSettings(),
+        ]);
     })->name('configuracion');
+
+    Route::patch('/configuracion/general', [SettingsController::class, 'update'])
+        ->name('configuracion.general.update');
 
     Route::post('/logout', [EndoCareAuthController::class, 'logout'])->name('logout');
 });

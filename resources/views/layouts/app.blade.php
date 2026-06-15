@@ -8,9 +8,20 @@
   document.documentElement.dataset.theme = localStorage.getItem('enclaii-theme') || 'dark';
   /* Aplicar idioma guardado al atributo lang antes del primer render */
   document.documentElement.lang = localStorage.getItem('enclaii-lang') || 'es';
+  /* Aplicar preferencias de apariencia antes del primer render (evita parpadeo) */
+  (function(){
+    var pref = function(k, def){ try { var v = localStorage.getItem('enclaii-pref-' + k); return v === null ? def : v; } catch (e) { return def; } };
+    document.documentElement.dataset.animations = pref('animations', '1') === '0' ? 'off' : 'on';
+    document.documentElement.dataset.compact = pref('compact', '0') === '1' ? 'on' : 'off';
+    document.documentElement.dataset.reading = pref('reading_mode', '0') === '1' ? 'on' : 'off';
+  })();
 </script>
 <title>@yield('title', 'ENCLAII') — ENCLAII</title>
+@auth
+<script>window.enclaiiSettings = @json(auth()->user()->resolvedSettings());</script>
+@endauth
 <script defer src="{{ asset('js/i18n.js') }}"></script>
+<script defer src="{{ asset('js/preferences.js') }}"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -66,6 +77,31 @@ body{
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 a{color:inherit;text-decoration:none}
 .muted{color:var(--txt-soft)}
+
+/* ===== Preferencia: Animaciones y transiciones desactivadas ===== */
+html[data-animations="off"] *,
+html[data-animations="off"] *::before,
+html[data-animations="off"] *::after{
+  animation-duration:.001s !important;
+  animation-delay:0s !important;
+  transition-duration:.001s !important;
+  transition-delay:0s !important;
+  scroll-behavior:auto !important;
+}
+
+/* ===== Preferencia: Modo compacto (mayor densidad de información) ===== */
+html[data-compact="on"] body{font-size:93%}
+html[data-compact="on"] .card{padding:13px 15px}
+
+/* ===== Preferencia: Modo lectura (filtro amarillo anti-fatiga visual) ===== */
+html[data-reading="on"]::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:rgba(255,201,71,.16);
+  pointer-events:none;
+  z-index:2147483647;
+}
 
 /* ================= LAYOUT ================= */
 .dash{
