@@ -15,8 +15,9 @@
 .hz-back svg{width:16px;height:16px}
 @media (hover:hover){.hz-back:hover{background:rgba(110,160,255,.1)}}
 
-.hz-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px;align-items:start}
+.hz-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px;align-items:stretch}
 @media (max-width:1100px){.hz-grid{grid-template-columns:1fr}}
+.hz-col{display:flex;flex-direction:column;gap:16px;min-height:0}
 
 .hz-pat{display:flex;align-items:center;gap:12px;margin-bottom:18px}
 .hz-pat .av{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--cyan));display:grid;place-items:center;font-family:'Sora',sans-serif;font-weight:700;font-size:15px;flex:none}
@@ -56,6 +57,20 @@
 .hz-stat .ok{color:var(--green)}
 .hz-note{display:flex;align-items:center;gap:9px;margin-top:8px;padding:11px 14px;border-radius:var(--r-md);border:1px solid var(--stroke);background:var(--panel-2);font-size:12px;color:var(--txt-soft)}
 .hz-note svg{width:16px;height:16px;flex:none;color:var(--cyan)}
+
+/* Gráfica de barras verticales: hallazgos detectados */
+.hz-chart-card{flex:1;display:flex;flex-direction:column;min-height:260px}
+.hz-chart-card h3{margin-bottom:14px}
+.hz-bars{flex:1;display:flex;align-items:flex-end;justify-content:space-between;gap:10px;padding-top:6px}
+.hz-bar{flex:1;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:7px;min-width:0}
+.hz-bar .col{width:100%;max-width:42px;border-radius:7px 7px 0 0;height:0;transition:height 1.1s var(--ease-out)}
+.hz-bar .col.c1{background:linear-gradient(180deg,var(--cyan),var(--blue))}
+.hz-bar .col.c2{background:linear-gradient(180deg,#A98BFF,#7B5CF6)}
+.hz-bar .col.c3{background:linear-gradient(180deg,#FFC368,var(--orange))}
+.hz-bar .col.c4{background:linear-gradient(180deg,#7BF0BE,var(--green))}
+.hz-bar .col.c5{background:linear-gradient(180deg,#FF98A6,var(--red))}
+.hz-bar .val{font-family:'Sora',sans-serif;font-weight:800;font-size:13px;order:-1}
+.hz-bar .lbl{font-size:10.5px;color:var(--txt-soft);font-weight:600;text-align:center;line-height:1.2}
 </style>
 @endpush
 
@@ -143,20 +158,37 @@
       </div>
     </article>
 
-    {{-- Resumen lateral --}}
-    <article class="card hz-side rise d3">
-      <h3>RESUMEN DE HALLAZGOS</h3>
-      <div class="hz-stat"><span>Total de hallazgos</span><b>6</b></div>
-      <div class="hz-stat"><span>Alta confianza</span><b class="ok">1</b></div>
-      <div class="hz-stat"><span>Media confianza</span><b class="warn">2</b></div>
-      <div class="hz-stat"><span>Baja confianza</span><b>3</b></div>
-      <div class="hz-stat"><span>Hallazgo principal</span><b class="warn" style="font-size:14px">Gastritis</b></div>
+    {{-- Columna derecha: resumen + gráfica --}}
+    <div class="hz-col">
 
-      <div class="hz-note">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-        Los hallazgos son sugerencias generadas por IA. La decisión final corresponde al profesional de la salud.
-      </div>
-    </article>
+      <article class="card hz-side rise d3">
+        <h3>RESUMEN DE HALLAZGOS</h3>
+        <div class="hz-stat"><span>Total de hallazgos</span><b>6</b></div>
+        <div class="hz-stat"><span>Alta confianza</span><b class="ok">1</b></div>
+        <div class="hz-stat"><span>Media confianza</span><b class="warn">2</b></div>
+        <div class="hz-stat"><span>Baja confianza</span><b>3</b></div>
+        <div class="hz-stat"><span>Hallazgo principal</span><b class="warn" style="font-size:14px">Gastritis</b></div>
+
+        <div class="hz-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          Los hallazgos son sugerencias generadas por IA. La decisión final corresponde al profesional de la salud.
+        </div>
+      </article>
+
+      {{-- Gráfica de barras: hallazgos detectados --}}
+      <article class="card hz-chart-card rise d4">
+        <h3>HALLAZGOS DETECTADOS</h3>
+        <div class="hz-bars">
+          <div class="hz-bar"><div class="col c1" data-v="68" data-max="68"></div><span class="val">68%</span><span class="lbl">Gastritis</span></div>
+          <div class="hz-bar"><div class="col c2" data-v="42" data-max="68"></div><span class="val">42%</span><span class="lbl">Reflujo</span></div>
+          <div class="hz-bar"><div class="col c3" data-v="18" data-max="68"></div><span class="val">18%</span><span class="lbl">Úlcera</span></div>
+          <div class="hz-bar"><div class="col c4" data-v="11" data-max="68"></div><span class="val">11%</span><span class="lbl">Pólipos</span></div>
+          <div class="hz-bar"><div class="col c5" data-v="9" data-max="68"></div><span class="val">9%</span><span class="lbl">Esofagitis</span></div>
+          <div class="hz-bar"><div class="col c2" data-v="6" data-max="68"></div><span class="val">6%</span><span class="lbl">Metaplasia</span></div>
+        </div>
+      </article>
+
+    </div>
 
   </div>
 
@@ -167,8 +199,21 @@
 (function(){
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const bars = document.querySelectorAll('.bar i');
-  const draw = () => bars.forEach(b => { b.style.width = b.dataset.w + '%'; });
-  if (reduced) { bars.forEach(b => b.style.transition = 'none'); draw(); return; }
+  const cols = document.querySelectorAll('.hz-bar .col');
+
+  const draw = () => {
+    bars.forEach(b => { b.style.width = b.dataset.w + '%'; });
+    cols.forEach(c => {
+      const v = +c.dataset.v, max = +c.dataset.max || 1;
+      c.style.height = Math.round(v / max * 100) + '%';
+    });
+  };
+  if (reduced) {
+    bars.forEach(b => b.style.transition = 'none');
+    cols.forEach(c => c.style.transition = 'none');
+    draw();
+    return;
+  }
   setTimeout(draw, 250);
 })();
 </script>

@@ -78,6 +78,11 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 .ed-annex .ph:nth-child(1){background:radial-gradient(circle at 45% 40%,#c0565a,#5c1d22)}
 .ed-annex .ph:nth-child(2){background:radial-gradient(circle at 50% 45%,#c97a52,#5c2d1d)}
 .ed-annex .ph:nth-child(3){background:radial-gradient(circle at 50% 50%,#2a2f45,#0b0e1a)}
+.ed-annex.has-imgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+.annex-item{border:1px solid var(--stroke);border-radius:12px;overflow:hidden;background:var(--panel);display:flex;flex-direction:column}
+.annex-item img{width:100%;height:128px;object-fit:cover;display:block;background:var(--off)}
+.annex-item .annex-cap{padding:9px 11px;font-size:12px;line-height:1.45;color:var(--txt)}
+.annex-item .annex-num{display:block;font-size:10.5px;font-weight:700;letter-spacing:.05em;color:var(--txt-soft);margin-bottom:3px;text-transform:uppercase}
 
 /* Panel lateral */
 .ed-side{display:flex;flex-direction:column;gap:16px}
@@ -265,7 +270,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
       <p>Se toman biopsias de antro para estudio histopatológico y detección de Helicobacter pylori.</p>
 
       <h4>ANEXOS @if($gen)<span class="sec-st wait">Pendiente</span>@endif</h4>
-      <div class="ed-annex">
+      <div class="ed-annex" id="edAnnex">
         <span class="ph"></span><span class="ph"></span><span class="ph"></span>
       </div>
     </article>
@@ -431,6 +436,66 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   const total = chips.length;
   const doc = document.querySelector('.ed-doc');
 
+  // ===== Si venimos de "Generar Reporte IA", inyectar contenido real de la IA =====
+  const escDoc = s => String(s ?? '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  const norm = s => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+  const findHeading = kw => Array.from(doc.querySelectorAll('h4')).find(h => norm(h.textContent).includes(kw));
+  const nextOfType = (h4, tag) => {
+    let n = h4 ? h4.nextElementSibling : null;
+    while (n && n.tagName !== 'H4') { if (n.tagName === tag) return n; n = n.nextElementSibling; }
+    return null;
+  };
+  const setText = (kw, text) => { const p = nextOfType(findHeading(kw), 'P'); if (p && text) p.textContent = text; };
+  const setList = (kw, items) => {
+    const ul = nextOfType(findHeading(kw), 'UL');
+    if (ul && items && items.length) ul.innerHTML = items.map(it => '<li>' + escDoc(it) + '</li>').join('');
+  };
+  const setMeta = (kw, val) => {
+    if (!val) return;
+    const k = Array.from(doc.querySelectorAll('.doc-meta .k')).find(s => norm(s.textContent).includes(kw));
+    if (k && k.nextElementSibling) k.nextElementSibling.textContent = val;
+  };
+  // Renderiza el anexo: cada imagen con la descripción que la IA hizo de ella.
+  const setAnnex = (imagenes, descripciones) => {
+    const box = document.getElementById('edAnnex');
+    if (!box) return;
+    const imgs = Array.isArray(imagenes) ? imagenes : [];
+    const desc = Array.isArray(descripciones) ? descripciones : [];
+    if (!imgs.length && !desc.length) return;
+    const n = Math.max(imgs.length, desc.length);
+    let html = '';
+    for (let i = 0; i < n; i++) {
+      const src = imgs[i] || '';
+      const cap = desc[i] || 'Sin descripción disponible para esta imagen.';
+      html += '<figure class="annex-item">'
+        + (src ? '<img src="' + src + '" alt="Imagen ' + (i + 1) + '" loading="lazy">' : '')
+        + '<figcaption class="annex-cap"><span class="annex-num">Imagen ' + (i + 1) + '</span>'
+        + escDoc(cap) + '</figcaption></figure>';
+    }
+    box.innerHTML = html;
+    box.classList.add('has-imgs');
+  };
+
+  try {
+    const stored = JSON.parse(sessionStorage.getItem('iaReporte') || 'null');
+    if (stored && stored.reporte) {
+      sessionStorage.removeItem('iaReporte');
+      const inf = stored.reporte.informe || {};
+      setText('INDICACION', inf.indicacion);
+      setText('SEDACION', inf.sedacion);
+      setList('HALLAZGOS', inf.hallazgos);
+      setText('IMPRESION', inf.impresion_diagnostica);
+      setList('PLAN', inf.plan_recomendaciones);
+      setText('OBSERVACIONES', inf.observaciones);
+      setAnnex(stored.imagenes, stored.reporte.anexo);
+      if (stored.meta) {
+        setMeta('PACIENTE', stored.meta.paciente);
+        setMeta('TIPO DE ESTUDIO', stored.meta.tipo_estudio);
+        setMeta('FECHA DEL ESTUDIO', stored.meta.fecha);
+      }
+    }
+  } catch (e) { /* sin datos de IA: se usa el contenido de ejemplo */ }
+
   const setPct = (v) => { target = v; pct.textContent = Math.round(v) + '%'; };
 
   // Construye las secciones: para cada h4, sus párrafos/li hasta el siguiente h4
@@ -522,6 +587,58 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   const chips = document.getElementById('chatChips');
   if (!form || !msgs) return;
 
+  const chatUrl = "{{ route('ia-reportes.chat.post') }}";
+  const csrf = "{{ csrf_token() }}";
+  const docEl = document.querySelector('.ed-doc');
+
+  /* ===== Aplicar ediciones de la IA directamente en el informe ===== */
+  const escDoc = s => String(s ?? '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  const norm = s => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+  const SECC = {
+    indicacion:           { kw: 'INDICACION',    tipo: 'p'  },
+    sedacion:             { kw: 'SEDACION',      tipo: 'p'  },
+    hallazgos:            { kw: 'HALLAZGOS',     tipo: 'ul' },
+    impresion_diagnostica:{ kw: 'IMPRESION',     tipo: 'p'  },
+    plan_recomendaciones: { kw: 'PLAN',          tipo: 'ul' },
+    observaciones:        { kw: 'OBSERVACIONES', tipo: 'p'  },
+  };
+  const findHeading = kw => Array.from(docEl ? docEl.querySelectorAll('h4') : []).find(h => norm(h.textContent).includes(kw));
+  const nextOfType = (h4, tag) => {
+    let n = h4 ? h4.nextElementSibling : null;
+    while (n && n.tagName !== 'H4') { if (n.tagName === tag.toUpperCase()) return n; n = n.nextElementSibling; }
+    return null;
+  };
+  const flash = el => {
+    if (!el) return;
+    el.style.transition = 'background-color .3s';
+    el.style.backgroundColor = 'rgba(56,199,244,.2)';
+    setTimeout(() => { el.style.backgroundColor = ''; }, 1300);
+  };
+  const applyAccion = a => {
+    const cfg = SECC[a.seccion];
+    if (!cfg || !docEl) return false;
+    const h4 = findHeading(cfg.kw);
+    if (!h4) return false;
+    if (cfg.tipo === 'ul') {
+      const ul = nextOfType(h4, 'ul');
+      if (!ul) return false;
+      const items = Array.isArray(a.contenido) ? a.contenido : [a.contenido];
+      const lis = items.filter(x => String(x).trim()).map(x => '<li>' + escDoc(x) + '</li>').join('');
+      if (a.operacion === 'agregar') ul.insertAdjacentHTML('beforeend', lis);
+      else ul.innerHTML = lis;
+      flash(ul);
+    } else {
+      const p = nextOfType(h4, 'p');
+      if (!p) return false;
+      const txt = Array.isArray(a.contenido) ? a.contenido.join('. ') : a.contenido;
+      if (a.operacion === 'agregar') p.textContent = (p.textContent + ' ' + txt).trim();
+      else p.textContent = txt;
+      flash(p);
+    }
+    return true;
+  };
+  const applyAcciones = acciones => (acciones || []).reduce((n, a) => n + (applyAccion(a) ? 1 : 0), 0);
+
   const scrollDown = () => { msgs.scrollTop = msgs.scrollHeight; };
 
   const addMsg = (text, who) => {
@@ -579,15 +696,41 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     return 'Entendido. He preparado una propuesta para "' + q + '" y la integré en el borrador del informe. ¿Quieres ajustarla?';
   };
 
-  const send = (text) => {
+  const send = async (text) => {
     if (!text.trim()) return;
     addMsg(text, 'me');
     const typingEl = showTyping();
-    setTimeout(() => {
+    try {
+      const res = await fetch(chatUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': csrf,
+        },
+        body: JSON.stringify({
+          message: text,
+          contexto: docEl ? docEl.innerText.slice(0, 6000) : '',
+        }),
+      });
+      const data = await res.json();
       typingEl.remove();
       const aiEl = addMsg('', 'ai');
-      typeInto(aiEl, replyFor(text));
-    }, 700);
+      if (!res.ok || !data.ok) {
+        typeInto(aiEl, 'No pude responder: ' + (data.message || 'error de conexión.'));
+      } else {
+        // Aplica las ediciones de la IA directamente en el informe
+        const cambios = applyAcciones(data.acciones);
+        let respuesta = data.respuesta || '...';
+        if (cambios > 0) {
+          respuesta += '\n\n✓ Actualicé ' + cambios + (cambios === 1 ? ' sección' : ' secciones') + ' del informe.';
+        }
+        typeInto(aiEl, respuesta);
+      }
+    } catch (e) {
+      typingEl.remove();
+      typeInto(addMsg('', 'ai'), replyFor(text));
+    }
   };
 
   form.addEventListener('submit', (e) => {

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\EndoCareAuthController;
+use App\Http\Controllers\IaReporteController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -28,6 +29,12 @@ Route::middleware('auth')->group(function () {
         return view('ia-reportes.generar');
     })->name('ia-reportes.generar');
 
+    Route::post('/ia-reportes/generar', [IaReporteController::class, 'generar'])
+        ->name('ia-reportes.generar.post');
+
+    Route::post('/ia-reportes/chat', [IaReporteController::class, 'chat'])
+        ->name('ia-reportes.chat.post');
+
     Route::get('/ia-reportes/hallazgos', function () {
         return view('ia-reportes.hallazgos');
     })->name('ia-reportes.hallazgos');
@@ -47,6 +54,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/ia-reportes/analisis', function () {
         return view('ia-reportes.analisis');
     })->name('ia-reportes.analisis');
+
+    Route::get('/configuracion', function () {
+        return view('configuracion.index');
+    })->name('configuracion');
 
     Route::post('/logout', [EndoCareAuthController::class, 'logout'])->name('logout');
 });

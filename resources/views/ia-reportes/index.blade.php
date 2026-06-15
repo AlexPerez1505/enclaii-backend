@@ -21,15 +21,19 @@
   background:linear-gradient(100deg,transparent 0%,rgba(255,255,255,.13) 50%,transparent 100%);
   transform:skewX(-18deg);
   pointer-events:none;
-  animation:cardShine 4.5s ease-in-out infinite;
+  animation:cardShine 5.6s ease-in-out infinite;
 }
+/* El barrido ocurre solo en el primer 25% del ciclo; el resto queda fuera.
+   Con los retardos escalonados, una tarjeta termina de brillar y empieza la siguiente. */
 @keyframes cardShine{
   0%{left:-75%}
-  55%,100%{left:150%}
+  25%{left:150%}
+  100%{left:150%}
 }
-.stat.d3::after{animation-delay:.25s}
-.stat.d4::after{animation-delay:.5s}
-.stat.d5::after{animation-delay:.75s}
+.stat.d2::after{animation-delay:0s}
+.stat.d3::after{animation-delay:1.4s}
+.stat.d4::after{animation-delay:2.8s}
+.stat.d5::after{animation-delay:4.2s}
 @media (prefers-reduced-motion: reduce){
   .stat::after{display:none}
 }
@@ -256,6 +260,8 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
   -webkit-mask:url('/images/Vector.png') no-repeat center/contain;
           mask:url('/images/Vector.png') no-repeat center/contain;
 }
+/* En tema claro se borra el fondo azul oscuro del estómago */
+html[data-theme="light"] .gauge .stomach{background:transparent}
 .gauge .stomach .water{position:absolute;inset:0;width:100%;height:100%}
 .prob h4,.risk h4{
   font-family:'Sora',sans-serif;
@@ -797,7 +803,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
     }, 350);
   };
 
-  setInterval(cycle, 4500);
+  setInterval(cycle, 9000);
 })();
 </script>
 @endpush

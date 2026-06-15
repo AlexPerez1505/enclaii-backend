@@ -6,8 +6,11 @@
 <script>
   /* Aplicar tema guardado antes del primer render (evita parpadeo) */
   document.documentElement.dataset.theme = localStorage.getItem('enclaii-theme') || 'dark';
+  /* Aplicar idioma guardado al atributo lang antes del primer render */
+  document.documentElement.lang = localStorage.getItem('enclaii-lang') || 'es';
 </script>
 <title>@yield('title', 'ENCLAII') — ENCLAII</title>
+<script defer src="{{ asset('js/i18n.js') }}"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -174,7 +177,10 @@ a{color:inherit;text-decoration:none}
   gap:18px;
   margin-bottom:24px;
   flex-wrap:wrap;
+  position:relative;
+  z-index:1000;
 }
+.profile-wrap.open{z-index:2000}
 .head h1{
   font-family:'Sora',sans-serif;
   font-size:26px;
@@ -239,6 +245,35 @@ a{color:inherit;text-decoration:none}
 }
 .profile strong{display:block;font-size:14px;line-height:1.2}
 .profile span{font-size:11.5px;color:var(--txt-soft)}
+
+/* ===== Menú desplegable del perfil ===== */
+.profile-wrap{position:relative}
+.profile{cursor:pointer;font:inherit;color:inherit;text-align:left}
+.profile-meta{display:flex;flex-direction:column}
+.profile-caret{color:var(--txt-soft);transition:transform .2s}
+.profile-wrap.open .profile-caret{transform:rotate(180deg)}
+
+.profile-menu{
+  position:absolute;top:calc(100% + 10px);right:0;width:300px;max-width:88vw;
+  background:var(--card);border:1px solid var(--stroke);border-radius:var(--r-md);
+  box-shadow:0 18px 44px rgba(0,0,0,.42);padding:8px;z-index:60;
+  opacity:0;visibility:hidden;transform:translateY(-8px) scale(.98);transform-origin:top right;
+  transition:opacity .16s var(--ease-out),transform .16s var(--ease-out),visibility .16s;
+}
+.profile-menu.open{opacity:1;visibility:visible;transform:translateY(0) scale(1)}
+.pm-head{padding:8px 10px 12px;margin-bottom:4px;border-bottom:1px solid var(--stroke)}
+.pm-head strong{display:block;font-family:'Sora',sans-serif;font-size:14px;font-weight:700}
+.pm-head span{font-size:11.5px;color:var(--txt-soft)}
+.pm-item{display:flex;align-items:center;gap:12px;width:100%;padding:10px;border-radius:10px;text-align:left;background:none;border:0;cursor:pointer;font:inherit;color:var(--txt);transition:background-color .15s}
+.pm-item:hover{background:var(--panel-2)}
+.pm-ico{width:34px;height:34px;flex:none;border-radius:9px;display:grid;place-items:center;color:var(--cyan);background:rgba(56,199,244,.1)}
+.pm-ico svg{width:17px;height:17px}
+.pm-txt{display:flex;flex-direction:column;min-width:0}
+.pm-txt .t{font-size:13px;font-weight:600}
+.pm-txt .d{font-size:11px;color:var(--txt-soft);margin-top:1px}
+.pm-sep{height:1px;background:var(--stroke);margin:6px 4px}
+.pm-item.danger .pm-ico{color:var(--red);background:rgba(255,90,110,.1)}
+.pm-item.danger .t{color:var(--red)}
 
 /* ================= COMPONENTES COMPARTIDOS ================= */
 .card{
@@ -390,7 +425,7 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
       Galería
     </a>
-    <a class="nav-item {{ $active === 'configuracion' ? 'active' : '' }}" href="#">
+    <a class="nav-item {{ $active === 'configuracion' ? 'active' : '' }}" href="{{ url('/configuracion') }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87 1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
       Configuración
     </a>
@@ -428,11 +463,43 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
           <span class="dot">3</span>
         </button>
-        <div class="profile">
-          <div class="avatar">DV</div>
-          <div>
-            <strong>Dr. Victor</strong>
-            <span>Endoscopista</span>
+        <div class="profile-wrap">
+          <button type="button" class="profile" id="profileBtn" aria-haspopup="true" aria-expanded="false">
+            <div class="avatar">DV</div>
+            <div class="profile-meta">
+              <strong>Dr. Victor</strong>
+              <span>Endoscopista</span>
+            </div>
+            <svg class="profile-caret" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+
+          <div class="profile-menu" id="profileMenu" role="menu">
+            <div class="pm-head"><strong>Acciones rápidas</strong><span>Acciones y herramientas</span></div>
+
+            <a href="{{ route('configuracion') }}" class="pm-item" role="menuitem">
+              <span class="pm-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
+              <span class="pm-txt"><span class="t">Editar perfil</span><span class="d">Actualiza tu información personal</span></span>
+            </a>
+            <a href="#" class="pm-item" role="menuitem">
+              <span class="pm-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+              <span class="pm-txt"><span class="t">Exportar mis datos</span><span class="d">Descargar una copia tus datos</span></span>
+            </a>
+            <a href="#" class="pm-item" role="menuitem">
+              <span class="pm-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
+              <span class="pm-txt"><span class="t">Importar mi configuración</span><span class="d">Importar configuración desde un archivo</span></span>
+            </a>
+            <a href="#" class="pm-item" role="menuitem">
+              <span class="pm-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.5 15a9 9 0 1 0 .5-8L1 10"/></svg></span>
+              <span class="pm-txt"><span class="t">Restablecer configuración</span><span class="d">Restaurar configuración predeterminada</span></span>
+            </a>
+            <div class="pm-sep"></div>
+            <form method="POST" action="{{ route('logout') }}">
+              @csrf
+              <button type="submit" class="pm-item danger" role="menuitem">
+                <span class="pm-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>
+                <span class="pm-txt"><span class="t">Cerrar sesión</span><span class="d">Cerrar sesión en tu cuenta actual</span></span>
+              </button>
+            </form>
           </div>
         </div>
       </div>
@@ -452,6 +519,23 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
     html.dataset.theme = next;
     localStorage.setItem('enclaii-theme', next);
   });
+
+  /* Menú desplegable del perfil */
+  (function(){
+    const wrap = document.querySelector('.profile-wrap');
+    const btn = document.getElementById('profileBtn');
+    const menu = document.getElementById('profileMenu');
+    if (!wrap || !btn || !menu) return;
+    const close = () => { wrap.classList.remove('open'); menu.classList.remove('open'); btn.setAttribute('aria-expanded','false'); };
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const isOpen = menu.classList.toggle('open');
+      wrap.classList.toggle('open', isOpen);
+      btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+    document.addEventListener('click', e => { if (!wrap.contains(e.target)) close(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+  })();
 </script>
 @stack('scripts')
 </body>

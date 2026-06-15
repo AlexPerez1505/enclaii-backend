@@ -52,7 +52,8 @@
 .gen-ev-tools button{width:28px;height:28px;border:1px solid var(--stroke);border-radius:8px;display:grid;place-items:center;color:var(--txt-soft)}
 .gen-ev-tools svg{width:15px;height:15px}
 .gen-thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
-.gen-thumb{aspect-ratio:4/3;border-radius:10px;border:1px solid var(--stroke)}
+.gen-thumb{aspect-ratio:4/3;border-radius:10px;border:1px solid var(--stroke);overflow:hidden;background:var(--off)}
+.gen-thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .gen-thumb.sel{border-color:var(--cyan);box-shadow:0 0 0 1.5px var(--cyan)}
 .gen-dots{display:flex;justify-content:center;gap:6px;margin-top:11px}
 .gen-dots i{width:7px;height:7px;border-radius:50%;background:var(--off)}
@@ -139,7 +140,7 @@
         <div class="gen-pat">
           <span class="av">MG</span>
           <div>
-            <div class="nm">María Gonzales</div>
+            <div class="nm" id="genPat">María Gonzales</div>
             <div class="mt">Femenino · 45 años</div>
           </div>
         </div>
@@ -161,7 +162,7 @@
         <div class="gen-row2">
           <div class="gen-field">
             <label>Tipo de estudio</label>
-            <select class="gen-select">
+            <select class="gen-select" id="genTipo">
               <option>Endoscopia alta</option>
               <option>Endoscopia baja</option>
               <option>Colonoscopia</option>
@@ -169,7 +170,7 @@
           </div>
           <div class="gen-field">
             <label>Fecha del estudio</label>
-            <input class="gen-input" type="date" value="2025-05-08">
+            <input class="gen-input" type="date" id="genFecha" value="2025-05-08">
           </div>
         </div>
       </div>
@@ -181,12 +182,17 @@
           <h4>Observaciones clínicas</h4>
           <svg class="step-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11.5 14.5 16 9.5"/></svg>
         </div>
-        <textarea class="gen-textarea">· Inflamación moderada del antro gástrico
+        <textarea class="gen-textarea" id="genObs">· Inflamación moderada del antro gástrico
 · Presencia de erosiones superficiales
 · Reflujo gastroesofágico leve.</textarea>
       </div>
 
       {{-- Paso 4: Cargar evidencia --}}
+      @php
+        $evidencias = collect(glob(public_path('images/Captura de pantalla*')))
+            ->map(fn ($p) => 'images/' . basename($p))
+            ->values();
+      @endphp
       <div class="step rise d5">
         <div class="step-head">
           <span class="step-num">4</span>
@@ -194,7 +200,7 @@
             <div class="gen-ev-head">
               <div>
                 <h4 style="margin-bottom:2px">Cargar evidencia</h4>
-                <div class="cnt">6 imágenes asociadas al estudio</div>
+                <div class="cnt">{{ $evidencias->count() }} imágenes asociadas al estudio</div>
               </div>
               <div class="gen-ev-tools">
                 <button type="button" aria-label="Ver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
@@ -203,13 +209,12 @@
             </div>
           </div>
         </div>
-        <div class="gen-thumbs">
-          <div class="gen-thumb sel" style="background:radial-gradient(circle at 42% 38%,#c25b58,#6c2026)"></div>
-          <div class="gen-thumb" style="background:radial-gradient(circle at 55% 45%,#b65a66,#6e2230)"></div>
-          <div class="gen-thumb" style="background:linear-gradient(135deg,#d9905a,#8a4a2a)"></div>
-          <div class="gen-thumb" style="background:radial-gradient(circle at 48% 42%,#c46a7a,#7a2f44)"></div>
-          <div class="gen-thumb" style="background:radial-gradient(circle at 45% 55%,#b04e4e,#5e1f24)"></div>
-          <div class="gen-thumb" style="background:radial-gradient(circle at 55% 45%,#cf7b5e,#80392a)"></div>
+        <div class="gen-thumbs" id="genThumbs">
+          @foreach ($evidencias as $i => $ev)
+            <div class="gen-thumb {{ $i === 0 ? 'sel' : '' }}">
+              <img src="{{ asset($ev) }}" alt="Evidencia {{ $i + 1 }}" loading="lazy">
+            </div>
+          @endforeach
         </div>
         <div class="gen-dots"><i class="on"></i><i></i><i></i><i></i></div>
       </div>
@@ -221,13 +226,13 @@
           <h4>Configuración AI</h4>
           <svg class="step-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11.5 14.5 16 9.5"/></svg>
         </div>
-        <div class="gen-checks">
-          <label class="gen-check"><input type="checkbox" checked> Analizar imágenes</label>
-          <label class="gen-check"><input type="checkbox" checked> Generar recomendaciones</label>
-          <label class="gen-check"><input type="checkbox" checked> Comparar estudios previos</label>
-          <label class="gen-check"><input type="checkbox" checked> Sugerir biopsias</label>
-          <label class="gen-check"><input type="checkbox" checked> Detectar patologías</label>
-          <label class="gen-check"><input type="checkbox" checked> Análisis de riesgo</label>
+        <div class="gen-checks" id="genOpts">
+          <label class="gen-check"><input type="checkbox" data-opt="Analizar imágenes" checked> Analizar imágenes</label>
+          <label class="gen-check"><input type="checkbox" data-opt="Generar recomendaciones" checked> Generar recomendaciones</label>
+          <label class="gen-check"><input type="checkbox" data-opt="Comparar estudios previos" checked> Comparar estudios previos</label>
+          <label class="gen-check"><input type="checkbox" data-opt="Sugerir biopsias" checked> Sugerir biopsias</label>
+          <label class="gen-check"><input type="checkbox" data-opt="Detectar patologías" checked> Detectar patologías</label>
+          <label class="gen-check"><input type="checkbox" data-opt="Análisis de riesgo" checked> Análisis de riesgo</label>
         </div>
       </div>
 
@@ -243,18 +248,18 @@
             <div class="prev-img"></div>
             <div class="dx">
               <small>Diagnóstico preliminar</small>
-              <h3>Gastritis crónica moderada</h3>
+              <h3 id="prevDx">Gastritis crónica moderada</h3>
               <div class="prev-conf">
                 <div class="lbl">Nivel de confianza de la AI</div>
-                <div class="prev-bar"><i style="width:96%"></i></div>
-                <div class="pc">96%</div>
+                <div class="prev-bar"><i id="prevBar" style="width:96%"></i></div>
+                <div class="pc" id="prevPct">96%</div>
               </div>
             </div>
           </div>
           <div class="prev-risk">
             <div class="rt">Nivel de riesgo</div>
             <div class="donut"></div>
-            <div class="lv">Moderado</div>
+            <div class="lv" id="prevRisk">Moderado</div>
             <small>Basado en hallazgos y antecedentes</small>
           </div>
         </div>
@@ -264,7 +269,7 @@
         <div class="prev-2col">
           <div>
             <h5>Hallazgos detectados por AI</h5>
-            <ul class="prev-list">
+            <ul class="prev-list" id="prevFindings">
               <li><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Gastritis crónica <span class="tag-conf hi">Alta confianza</span></li>
               <li><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Inflamación antral <span class="tag-conf hi">Alta confianza</span></li>
               <li><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Reflujo gastroesofágico leve <span class="tag-conf mid">Media confianza</span></li>
@@ -273,7 +278,7 @@
           </div>
           <div>
             <h5>Recomendaciones sugeridas por AI</h5>
-            <ul class="prev-list">
+            <ul class="prev-list" id="prevRecs">
               <li><svg class="rc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Tomar biopsia del antro gástrico</li>
               <li><svg class="rc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Seguimiento en 3 meses</li>
               <li><svg class="rc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Revisar antecedentes gástricos del paciente</li>
@@ -286,7 +291,7 @@
 
       <div class="prev-card prev-sum rise d5">
         <div class="prev-title">Resumen generado por AI</div>
-        <p>La evaluación endoscópica muestra signos compatibles con gastritis crónica moderada, con inflamación del antro gástrico y presencia de erosiones superficiales. Se recomienda confirmación histopatológica y prueba para Helicobacter pylori. Se sugiere seguimiento clínico y tratamiento con inhibidores de bomba de protones.</p>
+        <p id="prevSummary">La evaluación endoscópica muestra signos compatibles con gastritis crónica moderada, con inflamación del antro gástrico y presencia de erosiones superficiales. Se recomienda confirmación histopatológica y prueba para Helicobacter pylori. Se sugiere seguimiento clínico y tratamiento con inhibidores de bomba de protones.</p>
         <div class="prev-note">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
           Este reporte es una sugerencia generada por AI. La decisión final siempre debe ser del profesional de la salud.
@@ -294,9 +299,9 @@
       </div>
 
       <div class="gen-foot rise d6">
-        <button class="btn-primary" type="button" onclick="window.location.href='{{ route('ia-reportes.editar', ['generating' => 1]) }}'">
+        <button class="btn-primary" type="button" id="btnGenerar">
           <x-hugeicons-ai-file width="17" height="17" />
-          Generar Reporte IA
+          <span class="btn-label">Generar Reporte IA</span>
         </button>
         <button class="btn-out" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
@@ -312,3 +317,106 @@
   </div>
 
 @endsection
+
+@push('scripts')
+<script>
+(function(){
+  const btn = document.getElementById('btnGenerar');
+  if (!btn) return;
+  const label = btn.querySelector('.btn-label');
+  const url = "{{ route('ia-reportes.generar.post') }}";
+  const editarUrl = "{{ route('ia-reportes.editar', ['generating' => 1]) }}";
+  const csrf = "{{ csrf_token() }}";
+
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  const ckSvg = '<svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  const rcSvg = '<svg class="rc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>';
+
+  const confTag = c => {
+    const v = (c || '').toLowerCase();
+    if (v.startsWith('alta')) return '<span class="tag-conf hi">Alta confianza</span>';
+    if (v.startsWith('baja')) return '<span class="tag-conf mid">Baja confianza</span>';
+    return '<span class="tag-conf mid">Media confianza</span>';
+  };
+
+  function render(r){
+    document.getElementById('prevDx').textContent = r.diagnostico;
+    document.getElementById('prevBar').style.width = r.confianza + '%';
+    document.getElementById('prevPct').textContent = r.confianza + '%';
+    document.getElementById('prevRisk').textContent = r.nivel_riesgo;
+
+    document.getElementById('prevFindings').innerHTML = (r.hallazgos || []).map(h =>
+      `<li>${ckSvg} ${esc(h.texto)} ${confTag(h.confianza)}</li>`).join('') || '<li>Sin hallazgos</li>';
+
+    document.getElementById('prevRecs').innerHTML = (r.recomendaciones || []).map(t =>
+      `<li>${rcSvg} ${esc(t)}</li>`).join('') || '<li>Sin recomendaciones</li>';
+
+    document.getElementById('prevSummary').textContent = r.resumen || '';
+  }
+
+  btn.addEventListener('click', async () => {
+    const opciones = {};
+    document.querySelectorAll('#genOpts input[type=checkbox]').forEach(c => {
+      if (c.checked) opciones[c.dataset.opt] = true;
+    });
+
+    const payload = {
+      paciente: (document.getElementById('genPat')?.textContent || '').trim(),
+      tipo_estudio: document.getElementById('genTipo')?.value || '',
+      fecha: document.getElementById('genFecha')?.value || '',
+      observaciones: (document.getElementById('genObs')?.value || '').trim(),
+      opciones,
+      imagenes: @json($evidencias),
+    };
+
+    if (!payload.observaciones) {
+      alert('Escribe las observaciones clínicas antes de generar el reporte.');
+      return;
+    }
+
+    const original = label.textContent;
+    btn.disabled = true;
+    btn.style.opacity = '.7';
+    label.textContent = 'Generando...';
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': csrf,
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.message || 'No se pudo generar el reporte.');
+      }
+      // Muestra en la vista previa las propuestas de la IA (diagnóstico, hallazgos
+      // y recomendaciones) obtenidas tras analizar las imágenes y observaciones.
+      render(data.reporte);
+      // Guarda el reporte + datos del estudio y abre el editor para redactarlo
+      sessionStorage.setItem('iaReporte', JSON.stringify({
+        reporte: data.reporte,
+        meta: {
+          paciente: payload.paciente,
+          tipo_estudio: payload.tipo_estudio,
+          fecha: payload.fecha,
+        },
+        imagenes: @json($evidencias->map(fn ($e) => asset($e))->values()),
+      }));
+      label.textContent = 'Abriendo editor...';
+      // Pausa breve para que el profesional vea la propuesta de la IA antes de editar.
+      setTimeout(() => { window.location.href = editarUrl; }, 1400);
+    } catch (e) {
+      alert('Error: ' + e.message);
+      btn.disabled = false;
+      btn.style.opacity = '';
+      label.textContent = original;
+    }
+  });
+})();
+</script>
+@endpush
