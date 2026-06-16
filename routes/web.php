@@ -20,5 +20,29 @@ Route::middleware('auth')->group(function () {
         return view('dashboard');
     })->name('dashboard');
 
+    Route::get('/nuevo-estudio', function () {
+        return view('estudios.dashboard');
+    })->name('nuevo-estudio');
+
+    Route::get('/nuevo-estudio/crear', function () {
+        return view('estudios.crear');
+    })->name('nuevo-estudio.crear');
+
+    Route::get('/nuevo-estudio/importar', function () {
+        return view('estudios.importar');
+    })->name('nuevo-estudio.importar');
+
+    Route::get('/nuevo-estudio/capturas', function () {
+        return view('estudios.capturas');
+    })->name('nuevo-estudio.capturas');
+
+    Route::get('/nuevo-estudio/configuracion', function () {
+        return view('estudios.configuracion');
+    })->name('nuevo-estudio.configuracion');
+
+    Route::get('/nuevo-estudio/grabando', function () {
+        return view('estudios.grabando');
+    })->name('nuevo-estudio.grabando');
+
     Route::post('/logout', [EndoCareAuthController::class, 'logout'])->name('logout');
 });
