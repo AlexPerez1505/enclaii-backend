@@ -62,7 +62,14 @@ html[data-theme="light"] .wk-more-btn:hover{color:#0E1530;background:rgba(20,50,
 .wk-modal-title{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;color:#EAF1FF}
 .wk-modal-close{width:28px;height:28px;border-radius:8px;border:none;background:transparent;color:#8FA3CF;cursor:pointer;display:grid;place-items:center;transition:all 150ms ease}
 .wk-modal-close:hover{background:rgba(110,160,255,.15);color:#EAF1FF}
-.wk-modal-body{padding:14px 18px;overflow-y:auto;flex:1}
+.wk-modal-body{padding:14px 18px;overflow-y:auto;flex:1;max-height:60vh}
+.wk-modal-body::-webkit-scrollbar{width:6px}
+.wk-modal-body::-webkit-scrollbar-track{background:rgba(110,160,255,.08);border-radius:6px}
+.wk-modal-body::-webkit-scrollbar-thumb{background:rgba(110,160,255,.25);border-radius:6px}
+.wk-modal-body::-webkit-scrollbar-thumb:hover{background:rgba(110,160,255,.4)}
+html[data-theme="light"] .wk-modal-body::-webkit-scrollbar-track{background:rgba(20,50,120,.06)}
+html[data-theme="light"] .wk-modal-body::-webkit-scrollbar-thumb{background:rgba(20,50,120,.18)}
+html[data-theme="light"] .wk-modal-body::-webkit-scrollbar-thumb:hover{background:rgba(20,50,120,.3)}
 .wk-modal-item{display:flex;align-items:center;gap:12px;padding:12px;background:#001525;border:1px solid rgba(22,139,217,.25);border-radius:10px;margin-bottom:10px;cursor:pointer;transition:all 150ms ease}
 .wk-modal-item:hover{background:rgba(22,139,217,.12);border-color:rgba(22,139,217,.4)}
 .wk-modal-item:last-child{margin-bottom:0}
@@ -209,7 +216,7 @@ html[data-theme="light"] .wk-modal-badge.soon{background:#F3ECFF;color:#4A1A8A;b
 
   window.openWeekModal = function(events, date, hour, dayName) {
     const dStr = `${dayName} ${date.getDate()}`;
-    wkModalTitle.textContent = `${dStr} – ${hour}:00`;
+    wkModalTitle.textContent = hour !== '' ? `${dStr} – ${hour}:00` : `${dStr} – Citas del día`;
     wkModalBody.innerHTML = '';
     events.forEach(ev => {
       const parts = ev.t.split('·').map(s => s.trim());
@@ -234,19 +241,14 @@ html[data-theme="light"] .wk-modal-badge.soon{background:#F3ECFF;color:#4A1A8A;b
         <div class="wk-modal-badge ${statusKey}">${statusLabel}</div>
       `;
       item.addEventListener('click', () => {
-        // Crear elemento temporal para el popup
-        const fakeEl = document.createElement('div');
-        fakeEl.className = 'wk-event ' + cls;
-        fakeEl.dataset.name = name;
-        fakeEl.dataset.proc = proc;
-        fakeEl.dataset.time = `${hour}:00`;
-        fakeEl.dataset.evcls = cls;
-        fakeEl.textContent = ev.t;
-        // Posicionar popup centrado si no hay evento mouse
-        const rect = item.getBoundingClientRect();
-        const fakeE = { clientX: rect.left + rect.width/2, clientY: rect.top };
-        if (window.__showPopup) window.__showPopup(fakeEl, fakeE);
+        console.log('wk-modal-item click', 'openDayModal:', !!window.openDayModal, 'ev:', ev);
+        const DIAS_MODAL = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
         closeWkModal();
+        setTimeout(() => {
+          if (window.openDayModal) {
+            window.openDayModal(ev, DIAS_MODAL, date.getDay(), date.getDate(), date.getMonth(), date.getFullYear());
+          }
+        }, 200);
       });
       wkModalBody.appendChild(item);
     });

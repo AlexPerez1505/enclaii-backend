@@ -267,16 +267,22 @@ html[data-theme="light"] .day-modal-header{border-bottom-color:rgba(20,50,120,.1
 
   const MESES_DIA = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
+  const STATUS_LABELS_MODAL = {'ev-done':'Completado','ev-wait':'En espera','ev-cancel':'Cancelado','ev-soon':'Próximamente'};
+  const STATUS_BADGE_KEY   = {'ev-done':'done','ev-wait':'wait','ev-cancel':'cancel','ev-soon':'soon'};
+
   window.openDayModal = function(ev, dayNames, dow, d, m, y) {
     const text = ev.t.trim();
     const timeM = text.match(/^(\d+:\d+)/);
     const time = timeM ? timeM[1] : '';
     const rest = text.replace(/^\d+:\d+\s*/,'');
-    const parts = rest.split('·').map(s=>s.trim());
-    const name = parts[0] || 'Paciente';
-    const proc = parts[1] || 'Procedimiento';
+    const sepIdx = rest.indexOf('·');
+    const name = sepIdx !== -1 ? rest.substring(0, sepIdx).trim() : rest.trim() || 'Paciente';
+    const proc = sepIdx !== -1 ? rest.substring(sepIdx + 1).trim() : 'Procedimiento';
     const inits = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     const endHr = parseInt(time) + 1;
+    const cls = ev.cls || 'ev-done';
+    const badgeKey = STATUS_BADGE_KEY[cls] || 'done';
+    const badgeLabel = STATUS_LABELS_MODAL[cls] || 'Completado';
 
     dayModalTitle.textContent = `${time} – ${name}`;
     dayModalBody.innerHTML = '';
@@ -286,6 +292,12 @@ html[data-theme="light"] .day-modal-header{border-bottom-color:rgba(20,50,120,.1
     const head = document.createElement('div');
     head.className = 'day-pc-head';
     head.innerHTML = `<div class="day-pc-avatar">${inits}</div><div><div class="day-pc-name">${name}</div></div>`;
+
+    const badge = document.createElement('div');
+    badge.className = 'ev-pop-badge ' + badgeKey;
+    badge.textContent = badgeLabel;
+    badge.style.marginBottom = '10px';
+
     const info = document.createElement('div');
     info.className = 'day-pc-info';
     info.innerHTML =
@@ -295,10 +307,11 @@ html[data-theme="light"] .day-modal-header{border-bottom-color:rgba(20,50,120,.1
       `<b>Habitación:</b> Sala 3`;
     card.appendChild(head);
     card.appendChild(info);
-    (DAY_BUTTONS[ev.cls] || []).forEach((b,i) => {
+    card.appendChild(badge);
+    (DAY_BUTTONS[cls] || []).forEach((b,i) => {
       const btn = document.createElement('button');
       btn.className = 'ev-pop-btn ' + b.cls;
-      btn.style.marginBottom = i < (DAY_BUTTONS[ev.cls].length-1) ? '6px' : '0';
+      btn.style.marginBottom = i < (DAY_BUTTONS[cls].length-1) ? '6px' : '0';
       btn.textContent = b.label;
       card.appendChild(btn);
     });
@@ -448,8 +461,16 @@ html[data-theme="light"] .day-modal-header{border-bottom-color:rgba(20,50,120,.1
         `<b>Fecha:</b> ${dayNames[dow]} ${d} de ${MESES[m]}<br>` +
         `<b>Tiempo:</b> ${time} AM – ${endHr}:00 PM<br>` +
         `<b>Habitación:</b> Sala 3`;
+      const panelBadgeKey = STATUS_BADGE_KEY[ev.cls] || 'done';
+      const panelBadgeLabel = STATUS_LABELS_MODAL[ev.cls] || 'Completado';
+      const panelBadge = document.createElement('div');
+      panelBadge.className = 'ev-pop-badge ' + panelBadgeKey;
+      panelBadge.textContent = panelBadgeLabel;
+      panelBadge.style.marginBottom = '10px';
+
       card.appendChild(head);
       card.appendChild(info);
+      card.appendChild(panelBadge);
       (DAY_BUTTONS[ev.cls] || []).forEach((b,i) => {
         const btn = document.createElement('button');
         btn.className = 'ev-pop-btn ' + b.cls;

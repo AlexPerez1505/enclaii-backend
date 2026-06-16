@@ -26,7 +26,7 @@ Route::middleware('auth')->group(function () {
     })->name('agenda');
 
     Route::get('/agendar', function () {
-        return view('agendar.index');
+        return view('agenda.agendar.index');
     })->name('agendar');
 
     Route::post('/logout', [EndoCareAuthController::class, 'logout'])->name('logout');

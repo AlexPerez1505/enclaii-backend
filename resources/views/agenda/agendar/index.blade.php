@@ -8,17 +8,17 @@
 @endsection
 
 @push('styles')
-  @include('agendar._base')
+  @include('agenda.agendar._base')
 @endpush
 
 @section('content')
 
 {{-- ===== PARTIALS: HTML + CSS + JS inline ===== --}}
-@include('agendar._paciente')
-@include('agendar._cita')
-@include('agendar._calendario')
-@include('agendar._motivo')
-@include('agendar._confirmacion')
+@include('agenda.agendar._paciente')
+@include('agenda.agendar._cita')
+@include('agenda.agendar._calendario')
+@include('agenda.agendar._motivo')
+@include('agenda.agendar._confirmacion')
 
 <div class="ag-wrap" id="agendarWrap">
 

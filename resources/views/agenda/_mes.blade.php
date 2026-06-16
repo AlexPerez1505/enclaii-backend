@@ -41,6 +41,12 @@ html[data-theme="light"] .cal-event.ev-wait{background:#FEF3E7;color:#7A2F00;bor
 html[data-theme="light"] .cal-event.ev-cancel{background:#FDE8E8;color:#6B0000;border:1.27px solid #D90000;box-shadow:none}
 html[data-theme="light"] .cal-event.ev-soon{background:#F3ECFF;color:#4A1A8A;border:1.27px solid #B263FF;box-shadow:none}
 
+/* Botón +X más */
+.cal-more-btn{display:block;width:100%;margin-top:2px;padding:3px 5px;font-size:9px;font-weight:600;color:#8FA3CF;background:transparent;border:1.5px dashed rgba(110,160,255,.4);border-radius:4px;cursor:pointer;transition:all 150ms ease;text-align:center}
+.cal-more-btn:hover{color:#EAF1FF;background:rgba(110,160,255,.15);border-color:rgba(110,160,255,.6)}
+html[data-theme="light"] .cal-more-btn{color:#5B6A99;border-color:rgba(20,50,120,.25)}
+html[data-theme="light"] .cal-more-btn:hover{color:#0E1530;background:rgba(20,50,120,.1);border-color:rgba(20,50,120,.4)}
+
 /* ---- Responsive cal-event ---- */
 @media(max-width:720px){
   .cal-event{font-size:9.5px;padding:2px 5px}
@@ -101,16 +107,30 @@ html[data-theme="light"] .cal-event.ev-soon{background:#F3ECFF;color:#4A1A8A;bor
         td.appendChild(dn);
         const key = `${cellDate.getFullYear()}-${cellDate.getMonth()+1}-${cellDate.getDate()}`;
         const evs = EVENTS[key] || [];
-        evs.forEach(ev => {
+        const MAX_VISIBLE = 2;
+        const DIAS_MES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+        evs.slice(0, MAX_VISIBLE).forEach(ev => {
           const div = document.createElement('div');
           div.className = 'cal-event ' + ev.cls;
-          // Separar ev.t en partes: "11:00 Habib Perez · Endoscopia"
           const parts = ev.t.split('·').map(s => s.trim());
           const timeAndName = parts[0] || '';
           const proc = parts[1] || '';
           div.innerHTML = `<div class="ce-line1">${timeAndName}</div><div class="ce-line2">${proc}</div>`;
           td.appendChild(div);
         });
+        if (evs.length > MAX_VISIBLE) {
+          const moreBtn = document.createElement('button');
+          moreBtn.className = 'cal-more-btn';
+          moreBtn.textContent = `+${evs.length - MAX_VISIBLE} más`;
+          moreBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            if (window.openWeekModal) {
+              const dayName = DIAS_MES[cellDate.getDay()];
+              window.openWeekModal(evs, cellDate, '', dayName);
+            }
+          });
+          td.appendChild(moreBtn);
+        }
         if (isCurMonth || evs.length) hasContent = true;
         tr.appendChild(td);
         day++;
