@@ -33,5 +33,13 @@ Route::middleware('auth')->group(function () {
         return view('pacientes.edit');
     })->name('pacientes.edit');
 
+    Route::get('/mensajes', function () {
+        return view('mensajes.dashboard');
+    })->name('mensajes');
+
+    Route::get('/mensajes/correo', function () {
+        return view('mensajes.dashboard');
+    })->name('mensajes.correo');
+
     Route::post('/logout', [EndoCareAuthController::class, 'logout'])->name('logout');
 });
