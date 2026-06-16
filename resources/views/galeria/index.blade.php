@@ -1,8 +1,8 @@
 ﻿@extends('layouts.app')
 
-@section('title', 'Galería')
+@section('title', 'Galería de pacientes')
 @section('active', 'galeria')
-@section('header-title', 'Galería')
+@section('header-title', 'Galería de pacientes')
 
 @push('styles')
 <style>
@@ -195,6 +195,7 @@
 @media(max-width:900px){.gal-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:560px){.gal-grid{grid-template-columns:1fr}}
 
+
 /* ===== PANEL DE FILTROS ===== */
 .fil-overlay{
   position:fixed;inset:0;z-index:1000;
@@ -358,7 +359,7 @@ $estudios = [
 @endphp
 
 <div class="rise d2">
-  <h1 class="gal-page-title">Galería de Pacientes</h1>
+  
   <p class="gal-page-sub">Revisa pacientes</p>
 
   {{-- Búsqueda + filtros --}}
