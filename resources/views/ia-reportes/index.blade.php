@@ -131,6 +131,16 @@ html[data-theme="light"] .stat::after{
 @media (hover:hover) and (pointer:fine){
   .btn-gen:hover{filter:brightness(1.1)}
 }
+.card-head-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.btn-gen.secondary{
+  background:var(--panel-2);
+  color:var(--cyan);
+  border:1px solid var(--stroke-strong);
+  box-shadow:none;
+}
+@media (hover:hover) and (pointer:fine){
+  .btn-gen.secondary:hover{filter:none;background:rgba(56,199,244,.1)}
+}
 
 /* Tabla de reportes */
 .tbl-wrap{overflow-x:visible}
@@ -395,10 +405,16 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
     <article class="card rep-tbl rise d5">
       <div class="card-head">
         <h3>Reportes generados por IA</h3>
-        <a class="btn-gen" href="{{ route('ia-reportes.generar') }}">
-          <x-hugeicons-ai-file width="17" height="17" />
-          Generar reporte IA
-        </a>
+        <div class="card-head-actions">
+          <a class="btn-gen secondary" href="{{ route('ia-reportes.redactar') }}">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
+            Generar reporte
+          </a>
+          <a class="btn-gen" href="{{ route('ia-reportes.generar') }}">
+            <x-hugeicons-ai-file width="17" height="17" />
+            Generar reporte IA
+          </a>
+        </div>
       </div>
 
       <div class="tbl-wrap">

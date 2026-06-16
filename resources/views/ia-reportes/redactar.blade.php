@@ -1,0 +1,976 @@
+@extends('layouts.app')
+
+@section('title', 'Redactar reporte')
+@section('active', 'ia-reportes')
+@section('header-title', 'Redactar reporte')
+@section('header-sub')
+  Escribe tu propio reporte con el apoyo del asistente IA
+@endsection
+
+@push('styles')
+<style>
+/* ============ EDITOR DE INFORME (manual) ============ */
+.ed-actions{display:flex;justify-content:flex-end;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.ed-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:var(--r-md);font-weight:600;font-size:13.5px;border:1px solid var(--stroke-strong);background:var(--panel-2);transition:background-color .15s}
+.ed-btn svg{width:16px;height:16px}
+@media (hover:hover){.ed-btn:hover{background:rgba(110,160,255,.1)}}
+.ed-btn.primary{border:0;background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff;padding-right:10px}
+.ed-btn.primary .div{width:1px;height:18px;background:rgba(255,255,255,.35);margin:0 2px}
+
+.ed-meta{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.ed-meta .f{display:flex;flex-direction:column;gap:6px}
+.ed-meta .f.grow{flex:1;min-width:220px}
+.ed-meta label{font-size:11.5px;color:var(--txt-soft)}
+.ed-ctrl{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;border:1px solid var(--stroke);background:var(--panel);font-size:13.5px;color:var(--txt);min-height:40px}
+.ed-ctrl svg{width:15px;height:15px;color:var(--txt-soft);flex:none}
+select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2390a0c0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
+.ed-status{padding:9px 14px;border-radius:10px;font-size:12.5px;font-weight:700;color:var(--orange);background:rgba(245,158,45,.14);border:1px solid rgba(245,158,45,.3);min-height:40px;display:flex;align-items:center}
+
+.ed-toolbar{display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding:8px 12px;border:1px solid var(--stroke);border-radius:var(--r-md);background:var(--panel-2);margin-bottom:16px}
+.ed-toolbar .sel{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;border:1px solid var(--stroke);background:var(--panel);font-size:12.5px;color:var(--txt-soft);margin-right:4px}
+.ed-toolbar .sel svg{width:13px;height:13px}
+.ed-toolbar .sep{width:1px;height:22px;background:var(--stroke);margin:0 4px}
+.ed-tb{width:30px;height:30px;display:grid;place-items:center;border-radius:7px;color:var(--txt-soft);font-size:13px;font-weight:700;transition:color .15s,background-color .15s}
+@media (hover:hover){.ed-tb:hover{color:var(--cyan);background:rgba(56,199,244,.1)}}
+.ed-tb svg{width:16px;height:16px}
+.ed-tb.active{color:var(--cyan);background:rgba(56,199,244,.18);box-shadow:inset 0 0 0 1px rgba(56,199,244,.45)}
+
+.ed-body{display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:stretch}
+@media (max-width:1100px){.ed-body{grid-template-columns:1fr}}
+.ed-main{display:flex;flex-direction:column;gap:16px;min-width:0}
+
+/* Documento editable */
+.ed-doc{padding:30px 34px;line-height:1.55;flex:1;min-height:calc(100vh - 300px);display:flex;flex-direction:column}
+.ed-doc #docSections{flex:1}
+.ed-doc .doc-h{text-align:center;margin-bottom:22px}
+.ed-doc .doc-h h2{font-family:'Sora',sans-serif;font-size:21px;font-weight:800;letter-spacing:.01em}
+.ed-doc .doc-h p{font-size:12.5px;color:var(--txt-soft);letter-spacing:.06em;margin-top:4px}
+.ed-doc .doc-meta{display:grid;grid-template-columns:150px 1fr;gap:5px 16px;font-size:13px;margin-bottom:20px}
+.ed-doc .doc-meta .k{color:var(--txt-soft)}
+.ed-doc h4{font-size:13px;font-weight:700;letter-spacing:.04em;margin:18px 0 6px;color:var(--cyan)}
+.ed-doc p,.ed-doc ul{font-size:13px}
+.ed-doc ul{list-style:disc;padding-left:20px;display:flex;flex-direction:column;gap:4px;margin-top:4px}
+
+/* Campos editables */
+[contenteditable]{outline:none}
+[contenteditable]:focus{background:rgba(56,199,244,.06);border-radius:5px;box-shadow:0 0 0 2px rgba(56,199,244,.25)}
+.ed-doc [contenteditable]{padding:1px 4px;transition:background-color .15s}
+[contenteditable][data-ph]:empty:before{content:attr(data-ph);color:var(--off);pointer-events:none}
+.ed-doc li[contenteditable]{margin-left:0}
+
+/* Panel lateral */
+.ed-side{display:flex;flex-direction:column;gap:16px}
+.ed-panel{padding:15px 16px}
+.ed-panel h3{font-size:14px;font-weight:700;margin-bottom:3px}
+.ed-panel .ph-sub{font-size:11.5px;color:var(--txt-soft);margin-bottom:12px}
+
+/* Chat IA */
+.ed-chat{display:flex;flex-direction:column;padding:0;overflow:hidden}
+.chat-head{display:flex;align-items:center;gap:11px;padding:14px 16px;border-bottom:1px solid var(--stroke)}
+.chat-orb{width:38px;height:38px;flex:none;border-radius:11px;display:grid;place-items:center;color:var(--cyan);background:rgba(56,199,244,.12);border:1px solid rgba(56,199,244,.3)}
+.chat-orb svg{width:19px;height:19px}
+.chat-head h3{font-size:14px;font-weight:700}
+.chat-on{font-size:11px;color:var(--green);display:flex;align-items:center;gap:5px}
+.chat-on::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(61,220,151,.5);animation:chOn 1.6s ease-in-out infinite}
+@keyframes chOn{0%,100%{box-shadow:0 0 0 0 rgba(61,220,151,.5)}50%{box-shadow:0 0 0 5px rgba(61,220,151,0)}}
+.chat-msgs{display:flex;flex-direction:column;gap:10px;padding:16px;height:300px;overflow-y:auto}
+.chat-msg{max-width:88%;padding:10px 13px;border-radius:14px;font-size:12.8px;line-height:1.5;white-space:pre-wrap;word-wrap:break-word}
+.chat-msg.ai{align-self:flex-start;background:var(--panel-2);border:1px solid var(--stroke);border-bottom-left-radius:5px}
+.chat-msg.me{align-self:flex-end;background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff;border-bottom-right-radius:5px}
+.chat-msg .caret{display:inline-block;width:7px;height:14px;background:var(--cyan);margin-left:2px;vertical-align:-2px;animation:chBlink .8s steps(1) infinite}
+@keyframes chBlink{50%{opacity:0}}
+.chat-typing{display:inline-flex;gap:4px;align-items:center}
+.chat-typing i{width:6px;height:6px;border-radius:50%;background:var(--txt-soft);animation:chDot 1.2s ease-in-out infinite}
+.chat-typing i:nth-child(2){animation-delay:.2s}
+.chat-typing i:nth-child(3){animation-delay:.4s}
+@keyframes chDot{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+.chat-chips{display:flex;flex-wrap:wrap;gap:7px;padding:0 16px 12px}
+.chat-chip{font-size:11.5px;padding:6px 11px;border-radius:99px;border:1px solid var(--stroke-strong);background:var(--panel-2);color:var(--txt-soft);transition:.15s}
+@media (hover:hover){.chat-chip:hover{color:var(--cyan);border-color:rgba(56,199,244,.4);background:rgba(56,199,244,.08)}}
+.chat-input{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--stroke)}
+.chat-input input{flex:1;min-width:0;padding:10px 13px;border-radius:99px;border:1px solid var(--stroke);background:var(--panel);color:var(--txt);font:inherit;font-size:13px}
+.chat-input input::placeholder{color:var(--off)}
+.chat-input button{width:40px;height:40px;flex:none;border-radius:50%;border:0;display:grid;place-items:center;background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff;transition:filter .15s,transform .15s}
+.chat-input button svg{width:17px;height:17px}
+@media (hover:hover){.chat-input button:hover{filter:brightness(1.1)}}
+.chat-input button:active{transform:scale(.94)}
+
+/* Plantillas */
+.tpl-list{display:flex;flex-direction:column;gap:9px}
+.tpl-item{display:flex;align-items:center;gap:4px;border-radius:10px;border:1px solid var(--stroke);background:var(--panel-2);transition:border-color .15s,background-color .15s}
+@media (hover:hover){.tpl-item:hover{border-color:rgba(56,199,244,.45);background:rgba(56,199,244,.07)}}
+.tpl-main{display:flex;align-items:center;gap:11px;flex:1;min-width:0;text-align:left;padding:11px 12px;color:var(--txt);background:none;border:0;transition:transform .15s}
+.tpl-main:active{transform:scale(.98)}
+.tpl-ico{width:34px;height:34px;flex:none;border-radius:9px;display:grid;place-items:center;color:var(--cyan);background:rgba(56,199,244,.12);border:1px solid rgba(56,199,244,.28)}
+.tpl-ico svg{width:17px;height:17px}
+.tpl-tx{min-width:0}
+.tpl-t{font-size:13px;font-weight:700}
+.tpl-d{font-size:11px;color:var(--txt-soft);margin-top:1px}
+.tpl-cfg{flex:none;width:32px;height:32px;margin-right:8px;display:grid;place-items:center;border-radius:8px;border:1px solid transparent;color:var(--txt-soft);background:none;transition:color .15s,background-color .15s,transform .15s}
+.tpl-cfg:active{transform:scale(.92)}
+@media (hover:hover){.tpl-cfg:hover{color:var(--cyan);background:rgba(56,199,244,.14)}}
+.tpl-cfg svg{width:16px;height:16px}
+
+/* ===== Encabezado tipo informe clínico (posicionamiento libre) ===== */
+.rep-header{position:relative;margin-bottom:16px}
+.rep-header>div{position:absolute;top:0;left:0;box-sizing:border-box}
+.rep-logo{display:grid;place-items:center;border-radius:8px;overflow:hidden}
+.rep-logo img{width:100%;height:100%;object-fit:contain}
+.rep-logo .logo-ph{width:100%;height:100%;display:grid;place-items:center;text-align:center;font-size:10px;line-height:1.25;color:var(--txt-soft);border:1px dashed var(--stroke-strong);border-radius:8px;padding:4px}
+.rep-clinic{background:#cfe6e4;border-radius:4px;text-align:center;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.rep-clinic [contenteditable]{font-family:'Sora',sans-serif;font-weight:700;color:#143036;outline:none;width:100%}
+.rep-anat{color:var(--txt-soft);display:grid;place-items:center;overflow:hidden}
+.rep-anat svg{width:100%;height:100%;object-fit:contain;display:block}
+.rep-anat img{width:100%;height:100%;object-fit:contain;display:block}
+
+/* Rejilla de imágenes del estudio */
+.rep-imgs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:14px 0 20px}
+.rep-imgs .cell{aspect-ratio:4/3;background:linear-gradient(160deg,#1c2435,#10151f);border:1px solid var(--stroke);border-radius:4px}
+
+/* Firma */
+.rep-sign{margin-top:38px;display:flex}
+.rep-sign[data-pos="left"]{justify-content:flex-start}
+.rep-sign[data-pos="center"]{justify-content:center}
+.rep-sign[data-pos="right"]{justify-content:flex-end}
+.rep-sign .sign-box{min-width:250px;text-align:center;padding-top:8px;border-top:1px solid var(--txt)}
+.rep-sign .sign-box [contenteditable]{font-size:13px;outline:none}
+
+/* ===== Modal de Configuración ===== */
+.cfg-ov{position:fixed;inset:0;background:rgba(5,8,16,.62);display:none;align-items:center;justify-content:center;z-index:90;padding:20px}
+.cfg-ov.open{display:flex}
+.cfg-modal{width:100%;max-width:620px;max-height:92vh;overflow-y:auto;background:var(--panel);border:1px solid var(--stroke-strong);border-radius:var(--r-lg);padding:22px;box-shadow:0 24px 70px -24px rgba(0,0,0,.75)}
+.cfg-modal h3{font-size:16px;font-weight:700;margin-bottom:3px}
+.cfg-modal .cfg-sub{font-size:12px;color:var(--txt-soft);margin-bottom:16px}
+
+/* Vista previa: la hoja completa con elementos arrastrables y redimensionables */
+.cfg-pv-tag{font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--txt-soft);margin-bottom:4px}
+.cfg-pv-hint{font-size:11.5px;color:var(--txt-soft);margin-bottom:10px}
+.cfg-sheet{position:relative;width:100%;background:#fff;color:#143036;border:1px solid var(--stroke);border-radius:6px;box-shadow:0 12px 36px -16px rgba(0,0,0,.6);overflow:hidden;margin-bottom:18px;user-select:none;-webkit-user-select:none}
+.cfg-head{position:relative;width:100%;border-bottom:1px dashed #dde4ea}
+.cfg-el{position:absolute;box-sizing:border-box;cursor:grab;touch-action:none}
+.cfg-el:active{cursor:grabbing}
+.cfg-el.sel{outline:2px solid #38c7f4;outline-offset:1px}
+.cfg-el .rz{position:absolute;right:-7px;bottom:-7px;width:15px;height:15px;border-radius:4px;background:#38c7f4;border:2px solid #fff;cursor:nwse-resize;box-shadow:0 1px 5px rgba(0,0,0,.45);opacity:0;transition:opacity .12s;touch-action:none}
+.cfg-el.sel .rz,.cfg-el:hover .rz{opacity:1}
+.cfg-el .e-logo{width:100%;height:100%;display:grid;place-items:center;border:1px dashed #c4d0da;border-radius:6px;overflow:hidden;font-size:9px;line-height:1.2;text-align:center;color:#7c8a98;background:#fff}
+.cfg-el .e-logo img{width:100%;height:100%;object-fit:contain}
+.cfg-el .e-name{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#cfe6e4;border-radius:4px;overflow:hidden;padding:2px 6px}
+.cfg-el .e-name span{font-family:'Sora',sans-serif;font-weight:700;color:#143036;line-height:1.1;text-align:center}
+.cfg-el .e-anat{width:100%;height:100%;display:grid;place-items:center;color:#5a6b7a;overflow:hidden}
+.cfg-el .e-anat svg,.cfg-el .e-anat img{width:100%;height:100%;object-fit:contain}
+/* cuerpo estático de la hoja (solo contexto visual) */
+.cfg-body{padding:12px 16px 18px}
+.cfg-body .b-meta{display:grid;grid-template-columns:1fr 1fr;gap:5px 16px;margin-bottom:13px}
+.cfg-body .b-meta i{height:7px;border-radius:3px;background:#eef2f5}
+.cfg-body .b-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:13px}
+.cfg-body .b-grid i{aspect-ratio:4/3;border-radius:3px;background:#e7edf2}
+.cfg-body .b-lines{display:flex;flex-direction:column;gap:6px}
+.cfg-body .b-lines i{height:6px;border-radius:3px;background:#eef2f5}
+.cfg-body .b-lines i:nth-child(3n){width:62%}
+.cfg-body .b-sign{margin-top:16px;display:flex}
+.cfg-body .b-sign[data-pos=left]{justify-content:flex-start}
+.cfg-body .b-sign[data-pos=center]{justify-content:center}
+.cfg-body .b-sign[data-pos=right]{justify-content:flex-end}
+.cfg-body .b-sign u{width:130px;border-top:1px solid #143036;padding-top:5px;font-size:9px;color:#143036;text-align:center;text-decoration:none;display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.cfg-field{display:flex;flex-direction:column;gap:6px;margin-bottom:15px}
+.cfg-field label{font-size:12px;color:var(--txt-soft)}
+.cfg-field input[type=text],.cfg-field select{padding:9px 12px;border-radius:9px;border:1px solid var(--stroke);background:var(--panel-2);color:var(--txt);font:inherit;font-size:13.5px}
+.cfg-logo-row{display:flex;align-items:center;gap:12px}
+.cfg-logo-prev{width:56px;height:56px;flex:none;border-radius:8px;border:1px solid var(--stroke);object-fit:contain;background:var(--panel-2)}
+.cfg-file{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:9px;border:1px solid var(--stroke-strong);background:var(--panel-2);color:var(--cyan);font-size:12.5px;font-weight:600;cursor:pointer}
+.cfg-file svg{width:15px;height:15px}
+@media (hover:hover){.cfg-file:hover{background:rgba(56,199,244,.1)}}
+.cfg-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:8px}
+.cfg-btn{padding:9px 16px;border-radius:9px;font-size:13px;font-weight:600;border:1px solid var(--stroke-strong);background:var(--panel-2);color:var(--txt)}
+.cfg-btn.primary{border:0;background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff}
+@media (hover:hover){.cfg-btn:hover{filter:brightness(1.08)}}
+</style>
+@endpush
+
+@section('content')
+
+  {{-- Acciones --}}
+  <div class="ed-actions">
+    <a class="ed-btn" href="{{ route('ia-reportes') }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Salir
+    </a>
+    <button class="ed-btn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Vista Previa
+    </button>
+    <button class="ed-btn primary" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Guardar reporte
+      <span class="div"></span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+  </div>
+
+  {{-- Meta --}}
+  <div class="ed-meta">
+    <div class="f grow">
+      <label>Tipo de estudio</label>
+      <select class="ed-ctrl" id="edTipo">
+        <option>Endoscopia Diagnóstica</option>
+        <option>Colonoscopia</option>
+        <option>Gastroscopia</option>
+        <option>CPRE</option>
+        <option>Enteroscopia</option>
+      </select>
+    </div>
+    <div class="f">
+      <label>Fecha del reporte</label>
+      <div class="ed-ctrl">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span contenteditable="true" data-ph="dd/mm/aaaa"></span>
+      </div>
+    </div>
+    <div class="f">
+      <label>Estado</label>
+      <span class="ed-status">En borrador</span>
+    </div>
+  </div>
+
+  {{-- Toolbar --}}
+  <div class="ed-toolbar">
+    <span class="sel">Párrafo
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </span>
+    <span class="sep"></span>
+    <button class="ed-tb" data-cmd="undo" aria-label="Deshacer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg></button>
+    <button class="ed-tb" data-cmd="redo" aria-label="Rehacer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg></button>
+    <span class="sep"></span>
+    <button class="ed-tb" data-cmd="bold"><b>B</b></button>
+    <button class="ed-tb" data-cmd="italic"><i>I</i></button>
+    <button class="ed-tb" data-cmd="underline"><u>U</u></button>
+    <button class="ed-tb" data-cmd="strikeThrough"><s>S</s></button>
+    <span class="sep"></span>
+    <button class="ed-tb" data-cmd="justifyLeft" aria-label="Alinear izquierda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg></button>
+    <button class="ed-tb" data-cmd="justifyCenter" aria-label="Centrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="18" y1="18" x2="6" y2="18"/></svg></button>
+    <button class="ed-tb" data-cmd="justifyFull" aria-label="Justificar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="3" y2="18"/></svg></button>
+    <span class="sep"></span>
+    <button class="ed-tb" data-cmd="insertUnorderedList" aria-label="Lista"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button>
+    <button class="ed-tb" data-cmd="insertOrderedList" aria-label="Lista numerada"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg></button>
+  </div>
+
+  {{-- Cuerpo --}}
+  <div class="ed-body">
+
+    <div class="ed-main">
+
+      {{-- Documento editable --}}
+      <article class="card ed-doc rise d2">
+
+        {{-- Encabezado: logo + nombre de clínica + ilustración --}}
+        <div class="rep-header">
+          <div class="rep-logo" id="repLogo">
+            <span class="logo-ph">Logo de<br>la clínica</span>
+          </div>
+          <div class="rep-clinic" id="repClinicBox">
+            <span contenteditable="true" id="repClinicName" data-ph="Nombre de la clínica">Nombre de la clínica</span>
+          </div>
+          <div class="rep-anat" id="repAnat" aria-hidden="true">
+            <svg viewBox="0 0 80 110" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M30 8c-6 6-10 14-10 22 0 6 2 11 6 16 4 5 6 9 6 15 0 10-8 14-8 24 0 8 6 13 14 13s14-6 14-15c0-12-12-16-12-26 0-7 5-11 9-17 3-5 5-10 5-16C58 22 50 12 42 8"/><path d="M30 8c4-3 8-3 12 0"/></svg>
+          </div>
+        </div>
+
+        <div class="doc-meta">
+          <span class="k">Paciente:</span><span contenteditable="true" data-ph="Nombre del paciente"></span>
+          <span class="k">Edad:</span><span contenteditable="true" data-ph="—"></span>
+          <span class="k">Sexo:</span><span contenteditable="true" data-ph="—"></span>
+          <span class="k">Fecha de Nac.:</span><span contenteditable="true" data-ph="dd/mm/aaaa"></span>
+          <span class="k">Fecha del Estudio:</span><span contenteditable="true" data-ph="dd/mm/aaaa"></span>
+          <span class="k">Procedimiento:</span><span contenteditable="true" data-ph="Tipo de procedimiento"></span>
+        </div>
+
+        {{-- Imágenes del estudio --}}
+        <div class="rep-imgs" id="repImgs">
+          <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+          <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+        </div>
+
+        <div id="docSections"></div>
+
+        {{-- Firma (su posición se cambia desde Configuración) --}}
+        <div class="rep-sign" id="repSign" data-pos="center">
+          <div class="sign-box">
+            <span contenteditable="true" id="repSignName" data-ph="Dr. Nombre del médico">Dr. Nombre del médico</span>
+          </div>
+        </div>
+      </article>
+
+    </div>
+
+    {{-- Panel lateral --}}
+    <aside class="ed-side">
+
+      <article class="card ed-chat rise d3">
+        <div class="chat-head">
+          <span class="chat-orb">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>
+          </span>
+          <div>
+            <h3>ENCLAII</h3>
+            <span class="chat-on">En línea</span>
+          </div>
+        </div>
+
+        <div class="chat-msgs" id="chatMsgs"></div>
+
+        <div class="chat-chips" id="chatChips">
+          <button type="button" class="chat-chip">Redacta los hallazgos</button>
+          <button type="button" class="chat-chip">Sugiere recomendaciones</button>
+          <button type="button" class="chat-chip">Sugiere una impresión diagnóstica</button>
+          <button type="button" class="chat-chip">Mejora la redacción</button>
+        </div>
+
+        <form class="chat-input" id="chatForm">
+          <input type="text" id="chatText" placeholder="Escribe un mensaje a la IA..." autocomplete="off">
+          <button type="submit" aria-label="Enviar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </form>
+      </article>
+
+      {{-- Plantillas (debajo del chat) --}}
+      <article class="card ed-panel rise d5">
+        <h3>Plantillas</h3>
+        <div class="ph-sub">Elige una estructura base para tu reporte</div>
+        <div class="tpl-list" id="tplList">
+          @php
+            $gear = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+            $fileIco = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+          @endphp
+
+          <div class="tpl-item">
+            <button type="button" class="tpl-main" data-tpl="endoscopia">
+              <span class="tpl-ico">{!! $fileIco !!}</span>
+              <span class="tpl-tx"><span class="tpl-t">Endoscopia diagnóstica</span><span class="tpl-d">Indicación, sedación, hallazgos…</span></span>
+            </button>
+            <button type="button" class="tpl-cfg" data-tpl-cfg="endoscopia" aria-label="Editar plantilla" title="Editar plantilla">{!! $gear !!}</button>
+          </div>
+
+          <div class="tpl-item">
+            <button type="button" class="tpl-main" data-tpl="colonoscopia">
+              <span class="tpl-ico">{!! $fileIco !!}</span>
+              <span class="tpl-tx"><span class="tpl-t">Colonoscopia</span><span class="tpl-d">Preparación, hallazgos por segmento…</span></span>
+            </button>
+            <button type="button" class="tpl-cfg" data-tpl-cfg="colonoscopia" aria-label="Editar plantilla" title="Editar plantilla">{!! $gear !!}</button>
+          </div>
+
+          <div class="tpl-item">
+            <button type="button" class="tpl-main" data-tpl="gastroscopia">
+              <span class="tpl-ico">{!! $fileIco !!}</span>
+              <span class="tpl-tx"><span class="tpl-t">Gastroscopia</span><span class="tpl-d">Esófago, estómago, duodeno…</span></span>
+            </button>
+            <button type="button" class="tpl-cfg" data-tpl-cfg="gastroscopia" aria-label="Editar plantilla" title="Editar plantilla">{!! $gear !!}</button>
+          </div>
+
+          <div class="tpl-item">
+            <button type="button" class="tpl-main" data-tpl="blanco">
+              <span class="tpl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+              <span class="tpl-tx"><span class="tpl-t">En blanco</span><span class="tpl-d">Empieza desde cero</span></span>
+            </button>
+            <button type="button" class="tpl-cfg" data-tpl-cfg="blanco" aria-label="Editar plantilla" title="Editar plantilla">{!! $gear !!}</button>
+          </div>
+        </div>
+      </article>
+
+    </aside>
+
+  </div>
+
+  {{-- Modal de Configuración del reporte --}}
+  <div class="cfg-ov" id="cfgModal">
+    <div class="cfg-modal" role="dialog" aria-modal="true" aria-labelledby="cfgTitle">
+      <h3 id="cfgTitle">Configurar plantilla</h3>
+      <div class="cfg-sub" id="cfgSub">Así se verá el encabezado del reporte</div>
+
+      {{-- Vista previa: la hoja completa con elementos arrastrables --}}
+      <div class="cfg-pv-tag">Vista previa de la hoja</div>
+      <div class="cfg-pv-hint">Arrastra el logo, el nombre o la imagen para moverlos. Usa la esquina azul para hacerlos más grandes o pequeños.</div>
+      <div class="cfg-sheet" id="cfgSheet">
+        <div class="cfg-head" id="cfgHead">
+          <div class="cfg-el" id="elLogo" data-el="logo">
+            <div class="e-logo" id="elLogoIn">Logo de<br>la clínica</div>
+            <span class="rz" data-rz="logo"></span>
+          </div>
+          <div class="cfg-el" id="elName" data-el="name">
+            <div class="e-name"><span id="elNameTx">Nombre de la clínica</span></div>
+            <span class="rz" data-rz="name"></span>
+          </div>
+          <div class="cfg-el" id="elAnat" data-el="anat">
+            <div class="e-anat" id="elAnatIn"><svg viewBox="0 0 80 110" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M30 8c-6 6-10 14-10 22 0 6 2 11 6 16 4 5 6 9 6 15 0 10-8 14-8 24 0 8 6 13 14 13s14-6 14-15c0-12-12-16-12-26 0-7 5-11 9-17 3-5 5-10 5-16C58 22 50 12 42 8"/><path d="M30 8c4-3 8-3 12 0"/></svg></div>
+            <span class="rz" data-rz="anat"></span>
+          </div>
+        </div>
+        <div class="cfg-body">
+          <div class="b-meta"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="b-grid"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="b-lines"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="b-sign" id="cfgSignPv" data-pos="center"><u id="cfgSignPvTx">Dr. Nombre del médico</u></div>
+        </div>
+      </div>
+
+      <div class="cfg-field">
+        <label>Logo de la clínica (esquina superior izquierda)</label>
+        <div class="cfg-logo-row">
+          <label class="cfg-file">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Subir logo
+            <input type="file" id="cfgLogoInput" accept="image/*" hidden>
+          </label>
+        </div>
+      </div>
+
+      <div class="cfg-field">
+        <label>Nombre de la clínica</label>
+        <input type="text" id="cfgClinic" placeholder="Ej. Sanatorio Santa María">
+      </div>
+
+      <div class="cfg-field">
+        <label>Imagen lateral (ilustración)</label>
+        <div class="cfg-logo-row">
+          <label class="cfg-file">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Subir imagen
+            <input type="file" id="cfgAnatInput" accept="image/*" hidden>
+          </label>
+        </div>
+      </div>
+
+      <div class="cfg-field">
+        <label>Nombre en la firma</label>
+        <input type="text" id="cfgSignName" placeholder="Ej. Dr. Faustino Juan Rueda Domínguez">
+      </div>
+
+      <div class="cfg-field">
+        <label>Posición de la firma</label>
+        <select id="cfgSignPos">
+          <option value="left">Izquierda</option>
+          <option value="center" selected>Centro</option>
+          <option value="right">Derecha</option>
+        </select>
+      </div>
+
+      <div class="cfg-actions">
+        <button type="button" class="cfg-btn" id="cfgCancel">Cerrar</button>
+        <button type="button" class="cfg-btn primary" id="cfgApply">Aplicar</button>
+      </div>
+    </div>
+  </div>
+
+@endsection
+
+@push('scripts')
+<script>
+/* ===== Plantillas + configuración (logo, clínica, imagen, firma) ===== */
+(function(){
+  const cont = document.getElementById('docSections');
+  const list = document.getElementById('tplList');
+  const tipoSel = document.getElementById('edTipo');
+  if (!cont) return;
+
+  // Elementos del documento que se personalizan
+  const repHeader    = document.querySelector('.ed-doc .rep-header');
+  const repLogo      = document.getElementById('repLogo');
+  const repAnat      = document.getElementById('repAnat');
+  const repClinicBox = document.getElementById('repClinicBox');
+  const repClinic    = document.getElementById('repClinicName');
+  const repSign      = document.getElementById('repSign');
+  const repSignNm    = document.getElementById('repSignName');
+
+  // HTML por defecto de los recuadros con imagen (para poder restaurar)
+  const logoDefault = repLogo ? repLogo.innerHTML : '';
+  const anatDefault = repAnat ? repAnat.innerHTML : '';
+
+  const TEMPLATES = {
+    endoscopia: {
+      titulo: 'INFORME DE ENDOSCOPIA', sub: 'ENDOSCOPIA DIGESTIVA ALTA', tipo: 'Endoscopia Diagnóstica',
+      secciones: [
+        {h: 'INDICACIÓN', tipo: 'p', ph: 'Motivo del estudio…'},
+        {h: 'SEDACIÓN', tipo: 'p', ph: 'Tipo y nivel de sedación…'},
+        {h: 'HALLAZGOS', tipo: 'ul', ph: 'Describe un hallazgo…'},
+        {h: 'IMPRESIÓN DIAGNÓSTICA', tipo: 'p', ph: 'Diagnóstico…'},
+        {h: 'PLAN Y RECOMENDACIONES', tipo: 'ul', ph: 'Recomendación…'},
+        {h: 'OBSERVACIONES', tipo: 'p', ph: 'Observaciones adicionales…'},
+      ],
+    },
+    colonoscopia: {
+      titulo: 'INFORME DE COLONOSCOPIA', sub: 'COLONOSCOPIA', tipo: 'Colonoscopia',
+      secciones: [
+        {h: 'INDICACIÓN', tipo: 'p', ph: 'Motivo del estudio…'},
+        {h: 'PREPARACIÓN', tipo: 'p', ph: 'Calidad de la preparación…'},
+        {h: 'SEDACIÓN', tipo: 'p', ph: 'Tipo y nivel de sedación…'},
+        {h: 'HALLAZGOS', tipo: 'ul', ph: 'Hallazgo por segmento (recto, sigmoides, colon…)'},
+        {h: 'IMPRESIÓN DIAGNÓSTICA', tipo: 'p', ph: 'Diagnóstico…'},
+        {h: 'PLAN Y RECOMENDACIONES', tipo: 'ul', ph: 'Recomendación…'},
+        {h: 'OBSERVACIONES', tipo: 'p', ph: 'Observaciones adicionales…'},
+      ],
+    },
+    gastroscopia: {
+      titulo: 'INFORME DE GASTROSCOPIA', sub: 'GASTROSCOPIA', tipo: 'Gastroscopia',
+      secciones: [
+        {h: 'INDICACIÓN', tipo: 'p', ph: 'Motivo del estudio…'},
+        {h: 'SEDACIÓN', tipo: 'p', ph: 'Tipo y nivel de sedación…'},
+        {h: 'HALLAZGOS', tipo: 'ul', ph: 'Esófago / estómago / duodeno…'},
+        {h: 'IMPRESIÓN DIAGNÓSTICA', tipo: 'p', ph: 'Diagnóstico…'},
+        {h: 'PLAN Y RECOMENDACIONES', tipo: 'ul', ph: 'Recomendación…'},
+        {h: 'OBSERVACIONES', tipo: 'p', ph: 'Observaciones adicionales…'},
+      ],
+    },
+    blanco: {
+      titulo: 'NUEVO REPORTE', sub: '', tipo: null,
+      secciones: [
+        {h: 'INTRODUCCIÓN', tipo: 'p', ph: 'Escribe aquí…'},
+        {h: 'DESARROLLO', tipo: 'p', ph: 'Escribe aquí…'},
+        {h: 'CONCLUSIÓN', tipo: 'p', ph: 'Escribe aquí…'},
+      ],
+    },
+  };
+
+  // Lienzo lógico del encabezado (px). Las posiciones se guardan a esta escala
+  // y se reescalan al ancho real de la hoja para que se vea idéntico (WYSIWYG).
+  const PAGE_W = 760;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+  // Configuración por defecto: posición {x,y,w,h} de cada elemento del encabezado
+  const defaultCfg = () => ({
+    logoImg: null, anatImg: null, clinic: '', signName: '', signPos: 'center',
+    headH: 121,
+    logo: { x: 0,   y: 17, w: 86,  h: 86  },
+    name: { x: 100, y: 28, w: 466, h: 64, fontSize: 21 },
+    anat: { x: 672, y: 5,  w: 88,  h: 110 },
+  });
+
+  // Cada plantilla guarda su propia configuración visual
+  Object.keys(TEMPLATES).forEach(k => { TEMPLATES[k].cfg = defaultCfg(); });
+
+  let currentKey = null;
+
+  // Aplica la configuración de una plantilla al documento (reescalando al ancho real)
+  const applyConfig = (cfg) => {
+    if (!cfg || !repHeader) return;
+    const s = (repHeader.clientWidth || PAGE_W) / PAGE_W;
+    repHeader.style.height = (cfg.headH * s) + 'px';
+    const place = (el, box) => {
+      if (!el) return;
+      el.style.left   = (box.x * s) + 'px';
+      el.style.top    = (box.y * s) + 'px';
+      el.style.width  = (box.w * s) + 'px';
+      el.style.height = (box.h * s) + 'px';
+    };
+    if (repLogo) {
+      repLogo.innerHTML = cfg.logoImg ? '<img src="' + cfg.logoImg + '" alt="Logo de la clínica">' : logoDefault;
+      place(repLogo, cfg.logo);
+    }
+    if (repAnat) {
+      repAnat.innerHTML = cfg.anatImg ? '<img src="' + cfg.anatImg + '" alt="Imagen lateral">' : anatDefault;
+      place(repAnat, cfg.anat);
+    }
+    if (repClinicBox) place(repClinicBox, cfg.name);
+    if (repClinic) {
+      if (cfg.clinic) repClinic.textContent = cfg.clinic;
+      repClinic.style.fontSize = (cfg.name.fontSize * s) + 'px';
+    }
+    if (repSignNm && cfg.signName) repSignNm.textContent = cfg.signName;
+    if (repSign) repSign.setAttribute('data-pos', cfg.signPos || 'center');
+  };
+
+  // Reescalar el encabezado del documento si cambia el ancho de la ventana
+  window.addEventListener('resize', () => { if (currentKey) applyConfig(TEMPLATES[currentKey].cfg); });
+
+  const render = (key) => {
+    const tpl = TEMPLATES[key];
+    if (!tpl) return;
+    currentKey = key;
+    if (tpl.tipo && tipoSel) {
+      const opt = Array.from(tipoSel.options).find(o => o.text === tpl.tipo);
+      if (opt) tipoSel.value = opt.value;
+    }
+    cont.innerHTML = tpl.secciones.map(s => {
+      const head = '<h4>' + s.h + '</h4>';
+      if (s.tipo === 'ul') {
+        return head + '<ul><li contenteditable="true" data-ph="' + s.ph + '"></li></ul>';
+      }
+      return head + '<p contenteditable="true" data-ph="' + s.ph + '"></p>';
+    }).join('');
+    applyConfig(tpl.cfg);
+  };
+
+  // Plantilla inicial
+  render('endoscopia');
+
+  /* ===== Modal de configuración: editor visual de la hoja (arrastrar + redimensionar) ===== */
+  const modal    = document.getElementById('cfgModal');
+  const cfgSub   = document.getElementById('cfgSub');
+  const cancel   = document.getElementById('cfgCancel');
+  const applyBtn = document.getElementById('cfgApply');
+  const logoIn   = document.getElementById('cfgLogoInput');
+  const anatIn   = document.getElementById('cfgAnatInput');
+  const clinicIn = document.getElementById('cfgClinic');
+  const signIn   = document.getElementById('cfgSignName');
+  const posSel   = document.getElementById('cfgSignPos');
+  // Hoja de vista previa
+  const sheet    = document.getElementById('cfgSheet');
+  const headPv   = document.getElementById('cfgHead');
+  const elLogo   = document.getElementById('elLogo');
+  const elName   = document.getElementById('elName');
+  const elAnat   = document.getElementById('elAnat');
+  const elLogoIn = document.getElementById('elLogoIn');
+  const elNameTx = document.getElementById('elNameTx');
+  const elAnatIn = document.getElementById('elAnatIn');
+  const signPv   = document.getElementById('cfgSignPv');
+  const signPvTx = document.getElementById('cfgSignPvTx');
+  const ANAT_SVG = elAnatIn ? elAnatIn.innerHTML : '';
+  const LOGO_PH  = 'Logo de<br>la clínica';
+
+  const ELS = { logo: elLogo, name: elName, anat: elAnat };
+  let editingKey = null;     // plantilla que se está configurando
+  let work = null;           // copia editable de la configuración
+  let scale = 1;             // escala de la hoja (ancho real / PAGE_W)
+
+  // El alto del encabezado siempre abarca el elemento más bajo
+  const recomputeHead = () => {
+    let maxB = 0;
+    ['logo','name','anat'].forEach(k => { maxB = Math.max(maxB, work[k].y + work[k].h); });
+    work.headH = Math.max(96, Math.ceil(maxB) + 6);
+  };
+
+  const drawEl = (el, box) => {
+    el.style.left   = (box.x * scale) + 'px';
+    el.style.top    = (box.y * scale) + 'px';
+    el.style.width  = (box.w * scale) + 'px';
+    el.style.height = (box.h * scale) + 'px';
+  };
+
+  // Pinta la hoja completa según `work`
+  const renderWork = () => {
+    if (!work || !sheet) return;
+    recomputeHead();
+    scale = (sheet.clientWidth || PAGE_W) / PAGE_W;
+    headPv.style.height = (work.headH * scale) + 'px';
+    drawEl(elLogo, work.logo);
+    drawEl(elName, work.name);
+    drawEl(elAnat, work.anat);
+    elLogoIn.innerHTML = work.logoImg ? '<img src="' + work.logoImg + '" alt="Logo">' : LOGO_PH;
+    elAnatIn.innerHTML = work.anatImg ? '<img src="' + work.anatImg + '" alt="">' : ANAT_SVG;
+    elNameTx.textContent = (work.clinic || '').trim() || 'Nombre de la clínica';
+    elNameTx.style.fontSize = (work.name.fontSize * scale) + 'px';
+    if (signPv)   signPv.setAttribute('data-pos', work.signPos || 'center');
+    if (signPvTx) signPvTx.textContent = (work.signName || '').trim() || 'Dr. Nombre del médico';
+  };
+
+  // Selección visual
+  const selectEl = (key) => {
+    [elLogo, elName, elAnat].forEach(el => el.classList.remove('sel'));
+    if (ELS[key]) ELS[key].classList.add('sel');
+  };
+
+  // Arrastrar / redimensionar con puntero
+  let drag = null;
+  const onMove = (e) => {
+    if (!drag) return;
+    const dx = (e.clientX - drag.sx) / scale;
+    const dy = (e.clientY - drag.sy) / scale;
+    const box = work[drag.key];
+    if (drag.mode === 'move') {
+      box.x = clamp(drag.ox + dx, 0, PAGE_W - box.w);
+      box.y = Math.max(0, drag.oy + dy);
+    } else {
+      box.w = clamp(drag.ow + dx, 24, PAGE_W - box.x);
+      box.h = Math.max(20, drag.oh + dy);
+      if (drag.key === 'name') box.fontSize = Math.max(10, Math.round(box.h * 0.32));
+    }
+    renderWork();
+  };
+  const onUp = () => {
+    drag = null;
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', onUp);
+  };
+  const startDrag = (e, key, mode) => {
+    e.preventDefault();
+    const box = work[key];
+    drag = { key, mode, sx: e.clientX, sy: e.clientY, ox: box.x, oy: box.y, ow: box.w, oh: box.h };
+    selectEl(key);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  };
+  Object.keys(ELS).forEach(key => {
+    const el = ELS[key];
+    if (!el) return;
+    el.addEventListener('pointerdown', (e) => {
+      const mode = e.target.classList.contains('rz') ? 'resize' : 'move';
+      startDrag(e, key, mode);
+    });
+  });
+
+  const openConfig = (key) => {
+    const tpl = TEMPLATES[key];
+    if (!tpl || !modal) return;
+    editingKey = key;
+    work = JSON.parse(JSON.stringify(tpl.cfg)); // copia profunda editable
+    const nombre = (list.querySelector('.tpl-main[data-tpl="' + key + '"] .tpl-t') || {}).textContent || '';
+    if (cfgSub) cfgSub.textContent = 'Plantilla: ' + nombre.trim();
+    clinicIn.value = work.clinic || '';
+    signIn.value   = work.signName || '';
+    posSel.value   = work.signPos || 'center';
+    if (logoIn) logoIn.value = '';
+    if (anatIn) anatIn.value = '';
+    selectEl('logo');
+    modal.classList.add('open');
+    requestAnimationFrame(renderWork); // la hoja ya tiene ancho cuando es visible
+  };
+  const closeConfig = () => modal && modal.classList.remove('open');
+
+  const readImage = (input, set) => {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => set(reader.result);
+    reader.readAsDataURL(file);
+  };
+
+  if (logoIn) logoIn.addEventListener('change', () => readImage(logoIn, d => { work.logoImg = d; renderWork(); }));
+  if (anatIn) anatIn.addEventListener('change', () => readImage(anatIn, d => { work.anatImg = d; renderWork(); }));
+  if (clinicIn) clinicIn.addEventListener('input', () => { work.clinic = clinicIn.value; renderWork(); });
+  if (signIn)   signIn.addEventListener('input', () => { work.signName = signIn.value; renderWork(); });
+  if (posSel)   posSel.addEventListener('change', () => { work.signPos = posSel.value; renderWork(); });
+  if (cancel) cancel.addEventListener('click', closeConfig);
+  if (modal) modal.addEventListener('click', (e) => { if (e.target === modal) closeConfig(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeConfig(); });
+  window.addEventListener('resize', () => { if (modal && modal.classList.contains('open')) renderWork(); });
+
+  if (applyBtn) applyBtn.addEventListener('click', () => {
+    if (!editingKey || !work) return;
+    work.clinic   = clinicIn.value.trim();
+    work.signName = signIn.value.trim();
+    work.signPos  = posSel.value;
+    recomputeHead();
+    TEMPLATES[editingKey].cfg = work;
+    if (currentKey === editingKey) applyConfig(work);
+    closeConfig();
+  });
+
+  if (list) {
+    list.addEventListener('click', (e) => {
+      const cfgBtn = e.target.closest('.tpl-cfg');
+      if (cfgBtn) { openConfig(cfgBtn.dataset.tplCfg); return; }
+      const main = e.target.closest('.tpl-main');
+      if (main) render(main.dataset.tpl);
+    });
+  }
+
+  // Toolbar de formato (execCommand sobre la selección del documento)
+  const fmtButtons = Array.from(document.querySelectorAll('.ed-tb[data-cmd]'));
+  // Comandos que tienen estado on/off (se pueden iluminar)
+  const stateCmds = ['bold','italic','underline','strikeThrough','justifyLeft','justifyCenter','justifyRight','justifyFull','insertUnorderedList','insertOrderedList'];
+  const docEl = document.querySelector('.ed-doc');
+
+  const refreshToolbar = () => {
+    fmtButtons.forEach(btn => {
+      const cmd = btn.dataset.cmd;
+      if (!stateCmds.includes(cmd)) return;
+      let on = false;
+      try { on = document.queryCommandState(cmd); } catch (e) {}
+      btn.classList.toggle('active', on);
+    });
+  };
+
+  fmtButtons.forEach(btn => {
+    btn.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      document.execCommand(btn.dataset.cmd, false, null);
+      refreshToolbar();
+    });
+  });
+
+  // Mantener iluminados los botones según dónde esté el cursor/selección
+  const selectionInsideDoc = () => {
+    const sel = document.getSelection();
+    return sel && sel.anchorNode && docEl && docEl.contains(sel.anchorNode);
+  };
+  document.addEventListener('selectionchange', () => {
+    if (selectionInsideDoc()) refreshToolbar();
+  });
+  if (docEl) {
+    docEl.addEventListener('keyup', refreshToolbar);
+    docEl.addEventListener('mouseup', refreshToolbar);
+    docEl.addEventListener('focusout', () => fmtButtons.forEach(b => b.classList.remove('active')));
+  }
+})();
+</script>
+@endpush
+
+@push('scripts')
+<script>
+(function(){
+  const form = document.getElementById('chatForm');
+  const input = document.getElementById('chatText');
+  const msgs = document.getElementById('chatMsgs');
+  const chips = document.getElementById('chatChips');
+  if (!form || !msgs) return;
+
+  const chatUrl = "{{ route('ia-reportes.chat.post') }}";
+  const csrf = "{{ csrf_token() }}";
+  const docEl = document.querySelector('.ed-doc');
+
+  /* ===== Aplicar ediciones de la IA directamente en el reporte ===== */
+  const escDoc = s => String(s ?? '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  const norm = s => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+  const SECC = {
+    indicacion:           { kw: 'INDICACION',    tipo: 'p'  },
+    sedacion:             { kw: 'SEDACION',      tipo: 'p'  },
+    hallazgos:            { kw: 'HALLAZGOS',     tipo: 'ul' },
+    impresion_diagnostica:{ kw: 'IMPRESION',     tipo: 'p'  },
+    plan_recomendaciones: { kw: 'PLAN',          tipo: 'ul' },
+    observaciones:        { kw: 'OBSERVACIONES', tipo: 'p'  },
+  };
+  const findHeading = kw => Array.from(docEl ? docEl.querySelectorAll('h4') : []).find(h => norm(h.textContent).includes(kw));
+  const nextOfType = (h4, tag) => {
+    let n = h4 ? h4.nextElementSibling : null;
+    while (n && n.tagName !== 'H4') { if (n.tagName === tag.toUpperCase()) return n; n = n.nextElementSibling; }
+    return null;
+  };
+  const flash = el => {
+    if (!el) return;
+    el.style.transition = 'background-color .3s';
+    el.style.backgroundColor = 'rgba(56,199,244,.2)';
+    setTimeout(() => { el.style.backgroundColor = ''; }, 1300);
+  };
+  const applyAccion = a => {
+    const cfg = SECC[a.seccion];
+    if (!cfg || !docEl) return false;
+    const h4 = findHeading(cfg.kw);
+    if (!h4) return false;
+    if (cfg.tipo === 'ul') {
+      const ul = nextOfType(h4, 'ul');
+      if (!ul) return false;
+      const items = Array.isArray(a.contenido) ? a.contenido : [a.contenido];
+      const lis = items.filter(x => String(x).trim()).map(x => '<li contenteditable="true">' + escDoc(x) + '</li>').join('');
+      if (a.operacion === 'agregar') ul.insertAdjacentHTML('beforeend', lis);
+      else ul.innerHTML = lis;
+      flash(ul);
+    } else {
+      const p = nextOfType(h4, 'p');
+      if (!p) return false;
+      const txt = Array.isArray(a.contenido) ? a.contenido.join('. ') : a.contenido;
+      if (a.operacion === 'agregar') p.textContent = (p.textContent + ' ' + txt).trim();
+      else p.textContent = txt;
+      flash(p);
+    }
+    return true;
+  };
+  const applyAcciones = acciones => (acciones || []).reduce((n, a) => n + (applyAccion(a) ? 1 : 0), 0);
+
+  const scrollDown = () => { msgs.scrollTop = msgs.scrollHeight; };
+
+  const addMsg = (text, who) => {
+    const el = document.createElement('div');
+    el.className = 'chat-msg ' + who;
+    el.textContent = text;
+    msgs.appendChild(el);
+    scrollDown();
+    return el;
+  };
+
+  const showTyping = () => {
+    const el = document.createElement('div');
+    el.className = 'chat-msg ai';
+    el.innerHTML = '<span class="chat-typing"><i></i><i></i><i></i></span>';
+    msgs.appendChild(el);
+    scrollDown();
+    return el;
+  };
+
+  const typeInto = (el, text, done) => {
+    el.textContent = '';
+    const caret = document.createElement('span');
+    caret.className = 'caret';
+    el.appendChild(caret);
+    let i = 0;
+    const tick = () => {
+      if (i < text.length) {
+        caret.insertAdjacentText('beforebegin', text.charAt(i));
+        i++;
+        scrollDown();
+        setTimeout(tick, 14 + Math.random() * 28);
+      } else {
+        caret.remove();
+        if (done) done();
+      }
+    };
+    tick();
+  };
+
+  const replyFor = (q) => {
+    const t = q.toLowerCase();
+    if (t.includes('hallazgo'))
+      return 'Propuesta de hallazgos: describe el aspecto de la mucosa y cualquier lesión por segmento. Puedo redactarlos si me das los datos del estudio.';
+    if (t.includes('recomend'))
+      return 'Recomendaciones sugeridas: tratamiento, pruebas complementarias y control endoscópico según hallazgos.';
+    if (t.includes('diagn'))
+      return 'Para sugerir una impresión diagnóstica necesito los hallazgos principales. ¿Quieres que la redacte con lo que ya escribiste?';
+    if (t.includes('redacc') || t.includes('mejora'))
+      return 'Puedo mejorar la redacción de cualquier sección: dime cuál y la reescribo en un tono clínico claro.';
+    return 'Entendido. Preparé una propuesta para "' + q + '". Cuando conectes los datos del estudio la integraré en el reporte.';
+  };
+
+  const send = async (text) => {
+    if (!text.trim()) return;
+    addMsg(text, 'me');
+    const typingEl = showTyping();
+    try {
+      const res = await fetch(chatUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': csrf,
+        },
+        body: JSON.stringify({
+          message: text,
+          contexto: docEl ? docEl.innerText.slice(0, 6000) : '',
+        }),
+      });
+      const data = await res.json();
+      typingEl.remove();
+      const aiEl = addMsg('', 'ai');
+      if (!res.ok || !data.ok) {
+        typeInto(aiEl, 'No pude responder: ' + (data.message || 'error de conexión.'));
+      } else {
+        const cambios = applyAcciones(data.acciones);
+        let respuesta = data.respuesta || '...';
+        if (cambios > 0) {
+          respuesta += '\n\n✓ Actualicé ' + cambios + (cambios === 1 ? ' sección' : ' secciones') + ' del reporte.';
+        }
+        typeInto(aiEl, respuesta);
+      }
+    } catch (e) {
+      typingEl.remove();
+      typeInto(addMsg('', 'ai'), replyFor(text));
+    }
+  };
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const v = input.value;
+    input.value = '';
+    send(v);
+  });
+
+  if (chips) {
+    chips.addEventListener('click', (e) => {
+      const b = e.target.closest('.chat-chip');
+      if (b) send(b.textContent.trim());
+    });
+  }
+
+  const greeting = 'Hola, soy ENCLAII. Tú redactas el reporte y yo te ayudo: puedo proponer hallazgos, recomendaciones o mejorar la redacción de cualquier sección. ¿Empezamos?';
+  const greetEl = addMsg('', 'ai');
+  setTimeout(() => typeInto(greetEl, greeting), 400);
+})();
+</script>
+@endpush
