@@ -15,13 +15,15 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/registro', [EndoCareAuthController::class, 'showRegister'])->name('register');
     Route::post('/registro', [EndoCareAuthController::class, 'register'])->name('register.post');
-});
+    });
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
 
+<<<<<<< HEAD
     Route::get('/ia-reportes', function () {
         return view('ia-reportes.index');
     })->name('ia-reportes');
@@ -64,6 +66,15 @@ Route::middleware('auth')->group(function () {
 
     Route::patch('/configuracion/general', [SettingsController::class, 'update'])
         ->name('configuracion.general.update');
+=======
+    Route::get('/agenda', function () {
+        return view('agenda.index');
+    })->name('agenda');
+
+    Route::get('/agendar', function () {
+        return view('agenda.agendar.index');
+    })->name('agendar');
+>>>>>>> origin/JoseCarlos-Agenda
 
     Route::post('/logout', [EndoCareAuthController::class, 'logout'])->name('logout');
 });

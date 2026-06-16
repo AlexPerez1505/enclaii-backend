@@ -1,0 +1,237 @@
+{{-- ============================================================
+     AGENDA / _popup.blade.php
+     Popup hover de eventos: CSS + HTML + JS
+     ============================================================ --}}
+
+{{-- ---- CSS ---- --}}
+<style>
+#evPopup{display:none;position:fixed;z-index:999;width:230px;background:#000B1E;border:1.84px solid #168BD9;box-shadow:inset 0 0 0 1.84px rgba(0,0,0,.47),0 16px 48px rgba(0,0,0,.7);border-radius:11.06px;padding:14px;pointer-events:auto}
+#evPopup::before{content:'';position:absolute;left:-12px;top:-12px;right:-12px;bottom:-12px;z-index:-1;pointer-events:auto}
+#evPopup.visible{display:block}
+.ev-pop-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.ev-pop-avatar{width:40px;height:40px;flex:none;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,var(--blue),var(--cyan));display:grid;place-items:center;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;color:#fff;border:2px solid rgba(22,139,217,.4)}
+.ev-pop-name{font-size:13px;font-weight:700;color:#EAF1FF;line-height:1.3}
+.ev-pop-age{display:none}
+.ev-pop-info{font-size:12px;color:rgba(234,241,255,.75);line-height:1.7;margin-bottom:12px}
+.ev-pop-info b{color:#EAF1FF;font-weight:600}
+.ev-pop-btn{display:block;width:100%;box-sizing:border-box;padding:9px 12px;border-radius:12px;font-size:12.5px;font-weight:700;text-align:center;margin-bottom:6px;cursor:pointer;border:none;transition:opacity 120ms ease}
+.ev-pop-btn:last-of-type{margin-bottom:0}
+.ev-pop-btn:hover{opacity:.85}
+.ev-pop-btn.primary{background:linear-gradient(135deg,#1668D9,var(--blue));color:#fff}
+.ev-pop-btn.secondary{background:transparent;border:1px solid rgba(22,139,217,.5);color:#EAF1FF}
+.ev-pop-date{font-size:11.5px;color:rgba(234,241,255,.6);margin-bottom:10px}
+.ev-pop-date b{color:#EAF1FF;font-weight:600}
+.ev-pop-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.04em;margin-bottom:10px}
+.ev-pop-badge.done{background:linear-gradient(to top,#042226 20%,#4C9242 100%);border:1.38px solid #284D23;color:#fff}
+.ev-pop-badge.wait{background:linear-gradient(to top,#351909 29%,#9B491A 100%);border:1.24px solid #E75D01;color:#fff}
+.ev-pop-badge.cancel{background:linear-gradient(to top,#251117 38%,#D90000 100%);border:1.27px solid #D90000;color:#fff}
+.ev-pop-badge.soon{background:linear-gradient(to top,#0B1331 43%,#B263FF 100%);border:1.27px solid #B263FF;color:#fff}
+
+/* Tema claro */
+html[data-theme="light"] #evPopup{background:#FFFFFF;border-color:rgba(20,50,120,.25);box-shadow:0 16px 48px rgba(20,50,120,.18)}
+html[data-theme="light"] .ev-pop-name{color:#0E1530}
+html[data-theme="light"] .ev-pop-info{color:rgba(14,21,48,.7)}
+html[data-theme="light"] .ev-pop-info b{color:#0E1530}
+html[data-theme="light"] .ev-pop-date{color:rgba(14,21,48,.55)}
+html[data-theme="light"] .ev-pop-date b{color:#0E1530}
+html[data-theme="light"] .ev-pop-btn.secondary{border-color:rgba(20,50,120,.25);color:#0E1530}
+html[data-theme="light"] .ev-pop-badge.done{background:#EBF7EA;border-color:#4C9242;color:#2E6E27}
+html[data-theme="light"] .ev-pop-badge.wait{background:#FEF3E7;border-color:#E75D01;color:#B84700}
+html[data-theme="light"] .ev-pop-badge.cancel{background:#FDE8E8;border-color:#D90000;color:#A80000}
+html[data-theme="light"] .ev-pop-badge.soon{background:#F3ECFF;border-color:#B263FF;color:#7B30D4}
+</style>
+
+{{-- ---- HTML ---- --}}
+<div id="evPopup">
+  <div class="ev-pop-head">
+    <div class="ev-pop-avatar" id="evPopAvatar">HP</div>
+    <div>
+      <div class="ev-pop-name" id="evPopName">Habib Pérez</div>
+      <div class="ev-pop-age" id="evPopAge">En espera</div>
+    </div>
+  </div>
+  <div class="ev-pop-date" id="evPopDate"></div>
+  <div class="ev-pop-info" id="evPopInfo"></div>
+  <div id="evPopBadge" class="ev-pop-badge"></div>
+  <div id="evPopBtns"></div>
+</div>
+
+{{-- ---- JS ---- --}}
+<script>
+(function(){
+  window.__initPopup = function(EVENTS, MESES, cur_ref, DIAS_ES) {
+    const evPopup    = document.getElementById('evPopup');
+    const evPopAvatar= document.getElementById('evPopAvatar');
+    const evPopName  = document.getElementById('evPopName');
+    const evPopDate  = document.getElementById('evPopDate');
+    const evPopInfo  = document.getElementById('evPopInfo');
+    const evPopBadge = document.getElementById('evPopBadge');
+    const evPopBtns  = document.getElementById('evPopBtns');
+
+    const STATUS_BUTTONS = {
+      'ev-done':  [{label:'Datos del paciente',cls:'primary'},{label:'Ver Informe',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
+      'ev-wait':  [{label:'Iniciar Estudio',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
+      'ev-cancel':[{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
+      'ev-soon':  [{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
+    };
+    const STATUS_LABELS = {'ev-done':'Completado','ev-wait':'En espera','ev-cancel':'Cancelado','ev-soon':'Próximamente'};
+    const STATUS_BADGE_CLS = {'ev-done':'done','ev-wait':'wait','ev-cancel':'cancel','ev-soon':'soon'};
+
+    function parseEvent(el) {
+      const text = el.textContent.trim();
+      const timeMatch = text.match(/^(\d+:\d+)/);
+      const time = timeMatch ? timeMatch[1] : '00:00';
+      const rest = text.replace(/^\d+:\d+\s*/, '');
+      const parts = rest.split('·').map(s => s.trim());
+      const fullName = parts[0] || 'Paciente';
+      const proc = parts[1] || 'Procedimiento';
+      const initials = fullName.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+      const cls = [...el.classList].find(c => c.startsWith('ev-')) || 'ev-done';
+      return { fullName, initials, proc, time, cls };
+    }
+
+    function positionPopup(e) {
+      const pw = evPopup.offsetWidth  || 230;
+      const ph = evPopup.offsetHeight || 200;
+      const isPhone = window.innerWidth < 600;
+      if (isPhone) {
+        evPopup.style.left = '50%';
+        evPopup.style.top  = '50%';
+        evPopup.style.transform = 'translate(-50%,-50%)';
+        evPopup.style.width = (Math.min(300, window.innerWidth - 32)) + 'px';
+      } else {
+        evPopup.style.transform = '';
+        evPopup.style.width = '';
+        let x = e.clientX + 14;
+        let y = e.clientY + 14;
+        if (x + pw > window.innerWidth  - 10) x = e.clientX - pw - 14;
+        if (y + ph > window.innerHeight - 10) y = e.clientY - ph - 14;
+        evPopup.style.left = x + 'px';
+        evPopup.style.top  = y + 'px';
+      }
+    }
+
+    window.__showPopup = function(el, e) {
+      let d;
+      const isDayEvent = el.classList.contains('day-event');
+      if (isDayEvent && el.dataset.name) {
+        d = {
+          fullName: el.dataset.name,
+          initials: el.dataset.inits || el.dataset.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),
+          proc:     el.dataset.proc || 'Procedimiento',
+          time:     el.dataset.time || '00:00',
+          cls:      el.dataset.evcls || 'ev-done',
+        };
+      } else {
+        d = parseEvent(el);
+      }
+      const td = el.closest('td');
+      let fechaTxt = el.dataset.fechatxt || '';
+      if (!fechaTxt && td) {
+        const dn = td.querySelector('.day-num');
+        if (dn) {
+          const dayNum = parseInt(dn.textContent);
+          const dateObj = new Date(cur_ref.y, cur_ref.m, dayNum);
+          fechaTxt = `${DIAS_ES[dateObj.getDay()]} ${dayNum} de ${MESES[dateObj.getMonth()]}`;
+        } else if (td.classList.contains('wk-cell')) {
+          const tr = td.closest('tr');
+          const colIdx = Array.from(tr.children).indexOf(td) - 1;
+          const ths = document.querySelectorAll('#weekHead th');
+          if (ths[colIdx + 1]) {
+            const txt = ths[colIdx + 1].textContent.trim();
+            const parts = txt.split(' ');
+            const dayNum = parseInt(parts[1]);
+            const dateObj = new Date(cur_ref.y, cur_ref.m, dayNum);
+            fechaTxt = `${DIAS_ES[dateObj.getDay()]} ${dayNum} de ${MESES[dateObj.getMonth()]}`;
+          }
+        }
+      }
+      evPopAvatar.textContent = d.initials;
+      evPopName.textContent   = d.fullName;
+      evPopDate.innerHTML     = fechaTxt ? `<b>Fecha:</b> ${fechaTxt}` : '';
+      evPopInfo.innerHTML =
+        `<b>Motivo:</b> ${d.proc}<br>` +
+        `<b>Tiempo:</b> ${d.time} AM – ${parseInt(d.time)+1}:00 PM<br>` +
+        `<b>Habitación:</b> Sala 3`;
+      const badgeCls = STATUS_BADGE_CLS[d.cls] || 'done';
+      evPopBadge.className = 'ev-pop-badge ' + badgeCls;
+      evPopBadge.textContent = STATUS_LABELS[d.cls] || '';
+      evPopBadge.style.display = 'inline-flex';
+      evPopBtns.innerHTML = '';
+      (STATUS_BUTTONS[d.cls] || STATUS_BUTTONS['ev-wait']).forEach(b => {
+        const btn = document.createElement('button');
+        btn.className = 'ev-pop-btn ' + b.cls;
+        btn.textContent = b.label;
+        evPopBtns.appendChild(btn);
+      });
+      positionPopup(e);
+      evPopup.classList.add('visible');
+    }
+
+    let popupAnchoredEl = null;
+    let popupCloseTimer = null;
+
+    function hidePopup() {
+      popupAnchoredEl = null;
+      evPopup.classList.remove('visible');
+    }
+
+    function scheduleHide() {
+      if (popupCloseTimer) clearTimeout(popupCloseTimer);
+      popupCloseTimer = setTimeout(() => {
+        if (!evPopup.matches(':hover') && !popupAnchoredEl?.matches(':hover')) {
+          hidePopup();
+        }
+      }, 200);
+    }
+
+    function cancelHide() {
+      if (popupCloseTimer) { clearTimeout(popupCloseTimer); popupCloseTimer = null; }
+    }
+
+    /* ---- Desktop: hover en cal/week events ---- */
+    document.addEventListener('mouseover', e => {
+      if (window.innerWidth < 600) return;
+      const ev = e.target.closest('.cal-event, .wk-event');
+      if (ev) {
+        cancelHide();
+        if (popupAnchoredEl !== ev) { popupAnchoredEl = ev; __showPopup(ev, e); }
+        return;
+      }
+      if (e.target.closest('#evPopup')) { cancelHide(); return; }
+      scheduleHide();
+    });
+
+    evPopup.addEventListener('mouseenter', cancelHide);
+    evPopup.addEventListener('mouseleave', scheduleHide);
+
+    /* ---- Móvil + Día: click en day-event / cal-event / wk-event ---- */
+    document.addEventListener('click', e => {
+      const ev = e.target.closest('.day-event, .cal-event, .wk-event');
+      if (ev && !ev.classList.contains('ev-block')) {
+        const isMobile = window.innerWidth < 600;
+        const isDayEvent = ev.classList.contains('day-event');
+        // En desktop, ev-done en la vista día no abre popup (usa el panel lateral)
+        if (!isMobile && isDayEvent && ev.classList.contains('ev-done')) return;
+        e.stopPropagation();
+        if (popupAnchoredEl === ev) {
+          popupAnchoredEl = null;
+          evPopup.classList.remove('visible');
+          return;
+        }
+        popupAnchoredEl = ev;
+        __showPopup(ev, e);
+        return;
+      }
+      if (e.target.closest('#evPopup')) return;
+      popupAnchoredEl = null;
+      evPopup.classList.remove('visible');
+    });
+
+    /* Cerrar popup con Escape */
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { popupAnchoredEl = null; evPopup.classList.remove('visible'); }
+    });
+  };
+})();
+</script>
