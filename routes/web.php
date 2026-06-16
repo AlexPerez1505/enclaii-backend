@@ -36,7 +36,6 @@ Route::middleware('auth')->group(function () {
         return view('pacientes.edit');
     })->name('pacientes.edit');
 
-<<<<<<< HEAD
     Route::get('/ia-reportes', function () {
         return view('ia-reportes.index');
     })->name('ia-reportes');
@@ -79,7 +78,7 @@ Route::middleware('auth')->group(function () {
 
     Route::patch('/configuracion/general', [SettingsController::class, 'update'])
         ->name('configuracion.general.update');
-=======
+
     Route::get('/agenda', function () {
         return view('agenda.index');
     })->name('agenda');
@@ -87,7 +86,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/agendar', function () {
         return view('agenda.agendar.index');
     })->name('agendar');
->>>>>>> origin/JoseCarlos-Agenda
 
     Route::get('/nuevo-estudio', function () {
         return view('estudios.dashboard');
@@ -131,13 +129,4 @@ Route::middleware('auth')->group(function () {
     Route::get('/galeria/imagen/{id}', function ($id) {
         return view('galeria.verimagen', ['id' => $id]);
     })->name('galeria.imagen');
-
-    /* ── Informes ── */
-    Route::get('/informes', function () {
-        return view('informes.index');
-    })->name('informes');
-
-    Route::get('/informes/nuevo', function () {
-        return view('informes.nuevo');
-    })->name('informes.nuevo');
 });
