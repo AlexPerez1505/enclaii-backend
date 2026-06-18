@@ -173,13 +173,42 @@ html[data-theme="light"] .day-pc-info b{color:#0E1530}
 .day-modal-title{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;color:#EAF1FF}
 .day-modal-close{width:28px;height:28px;border-radius:8px;border:none;background:transparent;color:#8FA3CF;cursor:pointer;display:grid;place-items:center;transition:all 150ms ease}
 .day-modal-close:hover{background:rgba(110,160,255,.15);color:#EAF1FF}
+.day-modal-del{width:28px;height:28px;border-radius:8px;border:none;background:transparent;color:#8FA3CF;cursor:pointer;display:grid;place-items:center;transition:all 150ms ease}
+.day-modal-del:hover{background:rgba(217,0,0,.18);color:#D90000}
 .day-modal-body{padding:14px 18px;overflow-y:auto}
 .day-modal-body .day-panel-card{margin:0}
+/* Panel de confirmación borrar */
+.del-confirm-panel{position:absolute;inset:0;z-index:10;background:rgba(0,11,30,.92);backdrop-filter:blur(8px);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:28px 24px;text-align:center}
+.del-confirm-icon{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#3a0000,#D90000 80%);display:flex;align-items:center;justify-content:center;box-shadow:0 0 32px rgba(217,0,0,.45)}
+.del-confirm-title{font-family:'Sora',sans-serif;font-size:17px;font-weight:700;color:#EAF1FF}
+.del-confirm-sub{font-size:12.5px;color:rgba(234,241,255,.55);line-height:1.5;max-width:220px}
+.del-confirm-actions{display:flex;flex-direction:column;gap:8px;width:100%}
+.del-confirm-yes{padding:11px 14px;border-radius:10px;border:none;background:linear-gradient(135deg,#7a0000,#D90000 80%);color:#fff;font-size:13px;font-weight:700;cursor:pointer;transition:opacity 150ms ease;box-shadow:0 4px 16px rgba(217,0,0,.35)}
+.del-confirm-yes:hover{opacity:.85}
+.del-confirm-no{padding:11px 14px;border-radius:10px;border:1.5px solid rgba(110,160,255,.25);background:transparent;color:#8FA3CF;font-size:13px;font-weight:600;cursor:pointer;transition:all 150ms ease}
+.del-confirm-no:hover{background:rgba(110,160,255,.1);color:#EAF1FF}
+html[data-theme="light"] .del-confirm-panel{background:rgba(240,245,255,.96)}
+html[data-theme="light"] .del-confirm-title{color:#0E1530}
+html[data-theme="light"] .del-confirm-sub{color:rgba(14,21,48,.5)}
+html[data-theme="light"] .del-confirm-no{border-color:rgba(20,50,120,.2);color:#5B6A99}
+html[data-theme="light"] .del-confirm-no:hover{background:rgba(20,50,120,.08);color:#0E1530}
 html[data-theme="light"] .day-modal{background:#FFFFFF;border-color:rgba(20,50,120,.2);box-shadow:0 16px 48px rgba(20,50,120,.15)}
 html[data-theme="light"] .day-modal-title{color:#0E1530}
 html[data-theme="light"] .day-modal-close{color:#5B6A99}
 html[data-theme="light"] .day-modal-close:hover{background:rgba(20,50,120,.1);color:#0E1530}
+html[data-theme="light"] #delGlobalBox{background:#FFFFFF;border-color:rgba(180,0,0,.5);box-shadow:0 0 32px rgba(180,0,0,.15),0 16px 48px rgba(20,50,120,.12)}
+html[data-theme="light"] #delGlobalOverlay{background:rgba(220,225,240,.75)}
+html[data-theme="light"] .day-modal-del{color:#5B6A99}
+html[data-theme="light"] .day-modal-del:hover{background:rgba(180,0,0,.1);color:#B00000}
 html[data-theme="light"] .day-modal-header{border-bottom-color:rgba(20,50,120,.12)}
+/* Botón borrar cita — rojo explícito, responsive */
+.ev-pop-btn.danger{display:flex!important;align-items:center;justify-content:center;gap:7px;width:100%;box-sizing:border-box;margin-top:8px;margin-bottom:0;padding:10px 14px;border-radius:10px!important;border:1.5px solid rgba(217,0,0,.55)!important;background:rgba(217,0,0,.08)!important;color:#D90000!important;font-size:13px;font-weight:700;cursor:pointer;transition:all 150ms ease}
+.ev-pop-btn.danger:hover{background:rgba(217,0,0,.2)!important;border-color:#D90000!important;opacity:1}
+.ev-pop-btn.danger svg{flex:none;stroke:#D90000}
+html[data-theme="light"] .ev-pop-btn.danger{border-color:rgba(180,0,0,.4)!important;background:rgba(180,0,0,.06)!important;color:#B00000!important}
+html[data-theme="light"] .ev-pop-btn.danger svg{stroke:#B00000}
+html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!important;border-color:#B00000!important}
+@media(max-width:480px){.ev-pop-btn.danger{font-size:12px;padding:9px 10px}}
 </style>
 
 {{-- ---- HTML ---- --}}
@@ -221,12 +250,32 @@ html[data-theme="light"] .day-modal-header{border-bottom-color:rgba(20,50,120,.1
   </div>
 </div>
 
+{{-- Overlay global de confirmación borrar (mes/semana) --}}
+<div id="delGlobalOverlay" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,11,30,.82);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:16px">
+  <div id="delGlobalBox" style="background:#000B1E;border:1.84px solid #D90000;border-radius:16px;width:100%;max-width:300px;padding:28px 24px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;box-shadow:0 0 40px rgba(217,0,0,.3),0 24px 64px rgba(0,0,0,.6)">
+    <div class="del-confirm-icon">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+    </div>
+    <div class="del-confirm-title">¿Borrar esta cita?</div>
+    <div class="del-confirm-sub">Esta acción eliminará la cita de la agenda. No se puede deshacer.</div>
+    <div class="del-confirm-actions" style="width:100%">
+      <button class="del-confirm-yes" id="delGlobalYes">Sí, borrar cita</button>
+      <button class="del-confirm-no" id="delGlobalNo" style="margin-top:0">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 {{-- Modal de día para modo expandido --}}
 <div class="day-modal-overlay" id="dayModalOverlay">
-  <div class="day-modal">
+  <div class="day-modal" style="position:relative">
     <div class="day-modal-header">
       <div class="day-modal-title" id="dayModalTitle">Detalle de cita</div>
-      <button class="day-modal-close" id="dayModalClose" aria-label="Cerrar">✕</button>
+      <div style="display:flex;gap:4px;align-items:center">
+        <button class="day-modal-del" id="dayModalDel" aria-label="Borrar cita" title="Borrar cita">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </button>
+        <button class="day-modal-close" id="dayModalClose" aria-label="Cerrar">✕</button>
+      </div>
     </div>
     <div class="day-modal-body" id="dayModalBody"></div>
   </div>
@@ -245,7 +294,7 @@ html[data-theme="light"] .day-modal-header{border-bottom-color:rgba(20,50,120,.1
     'ev-done':'Completado','ev-wait':'En espera','ev-cancel':'Cancelado','ev-soon':'Próximamente','ev-block':'',
   };
   const DAY_BUTTONS = {
-    'ev-done':  [{label:'Datos del paciente',cls:'primary'},{label:'Ver Informe',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
+    'ev-done':  [{label:'Datos del paciente',cls:'primary'},{label:'Reprogramar nueva cita',cls:'secondary'},{label:'Ver Informe',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
     'ev-wait':  [{label:'Iniciar Estudio',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
     'ev-cancel':[{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
     'ev-soon':  [{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
@@ -256,19 +305,100 @@ html[data-theme="light"] .day-modal-header{border-bottom-color:rgba(20,50,120,.1
   const dayModalTitle   = document.getElementById('dayModalTitle');
   const dayModalBody    = document.getElementById('dayModalBody');
   const dayModalClose   = document.getElementById('dayModalClose');
+  const dayModalDel     = document.getElementById('dayModalDel');
+  const dayModalWrap    = dayModalOverlay.querySelector('.day-modal');
+  let   __currentDelEv  = null;
+
+  function showDelConfirm(ev, y, m, d) {
+    __currentDelEv = { ev, y, m, d };
+    const panel = document.createElement('div');
+    panel.className = 'del-confirm-panel';
+    panel.id = 'delConfirmPanel';
+    panel.innerHTML = `
+      <div class="del-confirm-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </div>
+      <div class="del-confirm-title">¿Borrar esta cita?</div>
+      <div class="del-confirm-sub">Esta acción eliminará la cita de la agenda. No se puede deshacer.</div>
+      <div class="del-confirm-actions">
+        <button class="del-confirm-yes" id="delConfirmYes">Sí, borrar cita</button>
+        <button class="del-confirm-no" id="delConfirmNo">Cancelar</button>
+      </div>
+    `;
+    dayModalWrap.appendChild(panel);
+    document.getElementById('delConfirmNo').addEventListener('click', () => panel.remove());
+    document.getElementById('delConfirmYes').addEventListener('click', () => {
+      const { ev: e, y: ey, m: em, d: ed } = __currentDelEv;
+      const key = `${ey}-${String(em+1).padStart(2,'0')}-${String(ed).padStart(2,'0')}`;
+      if (window.__EVENTS_DIA && window.__EVENTS_DIA[key]) {
+        window.__EVENTS_DIA[key] = window.__EVENTS_DIA[key].filter(x => x !== e);
+      }
+      panel.remove();
+      closeDayModal();
+      if (window.__buildDay) window.__buildDay(new Date(ey, em, ed), window.__EVENTS_DIA || {}, MESES_DIA, null, null);
+    });
+  }
 
   function closeDayModal() {
     dayModalOverlay.classList.remove('open');
+    const old = document.getElementById('delConfirmPanel');
+    if (old) old.remove();
   }
+
+  /* ---- Overlay global (mes / semana) ---- */
+  const delGlobalOverlay = document.getElementById('delGlobalOverlay');
+  const delGlobalYes     = document.getElementById('delGlobalYes');
+  const delGlobalNo      = document.getElementById('delGlobalNo');
+  let   __globalDelEl    = null;
+
+  function closeGlobalDel() {
+    delGlobalOverlay.style.display = 'none';
+    __globalDelEl = null;
+  }
+
+  delGlobalNo.addEventListener('click', closeGlobalDel);
+  delGlobalOverlay.addEventListener('click', e => { if (e.target === delGlobalOverlay) closeGlobalDel(); });
+
+  delGlobalYes.addEventListener('click', () => {
+    const el = __globalDelEl;
+    if (el) {
+      el.style.transition = 'opacity 250ms ease, transform 250ms ease';
+      el.style.opacity = '0';
+      el.style.transform = 'scale(.85)';
+      setTimeout(() => el.remove(), 260);
+    }
+    closeGlobalDel();
+    if (window.__rebuildProximas) window.__rebuildProximas();
+  });
+
+  window.showDelConfirmGlobal = function(evEl) {
+    __globalDelEl = evEl;
+    delGlobalOverlay.style.display = 'flex';
+  };
   dayModalClose.addEventListener('click', closeDayModal);
   dayModalOverlay.addEventListener('click', (e) => {
     if (e.target === dayModalOverlay) closeDayModal();
+  });
+  dayModalDel.addEventListener('click', () => {
+    if (__currentDelEv) showDelConfirm(__currentDelEv.ev, __currentDelEv.y, __currentDelEv.m, __currentDelEv.d);
   });
 
   const MESES_DIA = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
   const STATUS_LABELS_MODAL = {'ev-done':'Completado','ev-wait':'En espera','ev-cancel':'Cancelado','ev-soon':'Próximamente'};
   const STATUS_BADGE_KEY   = {'ev-done':'done','ev-wait':'wait','ev-cancel':'cancel','ev-soon':'soon'};
+  const REPROG_LABELS_DIA  = ['Reprogramar nueva cita','Reprogramar Paciente'];
+
+  function buildAgendarUrlDia(name, proc, time, d, m, y) {
+    const params = new URLSearchParams();
+    if (name) params.set('paciente', name);
+    if (proc) params.set('proc', proc);
+    if (time) params.set('hora', time);
+    if (d)    params.set('dia', d);
+    if (m >= 0) params.set('mes', m + 1);
+    if (y)    params.set('anio', y);
+    return '{{ route("agendar") }}?' + params.toString();
+  }
 
   window.openDayModal = function(ev, dayNames, dow, d, m, y) {
     const text = ev.t.trim();
@@ -313,9 +443,15 @@ html[data-theme="light"] .day-modal-header{border-bottom-color:rgba(20,50,120,.1
       btn.className = 'ev-pop-btn ' + b.cls;
       btn.style.marginBottom = i < (DAY_BUTTONS[cls].length-1) ? '6px' : '0';
       btn.textContent = b.label;
+      if (REPROG_LABELS_DIA.includes(b.label)) {
+        btn.addEventListener('click', () => {
+          window.location.href = buildAgendarUrlDia(name, proc, time, d, m, y);
+        });
+      }
       card.appendChild(btn);
     });
     dayModalBody.appendChild(card);
+    __currentDelEv = { ev, y, m, d };
     dayModalOverlay.classList.add('open');
   };
 
@@ -476,8 +612,21 @@ html[data-theme="light"] .day-modal-header{border-bottom-color:rgba(20,50,120,.1
         btn.className = 'ev-pop-btn ' + b.cls;
         btn.style.marginBottom = i < (DAY_BUTTONS[ev.cls].length-1) ? '6px' : '0';
         btn.textContent = b.label;
+        if (REPROG_LABELS_DIA.includes(b.label)) {
+          btn.addEventListener('click', () => {
+            window.location.href = buildAgendarUrlDia(name, proc, time, d, m, y);
+          });
+        }
         card.appendChild(btn);
       });
+      const panelDelBtn = document.createElement('button');
+      panelDelBtn.className = 'ev-pop-btn danger';
+      panelDelBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>Borrar cita`;
+      panelDelBtn.addEventListener('click', () => {
+        window.openDayModal(ev, dayNames, dow, d, m, y);
+        setTimeout(() => showDelConfirm(ev, y, m, d), 50);
+      });
+      card.appendChild(panelDelBtn);
       panel.appendChild(card);
     });
   };

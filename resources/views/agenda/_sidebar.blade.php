@@ -28,47 +28,134 @@
   </label>
 </div>
 
-<div class="proximas-card">
+<div class="proximas-card" id="proximasCard">
   <h4>Próximas citas</h4>
-  <div class="prox-item">
-    <div class="prox-avatar">DM</div>
-    <div class="prox-info">
-      <strong>Dulce Martínez</strong>
-      <span>Endoscopia Diagnóstica</span>
-      <span>Hoy · 11:30 AM</span>
-    </div>
-  </div>
-  <div class="prox-item">
-    <div class="prox-avatar">YH</div>
-    <div class="prox-info">
-      <strong>Yukary Huerta</strong>
-      <span>Endoscopia Diagnóstica</span>
-      <span>Mañana · 1:00 PM</span>
-    </div>
-  </div>
-  <div class="prox-item">
-    <div class="prox-avatar">EF</div>
-    <div class="prox-info">
-      <strong>Evelin Fonseca</strong>
-      <span>Endoscopia Diagnóstica</span>
-      <span>Mañana · 11:30 AM</span>
-    </div>
-  </div>
-  <div class="prox-item">
-    <div class="prox-avatar">PG</div>
-    <div class="prox-info">
-      <strong>Pelet Gómez</strong>
-      <span>Endoscopia Diagnóstica</span>
-      <span>Mañana · 11:30 AM</span>
-    </div>
-  </div>
-  <div class="prox-item">
-    <div class="prox-avatar">RM</div>
-    <div class="prox-info">
-      <strong>Ricardo Martínez</strong>
-      <span>Endoscopia Diagnóstica</span>
-      <span>Mañana · 11:30 AM</span>
-    </div>
-  </div>
-  <a href="#" class="more-link">+ 5 citas más</a>
+  <div id="proximasList"></div>
 </div>
+
+<script>
+(function(){
+  const MAX_VISIBLE = 5;
+  const DIAS_ES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const MESES_C = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+  function formatFechaTxt(dateObj) {
+    const now   = new Date();
+    const hoy   = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const fecha = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+    const diff  = Math.round((fecha - hoy) / 86400000);
+    if (diff === 0) return 'Hoy';
+    if (diff === 1) return 'Mañana';
+    if (diff === 2) return 'Pasado mañana';
+    if (diff > 0 && diff <= 6) return DIAS_ES[dateObj.getDay()];
+    return `${dateObj.getDate()} ${MESES_C[dateObj.getMonth()]}`;
+  }
+
+  function parseHour(h) {
+    const m = String(h).match(/^(\d+):(\d+)/);
+    if (m) return parseInt(m[1]) * 60 + parseInt(m[2]);
+    return parseInt(h) * 60;
+  }
+
+  function formatHora(t) {
+    const m = String(t).match(/^(\d+):(\d+)/);
+    if (!m) return t + ':00';
+    const h = parseInt(m[1]);
+    const min = m[2];
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12  = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+    return `${h12}:${min} ${ampm}`;
+  }
+
+  function buildProximas() {
+    const list = document.getElementById('proximasList');
+    if (!list) return;
+    const EVENTS = window.__AGENDA_EVENTS || {};
+    const now    = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+
+    /* Recolectar ev-wait y ev-soon desde hoy en adelante, ordenados */
+    const items = [];
+    Object.entries(EVENTS).forEach(([key, evs]) => {
+      const parts = key.split('-').map(Number);
+      const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+      const hoy = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      if (dateObj < hoy) return;
+      evs.forEach(ev => {
+        if (ev.cls !== 'ev-wait' && ev.cls !== 'ev-soon') return;
+        /* Si es hoy, solo mostrar los que aún no han pasado */
+        if (dateObj.toDateString() === hoy.toDateString()) {
+          if (parseHour(ev.h) < nowMin - 30) return;
+        }
+        const text = ev.t.trim();
+        const sepIdx = text.indexOf('·');
+        const nameRaw = sepIdx !== -1 ? text.substring(0, sepIdx).replace(/^\d+:\d+\s*/, '').trim() : text.replace(/^\d+:\d+\s*/, '').trim();
+        const proc    = sepIdx !== -1 ? text.substring(sepIdx + 1).trim() : 'Procedimiento';
+        items.push({ dateObj, ev, name: nameRaw, proc, h: ev.h });
+      });
+    });
+
+    items.sort((a, b) => {
+      const da = a.dateObj - b.dateObj;
+      if (da !== 0) return da;
+      return parseHour(a.h) - parseHour(b.h);
+    });
+
+    list.innerHTML = '';
+    const visible = items.slice(0, MAX_VISIBLE);
+    const extra   = items.length - MAX_VISIBLE;
+
+    visible.forEach(item => {
+      const inits = item.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+      const fechaTxt = formatFechaTxt(item.dateObj);
+      const horaTxt  = formatHora(item.h);
+      const isCls    = item.ev.cls === 'ev-wait' ? 'prox-avatar wait' : 'prox-avatar soon';
+      const stateClass = item.ev.cls === 'ev-wait' ? 'is-wait' : 'is-soon';
+      const div = document.createElement('div');
+      div.className = `prox-item ${stateClass}`;
+      div.innerHTML = `
+        <div class="${isCls}">${inits}</div>
+        <div class="prox-info">
+          <strong>${item.name}</strong>
+          <span>${item.proc}</span>
+          <span>${fechaTxt} · ${horaTxt}</span>
+        </div>`;
+
+      div.addEventListener('click', () => {
+        if (window.openDayModal) {
+          const dayNames = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+          const y   = item.dateObj.getFullYear();
+          const m   = item.dateObj.getMonth();
+          const d   = item.dateObj.getDate();
+          const dow = item.dateObj.getDay();
+          window.openDayModal(item.ev, dayNames, dow, d, m, y);
+        }
+      });
+
+      list.appendChild(div);
+    });
+
+    if (extra > 0) {
+      const more = document.createElement('a');
+      more.href = '#';
+      more.className = 'more-link';
+      more.textContent = `+ ${extra} citas más`;
+      list.appendChild(more);
+    }
+
+    if (items.length === 0) {
+      list.innerHTML = '<div style="font-size:12px;color:rgba(234,241,255,.4);text-align:center;padding:12px 0">Sin citas próximas</div>';
+    }
+  }
+
+  /* Esperar a que AGENDA_EVENTS esté disponible */
+  function waitAndBuild() {
+    if (window.__AGENDA_EVENTS) { buildProximas(); }
+    else { setTimeout(waitAndBuild, 60); }
+  }
+  waitAndBuild();
+
+  /* Re-construir si los eventos cambian (borrado, etc.) */
+  window.__rebuildProximas = buildProximas;
+})();
+</script>
