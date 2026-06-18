@@ -20,6 +20,10 @@ Route::middleware('auth')->group(function () {
         return view('dashboard');
     })->name('dashboard');
 
+    Route::get('/mensajes', function () {
+        return view('mensajes.index');
+    })->name('mensajes');
+
     Route::get('/nuevo-estudio', function () {
         return view('estudios.crear');
     })->name('nuevo-estudio');
