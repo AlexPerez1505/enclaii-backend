@@ -966,7 +966,13 @@ textarea{
   <div class="form-card rise d2">
     
     {{-- Sección Información Personal --}}
-    <h2 class="section-title">Información personal</h2>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <h2 class="section-title" style="margin:0;">Información personal</h2>
+      <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-md);font-size:13px;">
+        <span style="color:var(--txt-soft);">Folio:</span>
+        <span style="font-weight:700;color:var(--cyan);">P-001</span>
+      </div>
+    </div>
 
     <div class="personal-layout">
       {{-- Foto --}}
@@ -993,11 +999,11 @@ textarea{
 
       <div class="form-group">
         <label>Fecha de nacimiento</label>
-        <input type="text" placeholder="25/12/1998">
+        <input type="date" id="fechaNacimiento" style="color-scheme:dark;">
       </div>
       <div class="form-group">
         <label>Edad</label>
-        <input type="text" placeholder="28 años">
+        <input type="text" id="edadCalculada" placeholder="--" readonly style="background:var(--panel-2);color:var(--txt-soft);">
       </div>
       <div class="form-group">
         <label>Peso</label>
@@ -1045,7 +1051,6 @@ textarea{
             <select id="medicoSelectMed">
               <option value="dr-victor">Dr. Victor</option>
               <option value="dr-ricardo">Dr. Ricardo</option>
-              <option value="otro">Otro...</option>
             </select>
             <button type="button" class="btn-add-procedimiento" onclick="addMedicoMed()" title="Agregar médico">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -1055,19 +1060,15 @@ textarea{
         <div class="form-group" style="margin-bottom:18px;">
           <label>Procedimiento</label>
           <div class="select-with-add">
-          <select id="procedimientoSelect" onchange="onProcedimientoChange()">
+          <select id="procedimientoSelect">
             <option value="colonoscopia">Colonoscopia</option>
             <option value="panendoscopia">Panendoscopia</option>
             <option value="endoscopia">Endoscopia diagnóstica</option>
             <option value="gastroscopia">Gastroscopia</option>
-            <option value="otro">Otro...</option>
           </select>
             <button type="button" class="btn-add-procedimiento" onclick="addNuevoProcedimiento()" title="Agregar procedimiento">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
-          </div>
-          <div id="otroProcedimientoContainer" style="display:none;margin-top:8px;">
-            <input type="text" id="otroProcedimientoInput" placeholder="Nombre del procedimiento" style="width:100%;">
           </div>
           <div id="procedimientosAgregados" class="procedimientos-tags"></div>
         </div>
@@ -1077,7 +1078,6 @@ textarea{
             <select id="anestesiologoSelect">
               <option value="dr-victor">Dr. Victor</option>
               <option value="dr-ricardo">Dr. Ricardo</option>
-              <option value="otro">Otro...</option>
             </select>
             <button type="button" class="btn-add-procedimiento" onclick="addAnestesiologo()" title="Agregar anestesiólogo">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -1091,21 +1091,26 @@ textarea{
               <option value="externo">Externo</option>
               <option value="dr-victor">Dr. Victor</option>
               <option value="dr-ricardo">Dr. Ricardo</option>
-              <option value="otro">Otro...</option>
             </select>
             <button type="button" class="btn-add-procedimiento" onclick="addReferidoMed()" title="Agregar referido">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
           </div>
         </div>
-        <div class="form-group">
-          <label>Fecha de registro</label>
-          <input type="text" placeholder="30/05/2025">
+        <div class="form-group" style="margin-bottom:18px;">
+          <label>Equipo utilizado</label>
+          <div class="select-with-add">
+            <select id="equipoSelect">
+              <option value="endoscopio-olympus">Endoscopio Olympus</option>
+              <option value="endoscopio-fujifilm">Endoscopio Fujifilm</option>
+              <option value="endoscopio-pentax">Endoscopio Pentax</option>
+              <option value="torre-endoscopia">Torre de endoscopia</option>
+            </select>
+            <button type="button" class="btn-add-procedimiento" onclick="addEquipo()" title="Agregar equipo">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+          </div>
         </div>
-        <button type="button" class="btn-agendar" onclick="document.getElementById('modalCita').classList.add('active')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="17"/><line x1="10.5" y1="15.5" x2="13.5" y2="15.5"/></svg>
-          Agendar cita
-        </button>
       </div>
       {{-- Columna derecha: Diagnóstico --}}
       <div style="flex:1;display:flex;flex-direction:column;">
@@ -1188,11 +1193,11 @@ textarea{
           <polyline points="20 6 9 17 4 12"/>
         </svg>
       </div>
-      <h2>¡Paciente Guardado!</h2>
+      <h2>¡Paciente registrado!</h2>
       <p>El paciente ha sido registrado exitosamente en el sistema.</p>
-      <button class="btn-aceptar" id="btnAceptar" onclick="window.location.href='{{ route('pacientes') }}'">
-        Aceptar
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      <button class="btn-aceptar" onclick="window.location.href='{{ route('agenda') }}'">
+        Ir a agenda
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       </button>
     </div>
   </div>
@@ -1347,6 +1352,7 @@ textarea{
   window.addMedicoMed         = function(){ window.abrirMiniModal('medicoSelectMed','Agregar médico','Nombre del médico'); };
   window.addAnestesiologo     = function(){ window.abrirMiniModal('anestesiologoSelect','Agregar anestesiólogo','Nombre del anestesiólogo'); };
   window.addReferidoMed       = function(){ window.abrirMiniModal('referidoSelectMed','Agregar referido','Nombre del referido'); };
+  window.addEquipo            = function(){ window.abrirMiniModal('equipoSelect','Agregar equipo','Nombre del equipo'); };
 
   const btnAgregarFoto = document.getElementById('btnAgregarFoto');
   const modalFoto = document.getElementById('modalFoto');
@@ -1449,26 +1455,26 @@ textarea{
     }
   });
 
-  // Botón "Guardar paciente"
+  // Botón "Guardar paciente" - redirige directamente a agenda
   const btnGuardarPaciente = document.getElementById('btnGuardarPaciente');
   const btnGuardarPacienteMobile = document.getElementById('btnGuardarPacienteMobile');
-  const modalSuccess = document.getElementById('modalSuccess');
   
-  function mostrarModalExito() {
-    modalSuccess.classList.add('active');
+  function guardarYRedirigir() {
+    // Aquí puedes agregar lógica para guardar el paciente en backend
+    window.location.href = '{{ route('agenda') }}';
   }
   
   if (btnGuardarPaciente) {
     btnGuardarPaciente.addEventListener('click', (e) => {
       e.preventDefault();
-      mostrarModalExito();
+      guardarYRedirigir();
     });
   }
   
   if (btnGuardarPacienteMobile) {
     btnGuardarPacienteMobile.addEventListener('click', (e) => {
       e.preventDefault();
-      mostrarModalExito();
+      guardarYRedirigir();
     });
   }
 
@@ -1808,11 +1814,12 @@ textarea{
       localStorage.setItem('referidosPersonalizados', JSON.stringify(guardados));
     }
   }
-  // ===== PROCEDIMIENTO / MÉDICO / ANESTESIÓLOGO / REFERIDO =====
+  // ===== PROCEDIMIENTO / MÉDICO / ANESTESIÓLOGO / REFERIDO / EQUIPO =====
   window.addNuevoProcedimiento = function() { window.abrirMiniModal('procedimientoSelect','Agregar procedimiento','Escribe el nombre del procedimiento'); };
   window.addMedicoMed         = function() { window.abrirMiniModal('medicoSelectMed','Agregar médico','Escribe el nombre del médico'); };
   window.addAnestesiologo     = function() { window.abrirMiniModal('anestesiologoSelect','Agregar anestesiólogo','Escribe el nombre del anestesiólogo'); };
   window.addReferidoMed       = function() { window.abrirMiniModal('referidoSelectMed','Agregar referido','Escribe el nombre del referido'); };
+  window.addEquipo            = function() { window.abrirMiniModal('equipoSelect','Agregar equipo','Escribe el nombre del equipo'); };
 
   // ===== AGENDAR CITA =====
   var _citaData = {};
@@ -1848,5 +1855,40 @@ textarea{
   };
 
 })();
+
+  // ===== CALCULAR EDAD AUTOMÁTICAMENTE =====
+  const fechaNacimiento = document.getElementById('fechaNacimiento');
+  const edadCalculada = document.getElementById('edadCalculada');
+  
+  if (fechaNacimiento && edadCalculada) {
+    fechaNacimiento.addEventListener('change', function() {
+      const fechaNac = new Date(this.value);
+      const hoy = new Date();
+      
+      if (isNaN(fechaNac.getTime())) {
+        edadCalculada.value = '';
+        edadCalculada.placeholder = '--';
+        return;
+      }
+      
+      let edad = hoy.getFullYear() - fechaNac.getFullYear();
+      const mes = hoy.getMonth() - fechaNac.getMonth();
+      
+      if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
+        edad--;
+      }
+      
+      if (edad < 0) {
+        edadCalculada.value = '';
+        edadCalculada.placeholder = '--';
+      } else if (edad === 0) {
+        // Calcular meses para bebés
+        const meses = (hoy.getMonth() + 12) - fechaNac.getMonth();
+        edadCalculada.value = meses + ' meses';
+      } else {
+        edadCalculada.value = edad + ' años';
+      }
+    });
+  }
 </script>
 @endpush

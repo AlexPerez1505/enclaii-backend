@@ -367,12 +367,12 @@ textarea{
   flex:1;
 }
 .btn-add-procedimiento{
-  width:15px;
-  height:15px;
+  width:32px;
+  height:32px;
   border-radius:8px;
-  border:1px solid var(--stroke-strong);
-  background:var(--panel-2);
-  color:var(--cyan);
+  border:none;
+  background:var(--blue);
+  color:#fff;
   display:grid;
   place-items:center;
   cursor:pointer;
@@ -380,38 +380,8 @@ textarea{
   flex:none;
 }
 .btn-add-procedimiento:hover{
-  background:rgba(56,199,244,.15);
-  border-color:var(--cyan);
-}
-.procedimientos-tags{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  margin-top:10px;
-}
-.procedimiento-tag{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  padding:6px 12px;
-  background:rgba(56,199,244,.1);
-  border:1px solid var(--cyan);
-  border-radius:20px;
-  font-size:12px;
-  color:var(--cyan);
-}
-.procedimiento-tag button{
-  width:16px;
-  height:16px;
-  border-radius:50%;
-  border:none;
-  background:rgba(255,90,110,.2);
-  color:var(--red);
-  display:grid;
-  place-items:center;
-  cursor:pointer;
-  font-size:10px;
-  line-height:1;
+  opacity:0.9;
+  transform:scale(1.05);
 }
 
 /* Mini modal agregar opción */
@@ -446,6 +416,11 @@ textarea{
 }
 .mini-modal input{
   width:100%;
+  padding:10px 12px;
+  border:1px solid var(--stroke);
+  border-radius:var(--r-md);
+  background:var(--panel-2);
+  color:var(--txt);
   margin-bottom:16px;
 }
 .mini-modal-footer{
@@ -457,12 +432,15 @@ textarea{
   padding:8px 16px !important;
   border-radius:var(--r-md) !important;
   border:1px solid var(--stroke) !important;
-  background:transparent !important;
-  color:var(--txt-soft) !important;
+  background:var(--panel) !important;
+  color:var(--txt) !important;
   font-size:13px !important;
   font-weight:500 !important;
   cursor:pointer;
   transform:none !important;
+}
+.mini-modal-footer .btn-cancel:hover{
+  background:var(--panel-2) !important;
 }
 .mini-modal-footer .btn-confirm{
   padding:8px 16px !important;
@@ -610,6 +588,8 @@ textarea{
   .modal-photo{padding:20px}
   .form-footer{justify-content:center}
   .btn-save{width:100%;justify-content:center}
+  .camera-controls{gap:20px}
+  .cam-btn .icon{width:36px;height:36px}
 }
 @media (max-width:480px){
   .form-card{padding:16px;border-radius:12px}
@@ -621,6 +601,9 @@ textarea{
   .modal-photo{padding:16px}
   .camera-frame{height:160px}
   .btn-save{font-size:13px;padding:12px 20px}
+  .camera-controls{gap:16px}
+  .cam-btn{font-size:11px}
+  .cam-btn .icon{width:32px;height:32px}
 }
 
 /* Select resolución modal foto */
@@ -646,6 +629,244 @@ textarea{
   margin-bottom:12px;
   color:var(--txt-soft);
 }
+
+/* ===== MODAL FOTO ===== */
+.modal-photo{
+  background:linear-gradient(180deg,var(--card),var(--panel-2));
+  border:1px solid var(--stroke-strong);
+  border-radius:var(--r-lg);
+  width:100%;
+  max-width:900px;
+  max-height:90vh;
+  overflow-y:auto;
+  padding:28px 32px;
+  animation:modalIn 300ms var(--ease-out);
+}
+@keyframes modalIn{
+  from{opacity:0;transform:scale(.95) translateY(20px)}
+  to{opacity:1;transform:scale(1) translateY(0)}
+}
+
+.modal-header{
+  margin-bottom:24px;
+}
+.modal-header h2{
+  font-family:'Sora',sans-serif;
+  font-size:20px;
+  font-weight:700;
+  margin-bottom:8px;
+}
+.modal-header p{
+  font-size:14px;
+  color:var(--txt-soft);
+}
+
+.modal-body{
+  display:grid;
+  grid-template-columns:1.2fr 1fr;
+  gap:24px;
+}
+
+/* Panel izquierdo - Preview */
+.preview-panel{
+  background:var(--panel-2);
+  border:1px solid var(--stroke);
+  border-radius:var(--r-md);
+  padding:20px;
+}
+.preview-panel h3{
+  font-size:14px;
+  font-weight:600;
+  margin-bottom:14px;
+}
+
+.camera-frame{
+  aspect-ratio:4/3;
+  background:#d1d5db;
+  border-radius:var(--r-md);
+  position:relative;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* Esquinas del marco */
+.corner{
+  position:absolute;
+  width:24px;
+  height:24px;
+  border:3px solid var(--blue);
+}
+.corner-tl{top:12px;left:12px;border-right:0;border-bottom:0;border-radius:8px 0 0 0}
+.corner-tr{top:12px;right:12px;border-left:0;border-bottom:0;border-radius:0 8px 0 0}
+.corner-bl{bottom:12px;left:12px;border-right:0;border-top:0;border-radius:0 0 0 8px}
+.corner-br{bottom:12px;right:12px;border-left:0;border-top:0;border-radius:0 0 8px 0}
+
+/* Avatar placeholder */
+.avatar-preview{
+  width:140px;
+  height:140px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#e0e0e0,#f5f5f5);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:60px;
+}
+
+/* Botones de cámara */
+.camera-controls{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:32px;
+  margin-top:16px;
+}
+.cam-btn{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  background:transparent;
+  border:0;
+  color:var(--txt-soft);
+  font-size:12px;
+  font-weight:500;
+  cursor:pointer;
+  transition:color 150ms ease;
+}
+.cam-btn:hover{color:var(--txt)}
+.cam-btn.active{color:var(--cyan)}
+.cam-btn .icon{
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:var(--panel);
+  border:1px solid var(--stroke);
+}
+.cam-btn.active .icon{
+  background:var(--blue);
+  border-color:var(--blue);
+  color:#fff;
+}
+.cam-btn svg{width:20px;height:20px}
+
+/* Panel derecho - Opciones */
+.options-panel{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+.source-options{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.source-option{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:14px 16px;
+  border-radius:var(--r-md);
+  border:1px solid var(--stroke);
+  background:var(--panel-2);
+  cursor:pointer;
+  transition:all 150ms ease;
+}
+.source-option:hover{
+  border-color:var(--stroke-strong);
+  background:var(--panel);
+}
+.source-option.active{
+  border-color:var(--blue);
+  background:rgba(46,123,246,.12);
+}
+.source-option .icon{
+  width:36px;
+  height:36px;
+  border-radius:10px;
+  display:grid;
+  place-items:center;
+  background:rgba(46,123,246,.15);
+  color:var(--cyan);
+}
+.source-option.active .icon{
+  background:var(--blue);
+  color:#fff;
+}
+.source-option svg{width:20px;height:20px}
+.source-option .info{
+  flex:1;
+}
+.source-option .info strong{
+  display:block;
+  font-size:13px;
+  font-weight:600;
+  margin-bottom:2px;
+}
+.source-option .info span{
+  font-size:12px;
+  color:var(--txt-soft);
+}
+
+/* Recomendaciones */
+.recommendations{
+  background:rgba(46,123,246,.1);
+  border:1px solid rgba(46,123,246,.3);
+  border-radius:var(--r-md);
+  padding:14px 16px;
+}
+.rec-header{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:10px;
+  color:var(--cyan);
+  font-size:13px;
+  font-weight:700;
+}
+.rec-header svg{width:16px;height:16px}
+.recommendations ul{
+  margin:0;
+  padding-left:18px;
+  font-size:12px;
+  color:var(--txt-soft);
+  line-height:1.6;
+}
+
+/* Modal footer */
+.modal-footer{
+  display:flex;
+  justify-content:flex-end;
+  gap:12px;
+  margin-top:24px;
+  padding-top:20px;
+  border-top:1px solid var(--stroke);
+}
+.btn-cancel{
+  padding:10px 20px;
+  border-radius:var(--r-md);
+  border:1px solid var(--stroke-strong);
+  background:transparent;
+  color:var(--txt-soft);
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+}
+.btn-confirm{
+  padding:10px 24px;
+  border-radius:var(--r-md);
+  border:none;
+  background:var(--blue);
+  color:#fff;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+}
 </style>
 @endpush
 
@@ -661,7 +882,13 @@ textarea{
   <div class="form-card rise d2">
 
     {{-- Sección Información Personal --}}
-    <h2 class="section-title">Información personal</h2>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <h2 class="section-title" style="margin:0;">Información personal</h2>
+      <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-md);font-size:13px;">
+        <span style="color:var(--txt-soft);">Folio:</span>
+        <span style="font-weight:700;color:var(--cyan);">{{ $paciente->folio ?? 'P-001' }}</span>
+      </div>
+    </div>
 
     <div class="personal-layout">
       {{-- Foto --}}
@@ -670,6 +897,10 @@ textarea{
           <div class="patient-photo-placeholder" id="patientPhotoPlaceholder">👤</div>
           <img id="patientPhoto" style="display:none;">
         </div>
+        <button type="button" class="btn-photo" onclick="window.abrirModalFoto()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Modificar foto
+        </button>
       </div>
       {{-- Campos personales --}}
       <div class="form-grid personal" style="flex:1;">
@@ -684,14 +915,11 @@ textarea{
 
       <div class="form-group">
         <label>Fecha de nacimiento</label>
-        <div class="input-with-icon">
-          <input type="text" value="25/12/1998">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        </div>
+        <input type="date" id="fechaNacimientoEdit" value="1998-12-25" style="color-scheme:dark;">
       </div>
       <div class="form-group">
         <label>Edad</label>
-        <input type="text" value="28 años" readonly>
+        <input type="text" id="edadCalculadaEdit" value="28 años" readonly style="background:var(--panel-2);color:var(--txt-soft);">
       </div>
       <div class="form-group">
         <label>Peso</label>
@@ -739,7 +967,6 @@ textarea{
             <select id="medicoSelectMed">
               <option value="dr-victor">Dr. Victor</option>
               <option value="dr-ricardo">Dr. Ricardo</option>
-              <option value="otro">Otro...</option>
             </select>
             <button type="button" class="btn-add-procedimiento" onclick="addMedicoMed()" title="Agregar médico">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -749,21 +976,16 @@ textarea{
         <div class="form-group" style="margin-bottom:18px;">
           <label>Procedimiento</label>
           <div class="select-with-add">
-          <select id="procedimientoSelect" onchange="onProcedimientoChange()">
+          <select id="procedimientoSelect">
             <option value="colonoscopia">Colonoscopia</option>
             <option value="panendoscopia">Panendoscopia</option>
             <option value="endoscopia" selected>Endoscopia diagnóstica</option>
             <option value="gastroscopia">Gastroscopia</option>
-            <option value="otro">Otro...</option>
           </select>
             <button type="button" class="btn-add-procedimiento" onclick="addNuevoProcedimiento()" title="Agregar procedimiento">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
           </div>
-          <div id="otroProcedimientoContainer" style="display:none;margin-top:8px;">
-            <input type="text" id="otroProcedimientoInput" placeholder="Nombre del procedimiento" style="width:100%;">
-          </div>
-          <div id="procedimientosAgregados" class="procedimientos-tags"></div>
         </div>
         <div class="form-group" style="margin-bottom:18px;">
           <label>Anestesiólogo</label>
@@ -771,7 +993,6 @@ textarea{
             <select id="anestesiologoSelect">
               <option value="dr-victor">Dr. Victor</option>
               <option value="dr-ricardo">Dr. Ricardo</option>
-              <option value="otro">Otro...</option>
             </select>
             <button type="button" class="btn-add-procedimiento" onclick="addAnestesiologo()" title="Agregar anestesiólogo">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -785,7 +1006,6 @@ textarea{
               <option value="externo">Externo</option>
               <option value="dr-victor">Dr. Victor</option>
               <option value="dr-ricardo">Dr. Ricardo</option>
-              <option value="otro">Otro...</option>
             </select>
             <button type="button" class="btn-add-procedimiento" onclick="addReferidoMed()" title="Agregar referido">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -793,16 +1013,19 @@ textarea{
           </div>
         </div>
         <div class="form-group">
-          <label>Fecha de registro</label>
-          <div class="input-with-icon">
-            <input type="text" value="30/05/2025">
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <label>Equipo utilizado</label>
+          <div class="select-with-add">
+            <select id="equipoSelect">
+              <option value="endoscopio-olympus">Endoscopio Olympus</option>
+              <option value="endoscopio-fujifilm">Endoscopio Fujifilm</option>
+              <option value="endoscopio-pentax">Endoscopio Pentax</option>
+              <option value="torre-endoscopia">Torre de endoscopia</option>
+            </select>
+            <button type="button" class="btn-add-procedimiento" onclick="addEquipo()" title="Agregar equipo">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
           </div>
         </div>
-        <button type="button" class="btn-agendar" onclick="document.getElementById('modalCitaEdit').classList.add('active')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="17"/><line x1="10.5" y1="15.5" x2="13.5" y2="15.5"/></svg>
-          Agendar cita
-        </button>
       </div>
       {{-- Columna derecha: Diagnóstico --}}
       <div style="flex:1;display:flex;flex-direction:column;">
@@ -813,11 +1036,36 @@ textarea{
       </div>
     </div>
 
+    {{-- Sección Estudios del paciente --}}
+    <hr style="border:none;border-top:1px solid var(--stroke);margin:28px 0;">
+    
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div>
+        <h2 class="section-title" style="margin-bottom:4px;">Estudios del paciente</h2>
+        <p style="color:var(--txt-soft);font-size:13px;margin:0;">Gestiona los estudios, imágenes, videos y reportes del paciente.</p>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;margin-bottom:28px;flex-wrap:wrap;">
+      <button class="btn-outline" style="padding:12px 24px;font-size:14px;border:1px solid var(--green);color:var(--green);background:transparent;border-radius:var(--r-md);cursor:pointer;transition:all 150ms ease;display:inline-flex;align-items:center;" onmouseover="this.style.background='var(--green)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--green)'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Editar informes
+      </button>
+      <button class="btn-outline" style="padding:12px 24px;font-size:14px;border:2px solid #f59e0b;color:#f59e0b;background:transparent;border-radius:var(--r-md);cursor:pointer;transition:all 150ms ease;display:inline-flex;align-items:center;" onmouseover="this.style.background='#f59e0b';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#f59e0b'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;"><rect x="3" y="4" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="4" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="20"/><line x1="4" y1="12" x2="2" y2="12"/><line x1="22" y1="12" x2="20" y2="12"/></svg>
+        Editar galería
+      </button>
+      <button class="btn-outline" style="padding:12px 24px;font-size:14px;border:1px solid var(--cyan);color:var(--cyan);background:transparent;border-radius:var(--r-md);cursor:pointer;transition:all 150ms ease;display:inline-flex;align-items:center;" onmouseover="this.style.background='var(--cyan)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--cyan)'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Editar estudios
+      </button>
+    </div>
+
     {{-- Botón guardar --}}
     <div style="display:flex;justify-content:flex-end;margin-top:28px;">
-      <button class="btn-save" id="btnGuardarInfo">
-        Guardar información
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      <button class="btn-save" id="btnGuardarInfo" style="background:var(--green);color:#fff;border-color:var(--green);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Guardar cambios
       </button>
     </div>
 
@@ -885,7 +1133,7 @@ textarea{
       </div>
       <h2>¡Datos Guardados!</h2>
       <p>La información del paciente ha sido actualizada correctamente.</p>
-      <button class="btn-aceptar" onclick="document.getElementById('modalSuccessEdit').classList.remove('active')">
+      <button class="btn-aceptar" onclick="window.location.href='{{ route('pacientes') }}'">
         Aceptar
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </button>
@@ -1040,6 +1288,7 @@ document.addEventListener('DOMContentLoaded', function() {
   window.addMedicoMed         = function(){ window.abrirMiniModal('medicoSelectMed','Agregar médico','Nombre del médico'); };
   window.addAnestesiologo     = function(){ window.abrirMiniModal('anestesiologoSelect','Agregar anestesiólogo','Nombre del anestesiólogo'); };
   window.addReferidoMed       = function(){ window.abrirMiniModal('referidoSelectMed','Agregar referido','Nombre del referido'); };
+  window.addEquipo            = function(){ window.abrirMiniModal('equipoSelect','Agregar equipo','Nombre del equipo'); };
 
   // ===== GUARDAR INFORMACIÓN =====
   const btnGuardarInfo = document.getElementById('btnGuardarInfo');
@@ -1052,7 +1301,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // ===== FOTO DEL PACIENTE =====
-  const btnAgregarFoto = document.getElementById('btnAgregarFoto');
   const modalFoto = document.getElementById('modalFoto');
   const btnCancelarFoto = document.getElementById('btnCancelarFoto');
   const btnUsarFoto = document.getElementById('btnUsarFoto');
@@ -1060,7 +1308,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const patientPhotoPlaceholder = document.getElementById('patientPhotoPlaceholder');
   const avatarPreview = document.querySelector('.avatar-preview');
 
-  if (!btnAgregarFoto || !modalFoto) return;
+  if (!modalFoto) return;
 
   // Input file oculto
   const inputFileFoto = document.createElement('input');
@@ -1079,18 +1327,21 @@ document.addEventListener('DOMContentLoaded', function() {
     patientPhotoPlaceholder.style.display = 'none';
   }
 
-  btnAgregarFoto.addEventListener('click', () => {
+  // Función global para abrir modal desde botones inline
+  window.abrirModalFoto = function() {
     modalFoto.classList.add('active');
     if (avatarPreview) {
       avatarPreview.textContent = '👤';
       avatarPreview.style.backgroundImage = '';
     }
     currentPhotoData = null;
-  });
+  };
 
-  btnCancelarFoto.addEventListener('click', () => {
-    modalFoto.classList.remove('active');
-  });
+  if (btnCancelarFoto) {
+    btnCancelarFoto.addEventListener('click', () => {
+      modalFoto.classList.remove('active');
+    });
+  }
 
   modalFoto.addEventListener('click', (e) => {
     if (e.target === modalFoto) modalFoto.classList.remove('active');
@@ -1132,159 +1383,6 @@ document.addEventListener('DOMContentLoaded', function() {
       alert('Por favor capture o seleccione una foto primero');
     }
   });
-
-  // Cargar procedimientos personalizados desde localStorage
-  function cargarProcedimientosPersonalizados() {
-    const guardados = localStorage.getItem('procedimientosPersonalizados');
-    if (guardados) {
-      const lista = JSON.parse(guardados);
-      const select = document.getElementById('procedimientoSelect');
-      // Agregar opciones personalizadas antes de "Otro"
-      lista.forEach(proc => {
-        // Verificar si ya existe
-        let existe = false;
-        for (let i = 0; i < select.options.length; i++) {
-          if (select.options[i].value === proc.valor) {
-            existe = true;
-            break;
-          }
-        }
-        if (!existe) {
-          const option = document.createElement('option');
-          option.value = proc.valor;
-          option.textContent = proc.texto;
-          // Insertar antes de la última opción (Otro)
-          select.insertBefore(option, select.options[select.options.length - 1]);
-        }
-      });
-    }
-  }
-
-  // Cargar al iniciar
-  cargarProcedimientosPersonalizados();
-
-  // Arreglo para guardar procedimientos
-  let procedimientosGuardados = [];
-
-  // Precargar el procedimiento seleccionado por defecto
-  const selectInicial = document.getElementById('procedimientoSelect');
-  if (selectInicial && selectInicial.value && selectInicial.value !== 'otro') {
-    procedimientosGuardados.push(selectInicial.value);
-    // Mostrar tag inicial
-    const container = document.getElementById('procedimientosAgregados');
-    const texto = selectInicial.options[selectInicial.selectedIndex].text;
-    const tag = document.createElement('div');
-    tag.className = 'procedimiento-tag';
-    tag.dataset.value = selectInicial.value;
-    tag.innerHTML = `
-      <span>${texto}</span>
-      <button type="button" onclick="removeProcedimiento('${selectInicial.value}')">×</button>
-    `;
-    container.appendChild(tag);
-  }
-
-  // Función para mostrar/ocultar input de "Otro"
-  window.onProcedimientoChange = function() {
-    const select = document.getElementById('procedimientoSelect');
-    const otroContainer = document.getElementById('otroProcedimientoContainer');
-    
-    if (select.value === 'otro') {
-      otroContainer.style.display = 'block';
-      document.getElementById('otroProcedimientoInput').focus();
-    } else {
-      otroContainer.style.display = 'none';
-    }
-  };
-
-  // Función para agregar procedimiento
-  window.addProcedimiento = function() {
-    const select = document.getElementById('procedimientoSelect');
-    const container = document.getElementById('procedimientosAgregados');
-    const otroInput = document.getElementById('otroProcedimientoInput');
-    const otroContainer = document.getElementById('otroProcedimientoContainer');
-    
-    let valor = select.value;
-    let texto = select.options[select.selectedIndex].text;
-
-    // Si es "Otro", tomar el valor del input
-    if (valor === 'otro') {
-      texto = otroInput.value.trim();
-      if (!texto) {
-        alert('Por favor ingrese el nombre del procedimiento');
-        return;
-      }
-      // Crear un valor slug para el procedimiento personalizado
-      valor = 'custom_' + texto.toLowerCase().replace(/\s+/g, '_');
-      
-      // Guardar en localStorage para futuras sesiones
-      guardarProcedimientoPersonalizado(valor, texto);
-      
-      // Agregar al select para futura selección
-      const nuevaOption = document.createElement('option');
-      nuevaOption.value = valor;
-      nuevaOption.textContent = texto;
-      select.insertBefore(nuevaOption, select.options[select.options.length - 1]);
-      
-      // Limpiar input
-      otroInput.value = '';
-      otroContainer.style.display = 'none';
-      select.value = valor;
-    }
-
-    // Verificar si ya existe
-    if (procedimientosGuardados.includes(valor)) {
-      alert('Este procedimiento ya fue agregado');
-      return;
-    }
-
-    // Agregar al arreglo
-    procedimientosGuardados.push(valor);
-
-    // Crear tag visual
-    const tag = document.createElement('div');
-    tag.className = 'procedimiento-tag';
-    tag.dataset.value = valor;
-    tag.innerHTML = `
-      <span>${texto}</span>
-      <button type="button" onclick="removeProcedimiento('${valor}')">×</button>
-    `;
-
-    container.appendChild(tag);
-  };
-
-  // Función para guardar procedimiento personalizado en localStorage
-  function guardarProcedimientoPersonalizado(valor, texto) {
-    let guardados = localStorage.getItem('procedimientosPersonalizados');
-    if (!guardados) {
-      guardados = [];
-    } else {
-      guardados = JSON.parse(guardados);
-    }
-    
-    // Verificar si ya existe
-    const existe = guardados.some(p => p.valor === valor);
-    if (!existe) {
-      guardados.push({ valor, texto });
-      localStorage.setItem('procedimientosPersonalizados', JSON.stringify(guardados));
-    }
-  }
-
-  // Función para eliminar procedimiento
-  window.removeProcedimiento = function(valor) {
-    // Remover del arreglo
-    procedimientosGuardados = procedimientosGuardados.filter(p => p !== valor);
-
-    // Remover tag visual
-    const tag = document.querySelector(`.procedimiento-tag[data-value="${valor}"]`);
-    if (tag) {
-      tag.remove();
-    }
-  };
-
-  // Función para obtener procedimientos guardados (para enviar al backend)
-  window.getProcedimientos = function() {
-    return procedimientosGuardados;
-  };
 
   // ============ FUNCIONES PARA MÉDICO ============
   
@@ -1480,11 +1578,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // ===== PROCEDIMIENTO / MÉDICO / ANESTESIÓLOGO / REFERIDO =====
+  // ===== PROCEDIMIENTO / MÉDICO / ANESTESIÓLOGO / REFERIDO / EQUIPO =====
   window.addNuevoProcedimiento = function() { window.abrirMiniModal('procedimientoSelect','Agregar procedimiento','Escribe el nombre del procedimiento'); };
   window.addMedicoMed         = function() { window.abrirMiniModal('medicoSelectMed','Agregar médico','Escribe el nombre del médico'); };
   window.addAnestesiologo     = function() { window.abrirMiniModal('anestesiologoSelect','Agregar anestesiólogo','Escribe el nombre del anestesiólogo'); };
   window.addReferidoMed       = function() { window.abrirMiniModal('referidoSelectMed','Agregar referido','Escribe el nombre del referido'); };
+  window.addEquipo            = function() { window.abrirMiniModal('equipoSelect','Agregar equipo','Escribe el nombre del equipo'); };
 
   // ===== AGENDAR CITA =====
   var _citaData = {};
@@ -1517,6 +1616,41 @@ document.addEventListener('DOMContentLoaded', function() {
   };
 
 });
+
+  // ===== CALCULAR EDAD AUTOMÁTICAMENTE =====
+  const fechaNacimientoEdit = document.getElementById('fechaNacimientoEdit');
+  const edadCalculadaEdit = document.getElementById('edadCalculadaEdit');
+  
+  if (fechaNacimientoEdit && edadCalculadaEdit) {
+    fechaNacimientoEdit.addEventListener('change', function() {
+      const fechaNac = new Date(this.value);
+      const hoy = new Date();
+      
+      if (isNaN(fechaNac.getTime())) {
+        edadCalculadaEdit.value = '';
+        edadCalculadaEdit.placeholder = '--';
+        return;
+      }
+      
+      let edad = hoy.getFullYear() - fechaNac.getFullYear();
+      const mes = hoy.getMonth() - fechaNac.getMonth();
+      
+      if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
+        edad--;
+      }
+      
+      if (edad < 0) {
+        edadCalculadaEdit.value = '';
+        edadCalculadaEdit.placeholder = '--';
+      } else if (edad === 0) {
+        // Calcular meses para bebés
+        const meses = (hoy.getMonth() + 12) - fechaNac.getMonth();
+        edadCalculadaEdit.value = meses + ' meses';
+      } else {
+        edadCalculadaEdit.value = edad + ' años';
+      }
+    });
+  }
 </script>
 @endpush
 

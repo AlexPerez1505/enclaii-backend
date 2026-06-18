@@ -95,6 +95,8 @@
 .etb-btn.danger:hover{color:var(--red);border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.06);}
 .etb-sep{width:1px;height:20px;background:var(--stroke);margin:0 2px;}
 .etb-spacer{flex:1;}
+/* Helper para ocultar/mostrar elementos de forma confiable */
+.hidden{display:none !important;}
 .chat-messages{flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:3px;}
 .chat-messages::-webkit-scrollbar{width:4px;}
 .chat-messages::-webkit-scrollbar-thumb{background:var(--stroke);border-radius:4px;}
@@ -394,7 +396,7 @@
       </div>
 
       {{-- Toolbar email --}}
-      <div class="email-toolbar" id="emailToolbar" style="display:none;">
+      <div class="email-toolbar hidden" id="emailToolbar">
         <button class="etb-btn icon-only" onclick="closeMsg()" title="Volver">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
@@ -423,13 +425,13 @@
       </div>
 
       {{-- Mensajes WhatsApp --}}
-      <div class="chat-messages" id="chatMessages" style="display:none;">
+      <div class="chat-messages hidden" id="chatMessages">
         <div class="chat-date-div"><span>Hoy</span></div>
-        <div class="bubble-row received">
+        <div class="bubble-row received" id="waMessageRow">
           <div class="bubble-mini-av blue" id="miniAv1">MG</div>
-          <div class="bubble received">
+          <div class="bubble received" id="waMessageText">
             Hola Dr. Victor, tengo una duda sobre los resultados de mi ultimo estudio.
-            <div class="bubble-time">10:05</div>
+            <div class="bubble-time" id="waMessageTime">10:05</div>
           </div>
         </div>
         <div class="bubble-row sent">
@@ -458,7 +460,7 @@
       </div>
 
       {{-- Cuerpo email --}}
-      <div class="email-body-wrap" id="emailBody" style="display:none;flex:1;">
+      <div class="email-body-wrap hidden" id="emailBody">
         <div class="email-subject" id="emailSubject">Resultados de estudios</div>
         <div class="email-sender-card">
           <div class="esc-av blue" id="escAv">MG</div>
@@ -722,6 +724,8 @@
   };
 
   window.openConv = function(el, initials, name, color, type, text, time, attachments) {
+    console.log('openConv called:', {name, type, text: text?.substring(0, 30)});
+    
     document.querySelectorAll('.conv-item').forEach(i => i.classList.remove('active'));
     el.classList.add('active');
     activeType = type;
@@ -733,6 +737,10 @@
     const av = document.getElementById('mchAv');
     av.textContent = initials;
     av.className = 'mch-av ' + color;
+    // Limpiar dot online anterior si existe
+    const existingOnline = av.querySelector('.mch-online');
+    if (existingOnline) existingOnline.remove();
+    
     if (type === 'wa') {
       const online = document.createElement('span');
       online.className = 'mch-online';
@@ -760,34 +768,58 @@
     const audioBtn   = document.getElementById('btnAudio');
     const msgInput   = document.getElementById('msgInput');
 
+    console.log('Switching to type:', type);
+    
     if (type === 'wa') {
+      console.log('Showing WhatsApp view');
       mainPanel.className = 'msg-main mode-wa';
       mchHeader.className = 'mch mode-wa';
       audioBtn.style.display = '';
       msgInput.placeholder = 'Escribe un mensaje...';
-      document.getElementById('chatMessages').style.display = 'flex';
-      document.getElementById('emailBody').style.cssText = 'display:none;flex:1;';
-      document.getElementById('emailToolbar').style.display = 'none';
+      document.getElementById('chatMessages').classList.remove('hidden');
+      document.getElementById('emailBody').classList.add('hidden');
+      document.getElementById('emailToolbar').classList.add('hidden');
       document.querySelectorAll('.bubble-mini-av').forEach(av => {
         av.textContent = initials;
         av.className = 'bubble-mini-av ' + color;
       });
+      // Actualizar contenido del mensaje de WhatsApp
+      const waMessageText = document.getElementById('waMessageText');
+      const waMessageTime = document.getElementById('waMessageTime');
+      if (waMessageText && text) {
+        // Mantener el div de tiempo pero cambiar el texto
+        const timeDiv = waMessageText.querySelector('.bubble-time');
+        waMessageText.innerHTML = text.replace(/\n/g, '<br>') + '<div class="bubble-time" id="waMessageTime">' + (timeDiv ? timeDiv.textContent : time) + '</div>';
+      }
     } else {
+      console.log('Showing Email view');
       mainPanel.className = 'msg-main mode-email';
       mchHeader.className = 'mch mode-email';
       audioBtn.style.display = 'none';
       msgInput.placeholder = 'Escribe tu respuesta al correo...';
-      document.getElementById('chatMessages').style.display = 'none';
-      document.getElementById('emailBody').style.cssText = 'display:block;flex:1;';
-      document.getElementById('emailToolbar').style.display = 'flex';
+      document.getElementById('chatMessages').classList.add('hidden');
+      document.getElementById('emailBody').classList.remove('hidden');
+      document.getElementById('emailToolbar').classList.remove('hidden');
 
       document.getElementById('escAv').textContent = initials;
       document.getElementById('escAv').className = 'esc-av ' + color;
       document.getElementById('escName').textContent = name;
       document.getElementById('escAddr').innerHTML = '&lt;' + name.toLowerCase().replace(' ', '') + '@gmail.com&gt;';
       document.getElementById('escTime').textContent = time;
-      document.getElementById('emailSubject').textContent = 'Resultados de estudios';
-      document.getElementById('emailText').textContent = text;
+      // Generar asunto dinámico según el contenido
+      let subject = 'Mensaje de ' + name;
+      const lowerText = text.toLowerCase();
+      if (lowerText.includes('estudio') || lowerText.includes('resultado') || lowerText.includes('laboratorio')) {
+        subject = 'Resultados de estudios';
+      } else if (lowerText.includes('cita') || lowerText.includes('agendar') || lowerText.includes('próxima')) {
+        subject = 'Agendamiento de cita';
+      } else if (lowerText.includes('procedimiento') || lowerText.includes('operación') || lowerText.includes('cirugía')) {
+        subject = 'Seguimiento de procedimiento';
+      } else if (lowerText.includes('receta') || lowerText.includes('medicamento') || lowerText.includes('fármaco')) {
+        subject = 'Consulta sobre medicamentos';
+      }
+      document.getElementById('emailSubject').textContent = subject;
+      document.getElementById('emailText').innerHTML = text.replace(/\n/g, '<br>');
 
       const attSec = document.getElementById('attSection');
       const attList = document.getElementById('attList');
