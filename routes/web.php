@@ -21,7 +21,7 @@ Route::middleware('auth')->group(function () {
     })->name('dashboard');
 
     Route::get('/nuevo-estudio', function () {
-        return view('estudios.dashboard');
+        return view('estudios.crear');
     })->name('nuevo-estudio');
 
     Route::get('/nuevo-estudio/crear', function () {
