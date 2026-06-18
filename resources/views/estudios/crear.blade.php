@@ -246,6 +246,18 @@
   color: var(--cyan); background: rgba(56,199,244,.08);
 }
 
+/* Boton Agendar cita */
+.np-agendar-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 20px; border-radius: 10px;
+  border: 1.5px solid var(--cyan);
+  background: transparent; font: inherit; font-size: 14px; font-weight: 700;
+  color: var(--cyan); cursor: pointer;
+  transition: background 150ms, transform 150ms;
+}
+.np-agendar-btn:hover { background: rgba(56,199,244,.1); }
+.np-agendar-btn:active { transform: scale(.97); }
+
 @media (max-width:1100px) {
   .np-layout { grid-template-columns: 1fr; }
   .np-personal-layout { grid-template-columns: 1fr; }
@@ -426,46 +438,37 @@
     <div class="np-card rise d3" style="margin-top:16px">
       <div class="np-sec-header">Informacion medica</div>
 
-      <div class="np-fields np-row-2" style="margin-bottom:16px">
+      {{-- Procedimiento izq + Diagnostico textarea der --}}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;align-items:start">
         <div class="np-field">
           <label>Procedimiento</label>
           <select id="procedimiento" name="procedimiento">
             <option value="" disabled selected>Seleccione</option>
             <option value="endoscopia">Endoscopia diagnostica</option>
-            <option value="colonoscopia">Colonoscopia</option>
+            <option value="colonoscopia" selected>Colonoscopia</option>
             <option value="gastroscopia">Gastroscopia</option>
             <option value="sigmoidoscopia">Sigmoidoscopia</option>
             <option value="cpre">CPRE</option>
             <option value="ecoendoscopia">Ecoendoscopia</option>
           </select>
         </div>
-        <div class="np-field">
+        <div class="np-field" style="grid-row:span 2">
           <label>Diagnostico Preliminar</label>
-          <input type="text" id="diagnostico_short" name="diagnostico_short" placeholder="Define lo que podria tener" autocomplete="off">
+          <textarea id="diagnostico" name="diagnostico" placeholder="Define lo que podria tener" style="min-height:150px"></textarea>
         </div>
       </div>
 
-      <div class="np-fields np-row-3" style="margin-bottom:0">
+      {{-- Fecha de registro + Agendar cita --}}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:end">
         <div class="np-field">
           <label>Fecha de registro</label>
           <input type="date" id="fecha_registro" name="fecha_registro">
         </div>
-        <div class="np-field">
-          <label>Medico</label>
-          <select id="medico" name="medico">
-            <option value="" disabled selected>Seleccione</option>
-            <option value="dr_victor" selected>Dr. Victor</option>
-            <option value="dr_ricardo">Dr. Ricardo</option>
-          </select>
-        </div>
-        <div class="np-field">
-          <label>Referido por</label>
-          <select id="referido" name="referido">
-            <option value="" disabled selected>Seleccione</option>
-            <option value="externo">Medico externo</option>
-            <option value="propio">Medico propio</option>
-            <option value="paciente">Paciente directo</option>
-          </select>
+        <div>
+          <button type="button" class="np-agendar-btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Agendar cita
+          </button>
         </div>
       </div>
     </div>
