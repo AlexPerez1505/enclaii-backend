@@ -246,6 +246,16 @@
   color: var(--cyan); background: rgba(56,199,244,.08);
 }
 
+/* Estado vacio */
+.np-empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; padding: 80px 20px;
+  color: var(--txt-soft); text-align: center;
+}
+.np-empty-state svg { opacity: .25; }
+.np-empty-state p { font-size: 16px; font-weight: 600; color: var(--txt-soft); }
+.np-empty-state span { font-size: 13px; color: var(--off); }
+
 /* Boton Agendar cita */
 .np-agendar-btn {
   display: inline-flex; align-items: center; gap: 8px;
@@ -327,8 +337,15 @@
   <div id="npResultsList"></div>
 </div>
 
+{{-- Estado vacio: ningun paciente seleccionado --}}
+<div id="npEmptyState" class="np-empty-state rise d2">
+  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+  <p>Busca un paciente para ver su informacion</p>
+  <span>Usa el buscador o los filtros de arriba</span>
+</div>
+
 {{-- Layout: formulario + sidebar --}}
-<div class="np-layout">
+<div class="np-layout" id="npFormLayout" style="display:none">
 
   {{-- Formulario --}}
   <form method="POST" action="#" id="formNuevoPaciente">
@@ -622,17 +639,23 @@
     }).join('');
     list.querySelectorAll('.np-res-item').forEach(function(el){
       el.addEventListener('click', function(){
-        document.getElementById('nombre').value        = el.dataset.nombre;
+        document.getElementById('nombre').value         = el.dataset.nombre;
         document.getElementById('identificacion').value = el.dataset.id;
-        document.getElementById('sexo').value          = el.dataset.sexo;
-        document.getElementById('npSearch').value      = el.dataset.nombre;
+        document.getElementById('sexo').value           = el.dataset.sexo;
+        document.getElementById('npSearch').value       = el.dataset.nombre;
         hideResults();
+        showForm();
       });
     });
   }
 
   function hideResults(){
     document.getElementById('npResults').classList.remove('open');
+  }
+
+  function showForm(){
+    document.getElementById('npEmptyState').style.display = 'none';
+    document.getElementById('npFormLayout').style.display = 'grid';
   }
 
   document.getElementById('npSearch').addEventListener('input', doSearch);
