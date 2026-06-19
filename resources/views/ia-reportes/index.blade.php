@@ -328,11 +328,7 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
 
     <article class="card stat blue rise d2">
       <div class="ico">
-<<<<<<< HEAD
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-=======
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
->>>>>>> f12c0e7d508795ad0ed5dcf68db6d0a98050c76d
       </div>
       <div class="stat-body">
         <h3>Reportes generados</h3>
@@ -377,11 +373,7 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
 
     <article class="card stat green rise d5">
       <div class="ico">
-<<<<<<< HEAD
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg>
-=======
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
->>>>>>> f12c0e7d508795ad0ed5dcf68db6d0a98050c76d
       </div>
       <div class="stat-body">
         <h3>Precisión IA</h3>
@@ -404,11 +396,7 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
       <div class="card-head">
         <h3>Reportes generados por IA</h3>
         <a class="btn-gen" href="{{ route('ia-reportes.generar') }}">
-<<<<<<< HEAD
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-=======
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="M9 15l3 3 3-3"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>
->>>>>>> f12c0e7d508795ad0ed5dcf68db6d0a98050c76d
           Generar reporte IA
         </a>
       </div>

@@ -66,7 +66,7 @@
 .msg-empty-ico{width:72px;height:72px;border-radius:50%;background:var(--panel);border:1px solid var(--stroke);display:grid;place-items:center;opacity:.4;}
 .msg-empty p{font-size:15px;font-weight:700;margin:0;color:var(--txt);}
 .msg-empty span{font-size:12px;margin:0;}
-#msgContent{display:none;flex-direction:column;flex:1;overflow:hidden;position:relative;z-index:1;}
+#msgContent{flex-direction:column;flex:1;overflow:hidden;position:relative;z-index:1;}
 .mch{display:flex;align-items:center;gap:12px;padding:11px 16px;background:var(--panel);border-bottom:1px solid var(--stroke);flex:none;}
 .mch-av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;color:#fff;flex:none;position:relative;}
 .mch-av.blue{background:linear-gradient(135deg,#2e7bf6,#60a5fa);}
@@ -371,7 +371,7 @@
       <span>para leer o responder mensajes</span>
     </div>
 
-    <div id="msgContent" style="display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
+    <div id="msgContent" style="display:none;">
 
       {{-- Header --}}
       <div class="mch">
@@ -731,7 +731,7 @@
 
     document.getElementById('msgEmpty').style.display = 'none';
     const content = document.getElementById('msgContent');
-    content.style.cssText = 'display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;';
+    content.style.display = 'flex';
 
     const av = document.getElementById('mchAv');
     av.textContent = initials;
@@ -943,7 +943,10 @@
   };
 
   const first = document.querySelector('.conv-item[data-type="wa"]');
-  if (first) first.click();
+  if (first) {
+    openConv(first, 'MG', 'Maria Gonzalez', 'blue', 'wa', 'Hola Dr. Victor, tengo una duda sobre los resultados de mi ultimo estudio.', '10:30 AM', []);
+    first.classList.add('active');
+  }
 
 })();
 </script>
