@@ -467,7 +467,7 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
       <x-hugeicons-ai-folder-02 />
       Reportes
     </a>
-    <a class="nav-item {{ $active === 'mensajes' ? 'active' : '' }}" href="#">
+    <a class="nav-item {{ $active === 'mensajes' ? 'active' : '' }}" href="{{ route('mensajes') }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       Mensajes
     </a>

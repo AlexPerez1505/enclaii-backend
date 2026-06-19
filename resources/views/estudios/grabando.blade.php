@@ -96,7 +96,26 @@
 .studio-top-center {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 0;
+  flex: 1;
+  justify-content: center;
+}
+
+/* Separador visual entre grupos */
+.studio-topbar-gap {
+  width: 32px;
+  flex: none;
+}
+
+/* Grupo de elementos (Notif + Doctor) */
+.studio-top-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 6px 16px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px;
 }
 
 .studio-storage {
@@ -168,7 +187,7 @@
 .studio-top-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 24px;
 }
 
 .studio-btn-emergency {
@@ -183,6 +202,16 @@
   transition: all 150ms;
 }
 .studio-btn-emergency:hover { background: rgba(239,68,68,.25); }
+
+/* Contenedor de botones en sidebar */
+.studio-sidebar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
 
 .studio-btn-volver {
   display: flex; align-items: center; gap: 8px;
@@ -342,11 +371,19 @@ body.studio-expanded .side {
 .studio-action-btn svg { color: #0ea5e9; flex: none; }
 
 /* Separador vertical */
-.studio-divider {
+/* Controles de Grabación */
+.studio-rec-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Separador vertical */
+.studio-divider-v {
   width: 1px;
-  height: 40px;
+  height: 36px;
   background: rgba(14, 165, 233, .3);
-  margin: 0 16px;
+  margin: 0 8px;
 }
 
 /* Botón Pausar */
@@ -354,25 +391,25 @@ body.studio-expanded .side {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 20px;
+  padding: 12px 22px;
   background: rgba(10, 15, 30, .6);
-  border: none;
-  border-radius: 8px;
-  color: rgba(255, 255, 255, .85);
-  font-size: 13px;
-  font-weight: 500;
+  border: 1px solid rgba(14, 165, 233, .3);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, .9);
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 150ms;
 }
 .studio-pause-btn svg { color: #0ea5e9; }
-.studio-pause-btn:hover { background: rgba(14, 165, 233, .15); }
+.studio-pause-btn:hover { background: rgba(14, 165, 233, .2); border-color: rgba(14, 165, 233, .5); }
 
 /* Botón Terminar Estudio - Rojo */
 .studio-terminar-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 14px 22px;
+  gap: 10px;
+  padding: 14px 24px;
   background: #dc2626;
   border: none;
   border-radius: 10px;
@@ -427,6 +464,126 @@ body.studio-expanded .side {
   padding: 16px 24px;
   background: #0d1320;
   border-bottom: 1px solid rgba(255,255,255,.06);
+  gap: 24px;
+}
+
+/* Sección izquierda del header */
+.studio-final-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+}
+
+/* Separador vertical */
+.studio-final-sep {
+  width: 1px;
+  height: 40px;
+  background: rgba(255,255,255,.12);
+  flex: none;
+}
+
+/* Info del paciente */
+.studio-final-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.studio-info-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: rgba(255,255,255,.7);
+}
+.studio-info-item strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Métricas */
+.studio-final-metrics {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.studio-metric {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.studio-metric svg {
+  color: #0ea5e9;
+}
+.studio-metric-content {
+  display: flex;
+  flex-direction: column;
+}
+.studio-metric-label {
+  font-size: 11px;
+  color: rgba(255,255,255,.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.studio-metric-value {
+  font-size: 15px;
+  font-weight: 700;
+  font-family: 'Sora', sans-serif;
+  color: #fff;
+}
+.studio-metric-value.green { color: #4ade80; }
+.studio-metric-value.blue { color: #38bdf8; }
+
+/* Sección derecha del header */
+.studio-final-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: none;
+}
+
+
+/* Botón Notificaciones */
+.studio-final-btn-notif {
+  position: relative;
+  padding: 10px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 8px;
+  color: rgba(255,255,255,.7);
+  cursor: pointer;
+  transition: all 150ms;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.studio-final-btn-notif:hover {
+  background: rgba(255,255,255,.1);
+  border-color: rgba(255,255,255,.2);
+}
+.studio-final-btn-notif .studio-notif-badge {
+  background: #dc2626;
+  top: 4px;
+  right: 4px;
+}
+
+/* Perfil en header */
+.studio-final-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px;
+}
+
+/* Separador vertical derecho */
+.studio-final-sep-v {
+  width: 1px;
+  height: 36px;
+  background: rgba(255,255,255,.12);
+  margin: 0 4px;
 }
 
 .studio-finalizado-status {
@@ -691,14 +848,53 @@ body.studio-expanded .side {
 .studio-stat-label { font-size: 12px; color: rgba(255,255,255,.6); }
 .studio-stat-value { font-size: 22px; font-weight: 700; color: #fff; font-family: 'Sora', sans-serif; }
 .studio-stat-value.red { color: #ef4444; }
+.studio-icon-paciente {
+  position: relative;
+  cursor: pointer;
+}
+.studio-icon-paciente::after {
+  content: attr(data-paciente);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%) scale(0.9);
+  background: #1e3a5f;
+  border: 1px solid rgba(14,165,233,.35);
+  color: #38bdf8;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: 5px 10px;
+  border-radius: 6px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 150ms ease, transform 150ms ease;
+  z-index: 10;
+}
+.studio-icon-paciente::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 2px);
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: rgba(14,165,233,.35);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 150ms ease;
+  z-index: 10;
+}
+.studio-icon-paciente:hover::after,
+.studio-icon-paciente:hover::before {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
 .studio-info-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
 .studio-info-icon { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; }
 .studio-info-icon.blue { background: rgba(14,165,233,.15); color: #0ea5e9; }
 .studio-info-icon.orange { background: rgba(245,158,11,.15); color: #f59e0b; }
 .studio-info-label { font-size: 11px; color: rgba(255,255,255,.5); }
 .studio-info-value { font-size: 13px; font-weight: 600; color: #fff; }
-.studio-ia-active { display: flex; align-items: center; gap: 10px; padding: 12px; background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.25); border-radius: 8px; margin-top: auto; }
-.studio-ia-pulse { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; animation: pulseRec 2s infinite; }
 </style>
 @endpush
 
@@ -723,6 +919,13 @@ body.studio-expanded .side {
     <div class="studio-topbar-sep"></div>
 
     <div class="studio-top-center">
+      {{-- Centro vacío o con info adicional si se necesita --}}
+    </div>
+
+    <div class="studio-topbar-sep"></div>
+
+    <div class="studio-top-right">
+      {{-- Grupo 1: Almacenamiento --}}
       <div class="studio-storage">
         <svg class="studio-storage-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>
         <div>
@@ -734,36 +937,23 @@ body.studio-expanded .side {
         </div>
       </div>
 
-      <button class="studio-ia-btn">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-        Asistente IA
-      </button>
+      <div class="studio-topbar-gap"></div>
 
-      <div class="studio-notif">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <span class="studio-notif-badge">3</span>
-      </div>
+      {{-- Grupo 3: Notificaciones + Doctor --}}
+      <div class="studio-top-group">
+        <div class="studio-notif">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="studio-notif-badge">3</span>
+        </div>
 
-      <div class="studio-doctor">
-        <div class="studio-doc-avatar">DV</div>
-        <div class="studio-doc-info">
-          <div class="studio-doc-name">Dr. Víctor</div>
-          <div class="studio-doc-role">Endoscopista</div>
+        <div class="studio-doctor">
+          <div class="studio-doc-avatar">DV</div>
+          <div class="studio-doc-info">
+            <div class="studio-doc-name">Dr. Víctor</div>
+            <div class="studio-doc-role">Endoscopista</div>
+          </div>
         </div>
       </div>
-    </div>
-
-    <div class="studio-topbar-sep"></div>
-
-    <div class="studio-top-right">
-      <button class="studio-btn-emergency">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/></svg>
-        Emergencia
-      </button>
-      <a class="studio-btn-volver" href="{{ route('nuevo-estudio') }}">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-        Volver
-      </a>
     </div>
   </div>
 
@@ -805,32 +995,14 @@ body.studio-expanded .side {
 
       {{-- Bottom Bar --}}
       <div class="studio-bottom">
-        <div class="studio-actions">
-          <button class="studio-action-btn" id="btnCapturar">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-            Capturar Foto
-          </button>
-          <button class="studio-action-btn" id="btnClip">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-            Marcar Clip
-          </button>
-          <button class="studio-action-btn">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-            Agregar Nota
-          </button>
-          <button class="studio-action-btn">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-            IA Analizar
-          </button>
-        </div>
-
-        <div style="display:flex;align-items:center">
-          <div class="studio-divider"></div>
+        {{-- Controles de Grabación --}}
+        <div class="studio-rec-controls">
           <button class="studio-pause-btn" id="btnPausa">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
             Pausar
           </button>
-          <a class="studio-terminar-btn" href="{{ route('nuevo-estudio') }}" style="margin-left:12px">
+          <div class="studio-divider-v"></div>
+          <a class="studio-terminar-btn" href="{{ route('nuevo-estudio') }}">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8" transform="rotate(45 12 12)"/></svg>
             Terminar Estudio
           </a>
@@ -844,7 +1016,7 @@ body.studio-expanded .side {
       <div class="studio-sidebar-title">Estudio Activo</div>
 
       <div class="studio-stats">
-        <div class="studio-stat-card">
+        <div class="studio-stat-card studio-stat-card-hover" title="Paciente: Maria Gonzalez">
           <div class="studio-stat-header">
             <div class="studio-stat-icon">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -852,6 +1024,10 @@ body.studio-expanded .side {
             <div class="studio-stat-label">Duración</div>
           </div>
           <div class="studio-stat-value red" id="recTimerSide">00:00:00</div>
+          <div class="studio-stat-patient-hover">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Maria Gonzalez
+          </div>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -876,43 +1052,17 @@ body.studio-expanded .side {
         </div>
       </div>
 
-      <div class="studio-info-row">
-        <div class="studio-info-icon blue">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        </div>
-        <div>
-          <div class="studio-info-label">Paciente</div>
-          <div class="studio-info-value">Maria Gonzalez</div>
-        </div>
-      </div>
 
-      <div class="studio-info-row">
-        <div class="studio-info-icon blue">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        </div>
-        <div>
-          <div class="studio-info-label">Procedimiento</div>
-          <div class="studio-info-value">Endoscopia Digestiva</div>
-        </div>
-      </div>
-
-      <div class="studio-info-row">
-        <div class="studio-info-icon orange">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        </div>
-        <div>
-          <div class="studio-info-label">Médico</div>
-          <div class="studio-info-value">Dr. Víctor</div>
-        </div>
-      </div>
-
-      <div class="studio-ia-active">
-        <span class="studio-ia-pulse"></span>
-        <div>
-          <div style="font-size:13px;font-weight:600;color:#22c55e">IA en monitoreo</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.5)">Analizando en tiempo real</div>
-        </div>
-        <svg style="margin-left:auto" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      {{-- Botones de acción en sidebar --}}
+      <div class="studio-sidebar-actions">
+        <button class="studio-btn-emergency">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/></svg>
+          Emergencia
+        </button>
+        <a class="studio-btn-volver" href="{{ route('nuevo-estudio') }}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          Volver
+        </a>
       </div>
 
     </div>
@@ -925,11 +1075,12 @@ body.studio-expanded .side {
 
   {{-- Header --}}
   <div class="studio-finalizado-header">
-    <div style="display:flex;align-items:center;gap:30px">
+    {{-- Sección Izquierda: Status + Info --}}
+    <div class="studio-final-left">
       {{-- Status --}}
       <div class="studio-finalizado-status">
         <div class="studio-status-icon">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
         <div>
           <div class="studio-status-text">Estudio Finalizado</div>
@@ -937,70 +1088,29 @@ body.studio-expanded .side {
         </div>
       </div>
 
-      {{-- Info estudio --}}
-      <div style="display:flex;align-items:center;gap:20px;font-size:13px;color:rgba(255,255,255,.7)">
-        <div style="display:flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Paciente: Maria Gonzalez</div>
-        <div style="display:flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Fecha: 24/05/2026</div>
-        <div style="display:flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Hora: 10:45 AM</div>
-      </div>
-
-      {{-- Separador vertical --}}
-      <div style="width:1px;height:50px;background:rgba(255,255,255,.15)"></div>
-
-      {{-- Duración y Almacenamiento --}}
-      <div style="display:flex;align-items:center;gap:20px">
-        {{-- Duración Total --}}
-        <div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span style="font-size:12px;color:rgba(255,255,255,.6)">Duración Total</span>
-          </div>
-          <div style="font-size:14px;font-weight:600;color:#fff;font-family:'Sora',monospace">00:18:47</div>
-          <div style="width:120px;height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:6px;overflow:hidden">
-            <div style="width:35%;height:100%;background:#22c55e;border-radius:2px"></div>
-          </div>
-        </div>
-
-        {{-- Almacenamiento --}}
-        <div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-            <span style="font-size:12px;color:rgba(255,255,255,.6)">Almacenamiento</span>
-          </div>
-          <div style="font-size:14px;font-weight:600;color:#fff;font-family:'Sora',monospace">4.1 GB / 50 GB</div>
-          <div style="width:120px;height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:6px;overflow:hidden">
-            <div style="width:8%;height:100%;background:#0ea5e9;border-radius:2px"></div>
-          </div>
-        </div>
-      </div>
     </div>
 
-    {{-- Asistente IA, Notificaciones y Perfil --}}
-    <div style="display:flex;align-items:center;gap:16px;margin-left:auto;margin-right:16px">
-      {{-- Asistente IA --}}
-      <button style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:rgba(14,165,233,.15);border:1px solid rgba(14,165,233,.3);border-radius:8px;color:#38bdf8;font-size:13px;font-weight:500;cursor:pointer;transition:all 150ms">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"/><path d="M8.5 8.5A4 4 0 0 0 12 12a4 4 0 0 1 3.5 3.5"/><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
-        Asistente IA
-      </button>
-
+    {{-- Sección Derecha: Controles --}}
+    <div class="studio-final-right">
       {{-- Notificaciones --}}
-      <button style="position:relative;padding:10px;background:transparent;border:none;border-radius:8px;color:rgba(255,255,255,.7);cursor:pointer;transition:all 150ms">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <span style="position:absolute;top:4px;right:4px;width:16px;height:16px;background:#dc2626;border-radius:50%;font-size:10px;font-weight:600;color:#fff;display:flex;align-items:center;justify-content:center">3</span>
+      <button class="studio-final-btn-notif">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="studio-notif-badge">3</span>
       </button>
 
       {{-- Perfil Doctor --}}
-      <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:10px">
-        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#1e3a5f);display:grid;place-items:center;font-size:14px;font-weight:600;color:#fff">DV</div>
-        <div>
-          <div style="font-size:13px;font-weight:600;color:#fff">Dr. Víctor</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.5)">Endoscopista</div>
+      <div class="studio-final-profile">
+        <div class="studio-doc-avatar">DV</div>
+        <div class="studio-doc-info">
+          <div class="studio-doc-name">Dr. Víctor</div>
+          <div class="studio-doc-role">Endoscopista</div>
         </div>
       </div>
-    </div>
 
-    {{-- Top right buttons --}}
-    <div style="display:flex;align-items:center;gap:12px">
+      {{-- Separador --}}
+      <div class="studio-final-sep-v"></div>
+
+      {{-- Volver --}}
       <a class="studio-btn-volver" href="{{ route('nuevo-estudio') }}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
         Volver
@@ -1085,7 +1195,9 @@ body.studio-expanded .side {
 
         <div class="studio-resumen-item">
           <div class="studio-resumen-label">
-            <div class="studio-resumen-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+            <div class="studio-resumen-icon studio-icon-paciente" data-paciente="María Gonzalez">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
             Estado
           </div>
           <div class="studio-resumen-value green">Completado</div>
@@ -1215,52 +1327,10 @@ body.studio-expanded .side {
         </div>
       </div>
 
-      {{-- Info estudio --}}
-      <div style="display:flex;align-items:center;gap:20px;font-size:13px;color:rgba(255,255,255,.7)">
-        <div style="display:flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Paciente: Maria Gonzalez</div>
-        <div style="display:flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Fecha: 24/05/2026</div>
-        <div style="display:flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Hora: 10:45 AM</div>
-      </div>
-
-      {{-- Separador vertical --}}
-      <div style="width:1px;height:50px;background:rgba(255,255,255,.15)"></div>
-
-      {{-- Duración y Almacenamiento --}}
-      <div style="display:flex;align-items:center;gap:20px">
-        {{-- Duración Total --}}
-        <div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span style="font-size:12px;color:rgba(255,255,255,.6)">Duración Total</span>
-          </div>
-          <div style="font-size:14px;font-weight:600;color:#fff;font-family:'Sora',monospace">00:18:47</div>
-          <div style="width:120px;height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:6px;overflow:hidden">
-            <div style="width:35%;height:100%;background:#dc2626;border-radius:2px"></div>
-          </div>
-        </div>
-
-        {{-- Almacenamiento --}}
-        <div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-            <span style="font-size:12px;color:rgba(255,255,255,.6)">Almacenamiento</span>
-          </div>
-          <div style="font-size:14px;font-weight:600;color:#fff;font-family:'Sora',monospace">4.1 GB / 50 GB</div>
-          <div style="width:120px;height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:6px;overflow:hidden">
-            <div style="width:8%;height:100%;background:#0ea5e9;border-radius:2px"></div>
-          </div>
-        </div>
-      </div>
     </div>
 
-    {{-- Asistente IA, Notificaciones y Perfil --}}
+    {{-- Notificaciones y Perfil --}}
     <div style="display:flex;align-items:center;gap:16px;margin-left:auto;margin-right:16px">
-      {{-- Asistente IA --}}
-      <button style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:rgba(14,165,233,.15);border:1px solid rgba(14,165,233,.3);border-radius:8px;color:#38bdf8;font-size:13px;font-weight:500;cursor:pointer;transition:all 150ms">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"/><path d="M8.5 8.5A4 4 0 0 0 12 12a4 4 0 0 1 3.5 3.5"/><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
-        Asistente IA
-      </button>
-
       {{-- Notificaciones --}}
       <button style="position:relative;padding:10px;background:transparent;border:none;border-radius:8px;color:rgba(255,255,255,.7);cursor:pointer;transition:all 150ms">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
@@ -1363,7 +1433,7 @@ body.studio-expanded .side {
 
         <div class="studio-resumen-item">
           <div class="studio-resumen-label">
-            <div class="studio-resumen-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+            <div class="studio-resumen-icon studio-icon-paciente" data-paciente="María Gonzalez"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
             Estado
           </div>
           <div class="studio-resumen-value" style="color:#dc2626">Emergencia</div>
@@ -1525,17 +1595,32 @@ body.studio-expanded .side {
   // Click en botón para modo expandido
   btnFullscreen?.addEventListener('click', toggleExpanded);
 
-  /* Pausa */
-  document.getElementById('btnPausa')?.addEventListener('click', function () {
-    paused = !paused;
-    const svgPause = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Pausar';
-    const svgPlay = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3" fill="currentColor" stroke="none"/></svg> Continuar';
-    this.innerHTML = paused ? svgPlay : svgPause;
-  });
+  /* Pausa/Continuar */
+  const btnPausa = document.getElementById('btnPausa');
 
-  /* Captura y Clip */
-  document.getElementById('btnCapturar')?.addEventListener('click', () => { fotos++; fotosEl && (fotosEl.textContent = fotos); addThumb(); });
-  document.getElementById('btnClip')?.addEventListener('click', () => { clips++; clipsEl && (clipsEl.textContent = clips); addThumb(); });
+  function updatePauseButton() {
+    if (paused) {
+      // Está pausado: mostrar Continuar en verde
+      btnPausa.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3" fill="currentColor" stroke="none"/></svg> Continuar';
+      btnPausa.style.background = 'rgba(34, 197, 94, .15)';
+      btnPausa.style.borderColor = 'rgba(34, 197, 94, .5)';
+      btnPausa.style.color = '#4ade80';
+    } else {
+      // Está grabando: mostrar Pausar en azul
+      btnPausa.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Pausar';
+      btnPausa.style.background = 'rgba(10, 15, 30, .6)';
+      btnPausa.style.borderColor = 'rgba(14, 165, 233, .3)';
+      btnPausa.style.color = 'rgba(255, 255, 255, .9)';
+    }
+  }
+
+  // Inicializar estado
+  updatePauseButton();
+
+  btnPausa?.addEventListener('click', function () {
+    paused = !paused;
+    updatePauseButton();
+  });
 
   /* ── Terminar Estudio ── */
   const btnTerminar = document.querySelector('.studio-terminar-btn');
