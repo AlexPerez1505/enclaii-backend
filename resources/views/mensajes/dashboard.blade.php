@@ -692,10 +692,24 @@
 @endsection
 
 @push('scripts')
+@php
+  $launchContext = [
+    'channel' => request('canal'),
+    'patient' => request('paciente'),
+    'study' => request('estudio'),
+    'video' => request('video'),
+    'image' => request('imagen'),
+    'frame' => request('fotograma'),
+    'type' => request('tipo'),
+    'date' => request('fecha'),
+    'diagnosis' => request('diagnostico'),
+  ];
+@endphp
 <script>
 (function(){
   let activeTab = 'todas';
   let activeType = 'wa';
+  const launchContext = @json($launchContext);
 
   window.toggleChPanel = function() {
     const page = document.getElementById('msgPage');
@@ -942,10 +956,41 @@
     }
   };
 
-  const first = document.querySelector('.conv-item[data-type="wa"]');
-  if (first) {
-    openConv(first, 'MG', 'Maria Gonzalez', 'blue', 'wa', 'Hola Dr. Victor, tengo una duda sobre los resultados de mi ultimo estudio.', '10:30 AM', []);
-    first.classList.add('active');
+  function buildStudyDraft(data) {
+    const patient = data.patient || 'paciente';
+    const study = data.study || 'tu estudio';
+    const mediaLabel = data.type === 'imagen' ? 'la imagen' : 'el video';
+    const mediaId = data.type === 'imagen' ? data.image : data.video;
+    const media = mediaId ? ` (${mediaId})` : '';
+    const date = data.date ? ` del ${data.date}` : '';
+    const frame = data.type === 'imagen' && data.frame ? ` Fotograma: ${data.frame}.` : '';
+    const diagnosis = data.diagnosis ? ` Diagnostico: ${data.diagnosis}.` : '';
+
+    return `Hola ${patient}, te comparto ${mediaLabel} de ${study}${media}${date}.${frame}${diagnosis}`;
+  }
+
+  function openWhatsAppLaunch(data) {
+    const waConvs = Array.from(document.querySelectorAll('.conv-item[data-type="wa"]'));
+    const patient = (data.patient || '').toLowerCase();
+    const target = waConvs.find(item => {
+      const name = item.querySelector('.conv-name')?.textContent.toLowerCase() || '';
+      return patient && (name === patient || name.includes(patient.split(' ')[0]));
+    }) || waConvs[0];
+
+    if (target) target.click();
+
+    const input = document.getElementById('msgInput');
+    if (input) {
+      input.value = buildStudyDraft(data);
+      input.focus();
+    }
+  }
+
+  if (launchContext.channel === 'whatsapp') {
+    openWhatsAppLaunch(launchContext);
+  } else {
+    const first = document.querySelector('.conv-item[data-type="wa"]');
+    if (first) first.click();
   }
 
 })();

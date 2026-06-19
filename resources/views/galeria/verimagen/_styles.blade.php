@@ -11,6 +11,7 @@
   display:flex;align-items:center;gap:7px;
   height:38px;padding:0 16px;border-radius:var(--r-md);
   font:inherit;font-size:13px;font-weight:600;
+  text-decoration:none;
   transition:background-color 150ms ease,transform 160ms var(--ease-out);
 }
 .vi-btn:active{transform:scale(.97)}
@@ -21,10 +22,10 @@
 @media(hover:hover)and(pointer:fine){.vi-btn.report:hover{background:rgba(46,123,246,.25)}}
 .vi-btn.share{background:transparent;border:1px solid var(--stroke);color:var(--txt-soft)}
 @media(hover:hover)and(pointer:fine){.vi-btn.share:hover{background:rgba(110,160,255,.08);color:var(--txt)}}
+.vi-btn.wa{background:rgba(61,220,151,.12);border:1px solid rgba(61,220,151,.35);color:var(--green)}
+@media(hover:hover)and(pointer:fine){.vi-btn.wa:hover{background:rgba(61,220,151,.22)}}
 .vi-btn.dl{background:var(--blue);border:none;color:#fff}
 @media(hover:hover)and(pointer:fine){.vi-btn.dl:hover{opacity:.88}}
-.vi-btn.more{width:38px;padding:0;justify-content:center;background:transparent;border:1px solid var(--stroke);color:var(--txt-soft)}
-@media(hover:hover)and(pointer:fine){.vi-btn.more:hover{background:rgba(110,160,255,.08)}}
 
 /* Visor de imagen */
 .vi-viewer-box{

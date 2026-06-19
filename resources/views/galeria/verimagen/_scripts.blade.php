@@ -82,10 +82,116 @@
   /* Toolbar toggle */
   document.querySelectorAll('.vi-tool-btn').forEach(btn => {
     btn.addEventListener('click', function(){
-      if(this.id === 'viToolAnotar' || this.id === 'viToolFiltros') return;
+      if(this.id === 'viToolAnotar' || this.id === 'viToolFiltros' || this.id === 'viToolPrint') return;
       this.classList.toggle('on');
     });
   });
+
+  function escapeHtml(value){
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    }[char]));
+  }
+
+  function printCurrentImage(){
+    const c = caps[current];
+    const mainImage = document.getElementById('viMainImage');
+    const imageSrc = mainImage.currentSrc || mainImage.src || c.src;
+
+    if(!imageSrc){
+      alert('No hay imagen cargada para imprimir.');
+      return;
+    }
+
+    const imageNumber = current + 1;
+    const timestamp = document.getElementById('viInfoTs').textContent || c.ts;
+    const imageFilter = mainImage.style.filter || 'none';
+
+    let printStyles = document.getElementById('viPrintStyles');
+    if(!printStyles){
+      printStyles = document.createElement('style');
+      printStyles.id = 'viPrintStyles';
+      printStyles.textContent = `
+        #viPrintSheet{display:none}
+        @media print{
+          @page{size:A4;margin:16mm}
+          body.vi-printing *{visibility:hidden!important}
+          body.vi-printing #viPrintSheet,
+          body.vi-printing #viPrintSheet *{visibility:visible!important}
+          body.vi-printing #viPrintSheet{display:flex!important;position:absolute;inset:0;width:100%;background:#fff;color:#111827;font-family:Arial,Helvetica,sans-serif;flex-direction:column;gap:14px}
+          #viPrintSheet *{box-sizing:border-box}
+          #viPrintSheet .head{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #d1d5db;padding-bottom:12px}
+          #viPrintSheet .brand{font-size:22px;font-weight:800;letter-spacing:4px;color:#0f172a}
+          #viPrintSheet .sub{font-size:11px;letter-spacing:2px;color:#64748b;margin-top:4px;text-transform:uppercase}
+          #viPrintSheet .title{text-align:right}
+          #viPrintSheet .title h1{font-size:18px;margin:0 0 5px;color:#0f172a}
+          #viPrintSheet .title span{font-size:12px;color:#475569}
+          #viPrintSheet .image-wrap{border:1px solid #d1d5db;background:#050505;min-height:430px;display:flex;align-items:center;justify-content:center;padding:10px}
+          #viPrintSheet .image-wrap img{max-width:100%;max-height:560px;object-fit:contain}
+          #viPrintSheet .meta{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 18px;font-size:12px}
+          #viPrintSheet .item{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #e5e7eb;padding:6px 0}
+          #viPrintSheet .label{color:#64748b}
+          #viPrintSheet .value{font-weight:700;color:#111827;text-align:right}
+          #viPrintSheet .findings{border:1px solid #d1d5db;padding:12px;margin-top:2px}
+          #viPrintSheet .findings h2{font-size:13px;margin:0 0 8px;color:#0f172a}
+          #viPrintSheet .findings ul{margin:0;padding-left:18px;font-size:12px;line-height:1.7}
+          #viPrintSheet .foot{font-size:10px;color:#64748b;border-top:1px solid #e5e7eb;padding-top:8px;margin-top:4px}
+        }
+      `;
+      document.head.appendChild(printStyles);
+    }
+
+    let printSheet = document.getElementById('viPrintSheet');
+    if(!printSheet){
+      printSheet = document.createElement('main');
+      printSheet.id = 'viPrintSheet';
+      document.body.appendChild(printSheet);
+    }
+
+    printSheet.innerHTML = `
+          <section class="head">
+            <div>
+              <div class="brand">ENCLAII</div>
+              <div class="sub">Endoscopia · Nube · IA</div>
+            </div>
+            <div class="title">
+              <h1>Imagen ${escapeHtml(imageNumber)} del estudio</h1>
+              <span>EDD-2025-001245 · IMG-${String(imageNumber).padStart(4, '0')}</span>
+            </div>
+          </section>
+          <section class="image-wrap">
+            <img src="${escapeHtml(imageSrc)}" alt="Imagen endoscopica" style="filter:${escapeHtml(imageFilter)}">
+          </section>
+          <section class="meta">
+            <div class="item"><span class="label">Paciente</span><span class="value">Maria Gonzales</span></div>
+            <div class="item"><span class="label">Fecha de captura</span><span class="value">15/07/2025 · 10:30 AM</span></div>
+            <div class="item"><span class="label">Tipo de estudio</span><span class="value">Endoscopia Digestiva Alta</span></div>
+            <div class="item"><span class="label">Fotograma</span><span class="value">${escapeHtml(timestamp)}</span></div>
+            <div class="item"><span class="label">Equipo</span><span class="value">Pentax EPK-i7010</span></div>
+            <div class="item"><span class="label">Resolucion</span><span class="value">1920 x 1080</span></div>
+          </section>
+          <section class="findings">
+            <h2>IA Hallazgos</h2>
+            <ul>
+              <li>Gastritis antral leve · Confianza 92%</li>
+              <li>Eritema leve · Confianza 88%</li>
+              <li>Sin ulceras visibles · Confianza 95%</li>
+            </ul>
+          </section>
+          <div class="foot">Documento generado para impresion desde ENCLAII.</div>
+    `;
+
+    document.body.classList.add('vi-printing');
+    window.print();
+    setTimeout(() => document.body.classList.remove('vi-printing'), 500);
+  }
+
+  const printBtn = document.getElementById('viToolPrint');
+  if(printBtn) printBtn.addEventListener('click', printCurrentImage);
 
   /* ── Mediciones ── */
   const measureCanvas = document.getElementById('viMeasureCanvas');
@@ -681,13 +787,16 @@
 
   /* ── Modal descarga ── */
   const dlOverlay = document.getElementById('viDlOverlay');
-  function abrirDl(){ dlOverlay.classList.add('open'); document.body.style.overflow='hidden'; }
-  function cerrarDl(){ dlOverlay.classList.remove('open'); document.body.style.overflow=''; }
+  function abrirDl(){ if(dlOverlay){ dlOverlay.classList.add('open'); document.body.style.overflow='hidden'; } }
+  function cerrarDl(){ if(dlOverlay){ dlOverlay.classList.remove('open'); document.body.style.overflow=''; } }
 
-  document.querySelector('.vi-btn.dl').addEventListener('click', abrirDl);
-  document.getElementById('viDlClose') .addEventListener('click', cerrarDl);
-  document.getElementById('viDlCancel').addEventListener('click', cerrarDl);
-  dlOverlay.addEventListener('click', function(e){ if(e.target === this) cerrarDl(); });
+  const dlBtn = document.querySelector('.vi-btn.dl');
+  const dlCloseBtn = document.getElementById('viDlClose');
+  const dlCancelBtn = document.getElementById('viDlCancel');
+  if(dlBtn) dlBtn.addEventListener('click', abrirDl);
+  if(dlCloseBtn) dlCloseBtn.addEventListener('click', cerrarDl);
+  if(dlCancelBtn) dlCancelBtn.addEventListener('click', cerrarDl);
+  if(dlOverlay) dlOverlay.addEventListener('click', function(e){ if(e.target === this) cerrarDl(); });
   document.addEventListener('keydown', function(e){ if(e.key==='Escape') cerrarDl(); });
 
   /* Selección de formato */
@@ -695,7 +804,8 @@
     item.addEventListener('click', function(){
       document.querySelectorAll('.vi-fmt-item').forEach(i => i.classList.remove('sel'));
       this.classList.add('sel');
-      document.getElementById('viDlFmt').textContent = this.dataset.fmt;
+      const fmtLabel = document.getElementById('viDlFmt');
+      if(fmtLabel) fmtLabel.textContent = this.dataset.fmt;
     });
   });
 
@@ -704,13 +814,15 @@
     row.addEventListener('click', function(){
       this.classList.toggle('checked');
       if(this.id === 'viIncMarca'){
-        document.getElementById('viWatermark').classList.toggle('show', this.classList.contains('checked'));
+        const watermark = document.getElementById('viWatermark');
+        if(watermark) watermark.classList.toggle('show', this.classList.contains('checked'));
       }
     });
   });
 
   /* Confirmar descarga (simulado) */
-  document.getElementById('viDlConfirm').addEventListener('click', function(){
+  const dlConfirmBtn = document.getElementById('viDlConfirm');
+  if(dlConfirmBtn) dlConfirmBtn.addEventListener('click', function(){
     const fmt = document.querySelector('.vi-fmt-item.sel').dataset.fmt;
     this.textContent = '✓ Descargando...';
     this.style.background = 'var(--green)';
@@ -722,9 +834,10 @@
   });
 
   /* Guardar observación */
-  document.getElementById('viObsSave').addEventListener('click', function(){
+  const obsSaveBtn = document.getElementById('viObsSave');
+  if(obsSaveBtn) obsSaveBtn.addEventListener('click', function(){
     const area = document.getElementById('viObsArea');
-    if(!area.value.trim()) return;
+    if(!area || !area.value.trim()) return;
     this.textContent = '✓ Guardado';
     this.style.background = 'var(--green)';
     setTimeout(() => { this.textContent = 'Guardar observación'; this.style.background = ''; }, 2000);

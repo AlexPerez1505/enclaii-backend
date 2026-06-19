@@ -100,6 +100,7 @@
   height:36px;padding:0 14px;border-radius:var(--r-md);
   font:inherit;font-size:12.5px;font-weight:600;
   background:var(--panel-2);border:1px solid var(--stroke);color:var(--txt);
+  text-decoration:none;
   transition:background-color 150ms ease,border-color 150ms ease,transform 160ms var(--ease-out);
   white-space:nowrap;
 }
@@ -501,10 +502,17 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
           Exportar video
         </button>
-        <button class="vv-act-btn wa">
+        <a class="vv-act-btn wa" href="{{ route('mensajes', [
+          'canal' => 'whatsapp',
+          'paciente' => 'Maria Gonzales',
+          'estudio' => 'Endoscopia Digestiva Alta',
+          'video' => 'EDD-2025-001245',
+          'fecha' => '15/07/2025 10:30 AM',
+          'diagnostico' => 'Gastritis antral leve',
+        ]) }}">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
           Enviar por WhatsApp
-        </button>
+        </a>
         <button class="vv-act-btn ia">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>
           IA Reportes
