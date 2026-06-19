@@ -33,7 +33,8 @@ Route::middleware('auth')->group(function () {
     })->name('pacientes.create');
 
     Route::get('/pacientes/editar', function () {
-        return view('pacientes.edit');
+        $paciente = (object) ['folio' => 'P-125'];
+        return view('pacientes.edit', compact('paciente'));
     })->name('pacientes.edit');
 
     Route::get('/ia-reportes', function () {
@@ -79,6 +80,14 @@ Route::middleware('auth')->group(function () {
     Route::patch('/configuracion/general', [SettingsController::class, 'update'])
         ->name('configuracion.general.update');
 
+    Route::get('/pacientes/estudios', function () {
+        return view('pacientes.estudios');
+    })->name('pacientes.estudios');
+
+    Route::get('/mensajes/correo', function () {
+        return view('mensajes.dashboard');
+    })->name('mensajes.correo');
+
     Route::get('/agenda', function () {
         return view('agenda.index');
     })->name('agenda');
@@ -88,7 +97,7 @@ Route::middleware('auth')->group(function () {
     })->name('agendar');
 
     Route::get('/mensajes', function () {
-        return view('mensajes.index');
+        return view('mensajes.dashboard');
     })->name('mensajes');
 
     Route::get('/nuevo-estudio', function () {
