@@ -328,14 +328,14 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
 
     <article class="card stat blue rise d2">
       <div class="ico">
-        <x-hugeicons-note-04 width="26" height="26" />
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       </div>
       <div class="stat-body">
         <h3>Reportes generados</h3>
         <div class="num" id="kpiReportes" data-target="156">0</div>
         <div class="tag">Este mes</div>
         <div class="trend up">
-          <x-fluentui-arrow-trending-lines-20 width="14" height="14" />
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
           18% <span class="vs">vs mes anterior</span>
         </div>
       </div>
@@ -343,14 +343,14 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
 
     <article class="card stat orange rise d3">
       <div class="ico">
-        <x-fluentui-clock-20 width="26" height="26" />
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       </div>
       <div class="stat-body">
         <h3>Pendientes de revisión</h3>
         <div class="num" id="kpiPendientes" data-target="12">0</div>
         <div class="tag">Este mes</div>
         <div class="trend up">
-          <x-fluentui-arrow-trending-lines-20 width="14" height="14" />
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
           5% <span class="vs">vs mes anterior</span>
         </div>
       </div>
@@ -358,14 +358,14 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
 
     <article class="card stat red rise d4">
       <div class="ico">
-        <x-fluentui-warning-20 width="26" height="26" />
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </div>
       <div class="stat-body">
         <h3>Hallazgos críticos</h3>
         <div class="num" id="kpiCriticos" data-target="8">0</div>
         <div class="tag">Detectados</div>
         <div class="trend up">
-          <x-fluentui-arrow-trending-lines-20 width="14" height="14" />
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
           3% <span class="vs">vs ayer</span>
         </div>
       </div>
@@ -373,14 +373,14 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
 
     <article class="card stat green rise d5">
       <div class="ico">
-        <x-fluentui-target-arrow-20 width="26" height="26" />
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg>
       </div>
       <div class="stat-body">
         <h3>Precisión IA</h3>
         <div class="num"><span id="kpiPrecision" data-target="98">0</span>%</div>
         <div class="tag">Este mes</div>
         <div class="trend up">
-          <x-fluentui-arrow-trending-lines-20 width="14" height="14" />
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
           18% <span class="vs">vs mes anterior</span>
         </div>
       </div>
@@ -396,7 +396,7 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
       <div class="card-head">
         <h3>Reportes generados por IA</h3>
         <a class="btn-gen" href="{{ route('ia-reportes.generar') }}">
-          <x-hugeicons-ai-file width="17" height="17" />
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
           Generar reporte IA
         </a>
       </div>

@@ -20,6 +20,25 @@
 .np-back-link:hover { color: var(--cyan); }
 .np-back-link svg { flex: none; }
 
+/* Pestañas superiores */
+.np-tabs {
+  display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid var(--stroke-strong);
+  margin-bottom: 22px;
+}
+.np-tab {
+  padding: 12px 18px; cursor: pointer;
+  font-size: 14px; font-weight: 600; color: var(--txt-soft);
+  border-bottom: 2px solid transparent;
+  transition: color 150ms, border-color 150ms;
+  background: none; border: none; border-bottom: 2px solid transparent;
+  font: inherit;
+}
+.np-tab:hover { color: var(--txt); }
+.np-tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+.np-tab-panel { display: none; }
+.np-tab-panel.active { display: block; }
+
 /* Barra buscador + filtros */
 .np-searchbar {
   display: flex; align-items: center; gap: 10px;
@@ -282,6 +301,16 @@
 
 @section('content')
 
+{{-- Pestañas --}}
+<div class="np-tabs rise d1">
+  <button class="np-tab active" data-tab="pacientes">Pacientes</button>
+  <button class="np-tab" data-tab="galeria">Galeria</button>
+  <button class="np-tab" data-tab="reportes">Reportes</button>
+</div>
+
+{{-- Panel Pacientes --}}
+<div class="np-tab-panel active" id="tab-pacientes">
+
 {{-- Buscador + Filtros --}}
 <div class="np-searchbar rise d1">
   <div class="np-search-wrap">
@@ -493,18 +522,6 @@
         </span>
         Iniciar Grabacion
       </a>
-      <a class="np-action-btn" href="{{ route('nuevo-estudio.capturas') }}">
-        <span class="np-ab-icon">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-        </span>
-        Agregar Capturas
-      </a>
-      <a class="np-action-btn" href="{{ route('nuevo-estudio.importar') }}">
-        <span class="np-ab-icon">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        </span>
-        Importar Imagenes
-      </a>
       <a class="np-action-btn" href="{{ route('nuevo-estudio.configuracion') }}">
         <span class="np-ab-icon">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87 1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
@@ -514,6 +531,26 @@
     </div>
   </div>
 
+</div>
+
+</div>
+
+{{-- Panel Galeria --}}
+<div class="np-tab-panel" id="tab-galeria">
+  <div class="np-empty-state rise d2">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+    <p>Galeria de capturas</p>
+    <span>Aqui se mostraran las imagenes del estudio</span>
+  </div>
+</div>
+
+{{-- Panel Reportes --}}
+<div class="np-tab-panel" id="tab-reportes">
+  <div class="np-empty-state rise d2">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+    <p>Reportes medicos</p>
+    <span>Selecciona un paciente para generar o ver reportes</span>
+  </div>
 </div>
 
 @endsection
@@ -588,7 +625,7 @@
     document.getElementById('fltSexoM').checked = true;
     document.getElementById('fltMed').value    = '';
     document.getElementById('npSearch').value  = '';
-    hideResults();
+    showResults(PACS);
   });
 
   /* Pacientes demo */
@@ -610,8 +647,6 @@
     var sexM = document.getElementById('fltSexoM').checked;
     var med  = document.getElementById('fltMed').value;
 
-    if (!q && !proc && sexF && sexM && !med){ hideResults(); return; }
-
     var res = PACS.filter(function(p){
       return (!q    || p.nombre.toLowerCase().includes(q) || p.id.includes(q))
           && (!proc  || p.proc   === proc)
@@ -624,7 +659,10 @@
   function showResults(res){
     var panel = document.getElementById('npResults');
     var list  = document.getElementById('npResultsList');
+    var empty = document.getElementById('npEmptyState');
+    var form  = document.getElementById('npFormLayout');
     panel.classList.add('open');
+    empty.style.display = 'none';
     if (!res.length){
       list.innerHTML = '<div class="np-res-empty">No se encontraron pacientes</div>';
       return;
@@ -651,6 +689,9 @@
 
   function hideResults(){
     document.getElementById('npResults').classList.remove('open');
+    if (document.getElementById('npFormLayout').style.display !== 'grid'){
+      document.getElementById('npEmptyState').style.display = 'flex';
+    }
   }
 
   function showForm(){
@@ -659,6 +700,19 @@
   }
 
   document.getElementById('npSearch').addEventListener('input', doSearch);
+
+  /* Mostrar todos los pacientes por defecto */
+  showResults(PACS);
+
+  /* Pestañas */
+  document.querySelectorAll('.np-tab').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      document.querySelectorAll('.np-tab').forEach(function(t){ t.classList.remove('active'); });
+      document.querySelectorAll('.np-tab-panel').forEach(function(p){ p.classList.remove('active'); });
+      tab.classList.add('active');
+      document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    });
+  });
 
 })();
 </script>
