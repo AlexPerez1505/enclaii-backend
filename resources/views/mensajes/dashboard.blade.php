@@ -956,6 +956,7 @@
     }
   };
 
+<<<<<<< HEAD
   function buildStudyDraft(data) {
     const patient = data.patient || 'paciente';
     const study = data.study || 'tu estudio';
@@ -992,6 +993,82 @@
     const first = document.querySelector('.conv-item[data-type="wa"]');
     if (first) first.click();
   }
+=======
+  window.__createOrOpenChat = function(name, message) {
+    const convList = document.getElementById('convList');
+    if (!convList) return;
+    const existing = Array.from(convList.querySelectorAll('.conv-item')).find(item => {
+      const n = item.querySelector('.conv-name');
+      return n && n.textContent.trim().toLowerCase() === name.trim().toLowerCase();
+    });
+    let item = existing;
+    if (!item) {
+      const words = name.trim().split(/\s+/);
+      const initials = words.slice(0,2).map(w => w[0].toUpperCase()).join('');
+      const colors = ['blue','purple','teal','orange','red','green'];
+      const color = colors[convList.querySelectorAll('.conv-item').length % colors.length];
+      item = document.createElement('div');
+      item.className = 'conv-item';
+      item.dataset.tab = 'todas';
+      item.dataset.type = 'wa';
+      item.setAttribute('onclick', `openConv(this,'${initials}','${name.replace(/'/g, "\\'")}','${color}','wa','','Ahora',[])`);
+      item.innerHTML = `
+        <div class="conv-avatar ${color}">${initials}</div>
+        <div class="conv-body">
+          <div class="conv-name">${name}</div>
+          <div class="conv-preview">Nuevo chat</div>
+        </div>
+        <div class="conv-meta"><span class="conv-time">Ahora</span></div>`;
+      convList.insertBefore(item, convList.firstChild);
+    }
+    item.click();
+
+    if (message) {
+      setTimeout(() => {
+        const msgs = document.getElementById('chatMessages');
+        if (!msgs) return;
+        const now = new Date();
+        const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+        const row = document.createElement('div');
+        row.className = 'bubble-row sent';
+        row.innerHTML = `<div class="bubble sent">${message.replace(/\n/g, '<br>')}<div class="bubble-time">${time}<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div></div>`;
+        msgs.appendChild(row);
+        msgs.scrollTop = msgs.scrollHeight;
+        const preview = item.querySelector('.conv-preview');
+        if (preview) preview.textContent = message.slice(0, 40) + (message.length > 40 ? '...' : '');
+      }, 100);
+    }
+  };
+
+  // Abrir chat automáticamente si llega ?paciente= desde la agenda
+  (function(){
+    const p = new URLSearchParams(window.location.search).get('paciente');
+    if (p) {
+      window.__createOrOpenChat(p);
+      if (window.history.replaceState) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  })();
+
+  // Crear chat pendiente desde agendar cita
+  (function(){
+    const raw = localStorage.getItem('pendingChat');
+    if (!raw) return;
+    try {
+      const data = JSON.parse(raw);
+      if (data && data.name) {
+        window.__createOrOpenChat(data.name, data.message);
+      }
+      localStorage.removeItem('pendingChat');
+    } catch(e) {
+      localStorage.removeItem('pendingChat');
+    }
+  })();
+
+  const first = document.querySelector('.conv-item[data-type="wa"]');
+  if (first) first.click();
+>>>>>>> eea2606 (Enlaces de Agenda)
 
 })();
 </script>

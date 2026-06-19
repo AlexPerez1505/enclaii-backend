@@ -219,5 +219,8 @@ html[data-theme="light"] .legend-item{color:#5B6A99}
 
   renderCalAg();
   renderSlots(new Date().getDate());
+
+  window.__renderSlots = renderSlots;
+  window.__renderCalAg = renderCalAg;
 })();
 </script>

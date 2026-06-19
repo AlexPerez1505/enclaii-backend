@@ -87,11 +87,16 @@
         if (dateObj.toDateString() === hoy.toDateString()) {
           if (parseHour(ev.h) < nowMin - 30) return;
         }
-        const text = ev.t.trim();
-        const sepIdx = text.indexOf('·');
-        const nameRaw = sepIdx !== -1 ? text.substring(0, sepIdx).replace(/^\d+:\d+\s*/, '').trim() : text.replace(/^\d+:\d+\s*/, '').trim();
-        const proc    = sepIdx !== -1 ? text.substring(sepIdx + 1).trim() : 'Procedimiento';
-        items.push({ dateObj, ev, name: nameRaw, proc, h: ev.h });
+        let nameRaw = ev.name || '';
+        let proc    = ev.proc || '';
+        if (!nameRaw && ev.t) {
+          const text = ev.t.trim();
+          const sepIdx = text.indexOf('·');
+          nameRaw = sepIdx !== -1 ? text.substring(0, sepIdx).replace(/^\d+:\d+\s*/, '').trim() : text.replace(/^\d+:\d+\s*/, '').trim();
+          proc    = sepIdx !== -1 ? text.substring(sepIdx + 1).trim() : 'Procedimiento';
+        }
+        const displayName = (window.__displayName ? window.__displayName(nameRaw) : nameRaw);
+        items.push({ dateObj, ev, name: nameRaw, displayName, proc, h: ev.h });
       });
     });
 
@@ -106,7 +111,7 @@
     const extra   = items.length - MAX_VISIBLE;
 
     visible.forEach(item => {
-      const inits = item.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+      const inits = item.displayName.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
       const fechaTxt = formatFechaTxt(item.dateObj);
       const horaTxt  = formatHora(item.h);
       const isCls    = item.ev.cls === 'ev-wait' ? 'prox-avatar wait' : 'prox-avatar soon';
@@ -116,7 +121,7 @@
       div.innerHTML = `
         <div class="${isCls}">${inits}</div>
         <div class="prox-info">
-          <strong>${item.name}</strong>
+          <strong>${item.displayName}</strong>
           <span>${item.proc}</span>
           <span>${fechaTxt} · ${horaTxt}</span>
         </div>`;

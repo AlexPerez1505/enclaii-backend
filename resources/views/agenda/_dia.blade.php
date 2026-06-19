@@ -291,7 +291,7 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
     'ev-soon':   `<svg viewBox="0 0 24 24" fill="none" stroke="#B263FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
   };
   const STATUS_LABEL_DAY = {
-    'ev-done':'Completado','ev-wait':'En espera','ev-cancel':'Cancelado','ev-soon':'Próximamente','ev-block':'',
+    'ev-done':'Completado','ev-wait':'En espera','ev-cancel':'Cancelado','ev-soon':'Próximos','ev-block':'',
   };
   const DAY_BUTTONS = {
     'ev-done':  [{label:'Datos del paciente',cls:'primary'},{label:'Reprogramar nueva cita',cls:'secondary'},{label:'Ver Informe',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
@@ -385,9 +385,12 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
 
   const MESES_DIA = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
-  const STATUS_LABELS_MODAL = {'ev-done':'Completado','ev-wait':'En espera','ev-cancel':'Cancelado','ev-soon':'Próximamente'};
+  const STATUS_LABELS_MODAL = {'ev-done':'Completado','ev-wait':'En espera','ev-cancel':'Cancelado','ev-soon':'Próximos'};
   const STATUS_BADGE_KEY   = {'ev-done':'done','ev-wait':'wait','ev-cancel':'cancel','ev-soon':'soon'};
   const REPROG_LABELS_DIA  = ['Reprogramar nueva cita','Reprogramar Paciente'];
+  const PACIENTE_LABELS_DIA = ['Datos del paciente','Datos del Paciente'];
+  const MENSAJE_LABELS_DIA = ['Enviar mensaje'];
+  const INFORME_LABELS_DIA = ['Ver Informe'];
 
   function buildAgendarUrlDia(name, proc, time, d, m, y) {
     const params = new URLSearchParams();
@@ -401,27 +404,32 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
   }
 
   window.openDayModal = function(ev, dayNames, dow, d, m, y) {
-    const text = ev.t.trim();
+    const text = ev.t ? ev.t.trim() : '';
     const timeM = text.match(/^(\d+:\d+)/);
-    const time = timeM ? timeM[1] : '';
-    const rest = text.replace(/^\d+:\d+\s*/,'');
-    const sepIdx = rest.indexOf('·');
-    const name = sepIdx !== -1 ? rest.substring(0, sepIdx).trim() : rest.trim() || 'Paciente';
-    const proc = sepIdx !== -1 ? rest.substring(sepIdx + 1).trim() : 'Procedimiento';
-    const inits = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const time = timeM ? timeM[1] : (ev.h ? String(ev.h).padStart(2,'0') + ':00' : '');
+    let name = ev.name || '';
+    let proc = ev.proc || '';
+    if (!name && text) {
+      const rest = text.replace(/^\d+:\d+\s*/,'');
+      const sepIdx = rest.indexOf('·');
+      name = sepIdx !== -1 ? rest.substring(0, sepIdx).trim() : rest.trim() || 'Paciente';
+      proc = sepIdx !== -1 ? rest.substring(sepIdx + 1).trim() : 'Procedimiento';
+    }
+    const displayName = (window.__displayName ? window.__displayName(name) : name);
+    const inits = displayName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     const endHr = parseInt(time) + 1;
     const cls = ev.cls || 'ev-done';
     const badgeKey = STATUS_BADGE_KEY[cls] || 'done';
     const badgeLabel = STATUS_LABELS_MODAL[cls] || 'Completado';
 
-    dayModalTitle.textContent = `${time} – ${name}`;
+    dayModalTitle.textContent = `${time} – ${displayName}`;
     dayModalBody.innerHTML = '';
 
     const card = document.createElement('div');
     card.className = 'day-panel-card';
     const head = document.createElement('div');
     head.className = 'day-pc-head';
-    head.innerHTML = `<div class="day-pc-avatar">${inits}</div><div><div class="day-pc-name">${name}</div></div>`;
+    head.innerHTML = `<div class="day-pc-avatar">${inits}</div><div><div class="day-pc-name">${displayName}</div></div>`;
 
     const badge = document.createElement('div');
     badge.className = 'ev-pop-badge ' + badgeKey;
@@ -446,6 +454,28 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
       if (REPROG_LABELS_DIA.includes(b.label)) {
         btn.addEventListener('click', () => {
           window.location.href = buildAgendarUrlDia(name, proc, time, d, m, y);
+        });
+      }
+      if (PACIENTE_LABELS_DIA.includes(b.label)) {
+        btn.addEventListener('click', () => {
+          try {
+            localStorage.setItem('lastPatient', JSON.stringify({
+              name: name,
+              source: 'agenda',
+              timestamp: Date.now()
+            }));
+          } catch(e) {}
+          window.location.href = '{{ route('pacientes') }}?paciente=' + encodeURIComponent(name);
+        });
+      }
+      if (MENSAJE_LABELS_DIA.includes(b.label)) {
+        btn.addEventListener('click', () => {
+          window.location.href = '{{ route('mensajes') }}?paciente=' + encodeURIComponent(displayName || name);
+        });
+      }
+      if (INFORME_LABELS_DIA.includes(b.label)) {
+        btn.addEventListener('click', () => {
+          window.location.href = '{{ route('ia-reportes.ver') }}?paciente=' + encodeURIComponent(displayName || name) + '&procedimiento=' + encodeURIComponent(proc || 'Endoscopia');
         });
       }
       card.appendChild(btn);
@@ -504,14 +534,19 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
       } else {
         // Mostrar eventos individualmente
         hourEvs.forEach(ev => {
-          const text = ev.t.trim();
+          const text = ev.t ? ev.t.trim() : '';
           const timeM = text.match(/^(\d+:\d+)/);
-          const time = timeM ? timeM[1] : '';
-          const rest = text.replace(/^\d+:\d+\s*/,'');
-          const parts = rest.split('·').map(s=>s.trim());
-          const name = parts[0] || 'Paciente';
-          const proc = parts[1] || 'Procedimiento';
-          const inits = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+          const time = timeM ? timeM[1] : (ev.h ? String(ev.h).padStart(2,'0') + ':00' : '');
+          let name = ev.name || '';
+          let proc = ev.proc || '';
+          if (!name && text) {
+            const rest = text.replace(/^\d+:\d+\s*/,'');
+            const parts = rest.split('·').map(s=>s.trim());
+            name = parts[0] || 'Paciente';
+            proc = parts[1] || 'Procedimiento';
+          }
+          const displayName = (window.__displayName ? window.__displayName(name) : name);
+          const inits = displayName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
 
           const card = document.createElement('div');
           card.className = 'day-event ' + ev.cls;
@@ -539,7 +574,7 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
           } else {
             const info = document.createElement('div');
             info.className = 'day-event-info';
-            info.innerHTML = `<strong>${name}</strong><span>${proc}</span>`;
+            info.innerHTML = `<strong>${displayName}</strong><span>${proc}</span>`;
             const status = document.createElement('div');
             status.className = 'day-event-status ' + ev.cls;
             status.textContent = STATUS_LABEL_DAY[ev.cls] || '';
@@ -575,21 +610,26 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
       panel.appendChild(empty);
     }
     realEvs.forEach(ev => {
-      const text = ev.t.trim();
+      const text = ev.t ? ev.t.trim() : '';
       const timeM = text.match(/^(\d+:\d+)/);
-      const time = timeM ? timeM[1] : '';
-      const rest = text.replace(/^\d+:\d+\s*/,'');
-      const parts = rest.split('·').map(s=>s.trim());
-      const name = parts[0] || 'Paciente';
-      const proc = parts[1] || 'Procedimiento';
-      const inits = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      const time = timeM ? timeM[1] : (ev.h ? String(ev.h).padStart(2,'0') + ':00' : '');
+      let name = ev.name || '';
+      let proc = ev.proc || '';
+      if (!name && text) {
+        const rest = text.replace(/^\d+:\d+\s*/,'');
+        const parts = rest.split('·').map(s=>s.trim());
+        name = parts[0] || 'Paciente';
+        proc = parts[1] || 'Procedimiento';
+      }
+      const displayName = (window.__displayName ? window.__displayName(name) : name);
+      const inits = displayName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
       const endHr = parseInt(time) + 1;
 
       const card = document.createElement('div');
       card.className = 'day-panel-card';
       const head = document.createElement('div');
       head.className = 'day-pc-head';
-      head.innerHTML = `<div class="day-pc-avatar">${inits}</div><div><div class="day-pc-name">${name}</div></div>`;
+      head.innerHTML = `<div class="day-pc-avatar">${inits}</div><div><div class="day-pc-name">${displayName}</div></div>`;
       const info = document.createElement('div');
       info.className = 'day-pc-info';
       info.innerHTML =
@@ -615,6 +655,28 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
         if (REPROG_LABELS_DIA.includes(b.label)) {
           btn.addEventListener('click', () => {
             window.location.href = buildAgendarUrlDia(name, proc, time, d, m, y);
+          });
+        }
+        if (PACIENTE_LABELS_DIA.includes(b.label)) {
+          btn.addEventListener('click', () => {
+            try {
+              localStorage.setItem('lastPatient', JSON.stringify({
+                name: name,
+                source: 'agenda',
+                timestamp: Date.now()
+              }));
+            } catch(e) {}
+            window.location.href = '{{ route('pacientes') }}?paciente=' + encodeURIComponent(name);
+          });
+        }
+        if (MENSAJE_LABELS_DIA.includes(b.label)) {
+          btn.addEventListener('click', () => {
+            window.location.href = '{{ route('mensajes') }}?paciente=' + encodeURIComponent(displayName || name);
+          });
+        }
+        if (INFORME_LABELS_DIA.includes(b.label)) {
+          btn.addEventListener('click', () => {
+            window.location.href = '{{ route('ia-reportes.ver') }}?paciente=' + encodeURIComponent(displayName || name) + '&procedimiento=' + encodeURIComponent(proc || 'Endoscopia');
           });
         }
         card.appendChild(btn);

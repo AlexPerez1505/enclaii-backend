@@ -177,14 +177,21 @@ html[data-theme="light"] .wk-modal-badge.soon{background:#F3ECFF;color:#4A1A8A;b
         cellEvents.slice(0, MAX_VISIBLE).forEach(ev => {
           const div = document.createElement('div');
           div.className = 'wk-event ' + ev.cls;
-          // Separar ev.t en partes: "11:00 Habib Perez · Endoscopia"
-          const parts = ev.t.split('·').map(s => s.trim());
-          const timeAndName = parts[0] || '';
-          const proc = parts[1] || '';
-          div.innerHTML = `<div class="wk-line1">${timeAndName}</div><div class="wk-line2">${proc}</div>`;
-          div.dataset.name = timeAndName;
+          let name = ev.name || '';
+          let proc = ev.proc || '';
+          if (!name && ev.t) {
+            const parts = ev.t.split('·').map(s => s.trim());
+            const timeAndName = parts[0] || '';
+            name = timeAndName.replace(/^\d+:\d+\s*/, '');
+            proc = parts[1] || '';
+          }
+          const displayName = (window.__displayName ? window.__displayName(name) : name);
+          const timeM = ev.t ? ev.t.match(/^(\d+:\d+)/) : null;
+          div.innerHTML = `<div class="wk-line1">${displayName}</div><div class="wk-line2">${proc}</div>`;
+          div.dataset.name = name;
           div.dataset.proc = proc;
           div.dataset.cls = ev.cls;
+          div.dataset.time = timeM ? timeM[1] : (ev.h ? String(ev.h).padStart(2,'0') + ':00' : '');
           td.appendChild(div);
         });
         if (cellEvents.length > MAX_VISIBLE) {
@@ -212,17 +219,23 @@ html[data-theme="light"] .wk-modal-badge.soon{background:#F3ECFF;color:#4A1A8A;b
   const wkModalBody    = document.getElementById('wkModalBody');
   const wkModalClose   = document.getElementById('wkModalClose');
 
-  const STATUS_LABELS = {'ev-done':'Completado','ev-wait':'En espera','ev-cancel':'Cancelado','ev-soon':'Próximamente'};
+  const STATUS_LABELS = {'ev-done':'Completado','ev-wait':'En espera','ev-cancel':'Cancelado','ev-soon':'Próximos'};
 
   window.openWeekModal = function(events, date, hour, dayName) {
     const dStr = `${dayName} ${date.getDate()}`;
     wkModalTitle.textContent = hour !== '' ? `${dStr} – ${hour}:00` : `${dStr} – Citas del día`;
     wkModalBody.innerHTML = '';
     events.forEach(ev => {
-      const parts = ev.t.split('·').map(s => s.trim());
-      const name = parts[0] || 'Paciente';
-      const proc = parts[1] || 'Procedimiento';
-      const inits = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+      let name = ev.name || '';
+      let proc = ev.proc || '';
+      if (!name && ev.t) {
+        const parts = ev.t.split('·').map(s => s.trim());
+        const timeAndName = parts[0] || '';
+        name = timeAndName.replace(/^\d+:\d+\s*/, '');
+        proc = parts[1] || '';
+      }
+      const displayName = (window.__displayName ? window.__displayName(name) : name);
+      const inits = displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
       const cls = ev.cls;
       const statusKey = cls.replace('ev-', '');
       const statusLabel = STATUS_LABELS[cls] || statusKey;
@@ -235,7 +248,7 @@ html[data-theme="light"] .wk-modal-badge.soon{background:#F3ECFF;color:#4A1A8A;b
       item.innerHTML = `
         <div class="wk-modal-avatar">${inits}</div>
         <div class="wk-modal-info">
-          <div class="wk-modal-name">${name}</div>
+          <div class="wk-modal-name">${displayName}</div>
           <div class="wk-modal-proc">${proc}</div>
         </div>
         <div class="wk-modal-badge ${statusKey}">${statusLabel}</div>

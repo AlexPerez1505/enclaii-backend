@@ -18,6 +18,20 @@
 .info-item:last-child{margin-bottom:0}
 
 .ag-grid-confirm{display:grid;grid-template-columns:1fr 300px;gap:14px;align-items:stretch}
+
+/* Overlay éxito */
+.success-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px}
+.success-overlay.open{display:flex}
+.success-card{background:var(--ag-card);border:1.5px solid var(--ag-stroke);border-radius:var(--ag-r);padding:32px 28px;max-width:420px;width:100%;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.success-card svg{width:56px;height:56px;color:#4C9242;margin-bottom:14px}
+.success-card h3{font-family:'Sora',sans-serif;font-size:20px;font-weight:700;color:var(--ag-txt);margin-bottom:8px}
+.success-card p{font-size:13px;color:var(--ag-soft);margin-bottom:22px;line-height:1.5}
+.success-card .success-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.success-card .success-actions a,.success-card .success-actions button{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:var(--ag-r);font-size:13px;font-weight:600;cursor:pointer;border:none;text-decoration:none}
+.success-card .btn-primary{background:linear-gradient(135deg,var(--ag-blue),#00B4D8);color:#fff}
+.success-card .btn-secondary{background:rgba(255,255,255,.08);color:var(--ag-txt);border:1px solid rgba(255,255,255,.15)}
+html[data-theme="light"] .success-card{background:#fff;border-color:rgba(20,50,120,.18)}
+html[data-theme="light"] .success-card .btn-secondary{background:rgba(20,50,120,.06);border-color:rgba(20,50,120,.15);color:#0E1530}
 .ag-grid-confirm > div{display:flex;flex-direction:column}
 
 /* Tema claro */
@@ -55,10 +69,17 @@ html[data-theme="light"] .info-item{color:#5B6A99}
         </div>
       </div>
       <div class="confirm-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <div>
+          <div class="confirm-lbl">Especialista</div>
+          <div class="confirm-val" id="cfmEspecialista">Dr. Victor</div>
+        </div>
+      </div>
+      <div class="confirm-item">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
         <div>
           <div class="confirm-lbl">Procedimiento</div>
-          <div class="confirm-val" id="cfmProcedimiento">Endoscopia Diagnóstica</div>
+          <div class="confirm-val" id="cfmProcedimiento">Colonoscopia</div>
         </div>
       </div>
       <div class="confirm-item">
@@ -105,6 +126,19 @@ html[data-theme="light"] .info-item{color:#5B6A99}
     <div class="info-item">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
       Llegará 15 minutos antes de la cita
+    </div>
+  </div>
+</div>
+
+{{-- Overlay cita agendada --}}
+<div class="success-overlay" id="successOverlay">
+  <div class="success-card">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6"/></svg>
+    <h3>¡Cita agendada!</h3>
+    <p id="successText">La cita se guardó correctamente. Se enviará una notificación al paciente.</p>
+    <div class="success-actions">
+      <a class="btn-primary" href="{{ route('agenda') }}">Ir a la agenda</a>
+      <a class="btn-secondary" href="{{ route('mensajes') }}" id="btnGoChat">Ver mensaje</a>
     </div>
   </div>
 </div>

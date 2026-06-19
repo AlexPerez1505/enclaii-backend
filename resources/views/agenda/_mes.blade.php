@@ -112,10 +112,21 @@ html[data-theme="light"] .cal-more-btn:hover{color:#0E1530;background:rgba(20,50
         evs.slice(0, MAX_VISIBLE).forEach(ev => {
           const div = document.createElement('div');
           div.className = 'cal-event ' + ev.cls;
-          const parts = ev.t.split('·').map(s => s.trim());
-          const timeAndName = parts[0] || '';
-          const proc = parts[1] || '';
-          div.innerHTML = `<div class="ce-line1">${timeAndName}</div><div class="ce-line2">${proc}</div>`;
+          let name = ev.name || '';
+          let proc = ev.proc || '';
+          if (!name && ev.t) {
+            const parts = ev.t.split('·').map(s => s.trim());
+            const timeAndName = parts[0] || '';
+            name = timeAndName.replace(/^\d+:\d+\s*/, '');
+            proc = parts[1] || '';
+          }
+          const displayName = (window.__displayName ? window.__displayName(name) : name);
+          const timeM = ev.t ? ev.t.match(/^(\d+:\d+)/) : null;
+          div.dataset.name = name;
+          div.dataset.proc = proc;
+          div.dataset.cls = ev.cls;
+          div.dataset.time = timeM ? timeM[1] : (ev.h ? String(ev.h).padStart(2,'0') + ':00' : '');
+          div.innerHTML = `<div class="ce-line1">${displayName}</div><div class="ce-line2">${proc}</div>`;
           td.appendChild(div);
         });
         if (evs.length > MAX_VISIBLE) {

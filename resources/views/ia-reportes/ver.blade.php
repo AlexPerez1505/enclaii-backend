@@ -120,3 +120,146 @@
   </article>
 
 @endsection
+
+@push('scripts')
+<script>
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  const paciente = params.get('paciente');
+  const procedimiento = params.get('procedimiento');
+
+  // Ejemplo de datos por procedimiento
+  const plantillas = {
+    'Endoscopia': {
+      titulo: 'INFORME DE ENDOSCOPIA',
+      subtitulo: 'ENDOSCOPIA DIGESTIVA ALTA',
+      indicacion: 'Dolor abdominal epigástrico, náusea y pirosis.',
+      sedacion: 'Sedación consciente con midazolam y fentanilo.',
+      hallazgos: [
+        'Esófago: Se observa mucosa de aspecto normal, línea Z a 38 cm de arcada dentaria.',
+        'Estómago: Mucosa eritematosa en antro gástrico. Pliegues gástricos conservados.',
+        'Píloro: Permeable.',
+        'Duodeno: Bulbo y segunda porción con mucosa de aspecto normal.'
+      ],
+      impresion: 'Gastritis antral leve.',
+      plan: ['Omeprazol 20 mg cada 24 horas por 8 semanas.', 'Dieta y medidas generales.'],
+      observaciones: 'Se toman biopsias de antro para estudio histopatológico y detección de Helicobacter pylori.'
+    },
+    'Colonoscopia': {
+      titulo: 'INFORME DE COLONOSCOPIA',
+      subtitulo: 'COLONOSCOPIA DIAGNÓSTICA',
+      indicacion: 'Revisión de programa de tamizaje colorectal.',
+      sedacion: 'Sedación consciente con propofol.',
+      hallazgos: [
+        'Recto: Mucosa sana, sin lesiones.',
+        'Colon sigmoides: Un pólipo hiperplásico de 4 mm.',
+        'Colon descendente: Mucosa normal.',
+        'Colon transverso y ascendente: Sin hallazgos relevantes.'
+      ],
+      impresion: 'Pólipo hiperplásico colon sigmoides.',
+      plan: ['Repetir colonoscopia en 5 años.', 'Biopsia de seguimiento según histopatología.'],
+      observaciones: 'Se toma biopsia del pólipo para estudio histopatológico.'
+    },
+    'Gastroscopía': {
+      titulo: 'INFORME DE GASTROSCOPÍA',
+      subtitulo: 'GASTROSCOPÍA DIAGNÓSTICA',
+      indicacion: 'Pirosis y regurgitación frecuente.',
+      sedacion: 'Sedación consciente con midazolam.',
+      hallazgos: [
+        'Esófago: Esofagitis leve a nivel distal.',
+        'Estómago: Mucosa de aspecto normal.',
+        'Píloro: Permeable.',
+        'Duodeno: Mucosa normal.'
+      ],
+      impresion: 'Esofagitis leve por reflujo gastroesofágico.',
+      plan: ['IBP 40 mg cada 24 horas por 4 semanas.', 'Evitar alimentos irritantes.'],
+      observaciones: 'Recomendación de manometría y pHmetría si persisten síntomas.'
+    },
+    'Dudoescopía': {
+      titulo: 'INFORME DE DUODENOScOPÍA',
+      subtitulo: 'ESTUDIO ENDOSCÓPICO DEL DUODENO',
+      indicacion: 'Dolor abdominal y esteatorrea.',
+      sedacion: 'Sedación consciente con midazolam y fentanilo.',
+      hallazgos: [
+        'Bulbo duodenal: Mucosa normal.',
+        'Segunda porción: Pápila ampollar normal.',
+        'Tercera porción: Mucosa de aspecto normal.',
+        'No se observan estenosis ni masas.'
+      ],
+      impresion: 'Duodeno de aspecto normal.',
+      plan: ['Continuar estudio con laboratorios de malabsorción.', 'Control en 3 meses.'],
+      observaciones: 'Se toman biopsias duodenales para estudio histopatológico.'
+    },
+    'Broncoscopia': {
+      titulo: 'INFORME DE BRONCOSCOPIA',
+      subtitulo: 'BRONCOSCOPIA DIAGNÓSTICA',
+      indicacion: 'Tos persistente y disnea leve.',
+      sedacion: 'Sedación consciente con midazolam y fentanilo.',
+      hallazgos: [
+        'Vía aérea superior: Mucosa laringea de aspecto normal.',
+        'Tráquea: Mucosa de aspecto normal, luz permeable.',
+        'Bronquios principales: Mucosa de aspecto normal.',
+        'No se observan secreciones ni masas.'
+      ],
+      impresion: 'Broncoscopia sin hallazgos relevantes.',
+      plan: ['Manejo sintomático.', 'Control según evolución clínica.'],
+      observaciones: 'No se toman biopsias.'
+    }
+  };
+
+  function render(data) {
+    const p = data.paciente || 'María González';
+    const proc = data.procedimiento || 'Endoscopia';
+    const t = plantillas[proc] || plantillas['Endoscopia'];
+    const now = new Date();
+    const fecha = now.toLocaleDateString('es-ES') + ' ' + now.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'});
+    const edad = data.edad || '38 años';
+    const nac = data.nacimiento || '12/06/1985';
+
+    document.querySelector('.doc-h h2').textContent = t.titulo;
+    document.querySelector('.doc-h p').textContent = t.subtitulo;
+
+    const rows = document.querySelectorAll('.doc-meta span:nth-child(2)');
+    const keys = [
+      p, nac, edad, 'Dr. Víctor', fecha, 'Dr. Víctor', proc
+    ];
+    rows.forEach((span, i) => { if (keys[i] !== undefined) span.textContent = keys[i]; });
+
+    const h4s = document.querySelectorAll('.vw-doc h4');
+    const listas = document.querySelectorAll('.vw-doc ul');
+    const parrafos = document.querySelectorAll('.vw-doc > p');
+
+    h4s.forEach(h => {
+      const txt = h.textContent.trim();
+      if (txt === 'INDICACIÓN') h.nextElementSibling.textContent = t.indicacion;
+      if (txt === 'SEDACIÓN') h.nextElementSibling.textContent = t.sedacion;
+      if (txt === 'HALLAZGOS') {
+        const ul = h.nextElementSibling;
+        ul.innerHTML = t.hallazgos.map(x => `<li>${x}</li>`).join('');
+      }
+      if (txt === 'IMPRESIÓN DIAGNÓSTICA') h.nextElementSibling.textContent = t.impresion;
+      if (txt === 'PLAN Y RECOMENDACIONES') {
+        const ul = h.nextElementSibling;
+        ul.innerHTML = t.plan.map(x => `<li>${x}</li>`).join('');
+      }
+      if (txt === 'OBSERVACIONES') h.nextElementSibling.textContent = t.observaciones;
+    });
+
+    document.title = 'Ver Informe - ' + p;
+  }
+
+  // Si vienen datos por URL, guardar y renderizar
+  if (paciente) {
+    const data = { paciente, procedimiento: procedimiento || 'Endoscopia', timestamp: Date.now() };
+    localStorage.setItem('lastReport', JSON.stringify(data));
+    render(data);
+  } else {
+    // Intentar cargar el último informe guardado
+    const saved = localStorage.getItem('lastReport');
+    if (saved) {
+      try { render(JSON.parse(saved)); } catch(e) {}
+    }
+  }
+})();
+</script>
+@endpush

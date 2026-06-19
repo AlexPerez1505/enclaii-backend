@@ -2321,14 +2321,46 @@ function renderPaginationControls(page, totalPages) {
 // Inicializar tabla
 renderPage(1);
 
-// Abrir automáticamente el expediente si llega ?folio= desde otra pantalla (p. ej. el Dashboard)
+// Abrir automáticamente el expediente si llega ?folio= o ?paciente= desde otra pantalla
 (function(){
-  const folio = new URLSearchParams(window.location.search).get('folio');
-  if(!folio) return;
-  const idx = patientsData.findIndex(p => p.folio === folio);
+  const params = new URLSearchParams(window.location.search);
+  const folio = params.get('folio');
+  const nombre = params.get('paciente');
+  let idx = -1;
+  if (folio) {
+    idx = patientsData.findIndex(p => p.folio === folio);
+  } else if (nombre) {
+    const q = nombre.trim().toLowerCase();
+    idx = patientsData.findIndex(p => p.name.toLowerCase().includes(q));
+  }
+  if (idx < 0 && nombre) {
+    const parts = nombre.trim().split(/\s+/);
+    const initials = parts.slice(0,2).map(p => p[0].toUpperCase()).join('');
+    const newPatient = {
+      name: nombre.trim(),
+      initials: initials || '??',
+      age: '38 años',
+      gender: 'No especificado',
+      folio: 'TEMP' + Date.now().toString().slice(-6),
+      dob: '01/01/1986',
+      phone: '+52 722 000 0000',
+      email: 'paciente@email.com',
+      address: 'Dirección no registrada',
+      study_date: 'Pendiente',
+      study_type: 'No registrado',
+      status: 'waiting'
+    };
+    patientsData.unshift(newPatient);
+    savePatientToCache(newPatient);
+    idx = 0;
+  }
   if(idx < 0) return;
   renderPage(Math.floor(idx / PAGE_SIZE) + 1);
   openPanel(idx);
+  // Limpiar el query param para que no se recargue el panel al refrescar
+  if (window.history.replaceState) {
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
 })();
 
 /* ============ PANEL FILTROS ============ */
@@ -2381,9 +2413,16 @@ function toggleMenu(btn) {
   dropdown.classList.toggle('active');
 }
 
+function savePatientToCache(patient) {
+  try {
+    localStorage.setItem('lastPatient', JSON.stringify(patient));
+  } catch(e) {}
+}
+
 function openPanel(index) {
   const patient = patientsData[index] || patientsData[0];
-  
+  savePatientToCache(patient);
+
   document.getElementById('panelAvatar').textContent = patient.initials;
   document.getElementById('panelName').textContent = patient.name;
   document.getElementById('panelFolio').textContent = 'Folio: ' + patient.folio;
