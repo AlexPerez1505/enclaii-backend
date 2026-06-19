@@ -69,7 +69,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/ia-reportes/analisis', function () {
         return view('ia-reportes.analisis');
     })->name('ia-reportes.analisis');
-
+    
     Route::get('/configuracion', function () {
         return view('configuracion.index', [
             'userSettings' => request()->user()->resolvedSettings(),
