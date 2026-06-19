@@ -424,6 +424,30 @@ body.studio-expanded .side {
 .studio-terminar-btn:hover { background: #b91c1c; box-shadow: 0 6px 25px rgba(220, 38, 38, .5); }
 .studio-terminar-btn svg { flex: none; }
 
+/* Botón Capturar Foto */
+.studio-captura-btn {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 20px; border-radius: 10px;
+  background: rgba(10, 15, 30, .6);
+  border: 1px solid rgba(14, 165, 233, .5);
+  color: #e0f2fe; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all 150ms;
+}
+.studio-captura-btn svg { color: #0ea5e9; flex: none; }
+.studio-captura-btn:hover { background: rgba(14, 165, 233, .15); border-color: #0ea5e9; }
+
+/* Botón Detener */
+.studio-detener-btn {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 20px; border-radius: 10px;
+  background: rgba(220, 38, 38, .15);
+  border: 1px solid rgba(220, 38, 38, .5);
+  color: #fecaca; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all 150ms;
+}
+.studio-detener-btn svg { color: #dc2626; flex: none; }
+.studio-detener-btn:hover { background: rgba(220, 38, 38, .25); border-color: #dc2626; }
+
 /* ═════ INTERFAZ ESTUDIO FINALIZADO ═════ */
 .studio-emergencia-wrap {
   display: none;
@@ -895,6 +919,147 @@ body.studio-expanded .side {
 .studio-info-icon.orange { background: rgba(245,158,11,.15); color: #f59e0b; }
 .studio-info-label { font-size: 11px; color: rgba(255,255,255,.5); }
 .studio-info-value { font-size: 13px; font-weight: 600; color: #fff; }
+
+/* Acciones tipo galeria en interfaz finalizada */
+.studio-final-actions {
+  display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+  padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.08); margin-bottom: 12px;
+}
+.studio-final-act-btn {
+  display: flex; align-items: center; gap: 5px;
+  height: 34px; padding: 0 12px; border-radius: 10px;
+  font: inherit; font-size: 12px; font-weight: 600;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: rgba(255,255,255,.85);
+  cursor: pointer; transition: all 150ms ease; white-space: nowrap;
+}
+.studio-final-act-btn:hover { background: rgba(14,165,233,.15); border-color: rgba(14,165,233,.45); color: #38bdf8; }
+.studio-final-act-btn.wa { color: #4ade80; border-color: rgba(74,222,128,.25); background: rgba(74,222,128,.07); }
+.studio-final-act-btn.wa:hover { background: rgba(74,222,128,.15); border-color: rgba(74,222,128,.45); }
+.studio-final-act-btn.ia { color: #22d3ee; border-color: rgba(34,211,238,.25); background: rgba(34,211,238,.07); }
+.studio-final-act-btn.ia:hover { background: rgba(34,211,238,.15); border-color: rgba(34,211,238,.45); }
+
+/* Miniaturas de imagenes capturadas */
+.studio-final-caps-title { font-size: 13px; font-weight: 600; color: rgba(255,255,255,.85); margin-bottom: 8px; }
+.studio-final-caps-strip {
+  display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;
+  scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.15) transparent;
+}
+.studio-final-cap-item {
+  flex: none; width: 90px; cursor: pointer; border-radius: 7px; overflow: hidden;
+  border: 2px solid transparent; transition: border-color 150ms ease;
+}
+.studio-final-cap-item.sel { border-color: #0ea5e9; }
+.studio-final-cap-thumb {
+  width: 100%; aspect-ratio: 4/3; display: grid; place-items: center; position: relative;
+  background: radial-gradient(ellipse at 50% 50%, #3a1208 0%, #0a0610 100%);
+}
+.studio-final-cap-num {
+  position: absolute; top: 3px; left: 4px; width: 17px; height: 17px; border-radius: 5px;
+  background: rgba(0,0,0,.6); display: grid; place-items: center;
+  font-size: 9px; font-weight: 700; color: #fff;
+}
+.studio-final-cap-check {
+  position: absolute; top: 3px; right: 3px; width: 17px; height: 17px; border-radius: 50%;
+  background: #0ea5e9; display: none; place-items: center;
+}
+.studio-final-cap-item.sel .studio-final-cap-check { display: grid; }
+.studio-final-cap-ts { font-size: 9.5px; color: rgba(255,255,255,.5); text-align: center; padding: 3px 0 1px; }
+
+/* Estilos de emergencia para acciones */
+.studio-emergencia-wrap .studio-final-act-btn:hover { background: rgba(220,38,38,.15); border-color: rgba(220,38,38,.45); color: #f87171; }
+.studio-emergencia-wrap .studio-final-act-btn.wa:hover { background: rgba(74,222,128,.15); border-color: rgba(74,222,128,.45); color: #4ade80; }
+.studio-emergencia-wrap .studio-final-act-btn.ia:hover { background: rgba(34,211,238,.15); border-color: rgba(34,211,238,.45); color: #22d3ee; }
+.studio-emergencia-wrap .studio-finalizado-status .studio-status-text { color: #dc2626; }
+
+/* Reproductor tipo galeria (ev-player) */
+.sf-video-player {
+  background: #000; border-radius: 14px; overflow: hidden;
+  position: relative; aspect-ratio: 16/9;
+  display: flex; flex-direction: column;
+}
+.sf-video-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, #5a1a10 0%, #2a0808 40%, #060810 100%);
+}
+.sf-video-center {
+  position: absolute; inset: 0; z-index: 2;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+}
+.sf-play-big {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: rgba(255,255,255,.18); backdrop-filter: blur(8px);
+  display: grid; place-items: center; cursor: pointer;
+  transition: background-color 150ms ease, transform 150ms ease;
+  border: none; color: #fff;
+}
+.sf-play-big:hover { background: rgba(46,123,246,.6); transform: scale(1.08); }
+
+.sf-video-controls {
+  position: absolute; bottom: 0; left: 0; right: 0; z-index: 3;
+  padding: 28px 14px 12px;
+  background: linear-gradient(0deg, rgba(0,0,0,.82) 0%, transparent 100%);
+}
+.sf-prog-wrap { position: relative; height: 4px; background: rgba(255,255,255,.2); border-radius: 4px; cursor: pointer; margin-bottom: 9px; }
+.sf-prog-fill { height: 100%; background: var(--blue, #2e7bf6); border-radius: 4px; width: 15%; }
+.sf-prog-thumb {
+  position: absolute; top: 50%; translate: 0 -50%;
+  width: 11px; height: 11px; border-radius: 50%; background: #fff;
+  left: 15%; margin-left: -5px;
+}
+.sf-ctrl-row { display: flex; align-items: center; gap: 6px; }
+.sf-ctrl-btn {
+  width: 30px; height: 30px; border-radius: 7px; display: grid; place-items: center;
+  color: rgba(255,255,255,.8); flex: none; transition: background-color 150ms ease;
+  background: transparent; border: none; cursor: pointer;
+}
+.sf-ctrl-btn:hover { background: rgba(255,255,255,.12); }
+.sf-time { font-size: 11.5px; color: rgba(255,255,255,.6); flex: none; margin: 0 3px; }
+.sf-vol-wrap { display: flex; align-items: center; gap: 5px; margin-left: auto; }
+.sf-vol-bar { width: 60px; height: 4px; background: rgba(255,255,255,.2); border-radius: 4px; cursor: pointer; }
+.sf-vol-fill { height: 100%; background: rgba(255,255,255,.7); border-radius: 4px; width: 70%; }
+.sf-speed { font-size: 11.5px; font-weight: 700; color: rgba(255,255,255,.8); padding: 2px 7px; border-radius: 6px; border: 1px solid rgba(255,255,255,.2); cursor: pointer; background: transparent; }
+.sf-fs { margin-left: 4px; }
+
+.studio-emergencia-wrap .sf-prog-fill { background: #dc2626; }
+.studio-emergencia-wrap .sf-play-big:hover { background: rgba(220,38,38,.6); }
+
+/* ================= TEMA CLARO (overrides basicos) ================= */
+html[data-theme="light"] .main { background: var(--bg) !important; }
+html[data-theme="light"] .studio-wrap,
+html[data-theme="light"] .side { background: var(--panel); color: var(--txt); border-color: var(--stroke); }
+html[data-theme="light"] .studio-topbar { background: var(--panel); border-color: var(--stroke); }
+html[data-theme="light"] .studio-topbar-sep { background: var(--stroke-strong); }
+html[data-theme="light"] .studio-study-name { color: var(--txt-soft); }
+html[data-theme="light"] .studio-storage { background: var(--panel-2); border-color: var(--stroke); }
+html[data-theme="light"] .studio-storage-icon { color: var(--blue); }
+html[data-theme="light"] .studio-storage-text { color: var(--txt-soft); }
+html[data-theme="light"] .studio-storage-bar { background: var(--stroke-strong); }
+html[data-theme="light"] .studio-ia-btn { background: rgba(46,123,246,.1); border-color: rgba(46,123,246,.3); color: var(--blue); }
+html[data-theme="light"] .studio-notif-btn { background: var(--panel-2); border-color: var(--stroke); }
+html[data-theme="light"] .studio-doc-avatar { background: var(--panel-2); border-color: var(--blue); color: var(--txt); }
+html[data-theme="light"] .studio-doc-role { color: var(--txt-soft); }
+html[data-theme="light"] .studio-btn-emergency { background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.35); color: #dc2626; }
+html[data-theme="light"] .studio-sidebar-actions { border-color: var(--stroke); }
+html[data-theme="light"] .studio-btn-volver { background: rgba(46,123,246,.12); border-color: rgba(46,123,246,.35); color: var(--blue); }
+html[data-theme="light"] .studio-btn-volver:hover { background: rgba(46,123,246,.2); border-color: rgba(46,123,246,.55); }
+html[data-theme="light"] .studio-main { background: var(--bg); }
+html[data-theme="light"] .studio-video-screen { background: linear-gradient(135deg, var(--panel-2) 0%, var(--panel) 100%); }
+html[data-theme="light"] .studio-timeline { background: var(--panel-2); border-color: var(--stroke); }
+html[data-theme="light"] .studio-tl-title { color: var(--txt-soft); }
+html[data-theme="light"] .studio-thumb { background: var(--panel-2); }
+html[data-theme="light"] .studio-thumb-time { color: var(--txt); background: rgba(0,0,0,.5); }
+html[data-theme="light"] .studio-bottom { background: var(--panel); border-color: var(--stroke); }
+html[data-theme="light"] .studio-rec-controls .studio-pause-btn { background: var(--panel-2); border-color: var(--stroke); color: var(--txt); }
+html[data-theme="light"] .studio-terminar-btn { background: #dc2626; color: #fff; }
+html[data-theme="light"] .studio-captura-btn { background: var(--panel-2); border-color: var(--blue); color: var(--blue); }
+html[data-theme="light"] .studio-detener-btn { background: rgba(220,38,38,.12); border-color: rgba(220,38,38,.4); color: #dc2626; }
+html[data-theme="light"] .studio-finalizado-wrap,
+html[data-theme="light"] .studio-emergencia-wrap { background: var(--bg); color: var(--txt); }
+html[data-theme="light"] .sf-video-bg { background: radial-gradient(ellipse at 50% 50%, rgba(46,123,246,.08) 0%, transparent 70%); }
+html[data-theme="light"] .sf-video-controls { background: linear-gradient(0deg, rgba(0,0,0,.82) 0%, transparent 100%); }
+html[data-theme="light"] .sf-ctrl-row { color: #fff; }
+html[data-theme="light"] .sf-time { color: rgba(255,255,255,.8); }
+html[data-theme="light"] .sf-speed { color: rgba(255,255,255,.8); border-color: rgba(255,255,255,.2); }
 </style>
 @endpush
 
@@ -997,6 +1162,14 @@ body.studio-expanded .side {
       <div class="studio-bottom">
         {{-- Controles de Grabación --}}
         <div class="studio-rec-controls">
+          <button class="studio-captura-btn" id="btnCapturarFoto">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            Capturar Foto
+          </button>
+          <button class="studio-detener-btn" id="btnDetener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+            Detener
+          </button>
           <button class="studio-pause-btn" id="btnPausa">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
             Pausar
@@ -1070,35 +1243,26 @@ body.studio-expanded .side {
   </div>{{-- /.studio-main --}}
 </div>{{-- /.studio-wrap --}}
 
-{{-- ═══════ INTERFAZ ESTUDIO FINALIZADO ═══════ --}}
+{{-- ═══════ INTERFAZ ESTUDIO TERMINADO (tipo galeria) ═══════ --}}
 <div class="studio-finalizado-wrap" id="studioFinalizado">
 
   {{-- Header --}}
   <div class="studio-finalizado-header">
-    {{-- Sección Izquierda: Status + Info --}}
-    <div class="studio-final-left">
-      {{-- Status --}}
-      <div class="studio-finalizado-status">
-        <div class="studio-status-icon">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        <div>
-          <div class="studio-status-text">Estudio Finalizado</div>
-          <div class="studio-status-sub">La grabación ha finalizado correctamente</div>
-        </div>
+    <div class="studio-finalizado-status">
+      <div class="studio-status-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
-
+      <div>
+        <div class="studio-status-text">Estudio terminado</div>
+        <div class="studio-status-sub">La grabación ha finalizado correctamente</div>
+      </div>
     </div>
 
-    {{-- Sección Derecha: Controles --}}
     <div class="studio-final-right">
-      {{-- Notificaciones --}}
       <button class="studio-final-btn-notif">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span class="studio-notif-badge">3</span>
       </button>
-
-      {{-- Perfil Doctor --}}
       <div class="studio-final-profile">
         <div class="studio-doc-avatar">DV</div>
         <div class="studio-doc-info">
@@ -1106,11 +1270,7 @@ body.studio-expanded .side {
           <div class="studio-doc-role">Endoscopista</div>
         </div>
       </div>
-
-      {{-- Separador --}}
       <div class="studio-final-sep-v"></div>
-
-      {{-- Volver --}}
       <a class="studio-btn-volver" href="{{ route('nuevo-estudio') }}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
         Volver
@@ -1125,62 +1285,65 @@ body.studio-expanded .side {
     <div style="display:flex;flex-direction:column;gap:16px;overflow:hidden">
 
       {{-- Video Player --}}
-      <div class="studio-video-player" style="flex:1">
-        <div class="studio-video-display">
-          {{-- Video placeholder --}}
+      <div class="sf-video-player" style="flex:1">
+        <div class="sf-video-bg"></div>
+        <div class="sf-video-center">
+          <button class="sf-play-big" id="sfPlayBigFinal">
+            <svg class="play-icon" width="20" height="20" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <svg class="pause-icon" width="20" height="20" viewBox="0 0 24 24" fill="white" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          </button>
         </div>
-        <div class="studio-video-controls">
-          <button class="studio-control-btn">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          </button>
-          <button class="studio-control-btn">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 2 21 22 21 22 3"/><path d="M10 10l4 4"/><path d="M10 14l4-4"/></svg>
-          </button>
-          <span class="studio-time-display">00:45 / 02:35</span>
-          <div class="studio-progress-bar">
-            <div class="studio-progress-fill"></div>
-            <div class="studio-progress-thumb"></div>
+        <div class="sf-video-controls">
+          <div class="sf-prog-wrap">
+            <div class="sf-prog-fill"></div>
+            <div class="sf-prog-thumb"></div>
           </div>
-          <button class="studio-control-btn">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 5 6 3 18 3 18 19 6 19 6 17 11 17 11 5"/><polygon points="6 21 18 21 18 23 6 23 6 21"/></svg>
-          </button>
-          <button class="studio-control-btn">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          </button>
-          <button class="studio-control-btn" id="btnExpandirFinal">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-          </button>
-        </div>
-      </div>
-
-      {{-- Timeline --}}
-      <div class="studio-timeline-final">
-        <div class="studio-timeline-title">Línea de Tiempo</div>
-        <div class="studio-timeline-track">
-          @for($i = 1; $i <= 8; $i++)
-          <div class="studio-timeline-thumb {{ $i === 1 ? 'active' : '' }}">
-            <div style="width:100%;height:100%;background:linear-gradient(135deg,#1e3a5f,#0d2137);display:flex;align-items:center;justify-content:center">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/></svg>
+          <div class="sf-ctrl-row">
+            <button class="sf-ctrl-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg></button>
+            <button class="sf-ctrl-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg></button>
+            <button class="sf-ctrl-btn" id="sfPlayBtnFinal">
+              <svg class="play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              <svg class="pause-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+            </button>
+            <button class="sf-ctrl-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-4.95"/></svg></button>
+            <span class="sf-time" id="sfTimeFinal">00:02:15 / 00:15:42</span>
+            <div class="sf-vol-wrap">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+              <div class="sf-vol-bar"><div class="sf-vol-fill"></div></div>
             </div>
-            <div class="studio-timeline-dot"></div>
+            <button class="sf-speed" id="sfSpeedFinal">1.0x</button>
+            <button class="sf-ctrl-btn sf-fs" id="btnExpandirFinal"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></button>
           </div>
-          @endfor
         </div>
       </div>
 
-      {{-- Info Grid --}}
-      <div class="studio-info-grid">
-        <div class="studio-info-card">
-          <div class="studio-info-card-title">Información del estudio</div>
-          <div class="studio-info-card-text">Descripción<br>Evaluación por dolor y reflujo</div>
-        </div>
-        <div class="studio-info-card">
-          <div class="studio-info-card-title">Dispositivos Utilizados</div>
-          <div class="studio-info-card-text">Endoscopio Olympus GIF-HQ190<br>Procesador EVIS EXERA</div>
-        </div>
-        <div class="studio-info-card">
-          <div class="studio-info-card-title">Notas</div>
-          <div class="studio-info-card-text">Sin complicaciones</div>
+      {{-- Acciones tipo galeria --}}
+      <div class="studio-final-actions">
+        <button class="studio-final-act-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Capturar imagen</button>
+        <button class="studio-final-act-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Exportar video</button>
+        <button class="studio-final-act-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>Filtros</button>
+        <button class="studio-final-act-btn wa"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>Enviar por WhatsApp</button>
+        <button class="studio-final-act-btn ia"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>IA Reportes</button>
+      </div>
+
+      {{-- Miniaturas capturadas --}}
+      <div>
+        <div class="studio-final-caps-title">Imágenes capturadas del estudio</div>
+        <div class="studio-final-caps-strip">
+          @php
+          $caps=[['n'=>1,'ts'=>'0:01:25'],['n'=>2,'ts'=>'0:02:15'],['n'=>3,'ts'=>'0:04:32'],['n'=>4,'ts'=>'0:06:18'],['n'=>5,'ts'=>'0:08:47'],['n'=>6,'ts'=>'0:11:03']];
+          $bgs=['radial-gradient(ellipse at 50% 50%,#3a1208 0%,#0a0610 100%)','radial-gradient(ellipse at 40% 60%,#4a1a0a 0%,#0c0612 100%)','radial-gradient(ellipse at 60% 40%,#2a1a3a 0%,#060814 100%)','radial-gradient(ellipse at 50% 50%,#3a1208 0%,#0a0610 100%)','radial-gradient(ellipse at 45% 55%,#1a0a2a 0%,#08060e 100%)','radial-gradient(ellipse at 55% 45%,#4a0a0a 0%,#0c0608 100%)'];
+          @endphp
+          @foreach($caps as $i => $c)
+          <div class="studio-final-cap-item {{ $i===1 ? 'sel' : '' }}" data-ts="{{ $c['ts'] }}">
+            <div class="studio-final-cap-thumb" style="background:{{ $bgs[$i] }}">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+              <span class="studio-final-cap-num">{{ $c['n'] }}</span>
+              <span class="studio-final-cap-check"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+            </div>
+            <div class="studio-final-cap-ts">{{ $c['ts'] }}</div>
+          </div>
+          @endforeach
         </div>
       </div>
 
@@ -1189,7 +1352,7 @@ body.studio-expanded .side {
     {{-- Sidebar derecho --}}
     <div class="studio-resumen-sidebar">
 
-      {{-- Resumen --}}
+      {{-- Resumen del estudio --}}
       <div class="studio-resumen-card">
         <div class="studio-resumen-title">Resumen del estudio</div>
 
@@ -1252,103 +1415,39 @@ body.studio-expanded .side {
         </div>
       </div>
 
-      {{-- Acciones --}}
-      <div class="studio-acciones-card">
-        <div class="studio-acciones-title">Estudio</div>
-
-        <div class="studio-accion-item">
-          <div class="studio-accion-label">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-            Finalizar Informe
-          </div>
-          <svg class="studio-accion-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-
-        <div class="studio-accion-item">
-          <div class="studio-accion-label">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-            Editar Imágenes
-          </div>
-          <svg class="studio-accion-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-
-        <div class="studio-accion-item">
-          <div class="studio-accion-label">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-            Editar Video
-          </div>
-          <svg class="studio-accion-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-
-        <div class="studio-accion-item">
-          <div class="studio-accion-label">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Exportar Imágenes (PDF)
-          </div>
-          <svg class="studio-accion-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-
-        <div class="studio-accion-item">
-          <div class="studio-accion-label">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-            Imprimir Imágenes
-          </div>
-          <svg class="studio-accion-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-
-        <div class="studio-accion-item">
-          <div class="studio-accion-label">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>
-            Exportar Imágenes/Video
-          </div>
-          <svg class="studio-accion-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-      </div>
-
     </div>
 
   </div>
 </div>{{-- /.studio-finalizado-wrap --}}
 
-{{-- ═══════ INTERFAZ EMERGENCIA ═══════ --}}
+{{-- ═══════ INTERFAZ ESTUDIO DE EMERGENCIA (tipo galeria) ═══════ --}}
 <div class="studio-emergencia-wrap" id="studioEmergencia">
 
   {{-- Header --}}
   <div class="studio-finalizado-header">
-    <div style="display:flex;align-items:center;gap:30px">
-      {{-- Status Emergencia --}}
-      <div class="studio-finalizado-status studio-emergencia-status">
-        <div class="studio-status-icon">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        </div>
-        <div>
-          <div class="studio-status-text">Estudio de Emergencia</div>
-          <div class="studio-status-sub">Alerta médica activada - Requiere atención inmediata</div>
-        </div>
+    <div class="studio-finalizado-status studio-emergencia-status">
+      <div class="studio-status-icon">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </div>
-
+      <div>
+        <div class="studio-status-text">Estudio de emergencia</div>
+        <div class="studio-status-sub">Alerta médica activada - Requiere atención inmediata</div>
+      </div>
     </div>
 
-    {{-- Notificaciones y Perfil --}}
-    <div style="display:flex;align-items:center;gap:16px;margin-left:auto;margin-right:16px">
-      {{-- Notificaciones --}}
-      <button style="position:relative;padding:10px;background:transparent;border:none;border-radius:8px;color:rgba(255,255,255,.7);cursor:pointer;transition:all 150ms">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <span style="position:absolute;top:4px;right:4px;width:16px;height:16px;background:#dc2626;border-radius:50%;font-size:10px;font-weight:600;color:#fff;display:flex;align-items:center;justify-content:center">3</span>
+    <div class="studio-final-right">
+      <button class="studio-final-btn-notif">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="studio-notif-badge">3</span>
       </button>
-
-      {{-- Perfil Doctor --}}
-      <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:10px">
-        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#1e3a5f);display:grid;place-items:center;font-size:14px;font-weight:600;color:#fff">DV</div>
-        <div>
-          <div style="font-size:13px;font-weight:600;color:#fff">Dr. Víctor</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.5)">Endoscopista</div>
+      <div class="studio-final-profile">
+        <div class="studio-doc-avatar">DV</div>
+        <div class="studio-doc-info">
+          <div class="studio-doc-name">Dr. Víctor</div>
+          <div class="studio-doc-role">Endoscopista</div>
         </div>
       </div>
-    </div>
-
-    {{-- Top right button --}}
-    <div style="display:flex;align-items:center;gap:12px">
+      <div class="studio-final-sep-v"></div>
       <a class="studio-btn-volver" href="{{ route('nuevo-estudio') }}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
         Volver
@@ -1363,62 +1462,65 @@ body.studio-expanded .side {
     <div style="display:flex;flex-direction:column;gap:16px;overflow:hidden">
 
       {{-- Video Player --}}
-      <div class="studio-video-player" style="flex:1">
-        <div class="studio-video-display">
-          {{-- Video placeholder --}}
+      <div class="sf-video-player" style="flex:1">
+        <div class="sf-video-bg"></div>
+        <div class="sf-video-center">
+          <button class="sf-play-big" id="sfPlayBigEm">
+            <svg class="play-icon" width="20" height="20" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <svg class="pause-icon" width="20" height="20" viewBox="0 0 24 24" fill="white" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          </button>
         </div>
-        <div class="studio-video-controls">
-          <button class="studio-control-btn">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          </button>
-          <button class="studio-control-btn">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 2 21 22 21 22 3"/><path d="M10 10l4 4"/><path d="M10 14l4-4"/></svg>
-          </button>
-          <span class="studio-time-display">00:45 / 02:35</span>
-          <div class="studio-progress-bar">
-            <div class="studio-progress-fill" style="background:#dc2626"></div>
-            <div class="studio-progress-thumb" style="background:#dc2626"></div>
+        <div class="sf-video-controls">
+          <div class="sf-prog-wrap">
+            <div class="sf-prog-fill" style="background:#dc2626"></div>
+            <div class="sf-prog-thumb" style="background:#fff"></div>
           </div>
-          <button class="studio-control-btn">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 5 6 3 18 3 18 19 6 19 6 17 11 17 11 5"/><polygon points="6 21 18 21 18 23 6 23 6 21"/></svg>
-          </button>
-          <button class="studio-control-btn">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          </button>
-          <button class="studio-control-btn" id="btnExpandirEmergencia">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-          </button>
-        </div>
-      </div>
-
-      {{-- Timeline --}}
-      <div class="studio-timeline-final">
-        <div class="studio-timeline-title">Línea de Tiempo</div>
-        <div class="studio-timeline-track">
-          @for($i = 1; $i <= 8; $i++)
-          <div class="studio-timeline-thumb {{ $i === 1 ? 'active' : '' }}">
-            <div style="width:100%;height:100%;background:linear-gradient(135deg,#1e3a5f,#0d2137);display:flex;align-items:center;justify-content:center">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/></svg>
+          <div class="sf-ctrl-row">
+            <button class="sf-ctrl-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg></button>
+            <button class="sf-ctrl-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg></button>
+            <button class="sf-ctrl-btn" id="sfPlayBtnEm">
+              <svg class="play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              <svg class="pause-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+            </button>
+            <button class="sf-ctrl-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-4.95"/></svg></button>
+            <span class="sf-time" id="sfTimeEm">00:02:15 / 00:15:42</span>
+            <div class="sf-vol-wrap">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+              <div class="sf-vol-bar"><div class="sf-vol-fill"></div></div>
             </div>
-            <div class="studio-timeline-dot" style="background:#dc2626"></div>
+            <button class="sf-speed" id="sfSpeedEm">1.0x</button>
+            <button class="sf-ctrl-btn sf-fs" id="btnExpandirEmergencia"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></button>
           </div>
-          @endfor
         </div>
       </div>
 
-      {{-- Info Grid --}}
-      <div class="studio-info-grid">
-        <div class="studio-info-card">
-          <div class="studio-info-card-title">Información del estudio</div>
-          <div class="studio-info-card-text">Descripción<br>Evaluación por dolor y reflujo</div>
-        </div>
-        <div class="studio-info-card">
-          <div class="studio-info-card-title">Dispositivos Utilizados</div>
-          <div class="studio-info-card-text">Endoscopio Olympus GIF-HQ190<br>Procesador EVIS EXERA</div>
-        </div>
-        <div class="studio-info-card">
-          <div class="studio-info-card-title">Notas</div>
-          <div class="studio-info-card-text">Sin complicaciones</div>
+      {{-- Acciones tipo galeria --}}
+      <div class="studio-final-actions">
+        <button class="studio-final-act-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Capturar imagen</button>
+        <button class="studio-final-act-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Exportar video</button>
+        <button class="studio-final-act-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>Filtros</button>
+        <button class="studio-final-act-btn wa"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>Enviar por WhatsApp</button>
+        <button class="studio-final-act-btn ia"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>IA Reportes</button>
+      </div>
+
+      {{-- Miniaturas capturadas --}}
+      <div>
+        <div class="studio-final-caps-title">Imágenes capturadas del estudio</div>
+        <div class="studio-final-caps-strip">
+          @php
+          $capsEm=[['n'=>1,'ts'=>'0:01:25'],['n'=>2,'ts'=>'0:02:15'],['n'=>3,'ts'=>'0:04:32'],['n'=>4,'ts'=>'0:06:18'],['n'=>5,'ts'=>'0:08:47'],['n'=>6,'ts'=>'0:11:03']];
+          $bgsEm=['radial-gradient(ellipse at 50% 50%,#3a1208 0%,#0a0610 100%)','radial-gradient(ellipse at 40% 60%,#4a1a0a 0%,#0c0612 100%)','radial-gradient(ellipse at 60% 40%,#2a1a3a 0%,#060814 100%)','radial-gradient(ellipse at 50% 50%,#3a1208 0%,#0a0610 100%)','radial-gradient(ellipse at 45% 55%,#1a0a2a 0%,#08060e 100%)','radial-gradient(ellipse at 55% 45%,#4a0a0a 0%,#0c0608 100%)'];
+          @endphp
+          @foreach($capsEm as $i => $c)
+          <div class="studio-final-cap-item {{ $i===1 ? 'sel' : '' }}" data-ts="{{ $c['ts'] }}">
+            <div class="studio-final-cap-thumb" style="background:{{ $bgsEm[$i] }}">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+              <span class="studio-final-cap-num">{{ $c['n'] }}</span>
+              <span class="studio-final-cap-check"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+            </div>
+            <div class="studio-final-cap-ts">{{ $c['ts'] }}</div>
+          </div>
+          @endforeach
         </div>
       </div>
 
@@ -1427,7 +1529,7 @@ body.studio-expanded .side {
     {{-- Sidebar derecho --}}
     <div class="studio-resumen-sidebar">
 
-      {{-- Resumen --}}
+      {{-- Resumen del estudio --}}
       <div class="studio-resumen-card">
         <div class="studio-resumen-title">Resumen del estudio</div>
 
@@ -1444,7 +1546,7 @@ body.studio-expanded .side {
             <div class="studio-resumen-icon" style="background:rgba(220,38,38,.15);color:#dc2626"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
             Paciente de Emergencia
           </div>
-          <div class="studio-resumen-value">Si</div>
+          <div class="studio-resumen-value">Sí</div>
         </div>
 
         <div class="studio-resumen-item">
@@ -1493,59 +1595,6 @@ body.studio-expanded .side {
             IA en Monitoreo
           </div>
           <div class="studio-resumen-value green">Activo</div>
-        </div>
-      </div>
-
-      {{-- Acciones --}}
-      <div class="studio-acciones-card">
-        <div class="studio-acciones-title">Estudio</div>
-
-        <div class="studio-accion-item">
-          <div class="studio-accion-label">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-            Finalizar Informe
-          </div>
-          <svg class="studio-accion-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-
-        <div class="studio-accion-item">
-          <div class="studio-accion-label">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-            Editar Imágenes
-          </div>
-          <svg class="studio-accion-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-
-        <div class="studio-accion-item">
-          <div class="studio-accion-label">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-            Editar Video
-          </div>
-          <svg class="studio-accion-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-
-        <div class="studio-accion-item">
-          <div class="studio-accion-label">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Exportar Imágenes (PDF)
-          </div>
-          <svg class="studio-accion-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-
-        <div class="studio-accion-item">
-          <div class="studio-accion-label">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-            Imprimir Imágenes
-          </div>
-          <svg class="studio-accion-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-
-        <div class="studio-accion-item">
-          <div class="studio-accion-label">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>
-            Exportar Imágenes/Video
-          </div>
-          <svg class="studio-accion-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
       </div>
 
@@ -1622,6 +1671,31 @@ body.studio-expanded .side {
     updatePauseButton();
   });
 
+  /* Capturar Foto */
+  const btnCapturarFoto = document.getElementById('btnCapturarFoto');
+  btnCapturarFoto?.addEventListener('click', () => {
+    const videoScreen = document.getElementById('videoScreen');
+    if (!videoScreen) return;
+    const flash = document.createElement('div');
+    flash.style.cssText = 'position:absolute;inset:0;background:#fff;opacity:0.6;z-index:20;pointer-events:none;transition:opacity 300ms ease;';
+    videoScreen.style.position = 'relative';
+    videoScreen.appendChild(flash);
+    requestAnimationFrame(() => { flash.style.opacity = '0'; });
+    setTimeout(() => flash.remove(), 350);
+  });
+
+  /* Detener grabación */
+  const btnDetener = document.getElementById('btnDetener');
+  btnDetener?.addEventListener('click', () => {
+    clearInterval(iv);
+    paused = true;
+    updatePauseButton();
+    const recText = document.querySelector('.studio-rec-text');
+    if (recText) recText.textContent = 'DETENIDO';
+    const recDot = document.querySelector('.studio-rec-dot');
+    if (recDot) recDot.style.animation = 'none';
+  });
+
   /* ── Terminar Estudio ── */
   const btnTerminar = document.querySelector('.studio-terminar-btn');
   const wrapPrincipal = document.querySelector('.studio-wrap');
@@ -1648,197 +1722,117 @@ body.studio-expanded .side {
     clearInterval(iv);
   });
 
-  /* ── Controles del Video Player (Interfaz Finalizada) ── */
-  const videoPlayer = document.querySelector('.studio-video-player');
-  const btnPlay = videoPlayer?.querySelector('.studio-control-btn:nth-child(1)');
-  const btnRewind = videoPlayer?.querySelector('.studio-control-btn:nth-child(2)');
-  const btnVolume = videoPlayer?.querySelector('.studio-control-btn:nth-child(6)');
-  const btnSettings = videoPlayer?.querySelector('.studio-control-btn:nth-child(7)');
-  const btnExpandirFinal = document.getElementById('btnExpandirFinal');
-  const progressBar = videoPlayer?.querySelector('.studio-progress-bar');
-  const progressFill = videoPlayer?.querySelector('.studio-progress-fill');
-  const progressThumb = videoPlayer?.querySelector('.studio-progress-thumb');
-  const timeDisplay = videoPlayer?.querySelector('.studio-time-display');
-
-  let isPlaying = false;
-  let currentTime = 45; // segundos
-  let duration = 155; // 2:35 = 155 segundos
-  let isMuted = false;
-
+  /* ── Controles del Video Player (diseño galeria) ── */
   function formatTime(seconds) {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
   }
 
-  function updateProgress() {
-    const percent = (currentTime / duration) * 100;
-    if (progressFill) progressFill.style.width = percent + '%';
-    if (progressThumb) progressThumb.style.left = percent + '%';
-    if (timeDisplay) timeDisplay.textContent = formatTime(currentTime) + ' / ' + formatTime(duration);
-  }
+  function setupVideoPlayer(container, playBigId, playBtnId, timeId, speedId, fsId, accent) {
+    const player = document.querySelector(container);
+    if (!player) return;
+    const playBig = document.getElementById(playBigId);
+    const playBtn = document.getElementById(playBtnId);
+    const timeDisplay = document.getElementById(timeId);
+    const speedBtn = document.getElementById(speedId);
+    const fsBtn = document.getElementById(fsId);
+    const progressBar = player.querySelector('.sf-prog-wrap');
+    const progressFill = player.querySelector('.sf-prog-fill');
+    const progressThumb = player.querySelector('.sf-prog-thumb');
+    const rewindBtn = player.querySelector('.sf-ctrl-row .sf-ctrl-btn:nth-child(2)');
+    const volBtn = player.querySelector('.sf-vol-wrap svg');
+    const volFill = player.querySelector('.sf-vol-fill');
 
-  // Play/Pause
-  btnPlay?.addEventListener('click', () => {
-    isPlaying = !isPlaying;
-    btnPlay.innerHTML = isPlaying
-      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>'
-      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
-  });
+    let isPlaying = false;
+    let currentTime = 135; // 00:02:15
+    let duration = 942; // 00:15:42
+    let isMuted = false;
+    let videoInterval;
+    const speeds = ['0.5x','0.75x','1.0x','1.25x','1.5x','2.0x'];
+    let sIdx = 2;
 
-  // Rewind 10 segundos
-  btnRewind?.addEventListener('click', () => {
-    currentTime = Math.max(0, currentTime - 10);
-    updateProgress();
-  });
-
-  // Progress bar click
-  progressBar?.addEventListener('click', (e) => {
-    const rect = progressBar.getBoundingClientRect();
-    const percent = (e.clientX - rect.left) / rect.width;
-    currentTime = percent * duration;
-    updateProgress();
-  });
-
-  // Volume toggle
-  btnVolume?.addEventListener('click', () => {
-    isMuted = !isMuted;
-    btnVolume.innerHTML = isMuted
-      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 5 6 3 18 3 18 19 6 19 6 17 11 17 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>'
-      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 5 6 3 18 3 18 19 6 19 6 17 11 17 11 5"/><polygon points="6 21 18 21 18 23 6 23 6 21"/></svg>';
-  });
-
-  // Pantalla completa
-  btnExpandirFinal?.addEventListener('click', () => {
-    if (!document.fullscreenElement) {
-      videoPlayer?.requestFullscreen().catch(err => console.log(err));
-    } else {
-      document.exitFullscreen();
+    function updateProgress() {
+      const percent = (currentTime / duration) * 100;
+      if (progressFill) progressFill.style.width = percent + '%';
+      if (progressThumb) progressThumb.style.left = percent + '%';
+      if (timeDisplay) timeDisplay.textContent = formatTime(currentTime) + ' / ' + formatTime(duration);
     }
-  });
+    updateProgress();
 
-  // Simular progreso del video
-  let videoInterval;
-  btnPlay?.addEventListener('click', () => {
-    if (isPlaying) {
-      videoInterval = setInterval(() => {
-        if (currentTime < duration) {
-          currentTime++;
-          updateProgress();
-        } else {
-          isPlaying = false;
-          btnPlay.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
-          clearInterval(videoInterval);
-        }
-      }, 1000);
-    } else {
-      clearInterval(videoInterval);
+    function togglePlay() {
+      isPlaying = !isPlaying;
+      [playBig, playBtn].forEach(btn => {
+        if (!btn) return;
+        const p = btn.querySelector('.play-icon');
+        const q = btn.querySelector('.pause-icon');
+        if (p) p.style.display = isPlaying ? 'none' : '';
+        if (q) q.style.display = isPlaying ? '' : 'none';
+      });
+      if (isPlaying) {
+        videoInterval = setInterval(() => {
+          if (currentTime < duration) {
+            currentTime++;
+            updateProgress();
+          } else {
+            isPlaying = false;
+            togglePlay();
+            clearInterval(videoInterval);
+          }
+        }, 1000);
+      } else {
+        clearInterval(videoInterval);
+      }
     }
-  });
 
-  // Drag del progress thumb
-  let isDragging = false;
-  progressThumb?.addEventListener('mousedown', () => isDragging = true);
-  document.addEventListener('mouseup', () => isDragging = false);
-  document.addEventListener('mousemove', (e) => {
-    if (isDragging && progressBar) {
-      const rect = progressBar.getBoundingClientRect();
-      const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-      currentTime = percent * duration;
+    playBig?.addEventListener('click', togglePlay);
+    playBtn?.addEventListener('click', togglePlay);
+
+    rewindBtn?.addEventListener('click', () => {
+      currentTime = Math.max(0, currentTime - 10);
       updateProgress();
-    }
-  });
+    });
 
-  /* ── Controles del Video Player (Interfaz Emergencia) ── */
-  const videoPlayerEmergencia = document.querySelector('.studio-emergencia-wrap .studio-video-player');
-  const btnPlayEm = videoPlayerEmergencia?.querySelector('.studio-control-btn:nth-child(1)');
-  const btnRewindEm = videoPlayerEmergencia?.querySelector('.studio-control-btn:nth-child(2)');
-  const btnVolumeEm = videoPlayerEmergencia?.querySelector('.studio-control-btn:nth-child(6)');
-  const btnSettingsEm = videoPlayerEmergencia?.querySelector('.studio-control-btn:nth-child(7)');
-  const btnExpandirEm = document.getElementById('btnExpandirEmergencia');
-  const progressBarEm = videoPlayerEmergencia?.querySelector('.studio-progress-bar');
-  const progressFillEm = videoPlayerEmergencia?.querySelector('.studio-progress-fill');
-  const progressThumbEm = videoPlayerEmergencia?.querySelector('.studio-progress-thumb');
-  const timeDisplayEm = videoPlayerEmergencia?.querySelector('.studio-time-display');
+    progressBar?.addEventListener('click', (e) => {
+      const rect = progressBar.getBoundingClientRect();
+      const percent = (e.clientX - rect.left) / rect.width;
+      currentTime = Math.max(0, Math.min(duration, percent * duration));
+      updateProgress();
+    });
 
-  let isPlayingEm = false;
-  let currentTimeEm = 45;
-  let durationEm = 155;
-  let isMutedEm = false;
+    let isDragging = false;
+    progressThumb?.addEventListener('mousedown', () => isDragging = true);
+    document.addEventListener('mouseup', () => isDragging = false);
+    document.addEventListener('mousemove', (e) => {
+      if (isDragging && progressBar) {
+        const rect = progressBar.getBoundingClientRect();
+        const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+        currentTime = percent * duration;
+        updateProgress();
+      }
+    });
 
-  function updateProgressEm() {
-    const percent = (currentTimeEm / durationEm) * 100;
-    if (progressFillEm) progressFillEm.style.width = percent + '%';
-    if (progressThumbEm) progressThumbEm.style.left = percent + '%';
-    if (timeDisplayEm) timeDisplayEm.textContent = formatTime(currentTimeEm) + ' / ' + formatTime(durationEm);
+    volBtn?.addEventListener('click', () => {
+      isMuted = !isMuted;
+      if (volFill) volFill.style.width = isMuted ? '0%' : '70%';
+    });
+
+    speedBtn?.addEventListener('click', () => {
+      sIdx = (sIdx + 1) % speeds.length;
+      speedBtn.textContent = speeds[sIdx];
+    });
+
+    fsBtn?.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        player.requestFullscreen().catch(err => console.log(err));
+      } else {
+        document.exitFullscreen();
+      }
+    });
   }
 
-  // Play/Pause Emergencia
-  btnPlayEm?.addEventListener('click', () => {
-    isPlayingEm = !isPlayingEm;
-    btnPlayEm.innerHTML = isPlayingEm
-      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>'
-      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
-
-    if (isPlayingEm) {
-      videoInterval = setInterval(() => {
-        if (currentTimeEm < durationEm) {
-          currentTimeEm++;
-          updateProgressEm();
-        } else {
-          isPlayingEm = false;
-          btnPlayEm.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
-          clearInterval(videoInterval);
-        }
-      }, 1000);
-    } else {
-      clearInterval(videoInterval);
-    }
-  });
-
-  // Rewind 10 segundos Emergencia
-  btnRewindEm?.addEventListener('click', () => {
-    currentTimeEm = Math.max(0, currentTimeEm - 10);
-    updateProgressEm();
-  });
-
-  // Progress bar click Emergencia
-  progressBarEm?.addEventListener('click', (e) => {
-    const rect = progressBarEm.getBoundingClientRect();
-    const percent = (e.clientX - rect.left) / rect.width;
-    currentTimeEm = percent * durationEm;
-    updateProgressEm();
-  });
-
-  // Volume toggle Emergencia
-  btnVolumeEm?.addEventListener('click', () => {
-    isMutedEm = !isMutedEm;
-    btnVolumeEm.innerHTML = isMutedEm
-      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 5 6 3 18 3 18 19 6 19 6 17 11 17 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>'
-      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 5 6 3 18 3 18 19 6 19 6 17 11 17 11 5"/><polygon points="6 21 18 21 18 23 6 23 6 21"/></svg>';
-  });
-
-  // Pantalla completa Emergencia
-  btnExpandirEm?.addEventListener('click', () => {
-    if (!document.fullscreenElement) {
-      videoPlayerEmergencia?.requestFullscreen().catch(err => console.log(err));
-    } else {
-      document.exitFullscreen();
-    }
-  });
-
-  // Drag del progress thumb Emergencia
-  let isDraggingEm = false;
-  progressThumbEm?.addEventListener('mousedown', () => isDraggingEm = true);
-  document.addEventListener('mouseup', () => isDraggingEm = false);
-  document.addEventListener('mousemove', (e) => {
-    if (isDraggingEm && progressBarEm) {
-      const rect = progressBarEm.getBoundingClientRect();
-      const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-      currentTimeEm = percent * durationEm;
-      updateProgressEm();
-    }
-  });
+  setupVideoPlayer('.studio-finalizado-wrap .sf-video-player', 'sfPlayBigFinal', 'sfPlayBtnFinal', 'sfTimeFinal', 'sfSpeedFinal', 'btnExpandirFinal', '#2e7bf6');
+  setupVideoPlayer('.studio-emergencia-wrap .sf-video-player', 'sfPlayBigEm', 'sfPlayBtnEm', 'sfTimeEm', 'sfSpeedEm', 'btnExpandirEmergencia', '#dc2626');
 
   window.addEventListener('beforeunload', () => clearInterval(iv));
 })();

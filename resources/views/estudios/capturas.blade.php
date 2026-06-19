@@ -180,6 +180,17 @@
 @media(max-width:900px){
   .cap-layout { grid-template-columns: 1fr; }
 }
+
+/* ================= TEMA CLARO ================= */
+html[data-theme="light"] .btn-agregar-cap { background: rgba(46,123,246,.12); border-color: rgba(46,123,246,.5); }
+html[data-theme="light"] .btn-agregar-cap:hover { background: rgba(46,123,246,.22); }
+html[data-theme="light"] .cap-item { border-color: var(--stroke); }
+html[data-theme="light"] .cap-item:hover { background: var(--hover-bg); }
+html[data-theme="light"] .cap-item.active { background: var(--hover-bg-strong); }
+html[data-theme="light"] .cap-more:hover { background: var(--hover-bg); }
+html[data-theme="light"] .info-row { border-color: var(--stroke); }
+html[data-theme="light"] .acc-btn.danger { color: #dc2626; border-color: rgba(220,38,38,.3); }
+html[data-theme="light"] .acc-btn.danger:hover { background: rgba(220,38,38,.08); }
 </style>
 @endpush
 

@@ -655,6 +655,22 @@
   .tab-panel.active { grid-template-columns: 1fr; }
   .cfg-tabs { overflow-x: auto; }
 }
+
+/* ================= TEMA CLARO ================= */
+html[data-theme="light"] .cfg-video-wrap { background: #000; }
+html[data-theme="light"] .mas-opciones-backdrop { background: rgba(240,244,250,.65); }
+html[data-theme="light"] .mas-opciones-modal { box-shadow: 0 20px 60px rgba(20,50,120,.18); }
+html[data-theme="light"] .canal-btn.active { color: #fff; }
+html[data-theme="light"] .opcion-icon-btn:hover { color: #fff; }
+html[data-theme="light"] .opcion-icon-btn.recording { color: #fff; }
+html[data-theme="light"] .rep-list-item:hover { background: var(--hover-bg); }
+html[data-theme="light"] .rep-list-item.sel { background: var(--hover-bg-strong); }
+html[data-theme="light"] .rep-ctrl-btn--play { color: #fff; }
+html[data-theme="light"] .rep-ctrl-btn--play svg { color: #fff; }
+html[data-theme="light"] .aud-radio-item input[type="radio"]:checked + .aud-radio-dot::after { background: #fff; }
+html[data-theme="light"] .fuente-dropdown { box-shadow: 0 12px 32px rgba(20,50,120,.15); }
+html[data-theme="light"] .fuente-list li:hover { background: var(--hover-bg); }
+html[data-theme="light"] .fuente-list li.active { background: var(--hover-bg-strong); }
 </style>
 @endpush
 

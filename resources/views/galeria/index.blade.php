@@ -68,6 +68,15 @@
   .gp-open{grid-column:1 / -1;width:100%}
   .gp-status{margin-left:0}
 }
+
+/* ================= TEMA CLARO ================= */
+html[data-theme="light"] .gp-search:focus-within{box-shadow:0 0 0 3px rgba(46,123,246,.12)}
+html[data-theme="light"] .gp-filter:hover{border-color:rgba(46,123,246,.42);background:rgba(46,123,246,.08)}
+html[data-theme="light"] .gp-filter.on{border-color:rgba(46,123,246,.55);background:rgba(46,123,246,.14)}
+html[data-theme="light"] .gp-card:hover{border-color:rgba(46,123,246,.45);box-shadow:0 12px 30px -18px rgba(46,123,246,.35)}
+html[data-theme="light"] .gp-avatar{color:#fff}
+html[data-theme="light"] .gp-card:hover .gp-open{color:var(--blue);border-color:rgba(46,123,246,.42);background:rgba(46,123,246,.1)}
+html[data-theme="light"] .gp-page.active{border-color:rgba(46,123,246,.45);background:rgba(46,123,246,.1)}
 </style>
 @endpush
 

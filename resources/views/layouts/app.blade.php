@@ -43,6 +43,13 @@
   --red:#FF5A6E;
   --side-2:#080C24;
   --off:#3D4A75;
+  --card-bg:#0D1433;
+  --card-bg-2:#161D3F;
+  --input-bg:#111830;
+  --hover-bg:rgba(46,123,246,.07);
+  --hover-bg-strong:rgba(46,123,246,.14);
+  --modal-bg:linear-gradient(180deg,#0F172A 0%,#0B1126 100%);
+  --shadow:rgba(0,0,0,.45);
   --r-lg:18px;
   --r-md:12px;
   --ease-out:cubic-bezier(0.23, 1, 0.32, 1);
@@ -61,11 +68,36 @@ html[data-theme="light"]{
   --txt-soft:#5B6A99;
   --side-2:#F4F7FE;
   --off:#C2CCE8;
+  --card-bg:#FFFFFF;
+  --card-bg-2:#F6F8FE;
+  --input-bg:#FFFFFF;
+  --hover-bg:rgba(46,123,246,.08);
+  --hover-bg-strong:rgba(46,123,246,.14);
+  --modal-bg:linear-gradient(180deg,#FFFFFF 0%,#F6F8FE 100%);
+  --shadow:rgba(20,50,120,.12);
 }
 html[data-theme="light"] .side-brand img{filter:none}
 html[data-theme="light"] .nav-item.active{color:#fff}
 html[data-theme="light"] .side-help .orb{box-shadow:0 0 18px rgba(46,123,246,.3)}
 html[data-theme="light"] .bell .dot{color:#fff}
+
+html[data-theme="light"] .nav-item:hover{background:rgba(46,123,246,.08)}
+html[data-theme="light"] .nav-item.active{
+  background:linear-gradient(135deg,#2563eb,var(--blue));
+  box-shadow:0 8px 22px -8px rgba(46,123,246,.35);
+}
+html[data-theme="light"] .btn-ai{background:rgba(46,123,246,.12)}
+html[data-theme="light"] .btn-ai:hover{background:rgba(46,123,246,.2)}
+html[data-theme="light"] .profile-menu{box-shadow:0 18px 44px rgba(20,50,120,.18)}
+html[data-theme="light"] .chip.wait{background:rgba(245,158,45,.12);border-color:rgba(245,158,45,.45)}
+html[data-theme="light"] .chip.urgent{background:rgba(255,90,110,.12);border-color:rgba(255,90,110,.45)}
+html[data-theme="light"] .chip.done{background:rgba(61,220,151,.12);border-color:rgba(61,220,151,.45)}
+html[data-theme="light"] .btn-line:hover{background:rgba(46,123,246,.1)}
+html[data-theme="light"] .pm-ico{background:rgba(56,199,244,.12)}
+html[data-theme="light"] .pm-item.danger .pm-ico{background:rgba(255,90,110,.12)}
+html[data-theme="light"] .side-help .orb{box-shadow:0 0 24px rgba(46,123,246,.25)}
+html[data-theme="light"] .side-help .btn-ghost:hover{background:rgba(46,123,246,.1)}
+html[data-theme="light"] .page-title small{color:var(--txt-soft)}
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;width:100%;min-height:100%}
 body{

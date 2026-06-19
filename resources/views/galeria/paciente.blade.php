@@ -95,6 +95,18 @@
 .pa-empty{display:none;padding:34px 0;text-align:center;color:var(--txt-soft)}
 @media(max-width:1120px){.pa-shell{grid-template-columns:1fr}.pa-side{display:grid;grid-template-columns:1fr 1fr}}
 @media(max-width:760px){.pa-grid{grid-template-columns:1fr}.pa-hero{align-items:flex-start}.pa-stats{width:100%;margin-left:0;justify-content:flex-start}.pa-side{display:flex}}
+
+/* ================= TEMA CLARO ================= */
+html[data-theme="light"] .pa-back:hover{background:rgba(46,123,246,.08);color:var(--txt)}
+html[data-theme="light"] .pa-avatar{color:#fff}
+html[data-theme="light"] .pa-card:hover{border-color:rgba(46,123,246,.45)}
+html[data-theme="light"] .pa-thumb{background:radial-gradient(ellipse at 50% 50%,#f1e8ff 0%,#e8f0ff 64%,#eef2fb 100%)}
+html[data-theme="light"] .pa-play{background:rgba(255,255,255,.22)}
+html[data-theme="light"] .pa-play span{background:rgba(255,255,255,.28)}
+html[data-theme="light"] .pa-badge{color:#fff}
+html[data-theme="light"] .pa-duration{background:rgba(0,0,0,.55);color:#fff}
+html[data-theme="light"] .pa-btn.primary{background:rgba(46,123,246,.14);border-color:rgba(46,123,246,.35)}
+html[data-theme="light"] .pa-btn:hover{border-color:rgba(46,123,246,.45)}
 </style>
 @endpush
 
