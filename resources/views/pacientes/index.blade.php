@@ -2283,6 +2283,16 @@ function renderPaginationControls(page, totalPages) {
 // Inicializar tabla
 renderPage(1);
 
+// Abrir automáticamente el expediente si llega ?folio= desde otra pantalla (p. ej. el Dashboard)
+(function(){
+  const folio = new URLSearchParams(window.location.search).get('folio');
+  if(!folio) return;
+  const idx = patientsData.findIndex(p => p.folio === folio);
+  if(idx < 0) return;
+  renderPage(Math.floor(idx / PAGE_SIZE) + 1);
+  openPanel(idx);
+})();
+
 /* ============ PANEL FILTROS ============ */
 function openFilters() {
   document.getElementById('filterPanel').classList.add('open');
