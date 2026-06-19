@@ -72,6 +72,10 @@ Route::middleware('auth')->group(function () {
         return view('galeria.index');
     })->name('galeria');
 
+    Route::get('/galeria/paciente/{id}', function ($id) {
+        return view('galeria.paciente', ['id' => $id]);
+    })->name('galeria.paciente');
+
     Route::get('/galeria/video/{id}', function ($id) {
         return view('galeria.vervideo', ['id' => $id]);
     })->name('galeria.video');

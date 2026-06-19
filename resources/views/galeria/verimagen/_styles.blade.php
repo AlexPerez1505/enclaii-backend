@@ -1,6 +1,8 @@
 ﻿@push('styles')
 <style>
 /* ===== VER IMAGEN ===== */
+.main{padding-top:18px}
+.head{margin-bottom:14px}
 .vi-wrap{display:grid;grid-template-columns:1fr 280px;gap:18px;align-items:start}
 
 /* Topbar */
@@ -33,6 +35,13 @@
 .vi-img-bg{
   position:absolute;inset:0;
   background:radial-gradient(ellipse at 50% 45%,#6a1a10 0%,#3a0808 35%,#0a0410 70%,#06081c 100%);
+}
+.vi-main-image{
+  position:relative;z-index:2;
+  max-width:100%;max-height:100%;
+  object-fit:contain;display:none;
+  transform-origin:center center;
+  transition:transform 160ms var(--ease-out);
 }
 .vi-img-placeholder{
   position:relative;z-index:2;
@@ -299,29 +308,6 @@
 }
 @media(hover:hover)and(pointer:fine){.vi-filter-reset:hover{background:rgba(255,90,110,.1);border-color:rgba(255,90,110,.4);color:var(--red)}}
 
-/* Observaciones médico */
-.vi-obs-section{margin-top:14px}
-.vi-obs-lbl{font-size:13px;font-weight:600;margin-bottom:8px}
-.vi-obs-area{
-  width:100%;min-height:72px;padding:12px 14px;
-  font:inherit;font-size:13px;color:var(--txt);
-  background:var(--panel-2);border:1px solid var(--stroke);
-  border-radius:var(--r-md);outline:none;resize:vertical;
-  transition:border-color 150ms ease;line-height:1.5;
-}
-.vi-obs-area::placeholder{color:var(--txt-soft)}
-.vi-obs-area:focus{border-color:var(--blue)}
-.vi-obs-footer{display:flex;justify-content:flex-end;margin-top:8px}
-.vi-obs-save{
-  display:flex;align-items:center;gap:6px;
-  height:36px;padding:0 18px;border-radius:var(--r-md);
-  font:inherit;font-size:13px;font-weight:600;
-  background:var(--blue);border:none;color:#fff;
-  transition:opacity 150ms ease,transform 160ms var(--ease-out);
-}
-.vi-obs-save:active{transform:scale(.97)}
-@media(hover:hover)and(pointer:fine){.vi-obs-save:hover{opacity:.88}}
-
 /* Sidebar */
 .vi-side{display:flex;flex-direction:column;gap:14px}
 .vi-card{background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-lg);padding:16px}
@@ -363,9 +349,6 @@
   transition:background-color 150ms ease,border-color 150ms ease;cursor:pointer;
 }
 @media(hover:hover)and(pointer:fine){.vi-tag:hover{background:rgba(46,123,246,.12);border-color:rgba(46,123,246,.4);color:var(--blue)}}
-
-/* Observaciones side */
-.vi-side-obs{font-size:13px;color:var(--txt-soft);line-height:1.6}
 
 @media(max-width:960px){.vi-wrap{grid-template-columns:1fr}}
 

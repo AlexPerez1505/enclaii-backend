@@ -13,6 +13,19 @@
     const c = caps[idx];
     /* fondo viewer */
     document.getElementById('viBg').style.background = c.bg;
+    const mainImage = document.getElementById('viMainImage');
+    const placeholder = document.querySelector('.vi-img-placeholder');
+    if(c.src){
+      mainImage.src = c.src;
+      mainImage.style.display = 'block';
+      placeholder.style.display = 'none';
+      setZoom(zoom);
+      loadImageInCanvas(c.src);
+    } else {
+      mainImage.removeAttribute('src');
+      mainImage.style.display = 'none';
+      placeholder.style.display = '';
+    }
     /* meta */
     document.getElementById('viMetaTs').textContent  = c.ts;
     document.getElementById('viInfoTs').textContent  = c.ts.replace(':','0:0').replace(/^(\d):/, '00:0$1:');
@@ -59,6 +72,8 @@
   function setZoom(v){
     zoom = Math.min(Math.max(v, 50), 300);
     document.getElementById('viZoomPct').textContent = zoom + '%';
+    const mainImage = document.getElementById('viMainImage');
+    if(mainImage) mainImage.style.transform = `scale(${zoom / 100})`;
   }
   document.getElementById('viZoomPlus') .addEventListener('click', () => setZoom(zoom + 10));
   document.getElementById('viZoomMinus').addEventListener('click', () => setZoom(zoom - 10));
@@ -596,7 +611,19 @@
     const b = document.getElementById('slBrillo').value;
     const c = document.getElementById('slContraste').value;
     const s = document.getElementById('slSaturacion').value;
-    filterCanvas.style.filter = `brightness(${b}%) contrast(${c}%) saturate(${s}%)`;
+    const colorFilter = currentFilter === 'grayscale'
+      ? 'grayscale(100%)'
+      : currentFilter === 'inverted'
+        ? 'invert(100%)'
+        : currentFilter === 'sepia'
+          ? 'sepia(100%)'
+          : '';
+    const sliderFilter = `brightness(${b}%) contrast(${c}%) saturate(${s}%)`;
+    const previewFilter = sliderFilter;
+    const mainFilter = `${colorFilter} ${sliderFilter}`.trim();
+    const mainImage = document.getElementById('viMainImage');
+    filterCanvas.style.filter = previewFilter;
+    if(mainImage) mainImage.style.filter = mainFilter;
   }
 
   /* Botones de filtro de color */
@@ -648,6 +675,7 @@
       document.getElementById(id + 'Val').textContent = '100%';
     });
     filterCanvas.style.filter = 'none';
+    document.getElementById('viMainImage').style.filter = 'none';
     if(currentImg) applyFilter('original');
   });
 

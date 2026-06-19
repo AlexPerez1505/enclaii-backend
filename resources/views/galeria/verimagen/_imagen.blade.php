@@ -16,6 +16,7 @@
         </div>
 
         {{-- Placeholder imagen --}}
+        <img src="" alt="Imagen de prueba" class="vi-main-image" id="viMainImage">
         <div class="vi-img-placeholder">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
         </div>
@@ -49,10 +50,6 @@
         <button class="vi-tool-btn" id="viToolAnotar">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>
           Anotar
-        </button>
-        <button class="vi-tool-btn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-          Comparar
         </button>
         <button class="vi-tool-btn on" id="viToolIA">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>
@@ -173,15 +170,6 @@
         </div>
       </div>
 
-      {{-- Observaciones médico --}}
-      <div class="vi-obs-section">
-        <div class="vi-obs-lbl">Observaciones del médico</div>
-        <textarea class="vi-obs-area" id="viObsArea" placeholder="Escribe tus observaciones aquí..."></textarea>
-        <div class="vi-obs-footer">
-          <button class="vi-obs-save" id="viObsSave">Guardar observación</button>
-        </div>
-      </div>
-
     </div>
 
     {{-- ===== SIDEBAR ===== --}}
@@ -244,15 +232,6 @@
           <span class="vi-tag">Piloro</span>
           <span class="vi-tag">Duodeno</span>
         </div>
-      </div>
-
-      {{-- Observaciones --}}
-      <div class="vi-card">
-        <div class="vi-card-head">
-          <span class="vi-card-title">Observaciones</span>
-          <svg class="vi-edit-ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        </div>
-        <p class="vi-side-obs">Sin complicaciones.<br>Buena tolerancia al procedimiento.</p>
       </div>
 
     </div>
