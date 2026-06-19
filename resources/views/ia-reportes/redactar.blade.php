@@ -101,8 +101,9 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 @media (hover:hover){.tpl-item:hover{border-color:rgba(56,199,244,.45);background:rgba(56,199,244,.07)}}
 .tpl-main{display:flex;align-items:center;gap:11px;flex:1;min-width:0;text-align:left;padding:11px 12px;color:var(--txt);background:none;border:0;transition:transform .15s}
 .tpl-main:active{transform:scale(.98)}
-.tpl-ico{width:34px;height:34px;flex:none;border-radius:9px;display:grid;place-items:center;color:var(--cyan);background:rgba(56,199,244,.12);border:1px solid rgba(56,199,244,.28)}
+.tpl-ico{width:34px;height:34px;flex:none;border-radius:9px;display:grid;place-items:center;color:var(--cyan);background:rgba(56,199,244,.12);border:1px solid rgba(56,199,244,.28);overflow:hidden}
 .tpl-ico svg{width:17px;height:17px}
+.tpl-ico img{width:100%;height:100%;object-fit:cover;display:block}
 .tpl-tx{min-width:0}
 .tpl-t{font-size:13px;font-weight:700}
 .tpl-d{font-size:11px;color:var(--txt-soft);margin-top:1px}
@@ -110,6 +111,21 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 .tpl-cfg:active{transform:scale(.92)}
 @media (hover:hover){.tpl-cfg:hover{color:var(--cyan);background:rgba(56,199,244,.14)}}
 .tpl-cfg svg{width:16px;height:16px}
+
+/* Pestañas de plantillas (Informe / Imágenes) */
+.tpl-tabs{display:flex;gap:6px;margin:4px 0 12px;background:var(--panel-2);border:1px solid var(--stroke);border-radius:10px;padding:4px}
+.tpl-tab{flex:1;padding:8px 10px;border:0;border-radius:7px;background:none;color:var(--txt-soft);font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background-color .15s,color .15s}
+.tpl-tab.active{background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff}
+.tpl-pane{display:none}
+.tpl-pane.active{display:block}
+.img-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.img-tpl{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:12px;border-radius:10px;border:1px solid var(--stroke);background:var(--panel-2);color:var(--txt);text-align:left;cursor:pointer;transition:border-color .15s,background-color .15s,transform .15s}
+.img-tpl:active{transform:scale(.98)}
+@media (hover:hover){.img-tpl:hover{border-color:rgba(56,199,244,.45);background:rgba(56,199,244,.07)}}
+.img-tpl.active{border-color:var(--cyan);background:rgba(56,199,244,.1)}
+.img-prev{width:100%;display:grid;gap:3px}
+.img-prev span{aspect-ratio:4/3;background:rgba(56,199,244,.18);border:1px solid rgba(56,199,244,.3);border-radius:3px}
+.img-tpl .img-t{font-size:12.5px;font-weight:700}
 
 /* ===== Encabezado tipo informe clínico (posicionamiento libre) ===== */
 .rep-header{position:relative;margin-bottom:16px}
@@ -184,6 +200,45 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 .cfg-btn{padding:9px 16px;border-radius:9px;font-size:13px;font-weight:600;border:1px solid var(--stroke-strong);background:var(--panel-2);color:var(--txt)}
 .cfg-btn.primary{border:0;background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff}
 @media (hover:hover){.cfg-btn:hover{filter:brightness(1.08)}}
+
+/* Editar plantilla de imágenes */
+.img-item{position:relative}
+.img-cfg{position:absolute;top:6px;right:6px;width:26px;height:26px;display:grid;place-items:center;border-radius:7px;border:1px solid var(--stroke);color:var(--txt-soft);background:var(--panel);transition:color .15s,background-color .15s,transform .15s;z-index:2}
+.img-cfg:active{transform:scale(.92)}
+@media (hover:hover){.img-cfg:hover{color:var(--cyan);background:rgba(56,199,244,.14)}}
+.img-cfg svg{width:14px;height:14px}
+.cfg-modal--sm{max-width:380px}
+.cfg-row{display:flex;gap:12px}
+.cfg-row .cfg-field{flex:1}
+.cfg-field input[type=number]{padding:9px 12px;border-radius:9px;border:1px solid var(--stroke);background:var(--panel-2);color:var(--txt);font:inherit;font-size:13.5px}
+
+/* Vista previa del reporte (pantalla completa) */
+.pv-ov{position:fixed;inset:0;z-index:3000;background:rgba(8,12,18,.78);backdrop-filter:blur(4px);display:none;flex-direction:column}
+.pv-ov.open{display:flex}
+.pv-bar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 20px;background:var(--panel);border-bottom:1px solid var(--stroke);flex:none}
+.pv-title{font-size:14px;font-weight:700;color:var(--txt)}
+.pv-bar-actions{display:flex;gap:10px}
+.pv-bar-actions .cfg-btn{display:inline-flex;align-items:center;gap:7px}
+.pv-bar-actions .cfg-btn svg{width:15px;height:15px}
+.pv-scroll{flex:1;overflow:auto;padding:26px 16px;display:flex;justify-content:center;align-items:flex-start}
+.pv-paper{position:relative;width:100%;max-width:820px;background:#fff;color:#143036;border-radius:6px;box-shadow:0 18px 50px -18px rgba(0,0,0,.7);padding:0;overflow:hidden}
+.pv-paper .rep-header{overflow:hidden}
+.pv-paper [contenteditable]{outline:none}
+.pv-paper [data-ph]:empty::before{content:'';}
+
+/* Aviso flotante */
+.ed-toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);z-index:3100;display:flex;align-items:center;gap:9px;padding:12px 18px;border-radius:11px;background:linear-gradient(135deg,#1f9d57,#13c47e);color:#fff;font-size:13.5px;font-weight:600;box-shadow:0 14px 36px -14px rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+.ed-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.ed-toast.err{background:linear-gradient(135deg,#d3443f,#f0635c)}
+
+@media print{
+  body *{visibility:hidden!important}
+  .pv-ov,.pv-ov *{visibility:visible!important}
+  .pv-ov{position:absolute;inset:0;background:#fff;backdrop-filter:none}
+  .pv-bar{display:none!important}
+  .pv-scroll{overflow:visible;padding:0}
+  .pv-paper{max-width:none;width:100%;box-shadow:none;border-radius:0}
+}
 </style>
 @endpush
 
@@ -195,11 +250,11 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Salir
     </a>
-    <button class="ed-btn" type="button">
+    <button class="ed-btn" type="button" id="btnPreview">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       Vista Previa
     </button>
-    <button class="ed-btn primary" type="button">
+    <button class="ed-btn primary" type="button" id="btnGuardar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
       Guardar reporte
       <span class="div"></span>
@@ -212,11 +267,10 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     <div class="f grow">
       <label>Tipo de estudio</label>
       <select class="ed-ctrl" id="edTipo">
-        <option>Endoscopia Diagnóstica</option>
         <option>Colonoscopia</option>
         <option>Gastroscopia</option>
-        <option>CPRE</option>
-        <option>Enteroscopia</option>
+        <option>Duodenoscopia</option>
+        <option>Broncoscopia</option>
       </select>
     </div>
     <div class="f">
@@ -228,7 +282,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     </div>
     <div class="f">
       <label>Estado</label>
-      <span class="ed-status">En borrador</span>
+      <span class="ed-status" id="edStatus">En borrador</span>
     </div>
   </div>
 
@@ -337,19 +391,16 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
       <article class="card ed-panel rise d5">
         <h3>Plantillas</h3>
         <div class="ph-sub">Elige una estructura base para tu reporte</div>
+        <div class="tpl-tabs">
+          <button type="button" class="tpl-tab active" data-tab="informe">Informe</button>
+          <button type="button" class="tpl-tab" data-tab="imagenes">Imágenes</button>
+        </div>
+        <div class="tpl-pane active" id="paneInforme">
         <div class="tpl-list" id="tplList">
           @php
             $gear = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
             $fileIco = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
           @endphp
-
-          <div class="tpl-item">
-            <button type="button" class="tpl-main" data-tpl="endoscopia">
-              <span class="tpl-ico">{!! $fileIco !!}</span>
-              <span class="tpl-tx"><span class="tpl-t">Endoscopia diagnóstica</span><span class="tpl-d">Indicación, sedación, hallazgos…</span></span>
-            </button>
-            <button type="button" class="tpl-cfg" data-tpl-cfg="endoscopia" aria-label="Editar plantilla" title="Editar plantilla">{!! $gear !!}</button>
-          </div>
 
           <div class="tpl-item">
             <button type="button" class="tpl-main" data-tpl="colonoscopia">
@@ -368,11 +419,57 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
           </div>
 
           <div class="tpl-item">
+            <button type="button" class="tpl-main" data-tpl="duodenoscopia">
+              <span class="tpl-ico">{!! $fileIco !!}</span>
+              <span class="tpl-tx"><span class="tpl-t">Duodenoscopia</span><span class="tpl-d">Duodeno, papila, vía biliar…</span></span>
+            </button>
+            <button type="button" class="tpl-cfg" data-tpl-cfg="duodenoscopia" aria-label="Editar plantilla" title="Editar plantilla">{!! $gear !!}</button>
+          </div>
+
+          <div class="tpl-item">
+            <button type="button" class="tpl-main" data-tpl="broncoscopia">
+              <span class="tpl-ico">{!! $fileIco !!}</span>
+              <span class="tpl-tx"><span class="tpl-t">Broncoscopia</span><span class="tpl-d">Árbol bronquial, tráquea, carina…</span></span>
+            </button>
+            <button type="button" class="tpl-cfg" data-tpl-cfg="broncoscopia" aria-label="Editar plantilla" title="Editar plantilla">{!! $gear !!}</button>
+          </div>
+
+          <div class="tpl-item">
             <button type="button" class="tpl-main" data-tpl="blanco">
               <span class="tpl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
               <span class="tpl-tx"><span class="tpl-t">En blanco</span><span class="tpl-d">Empieza desde cero</span></span>
             </button>
             <button type="button" class="tpl-cfg" data-tpl-cfg="blanco" aria-label="Editar plantilla" title="Editar plantilla">{!! $gear !!}</button>
+          </div>
+        </div>
+        </div>{{-- /paneInforme --}}
+
+        <div class="tpl-pane" id="paneImagenes">
+          <div class="ph-sub" style="margin-bottom:10px">Define cuántas imágenes del estudio se incluyen</div>
+          <div class="img-grid">
+            <div class="img-item">
+              <button type="button" class="img-tpl active" data-tpl="img2">
+                <span class="img-prev" style="grid-template-columns:repeat(2,1fr)"><span></span><span></span><span></span><span></span></span>
+              </button>
+              <button type="button" class="img-cfg" data-tpl-cfg="img2" aria-label="Editar plantilla" title="Editar plantilla">{!! $gear !!}</button>
+            </div>
+            <div class="img-item">
+              <button type="button" class="img-tpl" data-tpl="img3">
+                <span class="img-prev" style="grid-template-columns:repeat(3,1fr)"><span></span><span></span><span></span><span></span><span></span><span></span></span>
+              </button>
+              <button type="button" class="img-cfg" data-tpl-cfg="img3" aria-label="Editar plantilla" title="Editar plantilla">{!! $gear !!}</button>
+            </div>
+            <div class="img-item">
+              <button type="button" class="img-tpl" data-tpl="img4">
+                <span class="img-prev" style="grid-template-columns:repeat(4,1fr)"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span>
+              </button>
+              <button type="button" class="img-cfg" data-tpl-cfg="img4" aria-label="Editar plantilla" title="Editar plantilla">{!! $gear !!}</button>
+            </div>
+            <div class="img-item">
+              <button type="button" class="img-tpl" data-tpl="imgNone">
+                <span class="img-prev" style="grid-template-columns:1fr"><span style="background:none;border:1px dashed var(--stroke-strong)"></span></span>
+              </button>
+            </div>
           </div>
         </div>
       </article>
@@ -454,12 +551,45 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
         </select>
       </div>
 
+      <div id="imgCfgFields" style="display:none;margin-bottom:15px">
+        <div class="cfg-row">
+          <div class="cfg-field" style="margin-bottom:0">
+            <label>Columnas de imágenes</label>
+            <input type="number" id="cfgImgCols" min="1" max="6" value="2">
+          </div>
+          <div class="cfg-field" style="margin-bottom:0">
+            <label>Número de imágenes</label>
+            <input type="number" id="cfgImgCount" min="1" max="24" value="4">
+          </div>
+        </div>
+      </div>
+
       <div class="cfg-actions">
         <button type="button" class="cfg-btn" id="cfgCancel">Cerrar</button>
         <button type="button" class="cfg-btn primary" id="cfgApply">Aplicar</button>
       </div>
     </div>
   </div>
+
+  {{-- Modal de Vista Previa del reporte --}}
+  <div class="pv-ov" id="previewModal">
+    <div class="pv-bar">
+      <span class="pv-title">Vista previa del reporte</span>
+      <div class="pv-bar-actions">
+        <button type="button" class="cfg-btn" id="pvPrint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Imprimir / PDF
+        </button>
+        <button type="button" class="cfg-btn primary" id="pvClose">Cerrar</button>
+      </div>
+    </div>
+    <div class="pv-scroll">
+      <div class="pv-paper" id="pvPaper"></div>
+    </div>
+  </div>
+
+  {{-- Aviso flotante --}}
+  <div class="ed-toast" id="edToast" role="status" aria-live="polite"></div>
 
 @endsection
 
@@ -472,6 +602,14 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   const tipoSel = document.getElementById('edTipo');
   if (!cont) return;
 
+  // Imagen lateral (anatómica) según el tipo de estudio seleccionado
+  const STUDY_IMG = {
+    'Colonoscopia':  '/images/Colonoscopia.png',
+    'Gastroscopia':  '/images/Gastroscopia.png',
+    'Duodenoscopia': '/images/Duodenoscopia.png',
+    'Broncoscopia':  '/images/Broncoscopia.png',
+  };
+
   // Elementos del documento que se personalizan
   const repHeader    = document.querySelector('.ed-doc .rep-header');
   const repLogo      = document.getElementById('repLogo');
@@ -482,21 +620,12 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   const repSignNm    = document.getElementById('repSignName');
 
   // HTML por defecto de los recuadros con imagen (para poder restaurar)
+  const repImgs      = document.getElementById('repImgs');
   const logoDefault = repLogo ? repLogo.innerHTML : '';
   const anatDefault = repAnat ? repAnat.innerHTML : '';
+  const imgsDefault = repImgs ? repImgs.innerHTML : '';
 
   const TEMPLATES = {
-    endoscopia: {
-      titulo: 'INFORME DE ENDOSCOPIA', sub: 'ENDOSCOPIA DIGESTIVA ALTA', tipo: 'Endoscopia Diagnóstica',
-      secciones: [
-        {h: 'INDICACIÓN', tipo: 'p', ph: 'Motivo del estudio…'},
-        {h: 'SEDACIÓN', tipo: 'p', ph: 'Tipo y nivel de sedación…'},
-        {h: 'HALLAZGOS', tipo: 'ul', ph: 'Describe un hallazgo…'},
-        {h: 'IMPRESIÓN DIAGNÓSTICA', tipo: 'p', ph: 'Diagnóstico…'},
-        {h: 'PLAN Y RECOMENDACIONES', tipo: 'ul', ph: 'Recomendación…'},
-        {h: 'OBSERVACIONES', tipo: 'p', ph: 'Observaciones adicionales…'},
-      ],
-    },
     colonoscopia: {
       titulo: 'INFORME DE COLONOSCOPIA', sub: 'COLONOSCOPIA', tipo: 'Colonoscopia',
       secciones: [
@@ -520,6 +649,28 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
         {h: 'OBSERVACIONES', tipo: 'p', ph: 'Observaciones adicionales…'},
       ],
     },
+    duodenoscopia: {
+      titulo: 'INFORME DE DUODENOSCOPIA', sub: 'DUODENOSCOPIA', tipo: 'Duodenoscopia',
+      secciones: [
+        {h: 'INDICACIÓN', tipo: 'p', ph: 'Motivo del estudio…'},
+        {h: 'SEDACIÓN', tipo: 'p', ph: 'Tipo y nivel de sedación…'},
+        {h: 'HALLAZGOS', tipo: 'ul', ph: 'Duodeno / papila / vía biliar…'},
+        {h: 'IMPRESIÓN DIAGNÓSTICA', tipo: 'p', ph: 'Diagnóstico…'},
+        {h: 'PLAN Y RECOMENDACIONES', tipo: 'ul', ph: 'Recomendación…'},
+        {h: 'OBSERVACIONES', tipo: 'p', ph: 'Observaciones adicionales…'},
+      ],
+    },
+    broncoscopia: {
+      titulo: 'INFORME DE BRONCOSCOPIA', sub: 'BRONCOSCOPIA', tipo: 'Broncoscopia',
+      secciones: [
+        {h: 'INDICACIÓN', tipo: 'p', ph: 'Motivo del estudio…'},
+        {h: 'SEDACIÓN', tipo: 'p', ph: 'Tipo y nivel de sedación…'},
+        {h: 'HALLAZGOS', tipo: 'ul', ph: 'Árbol bronquial / tráquea / carina…'},
+        {h: 'IMPRESIÓN DIAGNÓSTICA', tipo: 'p', ph: 'Diagnóstico…'},
+        {h: 'PLAN Y RECOMENDACIONES', tipo: 'ul', ph: 'Recomendación…'},
+        {h: 'OBSERVACIONES', tipo: 'p', ph: 'Observaciones adicionales…'},
+      ],
+    },
     blanco: {
       titulo: 'NUEVO REPORTE', sub: '', tipo: null,
       secciones: [
@@ -528,6 +679,11 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
         {h: 'CONCLUSIÓN', tipo: 'p', ph: 'Escribe aquí…'},
       ],
     },
+    // Plantillas de solo imágenes (sin texto en el cuerpo)
+    img2:    { imgOnly: true, cols: 2, count: 4, tipo: null, secciones: [] },
+    img3:    { imgOnly: true, cols: 3, count: 6, tipo: null, secciones: [] },
+    img4:    { imgOnly: true, cols: 4, count: 8, tipo: null, secciones: [] },
+    imgNone: { imgOnly: true, cols: 0, count: 0, tipo: null, secciones: [] },
   };
 
   // Lienzo lógico del encabezado (px). Las posiciones se guardan a esta escala
@@ -566,7 +722,10 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
       place(repLogo, cfg.logo);
     }
     if (repAnat) {
-      repAnat.innerHTML = cfg.anatImg ? '<img src="' + cfg.anatImg + '" alt="Imagen lateral">' : anatDefault;
+      // Prioridad: imagen propia subida por el usuario; si no, la del tipo de estudio
+      const studyImg = tipoSel ? STUDY_IMG[tipoSel.value] : null;
+      const anatSrc = cfg.anatImg || studyImg || null;
+      repAnat.innerHTML = anatSrc ? '<img src="' + anatSrc + '" alt="Imagen lateral">' : anatDefault;
       place(repAnat, cfg.anat);
     }
     if (repClinicBox) place(repClinicBox, cfg.name);
@@ -581,6 +740,11 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   // Reescalar el encabezado del documento si cambia el ancho de la ventana
   window.addEventListener('resize', () => { if (currentKey) applyConfig(TEMPLATES[currentKey].cfg); });
 
+  // Al cambiar el tipo de estudio, actualizar la imagen lateral
+  if (tipoSel) tipoSel.addEventListener('change', () => {
+    if (currentKey) applyConfig(TEMPLATES[currentKey].cfg);
+  });
+
   const render = (key) => {
     const tpl = TEMPLATES[key];
     if (!tpl) return;
@@ -589,18 +753,37 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
       const opt = Array.from(tipoSel.options).find(o => o.text === tpl.tipo);
       if (opt) tipoSel.value = opt.value;
     }
-    cont.innerHTML = tpl.secciones.map(s => {
-      const head = '<h4>' + s.h + '</h4>';
-      if (s.tipo === 'ul') {
-        return head + '<ul><li contenteditable="true" data-ph="' + s.ph + '"></li></ul>';
+    if (tpl.imgOnly) {
+      // Documento de solo imágenes (sin texto en el cuerpo)
+      cont.innerHTML = '';
+      if (repImgs) {
+        if (!tpl.cols || !tpl.count) {
+          repImgs.style.display = 'none';
+        } else {
+          repImgs.style.display = 'grid';
+          repImgs.style.gridTemplateColumns = 'repeat(' + tpl.cols + ',1fr)';
+          repImgs.innerHTML = Array.from({ length: tpl.count }, () => '<span class="cell"></span>').join('');
+        }
       }
-      return head + '<p contenteditable="true" data-ph="' + s.ph + '"></p>';
-    }).join('');
+    } else {
+      if (repImgs) {
+        repImgs.style.display = 'grid';
+        repImgs.style.gridTemplateColumns = 'repeat(4,1fr)';
+        repImgs.innerHTML = imgsDefault;
+      }
+      cont.innerHTML = tpl.secciones.map(s => {
+        const head = '<h4>' + s.h + '</h4>';
+        if (s.tipo === 'ul') {
+          return head + '<ul><li contenteditable="true" data-ph="' + s.ph + '"></li></ul>';
+        }
+        return head + '<p contenteditable="true" data-ph="' + s.ph + '"></p>';
+      }).join('');
+    }
     applyConfig(tpl.cfg);
   };
 
   // Plantilla inicial
-  render('endoscopia');
+  render('colonoscopia');
 
   /* ===== Modal de configuración: editor visual de la hoja (arrastrar + redimensionar) ===== */
   const modal    = document.getElementById('cfgModal');
@@ -612,6 +795,9 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   const clinicIn = document.getElementById('cfgClinic');
   const signIn   = document.getElementById('cfgSignName');
   const posSel   = document.getElementById('cfgSignPos');
+  const imgCfgFields = document.getElementById('imgCfgFields');
+  const imgColsIn    = document.getElementById('cfgImgCols');
+  const imgCountIn   = document.getElementById('cfgImgCount');
   // Hoja de vista previa
   const sheet    = document.getElementById('cfgSheet');
   const headPv   = document.getElementById('cfgHead');
@@ -655,7 +841,10 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     drawEl(elName, work.name);
     drawEl(elAnat, work.anat);
     elLogoIn.innerHTML = work.logoImg ? '<img src="' + work.logoImg + '" alt="Logo">' : LOGO_PH;
-    elAnatIn.innerHTML = work.anatImg ? '<img src="' + work.anatImg + '" alt="">' : ANAT_SVG;
+    // Imagen lateral: la propia subida o, si no, la del tipo de estudio de la plantilla
+    const tplStudyImg = (editingKey && TEMPLATES[editingKey]) ? STUDY_IMG[TEMPLATES[editingKey].tipo] : null;
+    const anatPv = work.anatImg || tplStudyImg || null;
+    elAnatIn.innerHTML = anatPv ? '<img src="' + anatPv + '" alt="">' : ANAT_SVG;
     elNameTx.textContent = (work.clinic || '').trim() || 'Nombre de la clínica';
     elNameTx.style.fontSize = (work.name.fontSize * scale) + 'px';
     if (signPv)   signPv.setAttribute('data-pos', work.signPos || 'center');
@@ -712,8 +901,16 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     if (!tpl || !modal) return;
     editingKey = key;
     work = JSON.parse(JSON.stringify(tpl.cfg)); // copia profunda editable
-    const nombre = (list.querySelector('.tpl-main[data-tpl="' + key + '"] .tpl-t') || {}).textContent || '';
-    if (cfgSub) cfgSub.textContent = 'Plantilla: ' + nombre.trim();
+    if (tpl.imgOnly) {
+      if (cfgSub) cfgSub.textContent = 'Plantilla de imágenes';
+      if (imgCfgFields) imgCfgFields.style.display = '';
+      if (imgColsIn)  imgColsIn.value  = tpl.cols  || 2;
+      if (imgCountIn) imgCountIn.value = tpl.count || 4;
+    } else {
+      const nombre = (list.querySelector('.tpl-main[data-tpl="' + key + '"] .tpl-t') || {}).textContent || '';
+      if (cfgSub) cfgSub.textContent = 'Plantilla: ' + nombre.trim();
+      if (imgCfgFields) imgCfgFields.style.display = 'none';
+    }
     clinicIn.value = work.clinic || '';
     signIn.value   = work.signName || '';
     posSel.value   = work.signPos || 'center';
@@ -749,8 +946,17 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     work.signName = signIn.value.trim();
     work.signPos  = posSel.value;
     recomputeHead();
-    TEMPLATES[editingKey].cfg = work;
-    if (currentKey === editingKey) applyConfig(work);
+    const tpl = TEMPLATES[editingKey];
+    tpl.cfg = work;
+    if (tpl.imgOnly) {
+      tpl.cols  = Math.max(1, Math.min(6,  parseInt(imgColsIn.value, 10)  || 2));
+      tpl.count = Math.max(1, Math.min(24, parseInt(imgCountIn.value, 10) || tpl.cols));
+      const btn = document.querySelector('.img-tpl[data-tpl="' + editingKey + '"]');
+      if (btn) renderImgPreviewBtn(btn, tpl.cols, tpl.count);
+    }
+    if (currentKey === editingKey) {
+      if (tpl.imgOnly) render(editingKey); else applyConfig(work);
+    }
     closeConfig();
   });
 
@@ -760,6 +966,34 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
       if (cfgBtn) { openConfig(cfgBtn.dataset.tplCfg); return; }
       const main = e.target.closest('.tpl-main');
       if (main) render(main.dataset.tpl);
+    });
+  }
+
+  // Actualiza la mini-vista previa de una plantilla de imágenes
+  const renderImgPreviewBtn = (btn, cols, count) => {
+    const prev = btn.querySelector('.img-prev');
+    if (!prev) return;
+    if (!count) {
+      prev.style.gridTemplateColumns = '1fr';
+      prev.innerHTML = '<span style="background:none;border:1px dashed var(--stroke-strong)"></span>';
+      return;
+    }
+    prev.style.gridTemplateColumns = 'repeat(' + cols + ',1fr)';
+    prev.innerHTML = Array.from({ length: count }, () => '<span></span>').join('');
+  };
+
+  // Selección y edición de plantillas de imágenes (mismo editor visual)
+  const imgGrid = document.querySelector('.img-grid');
+  if (imgGrid) {
+    imgGrid.addEventListener('click', (e) => {
+      const cfgBtn = e.target.closest('.img-cfg');
+      if (cfgBtn) { openConfig(cfgBtn.dataset.tplCfg); return; }
+      const main = e.target.closest('.img-tpl');
+      if (main) {
+        document.querySelectorAll('.img-tpl').forEach(b => b.classList.remove('active'));
+        main.classList.add('active');
+        render(main.dataset.tpl);
+      }
     });
   }
 
@@ -971,6 +1205,108 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   const greeting = 'Hola, soy ENCLAII. Tú redactas el reporte y yo te ayudo: puedo proponer hallazgos, recomendaciones o mejorar la redacción de cualquier sección. ¿Empezamos?';
   const greetEl = addMsg('', 'ai');
   setTimeout(() => typeInto(greetEl, greeting), 400);
+})();
+</script>
+
+<script>
+/* ===== Pestañas de Plantillas (Informe / Imágenes) + layout de imágenes ===== */
+(function(){
+  const tabs = document.querySelectorAll('.tpl-tab');
+  const panes = { informe: document.getElementById('paneInforme'), imagenes: document.getElementById('paneImagenes') };
+  tabs.forEach(tab => tab.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    Object.values(panes).forEach(p => p && p.classList.remove('active'));
+    const target = panes[tab.dataset.tab];
+    if (target) target.classList.add('active');
+  }));
+})();
+</script>
+
+<script>
+/* ===== Vista Previa + Guardar reporte ===== */
+(function(){
+  const doc      = document.querySelector('.ed-doc');
+  const btnPv    = document.getElementById('btnPreview');
+  const btnSave  = document.getElementById('btnGuardar');
+  const pvModal  = document.getElementById('previewModal');
+  const pvPaper  = document.getElementById('pvPaper');
+  const pvClose  = document.getElementById('pvClose');
+  const pvPrint  = document.getElementById('pvPrint');
+  const statusEl = document.getElementById('edStatus');
+  const toast    = document.getElementById('edToast');
+  const STORAGE_KEY = 'enclaii_reporte_borrador';
+
+  // Aviso flotante
+  let toastTimer = null;
+  const showToast = (msg, isErr) => {
+    if (!toast) return;
+    toast.textContent = msg;
+    toast.classList.toggle('err', !!isErr);
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+  };
+
+  /* ---- Vista Previa ---- */
+  const openPreview = () => {
+    if (!doc || !pvPaper || !pvModal) return;
+    // Igualar el ancho de la hoja al del documento para que las posiciones
+    // (logo / nombre / imagen lateral, en px) coincidan exactamente.
+    const w = doc.getBoundingClientRect().width;
+    if (w) { pvPaper.style.width = w + 'px'; pvPaper.style.maxWidth = w + 'px'; }
+    // Clonar el documento y quitar lo no imprimible (placeholders vacíos)
+    const clone = doc.cloneNode(true);
+    clone.classList.remove('rise', 'd2', 'card');
+    clone.querySelectorAll('[contenteditable]').forEach(el => {
+      el.removeAttribute('contenteditable');
+      const txt = (el.textContent || '').trim();
+      if (!txt) el.remove(); // ocultar campos sin llenar
+    });
+    pvPaper.innerHTML = '';
+    pvPaper.appendChild(clone);
+    pvModal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+  const closePreview = () => {
+    if (!pvModal) return;
+    pvModal.classList.remove('open');
+    document.body.style.overflow = '';
+  };
+  if (btnPv)   btnPv.addEventListener('click', openPreview);
+  if (pvClose) pvClose.addEventListener('click', closePreview);
+  if (pvPrint) pvPrint.addEventListener('click', () => window.print());
+  if (pvModal) pvModal.addEventListener('click', (e) => { if (e.target === pvModal) closePreview(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && pvModal && pvModal.classList.contains('open')) closePreview();
+  });
+
+  /* ---- Guardar reporte (borrador en el navegador) ---- */
+  const collectData = () => ({
+    tipo:   (document.getElementById('edTipo')?.value || ''),
+    htmlDoc: doc ? doc.innerHTML : '',
+    guardadoEn: new Date().toISOString(),
+  });
+
+  const saveReport = () => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(collectData()));
+      if (statusEl) statusEl.textContent = 'Reporte guardado';
+      showToast('Reporte guardado');
+    } catch (e) {
+      showToast('No se pudo guardar el reporte', true);
+    }
+  };
+  if (btnSave) btnSave.addEventListener('click', saveReport);
+
+  // Restaurar borrador previo si existe
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw && doc) {
+      const data = JSON.parse(raw);
+      if (statusEl && data.guardadoEn) statusEl.textContent = 'Reporte guardado';
+    }
+  } catch (e) {}
 })();
 </script>
 @endpush
