@@ -31,9 +31,6 @@
 @media(hover:hover)and(pointer:fine){.ev-btn.cancel:hover{background:rgba(110,160,255,.08);color:var(--txt)}}
 .ev-btn.more{width:38px;padding:0;justify-content:center;background:transparent;border:1px solid var(--stroke);color:var(--txt-soft)}
 @media(hover:hover)and(pointer:fine){.ev-btn.more:hover{background:rgba(110,160,255,.08)}}
-.ev-btn.close{width:38px;padding:0;justify-content:center;background:rgba(255,90,110,.12);border:1px solid rgba(255,90,110,.35);color:var(--red)}
-@media(hover:hover)and(pointer:fine){.ev-btn.close:hover{background:rgba(255,90,110,.22)}}
-
 /* Player */
 .ev-player-box{
   background:#000;border-radius:14px;overflow:hidden;
@@ -92,6 +89,7 @@
   transition:background-color 150ms ease,border-color 150ms ease;white-space:nowrap;
 }
 @media(hover:hover)and(pointer:fine){.ev-act-btn:hover{background:rgba(46,123,246,.1);border-color:rgba(46,123,246,.4);color:var(--blue)}}
+.ev-act-btn.on{background:rgba(46,123,246,.15);border-color:rgba(46,123,246,.5);color:var(--blue)}
 .ev-act-btn.wa{color:var(--green);border-color:rgba(61,220,151,.3);background:rgba(61,220,151,.07)}
 .ev-act-btn.ia{color:var(--cyan);border-color:rgba(56,199,244,.3);background:rgba(56,199,244,.07)}
 
@@ -128,84 +126,30 @@
 .ev-tool-btn:active{transform:scale(.97)}
 @media(hover:hover)and(pointer:fine){.ev-tool-btn:hover{background:rgba(46,123,246,.1);border-color:rgba(46,123,246,.4);color:var(--blue)}}
 
-/* Ajuste video (sliders) */
-.ev-adj-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.ev-adj-row:last-child{margin-bottom:0}
-.ev-adj-ic{width:20px;flex:none;color:var(--txt-soft);display:grid;place-items:center}
-.ev-adj-lbl{font-size:12.5px;color:var(--txt-soft);width:72px;flex:none}
-.ev-slider{
-  flex:1;height:4px;border-radius:4px;
-  appearance:none;-webkit-appearance:none;
-  background:linear-gradient(to right,var(--blue) 65%,rgba(255,255,255,.15) 65%);
-  cursor:pointer;outline:none;
+.ev-side-tool{display:none}
+.ev-side-tool.open{display:block}
+.ev-tool-form{display:flex;flex-direction:column;gap:12px}
+.ev-panel-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ev-panel-btn{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  height:38px;padding:0 12px;border-radius:var(--r-md);
+  border:1px solid var(--stroke);background:var(--card);
+  font:inherit;font-size:13px;font-weight:700;color:var(--txt);
+  transition:background-color 150ms ease,border-color 150ms ease,color 150ms ease,transform 160ms var(--ease-out);
 }
-.ev-slider::-webkit-slider-thumb{appearance:none;width:13px;height:13px;border-radius:50%;background:#fff;cursor:grab;box-shadow:0 1px 4px rgba(0,0,0,.4)}
-.ev-zoom-row{display:flex;align-items:center;gap:8px;margin-top:4px}
-.ev-zoom-lbl{font-size:12.5px;color:var(--txt-soft);width:72px;flex:none;display:flex;align-items:center;gap:6px}
-.ev-zoom-val{font-size:13px;font-weight:700;color:var(--txt);min-width:40px;text-align:center}
-.ev-zoom-btn{
-  width:28px;height:28px;border-radius:7px;
-  border:1px solid var(--stroke);display:grid;place-items:center;
-  color:var(--txt);font-size:16px;font-weight:700;
-  transition:background-color 150ms ease;cursor:pointer;
+.ev-panel-btn:active{transform:scale(.97)}
+.ev-panel-btn.active{background:rgba(46,123,246,.18);border-color:rgba(46,123,246,.55);color:var(--blue)}
+.ev-panel-btn.danger{background:rgba(255,90,110,.14);border-color:rgba(255,90,110,.35);color:var(--red)}
+@media(hover:hover)and(pointer:fine){
+  .ev-panel-btn:hover{background:rgba(46,123,246,.12);border-color:rgba(46,123,246,.4);color:var(--blue)}
+  .ev-panel-btn.danger:hover{background:rgba(255,90,110,.22);border-color:rgba(255,90,110,.5);color:var(--red)}
 }
-@media(hover:hover)and(pointer:fine){.ev-zoom-btn:hover{background:rgba(46,123,246,.14);border-color:rgba(46,123,246,.4);color:var(--blue)}}
-
-/* Anotaciones */
-.ev-ann-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.ev-ann-btn{
-  display:flex;align-items:center;gap:7px;
-  height:36px;padding:0 14px;border-radius:var(--r-md);
-  font:inherit;font-size:12.5px;font-weight:600;color:var(--txt);
-  background:var(--card);border:1px solid var(--stroke);
-  transition:background-color 150ms ease,border-color 150ms ease;
-}
-.ev-ann-btn.on{background:rgba(46,123,246,.15);border-color:rgba(46,123,246,.5);color:var(--blue)}
-@media(hover:hover)and(pointer:fine){.ev-ann-btn:hover{background:rgba(46,123,246,.1);border-color:rgba(46,123,246,.4);color:var(--blue)}}
-.ev-ann-input{
-  flex:1;height:36px;background:var(--card);border:1px solid var(--stroke);
-  border-radius:var(--r-md);padding:0 12px;font:inherit;font-size:12.5px;
-  color:var(--txt);outline:none;transition:border-color 150ms ease;
-}
-.ev-ann-input::placeholder{color:var(--txt-soft)}
-.ev-ann-input:focus{border-color:var(--blue)}
-/* Colores */
-.ev-color-row{display:flex;align-items:center;gap:7px;margin-bottom:10px}
-.ev-color-lbl{font-size:12px;color:var(--txt-soft);width:40px;flex:none}
-.ev-color-dot{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform 150ms ease,border-color 150ms ease;flex:none}
-.ev-color-dot:hover{transform:scale(1.15)}
-.ev-color-dot.sel{border-color:#fff}
-/* Grosor */
-.ev-stroke-row{display:flex;align-items:center;gap:8px}
-.ev-stroke-lbl{font-size:12px;color:var(--txt-soft);width:40px;flex:none}
-.ev-stroke-opt{height:2px;border-radius:2px;background:var(--txt);cursor:pointer;transition:opacity 150ms ease;flex:none}
-.ev-stroke-opt:hover{opacity:.7}
-.ev-stroke-opt.s1{width:28px}
-.ev-stroke-opt.s2{width:28px;height:4px}
-.ev-stroke-opt.s3{width:28px;height:7px}
-
-/* Info clínica */
-.ev-clin-group{margin-bottom:12px}
-.ev-clin-group:last-child{margin-bottom:0}
-.ev-clin-lbl{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--txt-soft);margin-bottom:6px}
-.ev-toolbar{display:flex;align-items:center;gap:4px;padding:5px 8px;background:var(--card);border:1px solid var(--stroke);border-radius:var(--r-md) var(--r-md) 0 0;border-bottom:none}
-.ev-tb-btn{
-  width:26px;height:26px;border-radius:6px;display:grid;place-items:center;
-  font-size:13px;font-weight:700;color:var(--txt-soft);
-  transition:background-color 150ms ease,color 150ms ease;cursor:pointer;
-}
-@media(hover:hover)and(pointer:fine){.ev-tb-btn:hover{background:rgba(110,160,255,.1);color:var(--txt)}}
-.ev-tb-sep{width:1px;height:16px;background:var(--stroke);margin:0 2px}
-.ev-textarea{
-  width:100%;min-height:52px;padding:10px 12px;
-  font:inherit;font-size:13px;color:var(--txt);
-  background:var(--card);border:1px solid var(--stroke);
-  border-radius:0 0 var(--r-md) var(--r-md);
-  outline:none;resize:vertical;
-  transition:border-color 150ms ease;
-  line-height:1.5;
-}
-.ev-textarea:focus{border-color:var(--blue)}
+.ev-filter-label{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--txt-soft)}
+.ev-slider-group{display:flex;flex-direction:column;gap:6px}
+.ev-slider-row{display:flex;align-items:center;justify-content:space-between}
+.ev-slider-name{font-size:12px;font-weight:700;color:var(--txt-soft)}
+.ev-slider-val{font-size:12px;font-weight:800;color:var(--blue)}
+.ev-slider{width:100%;height:4px;accent-color:var(--blue);cursor:pointer}
 
 @media(max-width:1100px){.ev-wrap{grid-template-columns:1fr}}
 </style>
@@ -220,9 +164,6 @@
     <button class="ev-btn save" id="evSave">Guardar cambios</button>
     <a href="{{ route('galeria.video', $id) }}" class="ev-btn cancel">Cancelar</a>
     <button class="ev-btn more">···</button>
-    <a href="{{ route('galeria') }}" class="ev-btn close">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </a>
   </div>
 
   <div class="ev-wrap">
@@ -267,7 +208,7 @@
       <div class="ev-actions">
         <button class="ev-act-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Capturar imagen</button>
         <button class="ev-act-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Exportar video</button>
-        <button class="ev-act-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Imprimir informe</button>
+        <button class="ev-act-btn" id="evToolFiltros"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>Filtros</button>
         <button class="ev-act-btn wa"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>Enviar por WhatsApp</button>
         <button class="ev-act-btn ia"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>IA Reportes</button>
       </div>
@@ -298,6 +239,32 @@
     {{-- ===== PANEL DERECHO ===== --}}
     <div class="ev-panel">
 
+      <div class="ev-section ev-side-tool" id="evFiltersPanel" aria-hidden="true">
+        <div class="ev-sec-head">
+          <span class="ev-sec-title">Filtros de video</span>
+          <span class="ev-sec-more">···</span>
+        </div>
+        <div class="ev-tool-form">
+          <div class="ev-filter-label">Ajustes</div>
+          <div class="ev-slider-group">
+            <div class="ev-slider-row"><span class="ev-slider-name">Brillo</span><span class="ev-slider-val" id="evBrilloVal">100%</span></div>
+            <input type="range" class="ev-slider" id="evBrillo" min="0" max="200" value="100">
+          </div>
+          <div class="ev-slider-group">
+            <div class="ev-slider-row"><span class="ev-slider-name">Contraste</span><span class="ev-slider-val" id="evContrasteVal">100%</span></div>
+            <input type="range" class="ev-slider" id="evContraste" min="0" max="200" value="100">
+          </div>
+          <div class="ev-slider-group">
+            <div class="ev-slider-row"><span class="ev-slider-name">Saturación</span><span class="ev-slider-val" id="evSaturacionVal">100%</span></div>
+            <input type="range" class="ev-slider" id="evSaturacion" min="0" max="200" value="100">
+          </div>
+          <div class="ev-panel-actions">
+            <button type="button" class="ev-panel-btn active" id="evFilterApply">Aplicar filtros</button>
+            <button type="button" class="ev-panel-btn" id="evFilterReset">Restablecer</button>
+          </div>
+        </div>
+      </div>
+
       {{-- Edición de video --}}
       <div class="ev-section">
         <div class="ev-sec-head">
@@ -307,117 +274,7 @@
         <div class="ev-tools-grid">
           <button class="ev-tool-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><line x1="4" y1="20" x2="4.01" y2="20"/><line x1="16" y1="9" x2="16.01" y2="9"/></svg>Recortar</button>
           <button class="ev-tool-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="18"/><rect x="14" y="3" width="7" height="18"/></svg>Dividir</button>
-          <button class="ev-tool-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg>Rotar</button>
-          <button class="ev-tool-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Voltear horizontal</button>
-          <button class="ev-tool-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 7 5 3 9 7"/><path d="M5 3v18"/><polyline points="23 17 19 21 15 17"/><path d="M19 21V3"/></svg>Voltear vertical</button>
           <button class="ev-tool-btn" id="evRestablecer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg>Restablecer</button>
-        </div>
-      </div>
-
-      {{-- Ajuste de video --}}
-      <div class="ev-section">
-        <div class="ev-sec-head">
-          <span class="ev-sec-title">Ajuste de video</span>
-        </div>
-        <div class="ev-adj-row">
-          <span class="ev-adj-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></span>
-          <span class="ev-adj-lbl">Brillo</span>
-          <input type="range" class="ev-slider" min="0" max="100" value="65" id="slBrillo">
-        </div>
-        <div class="ev-adj-row">
-          <span class="ev-adj-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20z"/></svg></span>
-          <span class="ev-adj-lbl">Contraste</span>
-          <input type="range" class="ev-slider" min="0" max="100" value="55" id="slContraste">
-        </div>
-        <div class="ev-adj-row">
-          <span class="ev-adj-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 2v20M2 12h20"/></svg></span>
-          <span class="ev-adj-lbl">Saturación</span>
-          <input type="range" class="ev-slider" min="0" max="100" value="60" id="slSaturacion">
-        </div>
-        <div class="ev-adj-row">
-          <span class="ev-adj-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg></span>
-          <span class="ev-adj-lbl">Nitidez</span>
-          <input type="range" class="ev-slider" min="0" max="100" value="45" id="slNitidez">
-        </div>
-        <div class="ev-zoom-row">
-          <span class="ev-zoom-lbl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>Zoom</span>
-          <button class="ev-zoom-btn" id="evZoomMinus">−</button>
-          <span class="ev-zoom-val" id="evZoomVal">100%</span>
-          <button class="ev-zoom-btn" id="evZoomPlus">+</button>
-        </div>
-      </div>
-
-      {{-- Anotaciones --}}
-      <div class="ev-section">
-        <div class="ev-sec-head">
-          <span class="ev-sec-title">Anotaciones</span>
-          <span class="ev-sec-more">···</span>
-        </div>
-        <div class="ev-ann-row">
-          <button class="ev-ann-btn" id="evDibujar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>Dibujar</button>
-          <input class="ev-ann-input" type="text" placeholder="···">
-          <button class="ev-ann-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>Resaltar zona</button>
-          <button class="ev-ann-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>Texto</button>
-        </div>
-        <div class="ev-color-row">
-          <span class="ev-color-lbl">Color</span>
-          <div class="ev-color-dot sel" style="background:#FF5A6E" data-color="#FF5A6E"></div>
-          <div class="ev-color-dot" style="background:#F59E2D" data-color="#F59E2D"></div>
-          <div class="ev-color-dot" style="background:#3DDC97" data-color="#3DDC97"></div>
-          <div class="ev-color-dot" style="background:#2E7BF6" data-color="#2E7BF6"></div>
-          <div class="ev-color-dot" style="background:#b45ef5" data-color="#b45ef5"></div>
-        </div>
-        <div class="ev-stroke-row">
-          <span class="ev-stroke-lbl">Grosor</span>
-          <div class="ev-stroke-opt s1"></div>
-          <div class="ev-stroke-opt s2"></div>
-          <div class="ev-stroke-opt s3"></div>
-        </div>
-      </div>
-
-      {{-- Información clínica --}}
-      <div class="ev-section">
-        <div class="ev-sec-head">
-          <span class="ev-sec-title">Información clínica</span>
-        </div>
-
-        <div class="ev-clin-group">
-          <div class="ev-clin-lbl">Hallazgos</div>
-          <div class="ev-toolbar">
-            <button class="ev-tb-btn" style="font-weight:900">B</button>
-            <button class="ev-tb-btn" style="font-style:italic">I</button>
-            <button class="ev-tb-btn" style="text-decoration:underline">U</button>
-            <div class="ev-tb-sep"></div>
-            <button class="ev-tb-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="12" x2="3" y2="12"/><line x1="21" y1="18" x2="3" y2="18"/></svg></button>
-            <button class="ev-tb-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="5" cy="6" r="1"/><circle cx="5" cy="12" r="1"/><circle cx="5" cy="18" r="1"/></svg></button>
-          </div>
-          <textarea class="ev-textarea" rows="2">Mucosa eritematosa en antro gástrico, pliegues conservados.</textarea>
-        </div>
-
-        <div class="ev-clin-group">
-          <div class="ev-clin-lbl">Observaciones</div>
-          <div class="ev-toolbar">
-            <button class="ev-tb-btn" style="font-weight:900">B</button>
-            <button class="ev-tb-btn" style="font-style:italic">I</button>
-            <button class="ev-tb-btn" style="text-decoration:underline">U</button>
-            <div class="ev-tb-sep"></div>
-            <button class="ev-tb-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="12" x2="3" y2="12"/><line x1="21" y1="18" x2="3" y2="18"/></svg></button>
-            <button class="ev-tb-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="5" cy="6" r="1"/><circle cx="5" cy="12" r="1"/><circle cx="5" cy="18" r="1"/></svg></button>
-          </div>
-          <textarea class="ev-textarea" rows="2">Procedimiento tolerado adecuadamente.</textarea>
-        </div>
-
-        <div class="ev-clin-group">
-          <div class="ev-clin-lbl">Diagnósticos</div>
-          <div class="ev-toolbar">
-            <button class="ev-tb-btn" style="font-weight:900">B</button>
-            <button class="ev-tb-btn" style="font-style:italic">I</button>
-            <button class="ev-tb-btn" style="text-decoration:underline">U</button>
-            <div class="ev-tb-sep"></div>
-            <button class="ev-tb-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="12" x2="3" y2="12"/><line x1="21" y1="18" x2="3" y2="18"/></svg></button>
-            <button class="ev-tb-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="5" cy="6" r="1"/><circle cx="5" cy="12" r="1"/><circle cx="5" cy="18" r="1"/></svg></button>
-          </div>
-          <textarea class="ev-textarea" rows="2">Gastritis antral leve.</textarea>
         </div>
       </div>
 
@@ -450,46 +307,43 @@
     this.textContent = speeds[sIdx];
   });
 
-  /* Zoom */
-  let zoom = 100;
-  document.getElementById('evZoomPlus').addEventListener('click', function(){
-    zoom = Math.min(zoom + 10, 200);
-    document.getElementById('evZoomVal').textContent = zoom + '%';
-  });
-  document.getElementById('evZoomMinus').addEventListener('click', function(){
-    zoom = Math.max(zoom - 10, 50);
-    document.getElementById('evZoomVal').textContent = zoom + '%';
-  });
+  /* Filtros */
+  const evToolFiltros = document.getElementById('evToolFiltros');
+  const evFiltersPanel = document.getElementById('evFiltersPanel');
+  const evPlayerBg = document.querySelector('.ev-player-bg');
 
-  /* Restablecer ajustes */
-  document.getElementById('evRestablecer').addEventListener('click', function(){
-    document.getElementById('slBrillo').value    = 65;
-    document.getElementById('slContraste').value = 55;
-    document.getElementById('slSaturacion').value= 60;
-    document.getElementById('slNitidez').value   = 45;
-    zoom = 100;
-    document.getElementById('evZoomVal').textContent = '100%';
-    updateSliders();
-  });
-
-  /* Actualizar colores de sliders */
-  function updateSliders(){
-    document.querySelectorAll('.ev-slider').forEach(s => {
-      const pct = s.value + '%';
-      s.style.background = `linear-gradient(to right,var(--blue) ${pct},rgba(255,255,255,.15) ${pct})`;
-    });
+  function applyEvFilters(){
+    const b = document.getElementById('evBrillo').value;
+    const c = document.getElementById('evContraste').value;
+    const s = document.getElementById('evSaturacion').value;
+    evPlayerBg.style.filter = `brightness(${b}%) contrast(${c}%) saturate(${s}%)`;
   }
-  document.querySelectorAll('.ev-slider').forEach(s => {
-    s.addEventListener('input', updateSliders);
-  });
-  updateSliders();
 
-  /* Colores anotación */
-  document.querySelectorAll('.ev-color-dot').forEach(dot => {
-    dot.addEventListener('click', function(){
-      document.querySelectorAll('.ev-color-dot').forEach(d => d.classList.remove('sel'));
-      this.classList.add('sel');
+  evToolFiltros.addEventListener('click', function(){
+    const isOpen = evFiltersPanel.classList.toggle('open');
+    this.classList.toggle('on', isOpen);
+    evFiltersPanel.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+  });
+
+  ['evBrillo','evContraste','evSaturacion'].forEach(id => {
+    const input = document.getElementById(id);
+    const val = document.getElementById(id + 'Val');
+    input.addEventListener('input', function(){
+      val.textContent = this.value + '%';
+      applyEvFilters();
     });
+  });
+  document.getElementById('evFilterApply').addEventListener('click', function(){
+    applyEvFilters();
+    this.textContent = 'Aplicado';
+    setTimeout(() => { this.textContent = 'Aplicar filtros'; }, 1200);
+  });
+  document.getElementById('evFilterReset').addEventListener('click', function(){
+    ['evBrillo','evContraste','evSaturacion'].forEach(id => {
+      document.getElementById(id).value = 100;
+      document.getElementById(id + 'Val').textContent = '100%';
+    });
+    evPlayerBg.style.filter = 'none';
   });
 
   /* Miniaturas */

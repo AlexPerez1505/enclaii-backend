@@ -525,6 +525,7 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
       Pacientes
     </a>
     <a class="nav-item {{ $active === 'ia-reportes' ? 'active' : '' }}" href="{{ url('/ia-reportes') }}">
+<<<<<<< HEAD
       <x-hugeicons-ai-folder-02 />
       Reportes
     </a>
@@ -532,6 +533,9 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
 =======
     <a class="nav-item {{ $active === 'ia-reportes' ? 'active' : '' }}" href="#">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>
+=======
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5C8.13 5 5 8.13 5 12c0 2.38 1.19 4.47 3 5.74V17a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-0.26c1.81-1.27 3-3.36 3-5.74 0-3.87-3.13-7-7-7z"/><path d="M9 22h6"/><path d="M9.5 9h5"/><path d="M9.5 13h5"/><path d="M9.5 17h5"/></svg>
+>>>>>>> origin/ricardo-galeria
       IA Reportes
     </a>
 >>>>>>> origin/Paulina-Pacientes
