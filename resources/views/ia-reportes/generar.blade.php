@@ -163,9 +163,10 @@
           <div class="gen-field">
             <label>Tipo de estudio</label>
             <select class="gen-select" id="genTipo">
-              <option>Endoscopia alta</option>
-              <option>Endoscopia baja</option>
               <option>Colonoscopia</option>
+              <option>Gastroscopia</option>
+              <option>Duodenoscopia</option>
+              <option>Broncoscopia</option>
             </select>
           </div>
           <div class="gen-field">
@@ -245,7 +246,7 @@
         <div class="prev-title">Vista previa del reporte generado por AI</div>
         <div class="prev-top">
           <div class="prev-diag">
-            <div class="prev-img"></div>
+            <div class="prev-img" id="prevImg"></div>
             <div class="dx">
               <small>Diagnóstico preliminar</small>
               <h3 id="prevDx">Gastritis crónica moderada</h3>
@@ -329,6 +330,27 @@
   const csrf = "{{ csrf_token() }}";
 
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  // Imagen de vista previa según el tipo de estudio seleccionado
+  const STUDY_IMG = {
+    'Colonoscopia':  '/images/Colonoscopia.png',
+    'Gastroscopia':  '/images/Gastroscopia.png',
+    'Duodenoscopia': '/images/Duodenoscopia.png',
+    'Broncoscopia':  '/images/Broncoscopia.png',
+  };
+  const tipoSel = document.getElementById('genTipo');
+  const prevImg = document.getElementById('prevImg');
+  const syncStudyImg = () => {
+    if (!tipoSel || !prevImg) return;
+    const src = STUDY_IMG[tipoSel.value];
+    if (src) {
+      prevImg.style.background = 'center/cover no-repeat url("' + src + '")';
+    } else {
+      prevImg.style.background = '';
+    }
+  };
+  if (tipoSel) tipoSel.addEventListener('change', syncStudyImg);
+  syncStudyImg();
 
   const ckSvg = '<svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
   const rcSvg = '<svg class="rc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>';
