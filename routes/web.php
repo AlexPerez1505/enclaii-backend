@@ -15,8 +15,7 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/registro', [EndoCareAuthController::class, 'showRegister'])->name('register');
     Route::post('/registro', [EndoCareAuthController::class, 'register'])->name('register.post');
-    });
-
+});
 
 Route::middleware('auth')->group(function () {
 
@@ -33,7 +32,8 @@ Route::middleware('auth')->group(function () {
     })->name('pacientes.create');
 
     Route::get('/pacientes/editar', function () {
-        return view('pacientes.edit');
+        $paciente = (object) ['folio' => 'P-125'];
+        return view('pacientes.edit', compact('paciente'));
     })->name('pacientes.edit');
 
     Route::get('/ia-reportes', function () {
@@ -69,7 +69,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/ia-reportes/analisis', function () {
         return view('ia-reportes.analisis');
     })->name('ia-reportes.analisis');
-
+    
     Route::get('/configuracion', function () {
         return view('configuracion.index', [
             'userSettings' => request()->user()->resolvedSettings(),
@@ -78,6 +78,14 @@ Route::middleware('auth')->group(function () {
 
     Route::patch('/configuracion/general', [SettingsController::class, 'update'])
         ->name('configuracion.general.update');
+
+    Route::get('/pacientes/estudios', function () {
+        return view('pacientes.estudios');
+    })->name('pacientes.estudios');
+
+    Route::get('/mensajes/correo', function () {
+        return view('mensajes.dashboard');
+    })->name('mensajes.correo');
 
     Route::get('/agenda', function () {
         return view('agenda.index');
@@ -88,7 +96,7 @@ Route::middleware('auth')->group(function () {
     })->name('agendar');
 
     Route::get('/mensajes', function () {
-        return view('mensajes.index');
+        return view('mensajes.dashboard');
     })->name('mensajes');
 
     Route::get('/nuevo-estudio', function () {
@@ -121,6 +129,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/galeria', function () {
         return view('galeria.index');
     })->name('galeria');
+
+    Route::get('/galeria/paciente/{id}', function ($id) {
+        return view('galeria.paciente', ['id' => $id]);
+    })->name('galeria.paciente');
 
     Route::get('/galeria/video/{id}', function ($id) {
         return view('galeria.vervideo', ['id' => $id]);

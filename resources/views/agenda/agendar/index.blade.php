@@ -85,6 +85,56 @@
     document.getElementById('cfmSala').textContent = this.value;
   });
 
+  /* ---- Precarga desde query params (Reprogramar) ---- */
+  (function prefillFromUrl() {
+    const p = new URLSearchParams(window.location.search);
+    const paciente = p.get('paciente');
+    const proc     = p.get('proc');
+    const hora     = p.get('hora');
+    const dia      = p.get('dia');
+    const mes      = p.get('mes');
+    const anio     = p.get('anio');
+
+    if (paciente) {
+      const inp = document.getElementById('pacSearch');
+      if (inp) {
+        inp.value = paciente;
+        inp.dispatchEvent(new Event('input'));
+      }
+      const cfm = document.getElementById('cfmPaciente');
+      if (cfm) cfm.textContent = paciente;
+      if (window.__findPatient && window.__updatePacResult) {
+        const pac = window.__findPatient(paciente);
+        if (pac) window.__updatePacResult(pac);
+      }
+    }
+    if (proc) {
+      const sel = document.getElementById('citaProcedimiento');
+      if (sel) {
+        sel.value = proc;
+        sel.dispatchEvent(new Event('change'));
+      }
+    }
+    if (hora) {
+      const inp = document.getElementById('citaHora');
+      if (inp) { inp.value = hora; inp.dispatchEvent(new Event('change')); }
+      const cfm = document.getElementById('cfmHora');
+      if (cfm) cfm.textContent = hora;
+    }
+    if (dia && mes && anio) {
+      const d = String(dia).padStart(2,'0');
+      const m = String(mes).padStart(2,'0');
+      const fmtFecha = `${d}/${m}/${anio}`;
+      const inp = document.getElementById('citaFecha');
+      if (inp) inp.value = fmtFecha;
+      const cfm = document.getElementById('cfmFecha');
+      if (cfm) cfm.textContent = fmtFecha;
+      if (window.__agOnDateSelect) {
+        window.__agOnDateSelect(new Date(Number(anio), Number(mes)-1, Number(dia)));
+      }
+    }
+  })();
+
   /* Cancelar */
   document.getElementById('cfmCancelar').addEventListener('click', () => window.history.back());
 

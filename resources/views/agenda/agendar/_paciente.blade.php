@@ -323,5 +323,53 @@ html[data-theme="light"] .pac-meta-item{color:#5B6A99}
       tab.classList.add('active');
     });
   });
+
+  /* ---- Banco de pacientes de ejemplo ---- */
+  const PACIENTES = [
+    { nombre:'Sofía Lozano',      folio:'00001', edad:28, genero:'Mujer',  nac:'12/03/1997', tel:'55 1234 5678', email:'sofia.lozano@gmail.com',     dir:'Av. Insurgentes Sur 1234, CDMX' },
+    { nombre:'Ricardo Martínez',  folio:'00012', edad:42, genero:'Hombre', nac:'05/08/1982', tel:'55 9876 5432', email:'r.martinez@hotmail.com',       dir:'Calle Reforma 456, Guadalajara' },
+    { nombre:'Grabiela Torres',   folio:'00018', edad:35, genero:'Mujer',  nac:'21/11/1989', tel:'55 5551 2233', email:'grabiela.torres@gmail.com',    dir:'Blvd. Díaz Ordaz 789, MTY' },
+    { nombre:'Habib Pérez',       folio:'00024', edad:51, genero:'Hombre', nac:'14/02/1973', tel:'55 6677 8899', email:'habib.perez@outlook.com',      dir:'Av. Constitución 321, Puebla' },
+    { nombre:'Dulce Martínez',    folio:'00031', edad:26, genero:'Mujer',  nac:'30/07/1998', tel:'55 3344 5566', email:'dulce.mtz@gmail.com',          dir:'Col. Roma Norte, CDMX' },
+    { nombre:'Luis Arellano',     folio:'00037', edad:38, genero:'Hombre', nac:'09/04/1986', tel:'55 7788 9900', email:'luis.arellano@empresa.mx',     dir:'Periférico Norte 567, CDMX' },
+    { nombre:'Yessica Torres',    folio:'00043', edad:30, genero:'Mujer',  nac:'17/09/1994', tel:'55 2233 4455', email:'yessica.torres@gmail.com',     dir:'Calle Juárez 890, Mérida' },
+    { nombre:'Paulina Gómez',     folio:'00045', edad:45, genero:'Mujer',  nac:'18/05/1979', tel:'55 4455 6677', email:'p.gomez@correo.com',           dir:'Av. Revolución 1011, CDMX' },
+    { nombre:'Erik Esquivel',     folio:'00051', edad:33, genero:'Hombre', nac:'22/01/1991', tel:'55 8899 0011', email:'erik.esquivel@gmail.com',      dir:'Sur 109, Col. Iztapalapa, CDMX' },
+    { nombre:'Perla Flores',      folio:'00057', edad:29, genero:'Mujer',  nac:'03/12/1995', tel:'55 1122 3344', email:'perla.flores@hotmail.com',     dir:'Calle Hidalgo 234, Toluca' },
+    { nombre:'Irvin Rocha',       folio:'00062', edad:47, genero:'Hombre', nac:'28/06/1977', tel:'55 9900 1122', email:'irvin.rocha@empresa.mx',       dir:'Lomas de Chapultepec, CDMX' },
+    { nombre:'Yukary Huerta',     folio:'00068', edad:22, genero:'Mujer',  nac:'11/10/2002', tel:'55 6600 7711', email:'yukary.h@gmail.com',           dir:'Col. Del Valle, CDMX' },
+    { nombre:'Paula Gómez',       folio:'00073', edad:54, genero:'Mujer',  nac:'25/03/1970', tel:'55 3311 2200', email:'paula.gomez@outlook.com',      dir:'Av. Universidad 321, CDMX' },
+    { nombre:'Pelet Gómez',       folio:'00079', edad:40, genero:'Hombre', nac:'07/07/1984', tel:'55 4400 5511', email:'pelet.gomez@correo.mx',        dir:'Eje Central 678, CDMX' },
+    { nombre:'María Gómez',       folio:'00045', edad:45, genero:'Mujer',  nac:'18/05/1979', tel:'55 4455 6677', email:'maria.gomez@correo.com',       dir:'Av. Revolución 1011, CDMX' },
+  ];
+
+  function findPatient(query) {
+    if (!query || query.trim().length < 2) return null;
+    const q = query.trim().toLowerCase();
+    return PACIENTES.find(p => p.nombre.toLowerCase().includes(q)) || null;
+  }
+
+  function updatePacResult(pac) {
+    if (!pac) return;
+    const inits = pac.nombre.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    document.getElementById('pacAvatar').textContent  = inits;
+    document.getElementById('pacName').textContent    = pac.nombre;
+    document.getElementById('pacFolio').textContent   = 'Folio: ' + pac.folio;
+    document.getElementById('pacAge').textContent     = pac.edad + ' años';
+    document.getElementById('pacGenero').textContent  = pac.genero;
+    document.getElementById('pacNac').textContent     = pac.nac;
+    const telEl   = document.getElementById('pacTel');
+    const emailEl = document.getElementById('pacEmail');
+    if (telEl)   telEl.value   = pac.tel;
+    if (emailEl) emailEl.value = pac.email;
+  }
+
+  window.__updatePacResult = updatePacResult;
+  window.__findPatient     = findPatient;
+
+  document.getElementById('pacSearch').addEventListener('input', function() {
+    const pac = findPatient(this.value);
+    if (pac) updatePacResult(pac);
+  });
 })();
 </script>

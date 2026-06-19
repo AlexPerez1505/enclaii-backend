@@ -67,7 +67,7 @@ html[data-theme="light"] .nav-item.active{color:#fff}
 html[data-theme="light"] .side-help .orb{box-shadow:0 0 18px rgba(46,123,246,.3)}
 html[data-theme="light"] .bell .dot{color:#fff}
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;width:100%}
+html,body{height:100%;width:100%;min-height:100%}
 body{
   font-family:'Hanken Grotesk',sans-serif;
   background:var(--bg);
@@ -108,6 +108,10 @@ html[data-reading="on"]::after{
   display:grid;
   grid-template-columns:264px 1fr;
   min-height:100vh;
+  align-items:start;
+}
+.side{
+  align-self:stretch;
 }
 .main{padding:28px 30px 36px;min-width:0;max-width:100%}
 
@@ -372,6 +376,35 @@ html[data-reading="on"]::after{
 .d7{animation-delay:360ms}
 @keyframes rise{to{opacity:1;transform:translateY(0)}}
 
+/* ================= BOTTOM NAV (móvil) ================= */
+.mobile-nav{
+  display:none;
+  position:fixed;
+  bottom:0;left:0;right:0;
+  background:var(--panel);
+  border-top:1px solid var(--stroke);
+  z-index:500;
+  padding:6px 0 env(safe-area-inset-bottom, 6px);
+  justify-content:space-around;
+  align-items:center;
+}
+.mobile-nav-item{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:3px;
+  padding:6px 12px;
+  border-radius:var(--r-md);
+  color:var(--txt-soft);
+  font-size:10px;
+  font-weight:600;
+  transition:color 150ms ease;
+  min-width:52px;
+}
+.mobile-nav-item svg{width:22px;height:22px;flex:none}
+.mobile-nav-item.active{color:var(--cyan)}
+.mobile-nav-item:active{transform:scale(.93)}
+
 /* ================= RESPONSIVE BASE ================= */
 @media (max-width:1024px){
   .dash{grid-template-columns:1fr}
@@ -386,11 +419,12 @@ html[data-reading="on"]::after{
   .side-brand{flex-direction:row;margin-bottom:0;gap:10px;flex:none}
   .side-brand img{width:42px;margin-bottom:0}
   .side-brand-tag{display:none}
-  .side-brand-name{font-size:14px;letter-spacing:.2em}
-  .nav-item{flex:none;padding:10px 14px;font-size:13.5px}
+  .side-brand-name{font-size:13px;letter-spacing:.15em}
+  .nav-item{flex:none;padding:8px 12px;font-size:13px}
   .side-help{display:none}
-  .main{padding:18px 16px 28px}
-  .head h1{font-size:21px}
+  .main{padding:16px 14px 28px}
+  .head h1{font-size:20px}
+  .head .sub{font-size:13px}
   .profile strong,.profile span{display:none}
   .profile{padding:8px}
 }
@@ -416,6 +450,19 @@ html[data-reading="on"]::after{
   .head-right{width:100%;justify-content:flex-end;gap:8px}
   .btn-ai{display:none}
   .main{padding:12px 12px 24px}
+}
+@media (max-width:600px){
+  .side{display:none}
+  .mobile-nav{display:flex}
+  .dash{min-height:unset}
+  .main{padding:14px 12px calc(70px + env(safe-area-inset-bottom, 0px)) 12px}
+  .head h1{font-size:18px}
+  .head .sub{font-size:12px}
+  .head-right{gap:8px}
+  .btn-ai{padding:9px 12px;font-size:13px}
+  .bell{width:38px;height:38px}
+  .profile{padding:6px}
+  .head{margin-bottom:16px}
 }
 
 /* Toggle de tema: luna en modo oscuro (ir a claro: sol), y viceversa */
@@ -505,6 +552,7 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
         @endif
       </div>
       <div class="head-right">
+        @yield('header-extra')
         <button class="btn-ai">
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/></svg>
           <span>Asistente IA</span>
@@ -562,6 +610,31 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
     @yield('content')
 
   </main>
+
+  {{-- Bottom nav para móvil --}}
+  <nav class="mobile-nav">
+    <a class="mobile-nav-item {{ $active === 'dashboard' ? 'active' : '' }}" href="{{ url('/dashboard') }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      Inicio
+    </a>
+    <a class="mobile-nav-item {{ $active === 'pacientes' ? 'active' : '' }}" href="{{ route('pacientes') }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Pacientes
+    </a>
+    <a class="mobile-nav-item {{ $active === 'agenda' ? 'active' : '' }}" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Agenda
+    </a>
+    <a class="mobile-nav-item {{ $active === 'informes' ? 'active' : '' }}" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      Informes
+    </a>
+    <a class="mobile-nav-item {{ $active === 'configuracion' ? 'active' : '' }}" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87 1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
+      Config
+    </a>
+  </nav>
+
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
