@@ -57,7 +57,7 @@
 .msg-load-more{padding:8px 12px 12px;text-align:center;}
 .btn-load-more{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:var(--txt-soft);background:none;border:none;cursor:pointer;transition:color 150ms;}
 .btn-load-more:hover{color:var(--blue);}
-.msg-main{display:flex;flex-direction:column;background:var(--bg);overflow:hidden;border-right:1px solid var(--stroke);position:relative;transition:background 250ms;}
+.msg-main{display:flex;flex-direction:column;flex:1;min-width:0;background:var(--bg);overflow:hidden;border-right:1px solid var(--stroke);position:relative;transition:background 250ms;}
 /* Fondo WA: patrón de puntos verde muy sutil */
 .msg-main.mode-wa::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(37,211,102,.04) 1px,transparent 1px);background-size:22px 22px;pointer-events:none;z-index:0;}
 /* Fondo Email: limpio sin patrón */
@@ -118,8 +118,8 @@
 .email-body-wrap{flex:1;overflow-y:auto;padding:18px 22px 10px;}
 .email-body-wrap::-webkit-scrollbar{width:4px;}
 .email-body-wrap::-webkit-scrollbar-thumb{background:var(--stroke);border-radius:4px;}
-.email-subject{font-size:18px;font-weight:800;color:var(--txt);margin-bottom:14px;letter-spacing:-.01em;}
-.email-sender-card{display:flex;align-items:flex-start;gap:11px;padding:13px;border-radius:12px;border:1px solid var(--stroke);background:var(--panel);margin-bottom:16px;}
+.email-subject{font-size:20px;font-weight:800;color:var(--txt);margin-bottom:16px;letter-spacing:-.01em;}
+.email-sender-card{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-radius:12px;border:1px solid var(--stroke);background:var(--panel);margin-bottom:18px;}
 .esc-av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;color:#fff;flex:none;}
 .esc-av.blue{background:linear-gradient(135deg,#2e7bf6,#60a5fa);}
 .esc-av.green{background:linear-gradient(135deg,#16a34a,#4ade80);}
@@ -128,17 +128,17 @@
 .esc-av.red{background:linear-gradient(135deg,#dc2626,#f87171);}
 .esc-av.teal{background:linear-gradient(135deg,#0891b2,#22d3ee);}
 .esc-info{flex:1;min-width:0;}
-.esc-name{font-size:13px;font-weight:700;color:var(--txt);}
-.esc-addr{font-size:11.5px;color:var(--txt-soft);margin-top:1px;}
-.esc-to{font-size:11px;color:var(--txt-soft);margin-top:2px;}
+.esc-name{font-size:14px;font-weight:800;color:var(--txt);}
+.esc-addr{font-size:12px;color:var(--txt-soft);margin-top:2px;}
+.esc-to{font-size:12px;color:var(--txt-soft);margin-top:1px;display:none;}
 .esc-meta{display:flex;align-items:center;gap:6px;flex:none;}
 .esc-time{font-size:11px;color:var(--txt-soft);}
 .btn-star{width:26px;height:26px;border-radius:50%;border:none;background:transparent;color:var(--txt-soft);cursor:pointer;display:grid;place-items:center;transition:color 150ms;}
 .btn-star:hover,.btn-star.starred{color:#f59e0b;}
-.email-text-body{font-size:13.5px;line-height:1.85;color:var(--txt);white-space:pre-line;margin-bottom:18px;}
-.att-title{font-size:11.5px;font-weight:700;color:var(--txt-soft);margin-bottom:9px;}
+.email-text-body{font-size:14px;line-height:2;color:var(--txt);white-space:pre-line;margin-bottom:20px;}
+.att-title{font-size:11px;font-weight:800;color:var(--txt-soft);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;}
 .att-list{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px;}
-.att-card{display:flex;align-items:center;gap:9px;padding:9px 13px;border-radius:10px;border:1px solid var(--stroke);background:var(--panel);min-width:155px;flex:none;cursor:pointer;transition:border-color 150ms,box-shadow 150ms;}
+.att-card{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;border:1px solid var(--stroke);background:var(--panel);min-width:165px;max-width:220px;flex:none;cursor:pointer;transition:border-color 150ms,box-shadow 150ms;}
 .att-card:hover{border-color:var(--blue);box-shadow:0 2px 12px rgba(46,123,246,.12);}
 .att-icon{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;flex:none;}
 .att-icon.pdf{background:rgba(239,68,68,.12);color:var(--red);}
@@ -371,7 +371,7 @@
       <span>para leer o responder mensajes</span>
     </div>
 
-    <div id="msgContent" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+    <div id="msgContent" style="display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
 
       {{-- Header --}}
       <div class="mch">
@@ -396,7 +396,7 @@
       </div>
 
       {{-- Toolbar email --}}
-      <div class="email-toolbar hidden" id="emailToolbar">
+      <div class="email-toolbar" id="emailToolbar" style="display:none;">
         <button class="etb-btn icon-only" onclick="closeMsg()" title="Volver">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
@@ -425,7 +425,7 @@
       </div>
 
       {{-- Mensajes WhatsApp --}}
-      <div class="chat-messages hidden" id="chatMessages">
+      <div class="chat-messages" id="chatMessages" style="display:flex;">
         <div class="chat-date-div"><span>Hoy</span></div>
         <div class="bubble-row received" id="waMessageRow">
           <div class="bubble-mini-av blue" id="miniAv1">MG</div>
@@ -460,14 +460,12 @@
       </div>
 
       {{-- Cuerpo email --}}
-      <div class="email-body-wrap hidden" id="emailBody">
-        <div class="email-subject" id="emailSubject">Resultados de estudios</div>
+      <div class="email-body-wrap" id="emailBody" style="display:none;">
         <div class="email-sender-card">
           <div class="esc-av blue" id="escAv">MG</div>
           <div class="esc-info">
             <div class="esc-name" id="escName">Ana Sanchez</div>
-            <div class="esc-addr" id="escAddr">&lt;anas@gmail.com&gt;</div>
-            <div class="esc-to">Para: Dr. Victor</div>
+            <div class="esc-addr" id="escAddr">Para Dr. Victor &lt;anas@gmail.com&gt;</div>
           </div>
           <div class="esc-meta">
             <span class="esc-time" id="escTime">Ayer</span>
@@ -476,6 +474,7 @@
             </button>
           </div>
         </div>
+        <div class="email-subject" id="emailSubject">Resultados de estudios</div>
         <div class="email-text-body" id="emailText">Selecciona un correo para leerlo.</div>
         <div id="attSection" style="display:none;">
           <div class="att-title" id="attTitle">Archivos adjuntos</div>
@@ -732,7 +731,7 @@
 
     document.getElementById('msgEmpty').style.display = 'none';
     const content = document.getElementById('msgContent');
-    content.style.display = 'flex';
+    content.style.cssText = 'display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;';
 
     const av = document.getElementById('mchAv');
     av.textContent = initials;
@@ -776,9 +775,9 @@
       mchHeader.className = 'mch mode-wa';
       audioBtn.style.display = '';
       msgInput.placeholder = 'Escribe un mensaje...';
-      document.getElementById('chatMessages').classList.remove('hidden');
-      document.getElementById('emailBody').classList.add('hidden');
-      document.getElementById('emailToolbar').classList.add('hidden');
+      document.getElementById('chatMessages').style.display = 'flex';
+      document.getElementById('emailBody').style.display = 'none';
+      document.getElementById('emailToolbar').style.display = 'none';
       document.querySelectorAll('.bubble-mini-av').forEach(av => {
         av.textContent = initials;
         av.className = 'bubble-mini-av ' + color;
@@ -797,14 +796,15 @@
       mchHeader.className = 'mch mode-email';
       audioBtn.style.display = 'none';
       msgInput.placeholder = 'Escribe tu respuesta al correo...';
-      document.getElementById('chatMessages').classList.add('hidden');
-      document.getElementById('emailBody').classList.remove('hidden');
-      document.getElementById('emailToolbar').classList.remove('hidden');
+      document.getElementById('chatMessages').style.display = 'none';
+      document.getElementById('emailBody').style.display = 'block';
+      document.getElementById('emailToolbar').style.display = 'flex';
 
       document.getElementById('escAv').textContent = initials;
       document.getElementById('escAv').className = 'esc-av ' + color;
       document.getElementById('escName').textContent = name;
-      document.getElementById('escAddr').innerHTML = '&lt;' + name.toLowerCase().replace(' ', '') + '@gmail.com&gt;';
+      const emailAddr = name.toLowerCase().replace(/\s+/g, '') + '@gmail.com';
+      document.getElementById('escAddr').innerHTML = 'Para Dr. Victor &lt;' + emailAddr + '&gt;';
       document.getElementById('escTime').textContent = time;
       // Generar asunto dinámico según el contenido
       let subject = 'Mensaje de ' + name;
