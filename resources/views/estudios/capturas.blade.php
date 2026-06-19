@@ -302,19 +302,19 @@
       <div>
         <div class="accs-title">Acciones</div>
         <div class="accs-grid">
-          <button class="acc-btn">
+          <button class="acc-btn" id="btnEditar">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             Editar
           </button>
-          <button class="acc-btn">
+          <button class="acc-btn" id="btnExportar">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Exportar
           </button>
-          <button class="acc-btn">
+          <button class="acc-btn" id="btnImprimir">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             Imprimir
           </button>
-          <button class="acc-btn danger">
+          <button class="acc-btn danger" id="btnEliminar">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
             Eliminar
           </button>
@@ -376,6 +376,58 @@
     const files = Array.from(this.files);
     if (!files.length) return;
     alert(`${files.length} captura(s) agregada(s) correctamente.`);
+  });
+
+  /* Funciones de acciones */
+  function getCurrentId() {
+    const active = document.querySelector('.cap-item.active');
+    return active ? parseInt(active.dataset.id) : null;
+  }
+
+  document.getElementById('btnEditar').addEventListener('click', () => {
+    const id = getCurrentId();
+    if (!id) return;
+    const active = document.querySelector('.cap-item.active');
+    const nuevo = prompt('Editar descripcion:', active.dataset.nombre);
+    if (nuevo && nuevo.trim()) {
+      active.dataset.nombre = nuevo.trim();
+      active.querySelector('.cap-nombre').textContent = nuevo.trim();
+      document.getElementById('pidesc').textContent = nuevo.trim();
+    }
+  });
+
+  document.getElementById('btnExportar').addEventListener('click', () => {
+    const src = prevImg.src;
+    const a = document.createElement('a');
+    a.href = src;
+    a.download = 'captura_' + getCurrentId() + '.jpg';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  });
+
+  document.getElementById('btnImprimir').addEventListener('click', () => {
+    const w = window.open('', '_blank');
+    if (!w) return;
+    w.document.write(`<img src="${prevImg.src}" style="width:100%;max-width:600px;display:block;margin:auto;">`);
+    w.document.close();
+    w.focus();
+    w.print();
+  });
+
+  document.getElementById('btnEliminar').addEventListener('click', () => {
+    const id = getCurrentId();
+    if (!id) return;
+    if (!confirm('¿Eliminar esta captura?')) return;
+    const active = document.querySelector('.cap-item.active');
+    active.remove();
+    const remaining = document.querySelectorAll('.cap-item');
+    if (remaining.length) {
+      remaining[0].click();
+    } else {
+      document.getElementById('previewCard').style.display = 'none';
+    }
+    document.getElementById('capFooter').textContent = `Mostrando ${remaining.length} de ${remaining.length}`;
   });
 })();
 </script>
