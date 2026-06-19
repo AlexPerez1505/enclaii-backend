@@ -39,6 +39,13 @@ html[data-theme="light"] .ev-pop-badge.done{background:#EBF7EA;border-color:#4C9
 html[data-theme="light"] .ev-pop-badge.wait{background:#FEF3E7;border-color:#E75D01;color:#B84700}
 html[data-theme="light"] .ev-pop-badge.cancel{background:#FDE8E8;border-color:#D90000;color:#A80000}
 html[data-theme="light"] .ev-pop-badge.soon{background:#F3ECFF;border-color:#B263FF;color:#7B30D4}
+/* Botón borrar en popup */
+.ev-pop-btn.danger{display:flex!important;align-items:center;justify-content:center;gap:7px;width:100%;box-sizing:border-box;margin-top:6px;margin-bottom:0;padding:9px 12px;border-radius:12px!important;border:1.5px solid rgba(217,0,0,.55)!important;background:rgba(217,0,0,.08)!important;color:#D90000!important;font-size:12.5px;font-weight:700;cursor:pointer;transition:all 150ms ease}
+.ev-pop-btn.danger svg{flex:none;stroke:#D90000}
+.ev-pop-btn.danger:hover{background:rgba(217,0,0,.2)!important;border-color:#D90000!important;opacity:1}
+html[data-theme="light"] .ev-pop-btn.danger{border-color:rgba(180,0,0,.4)!important;background:rgba(180,0,0,.06)!important;color:#B00000!important}
+html[data-theme="light"] .ev-pop-btn.danger svg{stroke:#B00000}
+html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!important;border-color:#B00000!important}
 </style>
 
 {{-- ---- HTML ---- --}}
@@ -69,7 +76,7 @@ html[data-theme="light"] .ev-pop-badge.soon{background:#F3ECFF;border-color:#B26
     const evPopBtns  = document.getElementById('evPopBtns');
 
     const STATUS_BUTTONS = {
-      'ev-done':  [{label:'Datos del paciente',cls:'primary'},{label:'Ver Informe',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
+      'ev-done':  [{label:'Datos del paciente',cls:'primary'},{label:'Reprogramar nueva cita',cls:'secondary'},{label:'Ver Informe',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
       'ev-wait':  [{label:'Iniciar Estudio',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
       'ev-cancel':[{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
       'ev-soon':  [{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
@@ -109,6 +116,20 @@ html[data-theme="light"] .ev-pop-badge.soon{background:#F3ECFF;border-color:#B26
         evPopup.style.left = x + 'px';
         evPopup.style.top  = y + 'px';
       }
+    }
+
+    const REPROG_LABELS = ['Reprogramar nueva cita','Reprogramar Paciente'];
+
+    function buildAgendarUrl(d, fechaTxt) {
+      const params = new URLSearchParams();
+      if (d.fullName) params.set('paciente', d.fullName);
+      if (d.proc)     params.set('proc', d.proc);
+      if (d.time)     params.set('hora', d.time);
+      if (fechaTxt) {
+        const m = fechaTxt.match(/(\d+)/);
+        if (m) params.set('dia', m[1]);
+      }
+      return '{{ route("agendar") }}?' + params.toString();
     }
 
     window.__showPopup = function(el, e) {
@@ -162,8 +183,26 @@ html[data-theme="light"] .ev-pop-badge.soon{background:#F3ECFF;border-color:#B26
         const btn = document.createElement('button');
         btn.className = 'ev-pop-btn ' + b.cls;
         btn.textContent = b.label;
+        if (REPROG_LABELS.includes(b.label)) {
+          btn.addEventListener('click', ev => {
+            ev.stopPropagation();
+            window.location.href = buildAgendarUrl(d, fechaTxt);
+          });
+        }
         evPopBtns.appendChild(btn);
       });
+      const delBtn = document.createElement('button');
+      delBtn.className = 'ev-pop-btn danger';
+      delBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>Borrar cita`;
+      delBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        hidePopup();
+        const evEl = popupAnchoredEl;
+        if (window.showDelConfirmGlobal) {
+          window.showDelConfirmGlobal(evEl);
+        }
+      });
+      evPopBtns.appendChild(delBtn);
       positionPopup(e);
       evPopup.classList.add('visible');
     }

@@ -15,8 +15,7 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/registro', [EndoCareAuthController::class, 'showRegister'])->name('register');
     Route::post('/registro', [EndoCareAuthController::class, 'register'])->name('register.post');
-    });
-
+});
 
 Route::middleware('auth')->group(function () {
 

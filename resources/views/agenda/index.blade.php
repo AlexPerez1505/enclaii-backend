@@ -155,25 +155,50 @@
   const DIAS_CORTO = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
   const DIAS_ES    = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 
+  /* ---- Eventos de ejemplo centrados en HOY ---- */
+  const _today = new Date();
+  const _ty = _today.getFullYear();
+  const _tm = _today.getMonth() + 1;
+  function _k(offset) {
+    const d = new Date(_today);
+    d.setDate(_today.getDate() + offset);
+    return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+  }
+  function _t(h, min, name, proc) {
+    const hh = String(h).padStart(2,'0');
+    const mm = String(min).padStart(2,'0');
+    return `${hh}:${mm} ${name} · ${proc}`;
+  }
+
   const EVENTS = {
-    '2024-5-1':  [{t:'11:00 Erik Esquivel · Endoscopia',    cls:'ev-done',  h:11}],
-    '2024-5-2':  [{t:'11:00 Habib Pérez · Endoscopia',      cls:'ev-cancel',h:11}],
-    '2024-5-12': [{t:'11:00 Ricardo Martínez · Endoscopia', cls:'ev-done',  h:11}],
-    '2024-5-13': [{t:'8:30 Ricardo Martínez · Endoscopia',  cls:'ev-done',  h:8}],
-    '2024-5-14': [{t:'11:00 Habib Pérez · Endoscopia',cls:'ev-cancel',h:11},{t:'16:30 Grabiela Torres · Endoscopia',cls:'ev-wait',h:16},{t:'18:30 Yessica Martínez · Endoscopia',cls:'ev-cancel',h:18}],
-    '2024-5-15': [{t:'9:00 Perla Martínez · Endoscopia',cls:'ev-done',h:9},{t:'11:00 Yessica · Endoscopia',cls:'ev-cancel',h:11}],
-    '2024-5-16': [{t:'11:30 Dulce Martínez · Endoscopia',cls:'ev-wait',h:11},{t:'12:30 Paula Martínez · Endoscopia',cls:'ev-done',h:12},{t:'13:30 Paulina Gómez · Endoscopia',cls:'ev-done',h:13}],
-    '2024-5-17': [{t:'17:00 Yukary Huerta · Endoscopia',cls:'ev-wait',h:17}],
-    '2024-5-18': [{t:'11:30 Irvin Rocha · Endoscopia',cls:'ev-wait',h:11},{t:'15:00 Yukary Huerta · Endoscopia',cls:'ev-wait',h:15}],
-    '2024-5-19': [{t:'11:30 Pelet Gómez · Endoscopia',cls:'ev-soon',h:11}],
-    '2024-5-20': [{t:'18:00 Luis Arellano · Endoscopia',cls:'ev-soon',h:18}],
-    '2024-5-23': [{t:'11:30 Pelet Gómez · Endoscopia',cls:'ev-done',h:11}],
-    '2024-5-26': [{t:'11:30 Dulce Martínez · Endoscopia',cls:'ev-wait',h:11}],
-    '2024-5-31': [{t:'11:30 Pelet Gómez · Endoscopia',cls:'ev-soon',h:11}],
+    [_k(-6)]: [{t:_t(9,0,'Sofía Lozano','Colonoscopía'),      cls:'ev-done',  h:9}],
+    [_k(-5)]: [{t:_t(10,30,'Ricardo Martínez','Endoscopia'),  cls:'ev-done',  h:10},
+               {t:_t(15,0,'Habib Pérez','Gastroscopía'),       cls:'ev-cancel',h:15}],
+    [_k(-4)]: [{t:_t(8,0,'Grabiela Torres','Ultrasonido'),    cls:'ev-done',  h:8},
+               {t:_t(11,0,'Perla Flores','Endoscopia'),        cls:'ev-done',  h:11}],
+    [_k(-3)]: [{t:_t(9,30,'Dulce Martínez','Endoscopia'),     cls:'ev-done',  h:9},
+               {t:_t(14,0,'Luis Arellano','Colonoscopía'),     cls:'ev-cancel',h:14}],
+    [_k(-2)]: [{t:_t(11,0,'Yessica Torres','Gastroscopía'),   cls:'ev-done',  h:11},
+               {t:_t(16,0,'Irvin Rocha','Endoscopia'),         cls:'ev-done',  h:16}],
+    [_k(-1)]: [{t:_t(10,0,'Paula Gómez','Colonoscopía'),      cls:'ev-done',  h:10},
+               {t:_t(13,0,'Yukary Huerta','Ultrasonido'),      cls:'ev-done',  h:13}],
+    [_k(0)]:  [{t:_t(9,0,'Erik Esquivel','Endoscopia'),       cls:'ev-wait',  h:9},
+               {t:_t(11,30,'Grabiela Torres','Colonoscopía'),  cls:'ev-wait',  h:11},
+               {t:_t(14,0,'Paulina Gómez','Gastroscopía'),     cls:'ev-soon',  h:14},
+               {t:_t(16,30,'Ricardo Martínez','Endoscopia'),   cls:'ev-soon',  h:16}],
+    [_k(1)]:  [{t:_t(10,0,'Sofía Lozano','Ultrasonido'),      cls:'ev-soon',  h:10},
+               {t:_t(15,0,'Pelet Gómez','Endoscopia'),         cls:'ev-soon',  h:15}],
+    [_k(2)]:  [{t:_t(9,0,'Habib Pérez','Gastroscopía'),       cls:'ev-soon',  h:9},
+               {t:_t(12,0,'Dulce Martínez','Colonoscopía'),    cls:'ev-soon',  h:12}],
+    [_k(3)]:  [{t:_t(11,0,'Irvin Rocha','Ultrasonido'),       cls:'ev-soon',  h:11}],
+    [_k(5)]:  [{t:_t(10,0,'Luis Arellano','Endoscopia'),      cls:'ev-soon',  h:10}],
+    [_k(7)]:  [{t:_t(9,30,'Yessica Torres','Colonoscopía'),   cls:'ev-soon',  h:9}],
+    [_k(-10)]:[{t:_t(11,0,'Perla Flores','Endoscopia'),       cls:'ev-done',  h:11}],
+    [_k(-14)]:[{t:_t(8,30,'Paula Gómez','Gastroscopía'),      cls:'ev-cancel',h:8}],
   };
   window.__AGENDA_EVENTS = EVENTS;
 
-  let cur = new Date(2024, 4, 13);
+  let cur = new Date();
   let curView = 'mes';
 
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -220,6 +245,7 @@
     });
   }
 
+  window.__EVENTS_DIA = EVENTS;
   function buildCal(date)  { window.__buildCal(date, EVENTS, MESES, updateSumCards, countEvents); }
   function buildWeek(date) { window.__buildWeek(date, EVENTS, MESES, DIAS_CORTO, updateSumCards, countEvents); }
   function buildDay(date)  { window.__buildDay(date, EVENTS, MESES, updateSumCards, countEvents); }
