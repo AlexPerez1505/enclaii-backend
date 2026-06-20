@@ -908,10 +908,6 @@ textarea{
         <label>Nombre completo</label>
         <input type="text" value="María Fernanda López Ruiz">
       </div>
-      <div class="form-group">
-        <label>Identificación</label>
-        <input type="text" value="0256987450">
-      </div>
 
       <div class="form-group">
         <label>Fecha de nacimiento</label>
