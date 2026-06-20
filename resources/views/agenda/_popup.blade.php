@@ -253,7 +253,11 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
     function scheduleHide() {
       if (popupCloseTimer) clearTimeout(popupCloseTimer);
       popupCloseTimer = setTimeout(() => {
-        if (!evPopup.matches(':hover') && !popupAnchoredEl?.matches(':hover')) {
+        const inPopup = evPopup.matches(':hover');
+        const inEvent = popupAnchoredEl?.matches(':hover');
+        const cell = popupAnchoredEl?.closest('td');
+        const inCell = cell && cell.matches(':hover');
+        if (!inPopup && !inEvent && !inCell) {
           hidePopup();
         }
       }, 200);
@@ -263,14 +267,18 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
       if (popupCloseTimer) { clearTimeout(popupCloseTimer); popupCloseTimer = null; }
     }
 
-    /* ---- Desktop: hover en cal/week events ---- */
+    /* ---- Desktop: hover en cal/week/day events ---- */
     document.addEventListener('mouseover', e => {
       if (window.innerWidth < 600) return;
-      const ev = e.target.closest('.cal-event, .wk-event');
-      if (ev) {
-        cancelHide();
-        if (popupAnchoredEl !== ev) { popupAnchoredEl = ev; __showPopup(ev, e); }
-        return;
+      const ev = e.target.closest('.cal-event, .wk-event, .day-event');
+      if (ev && !ev.classList.contains('ev-block')) {
+        // En desktop, ev-done en la vista día sigue usando el panel lateral
+        const isDayEvent = ev.classList.contains('day-event');
+        if (!isDayEvent || !ev.classList.contains('ev-done')) {
+          cancelHide();
+          if (popupAnchoredEl !== ev) { popupAnchoredEl = ev; __showPopup(ev, e); }
+          return;
+        }
       }
       if (e.target.closest('#evPopup')) { cancelHide(); return; }
       scheduleHide();
