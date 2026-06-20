@@ -244,19 +244,25 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
 
     let popupAnchoredEl = null;
     let popupCloseTimer = null;
+    let mouseOverEl = null;
 
     function hidePopup() {
       popupAnchoredEl = null;
       evPopup.classList.remove('visible');
     }
 
+    function isHovered(selector) {
+      if (!mouseOverEl) return false;
+      return selector ? mouseOverEl.closest(selector) === selector : false;
+    }
+
     function scheduleHide() {
       if (popupCloseTimer) clearTimeout(popupCloseTimer);
       popupCloseTimer = setTimeout(() => {
-        const inPopup = evPopup.matches(':hover');
-        const inEvent = popupAnchoredEl?.matches(':hover');
+        const inPopup = mouseOverEl && mouseOverEl.closest('#evPopup');
+        const inEvent = popupAnchoredEl && popupAnchoredEl.contains(mouseOverEl);
         const cell = popupAnchoredEl?.closest('td');
-        const inCell = cell && cell.matches(':hover');
+        const inCell = cell && (cell === mouseOverEl || cell.contains(mouseOverEl));
         if (!inPopup && !inEvent && !inCell) {
           hidePopup();
         }
@@ -267,8 +273,13 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
       if (popupCloseTimer) { clearTimeout(popupCloseTimer); popupCloseTimer = null; }
     }
 
+    document.addEventListener('mousemove', e => {
+      mouseOverEl = e.target;
+    });
+
     /* ---- Desktop: hover en cal/week/day events ---- */
     document.addEventListener('mouseover', e => {
+      mouseOverEl = e.target;
       if (window.innerWidth < 600) return;
       const ev = e.target.closest('.cal-event, .wk-event, .day-event');
       if (ev && !ev.classList.contains('ev-block')) {
