@@ -168,6 +168,10 @@ html[data-reading="on"]::after{
   margin-bottom:26px;
 }
 .side-brand img{width:96px;height:auto;margin-bottom:-12px;filter:drop-shadow(0 0 18px rgba(56,199,244,.35))}
+.side-brand .logo-dark{display:block;}
+.side-brand .logo-light{display:none;}
+html[data-theme="light"] .side-brand .logo-dark{display:none;}
+html[data-theme="light"] .side-brand .logo-light{display:block;}
 .side-brand-name{
   font-family:'Sora',sans-serif;
   font-weight:800;
@@ -523,7 +527,8 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
   {{-- ============ SIDEBAR (compartido) ============ --}}
   <aside class="side">
     <div class="side-brand">
-      <img src="{{ asset('images/logo.png') }}" alt="Logotipo ENCLAII">
+      <img class="logo-dark" src="{{ asset('images/logo-2.png') }}" alt="Logotipo ENCLAII">
+      <img class="logo-light" src="{{ asset('images/logo.png') }}" alt="Logotipo ENCLAII">
       <div>
         <div class="side-brand-name">ENCLA<span>II</span></div>
         <div class="side-brand-tag">Endoscopia · Nube · IA</div>
