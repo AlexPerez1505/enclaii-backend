@@ -169,7 +169,6 @@
       <div class="sec-checks">
         <label class="sec-check"><input type="checkbox" checked> Solicitar contraseña para eliminar o editar estudios</label>
         <label class="sec-check"><input type="checkbox" checked> Solicitar contraseña para eliminar o editar paciente</label>
-        <label class="sec-check"><input type="checkbox" checked> Solicitar contraseña para eliminar o editar informes</label>
         <label class="sec-check"><input type="checkbox" checked> Registrar todas las acciones en auditoría</label>
       </div>
     </article>

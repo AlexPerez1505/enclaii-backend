@@ -1,6 +1,7 @@
 {{-- ============================================================
      AGENDA / _sidebar.blade.php
      Panel derecho: filtros rápidos + próximas citas
+     (Estilos en _base.blade.php)
      ============================================================ --}}
 
 <div class="filter-card">
@@ -39,10 +40,10 @@
   const MESES_C = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
   function formatFechaTxt(dateObj) {
-    const now = new Date();
-    const hoy = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const now   = new Date();
+    const hoy   = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const fecha = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
-    const diff = Math.round((fecha - hoy) / 86400000);
+    const diff  = Math.round((fecha - hoy) / 86400000);
     if (diff === 0) return 'Hoy';
     if (diff === 1) return 'Mañana';
     if (diff === 2) return 'Pasado mañana';
@@ -53,7 +54,7 @@
   function parseHour(h) {
     const m = String(h).match(/^(\d+):(\d+)/);
     if (m) return parseInt(m[1]) * 60 + parseInt(m[2]);
-    return parseInt(h || 0) * 60;
+    return parseInt(h) * 60;
   }
 
   function formatHora(t) {
@@ -62,46 +63,35 @@
     const h = parseInt(m[1]);
     const min = m[2];
     const ampm = h >= 12 ? 'PM' : 'AM';
-    const h12 = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+    const h12  = h > 12 ? h - 12 : (h === 0 ? 12 : h);
     return `${h12}:${min} ${ampm}`;
   }
 
   function buildProximas() {
     const list = document.getElementById('proximasList');
     if (!list) return;
-
     const EVENTS = window.__AGENDA_EVENTS || {};
-    const now = new Date();
+    const now    = new Date();
     const nowMin = now.getHours() * 60 + now.getMinutes();
-    const hoy = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
+    /* Recolectar ev-wait y ev-soon desde hoy en adelante, ordenados */
     const items = [];
-
     Object.entries(EVENTS).forEach(([key, evs]) => {
       const parts = key.split('-').map(Number);
       const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
-
+      const hoy = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       if (dateObj < hoy) return;
-
       evs.forEach(ev => {
         if (ev.cls !== 'ev-wait' && ev.cls !== 'ev-soon') return;
-
+        /* Si es hoy, solo mostrar los que aún no han pasado */
         if (dateObj.toDateString() === hoy.toDateString()) {
-          if (parseHour(ev.hora || ev.h) < nowMin - 30) return;
+          if (parseHour(ev.h) < nowMin - 30) return;
         }
-
-        const nameRaw = ev.name || 'Paciente';
-        const proc = ev.proc || 'Procedimiento';
-        const displayName = window.__displayName ? window.__displayName(nameRaw) : nameRaw;
-
-        items.push({
-          dateObj,
-          ev,
-          name: nameRaw,
-          displayName,
-          proc,
-          h: ev.hora || ev.h
-        });
+        const text = ev.t.trim();
+        const sepIdx = text.indexOf('·');
+        const nameRaw = sepIdx !== -1 ? text.substring(0, sepIdx).replace(/^\d+:\d+\s*/, '').trim() : text.replace(/^\d+:\d+\s*/, '').trim();
+        const proc    = sepIdx !== -1 ? text.substring(sepIdx + 1).trim() : 'Procedimiento';
+        items.push({ dateObj, ev, name: nameRaw, proc, h: ev.h });
       });
     });
 
@@ -112,23 +102,21 @@
     });
 
     list.innerHTML = '';
-
     const visible = items.slice(0, MAX_VISIBLE);
-    const extra = items.length - MAX_VISIBLE;
+    const extra   = items.length - MAX_VISIBLE;
 
     visible.forEach(item => {
-      const inits = item.displayName.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+      const inits = item.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
       const fechaTxt = formatFechaTxt(item.dateObj);
-      const horaTxt = formatHora(item.h);
-      const isCls = item.ev.cls === 'ev-wait' ? 'prox-avatar wait' : 'prox-avatar soon';
+      const horaTxt  = formatHora(item.h);
+      const isCls    = item.ev.cls === 'ev-wait' ? 'prox-avatar wait' : 'prox-avatar soon';
       const stateClass = item.ev.cls === 'ev-wait' ? 'is-wait' : 'is-soon';
-
       const div = document.createElement('div');
       div.className = `prox-item ${stateClass}`;
       div.innerHTML = `
         <div class="${isCls}">${inits}</div>
         <div class="prox-info">
-          <strong>${item.displayName}</strong>
+          <strong>${item.name}</strong>
           <span>${item.proc}</span>
           <span>${fechaTxt} · ${horaTxt}</span>
         </div>`;
@@ -136,9 +124,9 @@
       div.addEventListener('click', () => {
         if (window.openDayModal) {
           const dayNames = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-          const y = item.dateObj.getFullYear();
-          const m = item.dateObj.getMonth();
-          const d = item.dateObj.getDate();
+          const y   = item.dateObj.getFullYear();
+          const m   = item.dateObj.getMonth();
+          const d   = item.dateObj.getDate();
           const dow = item.dateObj.getDay();
           window.openDayModal(item.ev, dayNames, dow, d, m, y);
         }
@@ -160,12 +148,14 @@
     }
   }
 
+  /* Esperar a que AGENDA_EVENTS esté disponible */
   function waitAndBuild() {
-    if (window.__AGENDA_EVENTS) buildProximas();
-    else setTimeout(waitAndBuild, 60);
+    if (window.__AGENDA_EVENTS) { buildProximas(); }
+    else { setTimeout(waitAndBuild, 60); }
   }
-
   waitAndBuild();
+
+  /* Re-construir si los eventos cambian (borrado, etc.) */
   window.__rebuildProximas = buildProximas;
 })();
 </script>

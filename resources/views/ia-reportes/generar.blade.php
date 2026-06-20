@@ -134,21 +134,21 @@
           <svg class="step-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11.5 14.5 16 9.5"/></svg>
         </div>
         <div class="gen-field gen-search">
-          <input class="gen-input" type="text" placeholder="Buscar paciente...">
+          <input class="gen-input" type="text" id="genSearch" placeholder="Buscar paciente...">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </div>
         <div class="gen-pat">
-          <span class="av">MG</span>
+          <span class="av" id="genAv">MG</span>
           <div>
             <div class="nm" id="genPat">María Gonzales</div>
-            <div class="mt">Femenino · 45 años</div>
+            <div class="mt" id="genMeta">Femenino · 45 años</div>
           </div>
         </div>
         <div class="gen-pat-grid">
-          <div><div class="k">Expediente</div><div class="v">EXP-2024-0001</div></div>
-          <div><div class="k">NSS</div><div class="v">1234 5678 9101 1122</div></div>
-          <div><div class="k">Médico responsable</div><div class="v">Dr. Victor</div></div>
-          <div><div class="k">Fecha de nacimiento</div><div class="v">12/04/1979</div></div>
+          <div><div class="k">Expediente</div><div class="v" id="genExp">EXP-2024-0001</div></div>
+          <div><div class="k">NSS</div><div class="v" id="genNss">1234 5678 9101 1122</div></div>
+          <div><div class="k">Médico responsable</div><div class="v" id="genMedico">Dr. Victor</div></div>
+          <div><div class="k">Fecha de nacimiento</div><div class="v" id="genDob">12/04/1979</div></div>
         </div>
       </div>
 
@@ -163,9 +163,10 @@
           <div class="gen-field">
             <label>Tipo de estudio</label>
             <select class="gen-select" id="genTipo">
-              <option>Endoscopia alta</option>
-              <option>Endoscopia baja</option>
               <option>Colonoscopia</option>
+              <option>Gastroscopia</option>
+              <option>Duodenoscopia</option>
+              <option>Broncoscopia</option>
             </select>
           </div>
           <div class="gen-field">
@@ -245,7 +246,7 @@
         <div class="prev-title">Vista previa del reporte generado por AI</div>
         <div class="prev-top">
           <div class="prev-diag">
-            <div class="prev-img"></div>
+            <div class="prev-img" id="prevImg"></div>
             <div class="dx">
               <small>Diagnóstico preliminar</small>
               <h3 id="prevDx">Gastritis crónica moderada</h3>
@@ -320,6 +321,40 @@
 
 @push('scripts')
 <script>
+// Precarga de datos del paciente desde la URL (al venir de la sección Pacientes)
+(function(){
+  const q = new URLSearchParams(window.location.search);
+  if (![...q.keys()].length) return;
+  const setTx = (id, val) => { const el = document.getElementById(id); if (el && val) el.textContent = val; };
+
+  const name     = q.get('name');
+  const initials = q.get('initials');
+  const age      = q.get('age');
+  const gender   = q.get('gender');
+  const folio    = q.get('folio');
+  const dob      = q.get('dob');
+  const study    = q.get('study');
+
+  setTx('genPat', name);
+  setTx('genAv', initials);
+  setTx('genDob', dob);
+  if (folio) setTx('genExp', 'EXP-' + folio);
+  const meta = [gender, age].filter(Boolean).join(' · ');
+  if (meta) setTx('genMeta', meta);
+
+  const search = document.getElementById('genSearch');
+  if (search && name) search.value = name;
+
+  // Tipo de estudio: seleccionar la opción que coincida con la del paciente
+  if (study) {
+    const sel = document.getElementById('genTipo');
+    if (sel) {
+      const opt = [...sel.options].find(o => o.value.toLowerCase() === study.toLowerCase());
+      if (opt) sel.value = opt.value;
+    }
+  }
+})();
+
 (function(){
   const btn = document.getElementById('btnGenerar');
   if (!btn) return;
@@ -329,6 +364,27 @@
   const csrf = "{{ csrf_token() }}";
 
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  // Imagen de vista previa según el tipo de estudio seleccionado
+  const STUDY_IMG = {
+    'Colonoscopia':  '/images/Colonoscopia.png',
+    'Gastroscopia':  '/images/Gastroscopia.png',
+    'Duodenoscopia': '/images/Duodenoscopia.png',
+    'Broncoscopia':  '/images/Broncoscopia.png',
+  };
+  const tipoSel = document.getElementById('genTipo');
+  const prevImg = document.getElementById('prevImg');
+  const syncStudyImg = () => {
+    if (!tipoSel || !prevImg) return;
+    const src = STUDY_IMG[tipoSel.value];
+    if (src) {
+      prevImg.style.background = 'center/cover no-repeat url("' + src + '")';
+    } else {
+      prevImg.style.background = '';
+    }
+  };
+  if (tipoSel) tipoSel.addEventListener('change', syncStudyImg);
+  syncStudyImg();
 
   const ckSvg = '<svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
   const rcSvg = '<svg class="rc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>';

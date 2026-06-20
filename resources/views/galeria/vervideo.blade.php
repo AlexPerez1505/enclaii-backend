@@ -620,6 +620,7 @@
         </div>
         <div class="vv-tags">
           <span class="vv-tag">Estomago</span>
+          <span class="vv-tag">Prancirias
           <span class="vv-tag">Antro</span>
           <span class="vv-tag">Gastritis</span>
           <span class="vv-tag">Piloro</span>

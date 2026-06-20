@@ -12,7 +12,7 @@
 </button>
 @endsection
 
-@push('styles')
+@push('styles') 
 <style>
 .msg-page{display:grid;grid-template-columns:255px 1fr 0px;height:calc(100vh - 126px);border-radius:14px;overflow:hidden;border:1px solid var(--stroke);box-shadow:0 4px 32px rgba(0,0,0,.2);transition:grid-template-columns 280ms cubic-bezier(.4,0,.2,1);}
 .msg-page.ch-open{grid-template-columns:255px 1fr 215px;}
@@ -956,7 +956,6 @@
     }
   };
 
-<<<<<<< HEAD
   function buildStudyDraft(data) {
     const patient = data.patient || 'paciente';
     const study = data.study || 'tu estudio';
@@ -993,7 +992,6 @@
     const first = document.querySelector('.conv-item[data-type="wa"]');
     if (first) first.click();
   }
-=======
   window.__createOrOpenChat = function(name, message) {
     const convList = document.getElementById('convList');
     if (!convList) return;
@@ -1068,7 +1066,6 @@
 
   const first = document.querySelector('.conv-item[data-type="wa"]');
   if (first) first.click();
->>>>>>> eea2606 (Enlaces de Agenda)
 
 })();
 </script>
