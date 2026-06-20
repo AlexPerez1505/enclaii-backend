@@ -18,7 +18,7 @@
             <p>Renovación 05/12/2025</p>
             <p>Facturación: Mensual</p>
           </div>
-          <a href="#" class="pl-btn">Gestionar plan</a>
+          <a href="#" class="pl-btn" id="gpOpen">Gestionar plan</a>
         </div>
 
         <div class="pl-detail" style="margin-top:18px">
@@ -164,3 +164,259 @@
 
   </div>
 </div>
+
+{{-- ============ MODAL: GESTIONAR PLAN ============ --}}
+<div class="gp-ov" id="gpModal" aria-hidden="true">
+  <div class="gp-modal" role="dialog" aria-modal="true" aria-labelledby="gpTitle">
+    <button class="gp-x" id="gpClose" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+
+    <div class="gp-head">
+      <h2 id="gpTitle">Gestionar plan</h2>
+      <p>Administra tu plan, integrantes, consumo de AI y almacenamiento</p>
+    </div>
+
+    <div class="gp-tabs">
+      <button class="gp-tab active" data-gptab="resumen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Resumen</button>
+      <button class="gp-tab" data-gptab="integrantes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Integrantes</button>
+      <button class="gp-tab" data-gptab="facturacion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Facturacion</button>
+    </div>
+
+    <div class="gp-body">
+      {{-- ===== RESUMEN ===== --}}
+      <div class="gp-panel active" data-gppanel="resumen">
+        <div class="gp-grid">
+
+          <section class="gp-card">
+            <h3>Resumen del plan</h3>
+            <div class="gp-plan">
+              <span class="gp-crown"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4 3 5-7 5 7 4-3-2 12H5L3 8z"/></svg></span>
+              <div class="gp-plan-info">
+                <div class="gp-plan-name"><b>Plan Profesional</b><span class="gp-badge">Activo</span></div>
+                <p>Renovacion 05/12/2025</p>
+                <p>Facturacion: Mensual</p>
+              </div>
+              <ul class="gp-feat">
+                <li class="nochk">100 GB de almacenamiento en la nube</li>
+                <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>5 usuarios incluidos</li>
+                <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>AI Reportes ilimitados</li>
+              </ul>
+            </div>
+          </section>
+
+          <section class="gp-card">
+            <h3>Consumo de AI <span class="gp-soft">(este mes)</span></h3>
+            <div class="gp-ai-top">
+              <span class="gp-ai-num">342</span><span class="gp-soft">de 500 reportes generados</span>
+              <span class="gp-ai-pct">68%</span>
+            </div>
+            <div class="gp-bar"><i style="width:68%"></i></div>
+            <p class="gp-soft gp-mt">Limite del plan: 500 reportes/mes &#9432;</p>
+            <a href="#" class="gp-btn-ghost gp-mt2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Ver uso detallado de IA</a>
+          </section>
+
+          <section class="gp-card">
+            <div class="gp-card-row">
+              <h3>Integrantes del plan</h3>
+              <a href="#" class="gp-btn-ghost sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Invitar integrante</a>
+            </div>
+            <p class="gp-soft">Administra los usuarios que forman parte de tu plan</p>
+            <div class="gp-bar gp-mt"><i style="width:80%"></i></div>
+            <div class="gp-mini">4 de 5 usuarios utilizados <span>80%</span></div>
+            <table class="gp-table">
+              <thead><tr><th>Usuario</th><th>Rol</th><th>Estado</th><th>Ultimo acceso</th><th>Acciones</th></tr></thead>
+              <tbody>
+                <tr><td><span class="gp-u">Dr. Victor <span class="gp-you">Tu</span></span></td><td>Administrador</td><td><span class="gp-st">Activo</span></td><td>Hoy, 10:30 AM</td><td><button class="gp-dots" aria-label="Opciones">&#8943;</button></td></tr>
+                <tr><td><span class="gp-u">Dra. Ana Perez</span></td><td>Endoscopista</td><td><span class="gp-st">Activo</span></td><td>Hoy, 09:15 AM</td><td><button class="gp-dots" aria-label="Opciones">&#8943;</button></td></tr>
+                <tr><td><span class="gp-u">Dr. Juan Lopez</span></td><td>Endoscopista</td><td><span class="gp-st">Activo</span></td><td>Ayer, 04:22 PM</td><td><button class="gp-dots" aria-label="Opciones">&#8943;</button></td></tr>
+                <tr><td><span class="gp-u">Lic. Maria Gomez</span></td><td>Recepcionista</td><td><span class="gp-st">Activo</span></td><td>Ayer, 11:08 AM</td><td><button class="gp-dots" aria-label="Opciones">&#8943;</button></td></tr>
+              </tbody>
+            </table>
+            <p class="gp-note">&#9432; Puedes agregar hasta <b>1</b> usuario mas con tu plan actual.</p>
+          </section>
+
+          <section class="gp-card">
+            <h3>Comprar mas almacenamiento</h3>
+            <p class="gp-soft">Aumenta tu espacio en la nube al instante</p>
+            <div class="gp-store gp-mt">
+              <div class="gp-store-card">
+                <div class="gp-store-gb">+ 50 GB</div>
+                <div class="gp-store-price">$99 MXN/mes</div>
+                <a href="#" class="gp-btn-out">Agregar</a>
+              </div>
+              <div class="gp-store-card">
+                <div class="gp-store-gb">+ 100 GB</div>
+                <div class="gp-store-price">$179 MXN / mes</div>
+                <a href="#" class="gp-btn-out">Agregar</a>
+              </div>
+            </div>
+            <p class="gp-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg> El espacio adicional se a&ntilde;adira a tu plan actual.</p>
+          </section>
+
+        </div>
+
+        <div class="gp-cancel">
+          <span class="gp-cancel-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+          <div class="gp-cancel-txt"><b>Cancelar plan</b><p>Si cancelas tu plan, perderas acceso a las funciones premium al finalizar el ciclo de facturacion</p></div>
+          <a href="#" class="gp-cancel-btn">Cancelar plan</a>
+        </div>
+      </div>
+
+      {{-- ===== INTEGRANTES ===== --}}
+      <div class="gp-panel" data-gppanel="integrantes">
+        <section class="gp-card">
+          <div class="gp-card-row">
+            <h3>Integrantes del plan</h3>
+            <a href="#" class="gp-btn-ghost sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Invitar integrante</a>
+          </div>
+          <p class="gp-soft">4 de 5 usuarios utilizados. Puedes agregar hasta 1 usuario mas con tu plan actual.</p>
+          <table class="gp-table gp-mt">
+            <thead><tr><th>Usuario</th><th>Rol</th><th>Estado</th><th>Ultimo acceso</th><th>Acciones</th></tr></thead>
+            <tbody>
+              <tr><td><span class="gp-u">Dr. Victor <span class="gp-you">Tu</span></span></td><td>Administrador</td><td><span class="gp-st">Activo</span></td><td>Hoy, 10:30 AM</td><td><button class="gp-dots" aria-label="Opciones">&#8943;</button></td></tr>
+              <tr><td><span class="gp-u">Dra. Ana Perez</span></td><td>Endoscopista</td><td><span class="gp-st">Activo</span></td><td>Hoy, 09:15 AM</td><td><button class="gp-dots" aria-label="Opciones">&#8943;</button></td></tr>
+              <tr><td><span class="gp-u">Dr. Juan Lopez</span></td><td>Endoscopista</td><td><span class="gp-st">Activo</span></td><td>Ayer, 04:22 PM</td><td><button class="gp-dots" aria-label="Opciones">&#8943;</button></td></tr>
+              <tr><td><span class="gp-u">Lic. Maria Gomez</span></td><td>Recepcionista</td><td><span class="gp-st">Activo</span></td><td>Ayer, 11:08 AM</td><td><button class="gp-dots" aria-label="Opciones">&#8943;</button></td></tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+
+      {{-- ===== FACTURACION ===== --}}
+      <div class="gp-panel" data-gppanel="facturacion">
+        <section class="gp-card">
+          <h3>Facturacion y pago</h3>
+          <div class="gp-summary-row"><span class="gp-soft">Plan actual</span><span>Plan Profesional</span></div>
+          <div class="gp-summary-row"><span class="gp-soft">Proxima fecha de cobro</span><span>05/12/2025</span></div>
+          <div class="gp-summary-row"><span class="gp-soft">Monto a cobrar</span><span>$399 /mes</span></div>
+          <div class="gp-summary-row"><span class="gp-soft">Metodo de pago</span><span>Visa ····4587</span></div>
+          <div class="gp-summary-row"><span class="gp-soft">Historial de facturas</span><a href="#" class="gp-link">Ver</a></div>
+          <a href="#" class="gp-btn-out gp-mt2" style="display:inline-flex;align-items:center;gap:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Actualizar metodo de pago</a>
+        </section>
+      </div>
+    </div>
+
+    <div class="gp-foot">
+      <button class="gp-cerrar" id="gpClose2">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+@push('styles')
+<style>
+/* ===== Modal Gestionar plan ===== */
+.gp-ov{position:fixed;inset:0;z-index:1000;display:none;align-items:flex-start;justify-content:center;padding:32px 18px;background:rgba(5,9,20,.66);backdrop-filter:blur(3px);overflow-y:auto}
+.gp-ov.open{display:flex}
+.gp-modal{position:relative;width:100%;max-width:960px;background:var(--card);border:1px solid var(--stroke);border-radius:var(--r-lg);box-shadow:0 30px 80px -20px var(--shadow);padding:26px 28px 0;animation:gpIn .22s var(--ease-out)}
+@keyframes gpIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+.gp-x{position:absolute;top:20px;right:20px;width:34px;height:34px;display:grid;place-items:center;border-radius:9px;color:var(--txt-soft)}
+.gp-x svg{width:20px;height:20px}
+.gp-x:hover{background:var(--hover-bg);color:var(--txt)}
+.gp-head h2{font-family:'Sora',sans-serif;font-size:21px;font-weight:700}
+.gp-head p{font-size:13px;color:var(--txt-soft);margin-top:4px}
+.gp-tabs{display:flex;gap:26px;border-bottom:1px solid var(--stroke);margin:18px 0 0}
+.gp-tab{display:inline-flex;align-items:center;gap:8px;padding:0 2px 12px;font-size:14px;font-weight:600;color:var(--txt-soft);border:0;background:none;cursor:pointer;position:relative}
+.gp-tab svg{width:17px;height:17px}
+.gp-tab.active{color:var(--cyan)}
+.gp-tab.active::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;border-radius:2px;background:var(--cyan)}
+@media(hover:hover){.gp-tab:hover{color:var(--txt)}}
+.gp-body{padding:20px 0 4px}
+.gp-panel{display:none}
+.gp-panel.active{display:block}
+.gp-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.gp-grid{grid-template-columns:1fr}}
+.gp-card{border:1px solid var(--stroke);border-radius:var(--r-md);background:var(--panel-2);padding:16px 17px}
+.gp-card h3{font-family:'Sora',sans-serif;font-size:14.5px;font-weight:700;margin-bottom:13px}
+.gp-soft{color:var(--txt-soft);font-weight:500;font-size:12.5px}
+.gp-mt{margin-top:11px}
+.gp-mt2{margin-top:14px}
+/* Resumen del plan */
+.gp-plan{display:grid;grid-template-columns:auto 1fr;gap:13px;align-items:start}
+.gp-crown{width:46px;height:46px;flex:none;border-radius:12px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#7c5cff,#a47bff)}
+.gp-crown svg{width:24px;height:24px}
+.gp-plan-name b{font-family:'Sora',sans-serif;font-size:15px}
+.gp-badge{display:inline-block;margin-left:8px;font-size:10px;font-weight:700;color:var(--green);background:rgba(61,220,151,.14);padding:2px 8px;border-radius:6px;vertical-align:middle}
+.gp-plan-info p{font-size:12px;color:var(--txt-soft);margin-top:3px}
+.gp-feat{grid-column:1/-1;list-style:none;margin-top:6px;display:flex;flex-direction:column;gap:8px}
+.gp-feat li{display:flex;align-items:center;gap:9px;font-size:12.5px}
+.gp-feat li svg{width:16px;height:16px;color:var(--green);flex:none}
+.gp-feat li.nochk{padding-left:25px;color:var(--txt-soft)}
+/* Consumo AI */
+.gp-ai-top{display:flex;align-items:baseline;flex-wrap:wrap;gap:7px}
+.gp-ai-num{font-family:'Sora',sans-serif;font-size:26px;font-weight:800;line-height:1}
+.gp-ai-pct{margin-left:auto;font-family:'Sora',sans-serif;font-size:17px;font-weight:700;color:var(--cyan)}
+.gp-bar{height:8px;border-radius:99px;background:var(--stroke);overflow:hidden;margin-top:12px}
+.gp-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--blue),var(--cyan))}
+.gp-btn-ghost{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px;border-radius:10px;border:1px solid var(--stroke-strong);color:var(--cyan);font-weight:600;font-size:13px}
+.gp-btn-ghost svg{width:16px;height:16px}
+.gp-btn-ghost.sm{width:auto;padding:7px 12px;border:0;background:rgba(46,123,246,.12)}
+.gp-btn-ghost:hover{background:var(--hover-bg)}
+/* Integrantes */
+.gp-card-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px}
+.gp-card-row h3{margin-bottom:0}
+.gp-mini{display:flex;justify-content:space-between;font-size:11.5px;color:var(--txt-soft);margin-top:7px;margin-bottom:6px}
+.gp-table{width:100%;border-collapse:collapse;font-size:12px}
+.gp-table th{text-align:left;font-weight:600;color:var(--txt-soft);font-size:11px;padding:7px 8px;border-bottom:1px solid var(--stroke)}
+.gp-table td{padding:9px 8px;border-bottom:1px solid rgba(110,160,255,.08)}
+.gp-table tr:last-child td{border-bottom:0}
+.gp-u{font-weight:600}
+.gp-you{font-size:9.5px;font-weight:700;color:#fff;background:var(--blue);padding:1px 6px;border-radius:5px;margin-left:5px}
+.gp-st{font-size:10px;font-weight:700;color:var(--green);background:rgba(61,220,151,.14);padding:2px 8px;border-radius:6px}
+.gp-dots{color:var(--txt-soft);font-size:16px;padding:0 6px;line-height:1}
+.gp-dots:hover{color:var(--txt)}
+.gp-note{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--txt-soft);margin-top:12px}
+.gp-note svg{width:14px;height:14px;flex:none}
+/* Comprar almacenamiento */
+.gp-store{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.gp-store-card{border:1px solid var(--stroke);border-radius:var(--r-md);background:var(--card);padding:15px;text-align:center}
+.gp-store-gb{font-family:'Sora',sans-serif;font-size:17px;font-weight:700}
+.gp-store-price{font-size:12px;color:var(--txt-soft);margin:5px 0 12px}
+.gp-btn-out{display:block;padding:9px;border-radius:9px;border:1px solid var(--stroke-strong);color:var(--cyan);font-weight:600;font-size:13px}
+.gp-btn-out:hover{background:var(--hover-bg)}
+/* Cancelar */
+.gp-cancel{display:flex;align-items:center;gap:13px;margin-top:16px;padding:16px 18px;border:1px solid rgba(255,90,110,.4);background:rgba(255,90,110,.07);border-radius:var(--r-md)}
+.gp-cancel-ico{width:40px;height:40px;flex:none;border-radius:10px;display:grid;place-items:center;color:var(--red);background:rgba(255,90,110,.14)}
+.gp-cancel-ico svg{width:20px;height:20px}
+.gp-cancel-txt{flex:1}
+.gp-cancel-txt b{font-family:'Sora',sans-serif;font-size:14px}
+.gp-cancel-txt p{font-size:11.5px;color:var(--txt-soft);margin-top:3px}
+.gp-cancel-btn{flex:none;padding:9px 16px;border-radius:9px;border:1px solid var(--red);color:var(--red);font-weight:600;font-size:13px}
+.gp-cancel-btn:hover{background:rgba(255,90,110,.12)}
+/* Facturacion */
+.gp-summary-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid rgba(110,160,255,.08);font-size:13px}
+.gp-summary-row:last-of-type{border-bottom:0}
+.gp-link{color:var(--cyan);font-weight:600}
+/* Footer */
+.gp-foot{display:flex;justify-content:flex-end;padding:16px 0 22px;margin-top:6px;border-top:1px solid var(--stroke);position:sticky;bottom:0;background:var(--card)}
+.gp-cerrar{padding:10px 22px;border-radius:10px;background:var(--panel-2);border:1px solid var(--stroke-strong);color:var(--txt);font-weight:600;font-size:13.5px}
+.gp-cerrar:hover{background:var(--hover-bg)}
+</style>
+@endpush
+
+@push('scripts')
+<script>
+(function(){
+  const modal = document.getElementById('gpModal');
+  const openBtn = document.getElementById('gpOpen');
+  if (!modal || !openBtn) return;
+
+  const open = (e) => { if (e) e.preventDefault(); modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden'; };
+  const close = () => { modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); document.body.style.overflow=''; };
+
+  openBtn.addEventListener('click', open);
+  document.getElementById('gpClose')?.addEventListener('click', close);
+  document.getElementById('gpClose2')?.addEventListener('click', close);
+  modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('open')) close(); });
+
+  // Pestañas internas del modal
+  const tabs = modal.querySelectorAll('.gp-tab');
+  const panels = modal.querySelectorAll('.gp-panel');
+  tabs.forEach(t => t.addEventListener('click', () => {
+    tabs.forEach(x => x.classList.remove('active'));
+    panels.forEach(p => p.classList.remove('active'));
+    t.classList.add('active');
+    modal.querySelector(`.gp-panel[data-gppanel="${t.dataset.gptab}"]`)?.classList.add('active');
+  }));
+})();
+</script>
+@endpush
