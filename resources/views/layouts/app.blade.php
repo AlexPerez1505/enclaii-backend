@@ -543,7 +543,7 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
       Pacientes
     </a>
     <a class="nav-item {{ $active === 'ia-reportes' ? 'active' : '' }}" href="{{ url('/ia-reportes') }}">
-      <x-hugeicons-ai-folder-02 />
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><path d="M12.5 12.5 14 11l1.5 1.5"/><path d="M14 16a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
       Reportes
     </a>
     <a class="nav-item {{ $active === 'mensajes' ? 'active' : '' }}" href="{{ route('mensajes') }}">

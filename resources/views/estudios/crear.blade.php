@@ -25,6 +25,7 @@
   display: flex; align-items: center; gap: 8px;
   border-bottom: 1px solid var(--stroke-strong);
   margin-bottom: 22px;
+  padding-top: 6px;
 }
 .np-tab {
   padding: 12px 18px; cursor: pointer;
@@ -153,8 +154,8 @@ html[data-theme="light"] .np-res-item.active { background: var(--hover-bg-strong
   background: var(--card-bg);
   border: 1px solid var(--stroke);
   border-radius: 18px;
-  padding: 30px 32px;
-  margin-bottom: 20px;
+  padding: 32px 36px;
+  margin-bottom: 28px;
 }
 
 /* Sección header */
@@ -285,6 +286,36 @@ html[data-theme="light"] .np-res-item.active { background: var(--hover-bg-strong
 .np-empty-state svg { opacity: .25; }
 .np-empty-state p { font-size: 16px; font-weight: 600; color: var(--txt-soft); }
 .np-empty-state span { font-size: 13px; color: var(--off); }
+
+/* Tema claro: campos de solo lectura */
+html[data-theme="light"] .np-field input:read-only,
+html[data-theme="light"] .np-field textarea:read-only,
+html[data-theme="light"] .np-field select:disabled {
+  background: var(--panel-2);
+  color: var(--txt);
+  border-color: var(--stroke-strong);
+  opacity: 1;
+}
+html[data-theme="light"] .np-field select:disabled {
+  color: var(--txt-soft);
+}
+
+/* Tema claro: dropdown de filtros */
+html[data-theme="light"] .np-filter-drop {
+  background: var(--panel);
+  border-color: var(--stroke-strong);
+  box-shadow: 0 16px 40px rgba(0,0,0,.12);
+}
+html[data-theme="light"] .np-filter-btn {
+  background: var(--panel-2);
+  border-color: var(--stroke-strong);
+  color: var(--txt);
+}
+html[data-theme="light"] .np-filter-btn:hover,
+html[data-theme="light"] .np-filter-btn.open {
+  background: var(--card);
+  border-color: var(--blue);
+}
 
 /* Boton Agendar cita */
 .np-agendar-btn {
@@ -625,8 +656,8 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
 {{-- Pestañas --}}
 <div class="np-tabs rise d1">
   <button class="np-tab active" data-tab="pacientes">Pacientes</button>
-  <button class="np-tab hidden" data-tab="galeria">Galeria</button>
-  <button class="np-tab hidden" data-tab="reportes">Reportes</button>
+  <button class="np-tab hidden np-tab-extra" data-tab="galeria">Galeria</button>
+  <a class="np-tab hidden np-tab-extra" href="{{ url('/ia-reportes') }}">Reportes</a>
 </div>
 
 {{-- Panel Pacientes --}}
@@ -719,7 +750,7 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
 
         {{-- Foto --}}
         <div class="np-foto-col">
-          <div class="np-foto-box" id="npFotoBox" onclick="document.getElementById('npFotoInput').click()">
+          <div class="np-foto-box" id="npFotoBox">
             <img id="npFotoPreview" src="" alt="">
             <div class="np-foto-ph" id="npFotoPh">
               <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -727,22 +758,6 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
           </div>
           <input type="file" id="npFotoInput" accept="image/*" style="display:none">
           <input type="file" id="npFotoCamera" accept="image/*" capture="environment" style="display:none">
-          <div style="position:relative;width:100%">
-            <button class="np-add-foto-btn" type="button" id="npBtnFotoMenu">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-              <span id="npBtnFotoTxt">Agregar foto</span>
-            </button>
-            <div id="npFotoMenu" style="display:none;position:absolute;bottom:calc(100% + 6px);left:0;right:0;background:var(--panel);border:1px solid var(--stroke-strong);border-radius:var(--r-md);overflow:hidden;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.4)">
-              <button type="button" id="npBtnGaleria" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;background:none;border:none;border-bottom:1px solid var(--stroke);font:inherit;font-size:13px;font-weight:600;color:var(--txt);cursor:pointer;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-                Abrir galeria
-              </button>
-              <button type="button" id="npBtnCamara" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;background:none;border:none;font:inherit;font-size:13px;font-weight:600;color:var(--txt);cursor:pointer;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                Tomar foto
-              </button>
-            </div>
-          </div>
         </div>
 
         {{-- Campos personales --}}
@@ -750,37 +765,37 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
           <div class="np-fields np-row-3" style="margin-bottom:16px">
             <div class="np-field" style="grid-column:span 2">
               <label>Nombre completo</label>
-              <input type="text" id="nombre" name="nombre" placeholder="Maria Fernanda Lopez Ruiz" autocomplete="off">
+              <input type="text" id="nombre" name="nombre" placeholder="Maria Fernanda Lopez Ruiz" autocomplete="off" readonly>
             </div>
             <div class="np-field">
               <label>Identificacion</label>
-              <input type="text" id="identificacion" name="identificacion" placeholder="0256987450" autocomplete="off">
+              <input type="text" id="identificacion" name="identificacion" placeholder="0256987450" autocomplete="off" readonly>
             </div>
           </div>
 
           <div class="np-fields np-row-4" style="margin-bottom:16px">
             <div class="np-field">
               <label>Fecha de nacimiento</label>
-              <input type="date" id="fecha_nac" name="fecha_nac">
+              <input type="date" id="fecha_nac" name="fecha_nac" readonly>
             </div>
             <div class="np-field">
               <label>Edad</label>
-              <input type="text" id="edad" name="edad" placeholder="28 años" autocomplete="off">
+              <input type="text" id="edad" name="edad" placeholder="28 años" autocomplete="off" readonly>
             </div>
             <div class="np-field">
               <label>Peso</label>
-              <input type="text" id="peso" name="peso" placeholder="30 kg" autocomplete="off">
+              <input type="text" id="peso" name="peso" placeholder="30 kg" autocomplete="off" readonly>
             </div>
             <div class="np-field">
               <label>Altura</label>
-              <input type="text" id="altura" name="altura" placeholder="1.75 m" autocomplete="off">
+              <input type="text" id="altura" name="altura" placeholder="1.75 m" autocomplete="off" readonly>
             </div>
           </div>
 
           <div class="np-fields np-row-3b" style="margin-bottom:16px">
             <div class="np-field">
               <label>Sexo</label>
-              <select id="sexo" name="sexo">
+              <select id="sexo" name="sexo" disabled>
                 <option value="" disabled selected>Elegir</option>
                 <option value="F">Femenino</option>
                 <option value="M">Masculino</option>
@@ -788,22 +803,22 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
             </div>
             <div class="np-field">
               <label>N.S.S</label>
-              <input type="text" id="nss" name="nss" placeholder="25849563-9" autocomplete="off">
+              <input type="text" id="nss" name="nss" placeholder="25849563-9" autocomplete="off" readonly>
             </div>
             <div class="np-field">
               <label>Telefono</label>
-              <input type="tel" id="telefono" name="telefono" placeholder="722 162 0815" autocomplete="off">
+              <input type="tel" id="telefono" name="telefono" placeholder="722 162 0815" autocomplete="off" readonly>
             </div>
           </div>
 
           <div class="np-fields np-row-2" style="margin-bottom:0">
             <div class="np-field">
               <label>Direccion</label>
-              <input type="text" id="direccion" name="direccion" placeholder="CALLE, CP" autocomplete="off">
+              <input type="text" id="direccion" name="direccion" placeholder="CALLE, CP" autocomplete="off" readonly>
             </div>
             <div class="np-field">
               <label>E-MAIL</label>
-              <input type="email" id="email" name="email" placeholder="@gmail.com" autocomplete="off">
+              <input type="email" id="email" name="email" placeholder="@gmail.com" autocomplete="off" readonly>
             </div>
           </div>
         </div>
@@ -819,7 +834,7 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;align-items:start">
         <div class="np-field">
           <label>Procedimiento</label>
-          <select id="procedimiento" name="procedimiento">
+          <select id="procedimiento" name="procedimiento" disabled>
             <option value="" disabled selected>Seleccione</option>
             <option value="endoscopia">Endoscopia diagnostica</option>
             <option value="colonoscopia" selected>Colonoscopia</option>
@@ -831,14 +846,14 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
         </div>
         <div class="np-field" style="grid-row:span 2">
           <label>Diagnostico Preliminar</label>
-          <textarea id="diagnostico" name="diagnostico" placeholder="Define lo que podria tener" style="min-height:150px"></textarea>
+          <textarea id="diagnostico" name="diagnostico" placeholder="Define lo que podria tener" style="min-height:150px" readonly></textarea>
         </div>
       </div>
 
       {{-- Fecha de registro --}}
       <div class="np-field" style="max-width:50%">
         <label>Fecha de registro</label>
-        <input type="date" id="fecha_registro" name="fecha_registro">
+        <input type="date" id="fecha_registro" name="fecha_registro" readonly>
       </div>
     </div>
 
@@ -1114,8 +1129,12 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
 
   filterBtn.addEventListener('click', function(e){
     e.stopPropagation();
+    var isOpen = filterDrop.classList.contains('open');
     filterDrop.classList.toggle('open');
     filterBtn.classList.toggle('open');
+    if (!isOpen) {
+      doSearch();
+    }
   });
   document.addEventListener('click', function(){
     filterDrop.classList.remove('open');
@@ -1260,6 +1279,7 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
     document.querySelectorAll('.np-tab-panel').forEach(function(p){ p.classList.remove('active'); });
     document.querySelector('.np-tab[data-tab="pacientes"]').classList.add('active');
     document.getElementById('tab-pacientes').classList.add('active');
+    document.querySelectorAll('.np-tab-extra').forEach(function(t){ t.classList.add('hidden'); });
     const topBack = document.getElementById('npBackToPatientsTop');
     const topNew = document.getElementById('npNewStudyBtn');
     if (topBack) topBack.classList.remove('visible');

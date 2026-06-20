@@ -129,6 +129,7 @@
 }
 .studio-storage-icon { color: #0ea5e9; }
 .studio-storage-text { font-size: 12px; color: rgba(255,255,255,.7); }
+.studio-storage-used { font-size: 12px; color: #fff; }
 .studio-storage-bar {
   width: 80px; height: 4px;
   background: rgba(255,255,255,.15);
@@ -162,6 +163,22 @@
   border-radius: 8px;
   cursor: pointer;
 }
+.studio-theme-btn {
+  position: relative;
+  width: 36px; height: 36px;
+  display: grid; place-items: center;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 8px;
+  cursor: pointer;
+  color: rgba(255,255,255,.7);
+  transition: all 150ms;
+}
+.studio-theme-btn:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.2); color: #fff; }
+.studio-theme-btn .icon-moon { display: none; }
+.studio-theme-btn .icon-sun { display: block; }
+html[data-theme="light"] .studio-theme-btn .icon-sun { display: none; }
+html[data-theme="light"] .studio-theme-btn .icon-moon { display: block; }
 .studio-notif-badge {
   position: absolute; top: -4px; right: -4px;
   width: 18px; height: 18px;
@@ -335,6 +352,8 @@ body.studio-expanded .side {
 .studio-tl-scroll { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
 .studio-thumb { width: 80px; height: 56px; border-radius: 8px; overflow: hidden; border: 2px solid transparent; background: #1e293b; flex: none; cursor: pointer; position: relative; }
 .studio-thumb.active { border-color: #0ea5e9; }
+.studio-thumb-inner { width: 100%; height: 100%; background: linear-gradient(135deg, #1e3a5f, #0d2137); display: flex; align-items: center; justify-content: center; }
+.studio-thumb-inner svg { stroke: rgba(255,255,255,.3); }
 .studio-thumb-time { position: absolute; bottom: 4px; right: 6px; font-size: 10px; font-weight: 600; color: rgba(255,255,255,.8); background: rgba(0,0,0,.5); padding: 1px 4px; border-radius: 3px; }
 
 /* Bottom Bar - Estilo exacto referencia - Botones centrados */
@@ -403,6 +422,8 @@ body.studio-expanded .side {
 }
 .studio-pause-btn svg { color: #0ea5e9; }
 .studio-pause-btn:hover { background: rgba(14, 165, 233, .2); border-color: rgba(14, 165, 233, .5); }
+.studio-pause-btn.paused { background: rgba(34, 197, 94, .15); border-color: rgba(34, 197, 94, .5); color: #4ade80; }
+.studio-pause-btn.paused svg { color: #4ade80; }
 
 /* Botón Terminar Estudio - Rojo */
 .studio-terminar-btn {
@@ -821,11 +842,13 @@ body.studio-expanded .side {
   display: grid; place-items: center;
   color: #0ea5e9;
 }
+.studio-resumen-icon.danger { background: rgba(220,38,38,.15); color: #dc2626; }
 .studio-resumen-value {
   font-size: 13px;
   font-weight: 600;
   color: #fff;
 }
+.studio-resumen-value.danger { color: #dc2626; }
 .studio-resumen-value.green { color: #22c55e; }
 
 /* Acciones */
@@ -869,6 +892,7 @@ body.studio-expanded .side {
 .studio-stat-card { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 14px; }
 .studio-stat-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
 .studio-stat-icon { width: 28px; height: 28px; background: rgba(14,165,233,.15); border-radius: 6px; display: grid; place-items: center; color: #0ea5e9; }
+.studio-stat-icon.orange { background: rgba(245,158,11,.15); color: #f59e0b; }
 .studio-stat-label { font-size: 12px; color: rgba(255,255,255,.6); }
 .studio-stat-value { font-size: 22px; font-weight: 700; color: #fff; font-family: 'Sora', sans-serif; }
 .studio-stat-value.red { color: #ef4444; }
@@ -937,6 +961,8 @@ body.studio-expanded .side {
 .studio-final-act-btn.wa:hover { background: rgba(74,222,128,.15); border-color: rgba(74,222,128,.45); }
 .studio-final-act-btn.ia { color: #22d3ee; border-color: rgba(34,211,238,.25); background: rgba(34,211,238,.07); }
 .studio-final-act-btn.ia:hover { background: rgba(34,211,238,.15); border-color: rgba(34,211,238,.45); }
+.studio-final-act-btn.fin { color: #a78bfa; border-color: rgba(167,139,250,.25); background: rgba(167,139,250,.07); }
+.studio-final-act-btn.fin:hover { background: rgba(167,139,250,.15); border-color: rgba(167,139,250,.45); }
 
 /* Miniaturas de imagenes capturadas */
 .studio-final-caps-title { font-size: 13px; font-weight: 600; color: rgba(255,255,255,.85); margin-bottom: 8px; }
@@ -953,6 +979,9 @@ body.studio-expanded .side {
   width: 100%; aspect-ratio: 4/3; display: grid; place-items: center; position: relative;
   background: radial-gradient(ellipse at 50% 50%, #3a1208 0%, #0a0610 100%);
 }
+html[data-theme="light"] .studio-final-cap-thumb { background: var(--panel); }
+.studio-final-cap-thumb svg { stroke: rgba(255,255,255,.3); }
+html[data-theme="light"] .studio-final-cap-thumb svg { stroke: var(--txt-soft); }
 .studio-final-cap-num {
   position: absolute; top: 3px; left: 4px; width: 17px; height: 17px; border-radius: 5px;
   background: rgba(0,0,0,.6); display: grid; place-items: center;
@@ -969,6 +998,7 @@ body.studio-expanded .side {
 .studio-emergencia-wrap .studio-final-act-btn:hover { background: rgba(220,38,38,.15); border-color: rgba(220,38,38,.45); color: #f87171; }
 .studio-emergencia-wrap .studio-final-act-btn.wa:hover { background: rgba(74,222,128,.15); border-color: rgba(74,222,128,.45); color: #4ade80; }
 .studio-emergencia-wrap .studio-final-act-btn.ia:hover { background: rgba(34,211,238,.15); border-color: rgba(34,211,238,.45); color: #22d3ee; }
+.studio-emergencia-wrap .studio-final-act-btn.fin:hover { background: rgba(167,139,250,.15); border-color: rgba(167,139,250,.45); color: #a78bfa; }
 .studio-emergencia-wrap .studio-finalizado-status .studio-status-text { color: #dc2626; }
 
 /* Reproductor tipo galeria (ev-player) */
@@ -1023,43 +1053,177 @@ body.studio-expanded .side {
 .studio-emergencia-wrap .sf-prog-fill { background: #dc2626; }
 .studio-emergencia-wrap .sf-play-big:hover { background: rgba(220,38,38,.6); }
 
-/* ================= TEMA CLARO (overrides basicos) ================= */
+/* ================= TEMA CLARO (overrides completos) ================= */
 html[data-theme="light"] .main { background: var(--bg) !important; }
 html[data-theme="light"] .studio-wrap,
 html[data-theme="light"] .side { background: var(--panel); color: var(--txt); border-color: var(--stroke); }
 html[data-theme="light"] .studio-topbar { background: var(--panel); border-color: var(--stroke); }
 html[data-theme="light"] .studio-topbar-sep { background: var(--stroke-strong); }
+html[data-theme="light"] .studio-timer { color: var(--txt); }
 html[data-theme="light"] .studio-study-name { color: var(--txt-soft); }
 html[data-theme="light"] .studio-storage { background: var(--panel-2); border-color: var(--stroke); }
 html[data-theme="light"] .studio-storage-icon { color: var(--blue); }
-html[data-theme="light"] .studio-storage-text { color: var(--txt-soft); }
+html[data-theme="light"] .studio-storage-text,
+html[data-theme="light"] .studio-storage-used { color: var(--txt-soft); }
 html[data-theme="light"] .studio-storage-bar { background: var(--stroke-strong); }
 html[data-theme="light"] .studio-ia-btn { background: rgba(46,123,246,.1); border-color: rgba(46,123,246,.3); color: var(--blue); }
-html[data-theme="light"] .studio-notif-btn { background: var(--panel-2); border-color: var(--stroke); }
+html[data-theme="light"] .studio-theme-btn,
+html[data-theme="light"] .studio-notif { background: var(--panel-2); border-color: var(--stroke); color: var(--txt-soft); }
+html[data-theme="light"] .studio-theme-btn:hover,
+html[data-theme="light"] .studio-notif:hover { background: var(--hover-bg); color: var(--txt); }
+html[data-theme="light"] .studio-notif-badge { background: var(--blue); color: #fff; }
 html[data-theme="light"] .studio-doc-avatar { background: var(--panel-2); border-color: var(--blue); color: var(--txt); }
+html[data-theme="light"] .studio-doc-name { color: var(--txt); }
 html[data-theme="light"] .studio-doc-role { color: var(--txt-soft); }
 html[data-theme="light"] .studio-btn-emergency { background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.35); color: #dc2626; }
 html[data-theme="light"] .studio-sidebar-actions { border-color: var(--stroke); }
 html[data-theme="light"] .studio-btn-volver { background: rgba(46,123,246,.12); border-color: rgba(46,123,246,.35); color: var(--blue); }
 html[data-theme="light"] .studio-btn-volver:hover { background: rgba(46,123,246,.2); border-color: rgba(46,123,246,.55); }
 html[data-theme="light"] .studio-main { background: var(--bg); }
+html[data-theme="light"] .studio-video-box { background: var(--panel); border-color: var(--blue); }
 html[data-theme="light"] .studio-video-screen { background: linear-gradient(135deg, var(--panel-2) 0%, var(--panel) 100%); }
+html[data-theme="light"] .studio-hud { background: rgba(255,255,255,.85); border-color: var(--stroke); color: var(--txt); }
+html[data-theme="light"] .studio-expand-btn { background: rgba(255,255,255,.8); border-color: var(--stroke); color: var(--txt-soft); }
+html[data-theme="light"] .studio-expand-btn:hover { background: var(--hover-bg); color: var(--blue); border-color: var(--blue); }
 html[data-theme="light"] .studio-timeline { background: var(--panel-2); border-color: var(--stroke); }
 html[data-theme="light"] .studio-tl-title { color: var(--txt-soft); }
-html[data-theme="light"] .studio-thumb { background: var(--panel-2); }
-html[data-theme="light"] .studio-thumb-time { color: var(--txt); background: rgba(0,0,0,.5); }
+html[data-theme="light"] .studio-thumb,
+html[data-theme="light"] .studio-thumb-inner { background: var(--panel); }
+html[data-theme="light"] .studio-thumb svg { stroke: var(--txt-soft); }
+html[data-theme="light"] .studio-thumb.active { border-color: var(--blue); }
+html[data-theme="light"] .studio-thumb-time { color: var(--txt); background: rgba(0,0,0,.55); }
 html[data-theme="light"] .studio-bottom { background: var(--panel); border-color: var(--stroke); }
-html[data-theme="light"] .studio-rec-controls .studio-pause-btn { background: var(--panel-2); border-color: var(--stroke); color: var(--txt); }
+html[data-theme="light"] .studio-action-btn { background: var(--panel-2); color: var(--txt); }
+html[data-theme="light"] .studio-action-btn:hover { background: var(--hover-bg); }
+html[data-theme="light"] .studio-action-btn svg { color: var(--blue); }
+html[data-theme="light"] .studio-divider-v { background: var(--stroke-strong); }
+html[data-theme="light"] .studio-pause-btn { background: var(--panel-2); border-color: var(--stroke); color: var(--txt); }
+html[data-theme="light"] .studio-pause-btn:hover { background: var(--hover-bg); }
+html[data-theme="light"] .studio-pause-btn.paused { background: rgba(34,197,94,.12); border-color: rgba(34,197,94,.4); color: #16a34a; }
 html[data-theme="light"] .studio-terminar-btn { background: #dc2626; color: #fff; }
 html[data-theme="light"] .studio-captura-btn { background: var(--panel-2); border-color: var(--blue); color: var(--blue); }
+html[data-theme="light"] .studio-captura-btn:hover { background: var(--hover-bg); }
 html[data-theme="light"] .studio-detener-btn { background: rgba(220,38,38,.12); border-color: rgba(220,38,38,.4); color: #dc2626; }
+html[data-theme="light"] .studio-detener-btn:hover { background: rgba(220,38,38,.18); }
+
+/* Sidebar derecho */
+html[data-theme="light"] .studio-sidebar-title { color: var(--txt); border-color: var(--stroke); }
+html[data-theme="light"] .studio-stat-card { background: var(--panel-2); border-color: var(--stroke); }
+html[data-theme="light"] .studio-stat-icon { background: rgba(46,123,246,.12); color: var(--blue); }
+html[data-theme="light"] .studio-stat-icon.orange { background: rgba(245,158,11,.12); color: #d97706; }
+html[data-theme="light"] .studio-stat-label { color: var(--txt-soft); }
+html[data-theme="light"] .studio-stat-value { color: var(--txt); }
+html[data-theme="light"] .studio-stat-value.red { color: #ef4444; }
+html[data-theme="light"] .studio-stat-patient-hover { color: var(--txt-soft); }
+html[data-theme="light"] .studio-info-icon { background: var(--panel); }
+html[data-theme="light"] .studio-info-icon.blue { background: rgba(46,123,246,.12); color: var(--blue); }
+html[data-theme="light"] .studio-info-icon.orange { background: rgba(245,158,11,.12); color: #d97706; }
+html[data-theme="light"] .studio-info-label { color: var(--txt-soft); }
+html[data-theme="light"] .studio-info-value { color: var(--txt); }
+
+/* Interfaz finalizada / emergencia */
 html[data-theme="light"] .studio-finalizado-wrap,
 html[data-theme="light"] .studio-emergencia-wrap { background: var(--bg); color: var(--txt); }
+html[data-theme="light"] .studio-finalizado-header { background: var(--panel); border-color: var(--stroke); }
+html[data-theme="light"] .studio-final-sep,
+html[data-theme="light"] .studio-final-sep-v { background: var(--stroke-strong); }
+html[data-theme="light"] .studio-info-item { color: var(--txt-soft); }
+html[data-theme="light"] .studio-info-item strong { color: var(--txt); }
+html[data-theme="light"] .studio-metric svg { color: var(--blue); }
+html[data-theme="light"] .studio-metric-label { color: var(--txt-soft); }
+html[data-theme="light"] .studio-metric-value { color: var(--txt); }
+html[data-theme="light"] .studio-metric-value.green { color: #16a34a; }
+html[data-theme="light"] .studio-metric-value.blue { color: var(--blue); }
+html[data-theme="light"] .studio-final-btn-notif { background: var(--panel-2); border-color: var(--stroke); color: var(--txt-soft); }
+html[data-theme="light"] .studio-final-btn-notif:hover { background: var(--hover-bg); }
+html[data-theme="light"] .studio-final-profile { background: var(--panel-2); border-color: var(--stroke); }
+html[data-theme="light"] .studio-status-icon { color: #fff; }
+html[data-theme="light"] .studio-status-text { color: var(--txt); }
+html[data-theme="light"] .studio-status-sub { color: var(--txt-soft); }
+html[data-theme="light"] .studio-emergencia-status .studio-status-text { color: #dc2626; }
+html[data-theme="light"] .studio-finalizado-main { background: var(--bg); }
+
+/* Video player finalizado */
+html[data-theme="light"] .studio-video-player { background: var(--panel); border-color: var(--stroke); }
+html[data-theme="light"] .studio-video-display { background: linear-gradient(135deg, var(--panel-2) 0%, var(--panel) 100%); }
+html[data-theme="light"] .studio-video-controls { background: rgba(255,255,255,.8); border-color: var(--stroke); }
+html[data-theme="light"] .studio-control-btn { color: var(--txt); }
+html[data-theme="light"] .studio-control-btn:hover { background: var(--hover-bg); }
+html[data-theme="light"] .studio-progress-bar { background: var(--stroke-strong); }
+html[data-theme="light"] .studio-progress-fill,
+html[data-theme="light"] .studio-progress-thumb { background: var(--blue); }
+html[data-theme="light"] .studio-time-display { color: var(--txt-soft); }
+
+/* Timeline finalizado */
+html[data-theme="light"] .studio-timeline-final { background: var(--panel-2); border-color: var(--stroke); }
+html[data-theme="light"] .studio-timeline-title { color: var(--txt-soft); }
+html[data-theme="light"] .studio-timeline-thumb { background: var(--panel); }
+html[data-theme="light"] .studio-timeline-thumb.active { border-color: var(--blue); }
+html[data-theme="light"] .studio-timeline-dot { background: var(--blue); }
+html[data-theme="light"] .studio-info-grid { background: transparent; }
+html[data-theme="light"] .studio-info-card { background: var(--panel-2); border-color: var(--stroke); }
+html[data-theme="light"] .studio-info-card-title { color: var(--txt-soft); }
+html[data-theme="light"] .studio-info-card-text { color: var(--txt-soft); }
+
+/* Resumen sidebar */
+html[data-theme="light"] .studio-resumen-card { background: var(--panel-2); border-color: var(--stroke); }
+html[data-theme="light"] .studio-resumen-title { color: var(--txt); border-color: var(--stroke); }
+html[data-theme="light"] .studio-resumen-item { border-color: var(--stroke); }
+html[data-theme="light"] .studio-resumen-label { color: var(--txt-soft); }
+html[data-theme="light"] .studio-resumen-icon { background: rgba(46,123,246,.12); color: var(--blue); }
+html[data-theme="light"] .studio-resumen-icon.danger { background: rgba(220,38,38,.12); color: #dc2626; }
+html[data-theme="light"] .studio-resumen-value { color: var(--txt); }
+html[data-theme="light"] .studio-resumen-value.danger { color: #dc2626; }
+html[data-theme="light"] .studio-resumen-value.green { color: #16a34a; }
+html[data-theme="light"] .studio-acciones-card { background: var(--panel-2); border-color: var(--stroke); }
+html[data-theme="light"] .studio-acciones-title { color: var(--txt-soft); }
+html[data-theme="light"] .studio-accion-item { border-color: var(--stroke); }
+html[data-theme="light"] .studio-accion-item:hover { background: var(--hover-bg); }
+html[data-theme="light"] .studio-accion-label { color: var(--txt); }
+html[data-theme="light"] .studio-accion-arrow { color: var(--txt-soft); }
+html[data-theme="light"] .studio-icon-paciente::after { background: var(--panel); border-color: var(--stroke); color: var(--txt); }
+html[data-theme="light"] .studio-icon-paciente::before { border-top-color: var(--stroke); }
+
+/* Acciones tipo galeria */
+html[data-theme="light"] .studio-final-actions { border-color: var(--stroke); }
+html[data-theme="light"] .studio-final-act-btn { background: var(--panel-2); border-color: var(--stroke); color: var(--txt); }
+html[data-theme="light"] .studio-final-act-btn:hover { background: var(--hover-bg); border-color: var(--blue); color: var(--blue); }
+html[data-theme="light"] .studio-final-act-btn.wa { color: #16a34a; border-color: rgba(34,197,94,.25); background: rgba(34,197,94,.07); }
+html[data-theme="light"] .studio-final-act-btn.wa:hover { background: rgba(34,197,94,.12); border-color: rgba(34,197,94,.45); color: #16a34a; }
+html[data-theme="light"] .studio-final-act-btn.ia { color: var(--blue); border-color: rgba(46,123,246,.25); background: rgba(46,123,246,.07); }
+html[data-theme="light"] .studio-final-act-btn.ia:hover { background: rgba(46,123,246,.12); border-color: rgba(46,123,246,.45); color: var(--blue); }
+html[data-theme="light"] .studio-final-act-btn.fin { color: #7c3aed; border-color: rgba(124,58,237,.25); background: rgba(124,58,237,.07); }
+html[data-theme="light"] .studio-final-act-btn.fin:hover { background: rgba(124,58,237,.12); border-color: rgba(124,58,237,.45); color: #7c3aed; }
+html[data-theme="light"] .studio-emergencia-wrap .studio-final-act-btn:hover { background: rgba(220,38,38,.08); border-color: rgba(220,38,38,.35); color: #dc2626; }
+html[data-theme="light"] .studio-final-caps-title { color: var(--txt); }
+html[data-theme="light"] .studio-final-caps-strip { scrollbar-color: var(--stroke) transparent; }
+html[data-theme="light"] .studio-final-cap-item { border-color: transparent; }
+html[data-theme="light"] .studio-final-cap-item.sel { border-color: var(--blue); }
+html[data-theme="light"] .studio-final-cap-thumb { background: var(--panel); }
+html[data-theme="light"] .studio-final-cap-thumb svg { stroke: var(--txt-soft); }
+html[data-theme="light"] .studio-final-cap-num { background: rgba(0,0,0,.55); color: #fff; }
+html[data-theme="light"] .studio-final-cap-check { background: var(--blue); color: #fff; }
+html[data-theme="light"] .studio-final-cap-ts { color: var(--txt-soft); }
+
+/* Reproductor galeria */
+html[data-theme="light"] .sf-video-player { background: var(--panel); }
 html[data-theme="light"] .sf-video-bg { background: radial-gradient(ellipse at 50% 50%, rgba(46,123,246,.08) 0%, transparent 70%); }
-html[data-theme="light"] .sf-video-controls { background: linear-gradient(0deg, rgba(0,0,0,.82) 0%, transparent 100%); }
-html[data-theme="light"] .sf-ctrl-row { color: #fff; }
-html[data-theme="light"] .sf-time { color: rgba(255,255,255,.8); }
-html[data-theme="light"] .sf-speed { color: rgba(255,255,255,.8); border-color: rgba(255,255,255,.2); }
+html[data-theme="light"] .sf-video-center { color: var(--txt); }
+html[data-theme="light"] .sf-play-big { background: rgba(255,255,255,.55); color: var(--txt); }
+html[data-theme="light"] .sf-play-big:hover { background: var(--hover-bg-strong); }
+html[data-theme="light"] .sf-video-controls { background: linear-gradient(0deg, rgba(255,255,255,.82) 0%, transparent 100%); }
+html[data-theme="light"] .sf-prog-wrap { background: var(--stroke-strong); }
+html[data-theme="light"] .sf-prog-fill { background: var(--blue); }
+html[data-theme="light"] .sf-prog-thumb { background: var(--blue); }
+html[data-theme="light"] .sf-ctrl-row { color: var(--txt); }
+html[data-theme="light"] .sf-ctrl-btn { color: var(--txt-soft); }
+html[data-theme="light"] .sf-ctrl-btn:hover { background: var(--hover-bg); color: var(--txt); }
+html[data-theme="light"] .sf-time { color: var(--txt-soft); }
+html[data-theme="light"] .sf-vol-bar { background: var(--stroke-strong); }
+html[data-theme="light"] .sf-vol-fill { background: var(--blue); }
+html[data-theme="light"] .sf-speed { color: var(--txt-soft); border-color: var(--stroke); }
+html[data-theme="light"] .studio-emergencia-wrap .sf-prog-fill { background: #dc2626; }
+html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background: rgba(220,38,38,.15); }
 </style>
 @endpush
 
@@ -1096,7 +1260,7 @@ html[data-theme="light"] .sf-speed { color: rgba(255,255,255,.8); border-color: 
         <div>
           <div class="studio-storage-text">Almacenamiento</div>
           <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:12px;color:#fff">3.2 GB /50 GB</span>
+            <span class="studio-storage-used">3.2 GB /50 GB</span>
           </div>
           <div class="studio-storage-bar"><div class="studio-storage-fill"></div></div>
         </div>
@@ -1106,6 +1270,11 @@ html[data-theme="light"] .sf-speed { color: rgba(255,255,255,.8); border-color: 
 
       {{-- Grupo 3: Notificaciones + Doctor --}}
       <div class="studio-top-group">
+        <button class="studio-theme-btn" id="studioThemeToggle" aria-label="Cambiar tema">
+          <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+          <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+
         <div class="studio-notif">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           <span class="studio-notif-badge">3</span>
@@ -1149,7 +1318,7 @@ html[data-theme="light"] .sf-speed { color: rgba(255,255,255,.8); border-color: 
         <div class="studio-tl-scroll" id="recTimeline">
           @for($i = 1; $i <= 8; $i++)
           <div class="studio-thumb {{ $i === 1 ? 'active' : '' }}">
-            <div style="width:100%;height:100%;background:linear-gradient(135deg,#1e3a5f,#0d2137);display:flex;align-items:center;justify-content:center">
+            <div class="studio-thumb-inner">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/></svg>
             </div>
             <span class="studio-thumb-time">{{ sprintf('%02d:%02d', 0, ($i-1)*8) }}</span>
@@ -1215,7 +1384,7 @@ html[data-theme="light"] .sf-speed { color: rgba(255,255,255,.8); border-color: 
           </div>
           <div class="studio-stat-card">
             <div class="studio-stat-header">
-              <div class="studio-stat-icon" style="background:rgba(245,158,11,.15);color:#f59e0b">
+              <div class="studio-stat-icon orange">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
               </div>
               <div class="studio-stat-label">Clips Guardados</div>
@@ -1259,6 +1428,10 @@ html[data-theme="light"] .sf-speed { color: rgba(255,255,255,.8); border-color: 
     </div>
 
     <div class="studio-final-right">
+      <button class="studio-theme-btn" type="button" aria-label="Cambiar tema">
+        <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+        <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
       <button class="studio-final-btn-notif">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span class="studio-notif-badge">3</span>
@@ -1319,11 +1492,10 @@ html[data-theme="light"] .sf-speed { color: rgba(255,255,255,.8); border-color: 
 
       {{-- Acciones tipo galeria --}}
       <div class="studio-final-actions">
-        <button class="studio-final-act-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Capturar imagen</button>
-        <button class="studio-final-act-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Exportar video</button>
-        <button class="studio-final-act-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>Filtros</button>
-        <button class="studio-final-act-btn wa"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>Enviar por WhatsApp</button>
-        <button class="studio-final-act-btn ia"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>IA Reportes</button>
+        <button class="studio-final-act-btn btn-simular-captura"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Capturar imagen</button>
+        <a class="studio-final-act-btn wa" href="{{ route('mensajes') }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>Enviar mensaje</a>
+        <a class="studio-final-act-btn ia" href="{{ route('ia-reportes.generar') }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>Iniciar reporte con IA</a>
+        <a class="studio-final-act-btn fin" href="{{ route('ia-reportes.redactar') }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Finalizar estudio</a>
       </div>
 
       {{-- Miniaturas capturadas --}}
@@ -1332,12 +1504,11 @@ html[data-theme="light"] .sf-speed { color: rgba(255,255,255,.8); border-color: 
         <div class="studio-final-caps-strip">
           @php
           $caps=[['n'=>1,'ts'=>'0:01:25'],['n'=>2,'ts'=>'0:02:15'],['n'=>3,'ts'=>'0:04:32'],['n'=>4,'ts'=>'0:06:18'],['n'=>5,'ts'=>'0:08:47'],['n'=>6,'ts'=>'0:11:03']];
-          $bgs=['radial-gradient(ellipse at 50% 50%,#3a1208 0%,#0a0610 100%)','radial-gradient(ellipse at 40% 60%,#4a1a0a 0%,#0c0612 100%)','radial-gradient(ellipse at 60% 40%,#2a1a3a 0%,#060814 100%)','radial-gradient(ellipse at 50% 50%,#3a1208 0%,#0a0610 100%)','radial-gradient(ellipse at 45% 55%,#1a0a2a 0%,#08060e 100%)','radial-gradient(ellipse at 55% 45%,#4a0a0a 0%,#0c0608 100%)'];
           @endphp
           @foreach($caps as $i => $c)
           <div class="studio-final-cap-item {{ $i===1 ? 'sel' : '' }}" data-ts="{{ $c['ts'] }}">
-            <div class="studio-final-cap-thumb" style="background:{{ $bgs[$i] }}">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+            <div class="studio-final-cap-thumb">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
               <span class="studio-final-cap-num">{{ $c['n'] }}</span>
               <span class="studio-final-cap-check"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
             </div>
@@ -1436,6 +1607,10 @@ html[data-theme="light"] .sf-speed { color: rgba(255,255,255,.8); border-color: 
     </div>
 
     <div class="studio-final-right">
+      <button class="studio-theme-btn" type="button" aria-label="Cambiar tema">
+        <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+        <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
       <button class="studio-final-btn-notif">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span class="studio-notif-badge">3</span>
@@ -1496,11 +1671,10 @@ html[data-theme="light"] .sf-speed { color: rgba(255,255,255,.8); border-color: 
 
       {{-- Acciones tipo galeria --}}
       <div class="studio-final-actions">
-        <button class="studio-final-act-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Capturar imagen</button>
-        <button class="studio-final-act-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Exportar video</button>
-        <button class="studio-final-act-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>Filtros</button>
-        <button class="studio-final-act-btn wa"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>Enviar por WhatsApp</button>
-        <button class="studio-final-act-btn ia"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>IA Reportes</button>
+        <button class="studio-final-act-btn btn-simular-captura"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Capturar imagen</button>
+        <a class="studio-final-act-btn wa" href="{{ route('mensajes') }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>Enviar mensaje</a>
+        <a class="studio-final-act-btn ia" href="{{ route('ia-reportes.generar') }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>Iniciar reporte con IA</a>
+        <a class="studio-final-act-btn fin" href="{{ route('ia-reportes.redactar') }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Finalizar estudio</a>
       </div>
 
       {{-- Miniaturas capturadas --}}
@@ -1509,12 +1683,11 @@ html[data-theme="light"] .sf-speed { color: rgba(255,255,255,.8); border-color: 
         <div class="studio-final-caps-strip">
           @php
           $capsEm=[['n'=>1,'ts'=>'0:01:25'],['n'=>2,'ts'=>'0:02:15'],['n'=>3,'ts'=>'0:04:32'],['n'=>4,'ts'=>'0:06:18'],['n'=>5,'ts'=>'0:08:47'],['n'=>6,'ts'=>'0:11:03']];
-          $bgsEm=['radial-gradient(ellipse at 50% 50%,#3a1208 0%,#0a0610 100%)','radial-gradient(ellipse at 40% 60%,#4a1a0a 0%,#0c0612 100%)','radial-gradient(ellipse at 60% 40%,#2a1a3a 0%,#060814 100%)','radial-gradient(ellipse at 50% 50%,#3a1208 0%,#0a0610 100%)','radial-gradient(ellipse at 45% 55%,#1a0a2a 0%,#08060e 100%)','radial-gradient(ellipse at 55% 45%,#4a0a0a 0%,#0c0608 100%)'];
           @endphp
           @foreach($capsEm as $i => $c)
           <div class="studio-final-cap-item {{ $i===1 ? 'sel' : '' }}" data-ts="{{ $c['ts'] }}">
-            <div class="studio-final-cap-thumb" style="background:{{ $bgsEm[$i] }}">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+            <div class="studio-final-cap-thumb">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
               <span class="studio-final-cap-num">{{ $c['n'] }}</span>
               <span class="studio-final-cap-check"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
             </div>
@@ -1538,12 +1711,12 @@ html[data-theme="light"] .sf-speed { color: rgba(255,255,255,.8); border-color: 
             <div class="studio-resumen-icon studio-icon-paciente" data-paciente="María Gonzalez"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
             Estado
           </div>
-          <div class="studio-resumen-value" style="color:#dc2626">Emergencia</div>
+          <div class="studio-resumen-value danger">Emergencia</div>
         </div>
 
         <div class="studio-resumen-item">
           <div class="studio-resumen-label">
-            <div class="studio-resumen-icon" style="background:rgba(220,38,38,.15);color:#dc2626"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+            <div class="studio-resumen-icon danger"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
             Paciente de Emergencia
           </div>
           <div class="studio-resumen-value">Sí</div>
@@ -1628,7 +1801,7 @@ html[data-theme="light"] .sf-speed { color: rgba(255,255,255,.8); border-color: 
     const el = document.createElement('div');
     el.className = 'studio-thumb';
     const ts = fmt(secs);
-    el.innerHTML = `<div style="width:100%;height:100%;background:linear-gradient(135deg,#1e3a5f,#0d2137);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/></svg></div><span class="studio-thumb-time">${ts}</span>`;
+    el.innerHTML = `<div class="studio-thumb-inner"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/></svg></div><span class="studio-thumb-time">${ts}</span>`;
     el.addEventListener('click', () => { document.querySelectorAll('.studio-thumb').forEach(t => t.classList.remove('active')); el.classList.add('active'); });
     tl.appendChild(el);
     tl.scrollLeft = tl.scrollWidth;
@@ -1651,15 +1824,11 @@ html[data-theme="light"] .sf-speed { color: rgba(255,255,255,.8); border-color: 
     if (paused) {
       // Está pausado: mostrar Continuar en verde
       btnPausa.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3" fill="currentColor" stroke="none"/></svg> Continuar';
-      btnPausa.style.background = 'rgba(34, 197, 94, .15)';
-      btnPausa.style.borderColor = 'rgba(34, 197, 94, .5)';
-      btnPausa.style.color = '#4ade80';
+      btnPausa.classList.add('paused');
     } else {
       // Está grabando: mostrar Pausar en azul
       btnPausa.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Pausar';
-      btnPausa.style.background = 'rgba(10, 15, 30, .6)';
-      btnPausa.style.borderColor = 'rgba(14, 165, 233, .3)';
-      btnPausa.style.color = 'rgba(255, 255, 255, .9)';
+      btnPausa.classList.remove('paused');
     }
   }
 
@@ -1833,6 +2002,41 @@ html[data-theme="light"] .sf-speed { color: rgba(255,255,255,.8); border-color: 
 
   setupVideoPlayer('.studio-finalizado-wrap .sf-video-player', 'sfPlayBigFinal', 'sfPlayBtnFinal', 'sfTimeFinal', 'sfSpeedFinal', 'btnExpandirFinal', '#2e7bf6');
   setupVideoPlayer('.studio-emergencia-wrap .sf-video-player', 'sfPlayBigEm', 'sfPlayBtnEm', 'sfTimeEm', 'sfSpeedEm', 'btnExpandirEmergencia', '#dc2626');
+
+  /* Cambiar tema desde cualquier botón del estudio */
+  function updateAllStudioThemeIcons() {
+    const isLight = document.documentElement.dataset.theme === 'light';
+    document.querySelectorAll('.studio-theme-btn').forEach(btn => {
+      const moon = btn.querySelector('.icon-moon');
+      const sun = btn.querySelector('.icon-sun');
+      if (moon) moon.style.display = isLight ? 'block' : 'none';
+      if (sun) sun.style.display = isLight ? 'none' : 'block';
+    });
+  }
+  updateAllStudioThemeIcons();
+  document.querySelectorAll('.studio-theme-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const html = document.documentElement;
+      const next = html.dataset.theme === 'light' ? 'dark' : 'light';
+      html.dataset.theme = next;
+      localStorage.setItem('enclaii-theme', next);
+      updateAllStudioThemeIcons();
+    });
+  });
+
+  /* Simular captura de imagen en la interfaz finalizada/emergencia */
+  document.querySelectorAll('.btn-simular-captura').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const player = document.querySelector('.studio-finalizado-wrap.active .sf-video-player, .studio-emergencia-wrap.active .sf-video-player');
+      if (!player) return;
+      const flash = document.createElement('div');
+      flash.style.cssText = 'position:absolute;inset:0;background:#fff;opacity:0.6;z-index:30;pointer-events:none;transition:opacity 300ms ease;';
+      player.style.position = 'relative';
+      player.appendChild(flash);
+      requestAnimationFrame(() => { flash.style.opacity = '0'; });
+      setTimeout(() => flash.remove(), 350);
+    });
+  });
 
   window.addEventListener('beforeunload', () => clearInterval(iv));
 })();
