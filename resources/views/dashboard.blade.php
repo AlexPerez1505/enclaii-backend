@@ -438,10 +438,6 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:640px}
           </tbody>
         </table>
       </div>
-      <a class="tbl-link" href="#">
-        Ver agenda completa
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-      </a>
     </article>
 
     <article class="card rise d6">
