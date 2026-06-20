@@ -209,6 +209,81 @@ html[data-theme="light"] .ev-pop-btn.danger{border-color:rgba(180,0,0,.4)!import
 html[data-theme="light"] .ev-pop-btn.danger svg{stroke:#B00000}
 html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!important;border-color:#B00000!important}
 @media(max-width:480px){.ev-pop-btn.danger{font-size:12px;padding:9px 10px}}
+
+/* ============================================================
+   FIX: modales de eliminar en tema claro
+   ============================================================ */
+html[data-theme="light"] #delGlobalOverlay{
+  background:rgba(15,23,42,.28) !important;
+  backdrop-filter:blur(6px) !important;
+}
+
+html[data-theme="light"] #delGlobalBox{
+  background:#FFFFFF !important;
+  border:1.5px solid rgba(220,38,38,.28) !important;
+  box-shadow:0 22px 55px rgba(15,23,42,.18) !important;
+  color:#0E1530 !important;
+}
+
+html[data-theme="light"] .del-confirm-panel{
+  background:#FFFFFF !important;
+  color:#0E1530 !important;
+  backdrop-filter:none !important;
+}
+
+html[data-theme="light"] .del-confirm-icon{
+  background:rgba(220,38,38,.10) !important;
+  border:1px solid rgba(220,38,38,.22) !important;
+  box-shadow:none !important;
+}
+
+html[data-theme="light"] .del-confirm-icon svg{
+  stroke:#D90000 !important;
+}
+
+html[data-theme="light"] .del-confirm-title{
+  color:#0E1530 !important;
+}
+
+html[data-theme="light"] .del-confirm-sub{
+  color:#5B6A99 !important;
+}
+
+html[data-theme="light"] .del-confirm-no{
+  background:#F4F7FF !important;
+  border-color:rgba(20,50,120,.18) !important;
+  color:#33456F !important;
+}
+
+html[data-theme="light"] .del-confirm-no:hover{
+  background:#E8EFFD !important;
+  color:#0E1530 !important;
+}
+
+html[data-theme="light"] .del-confirm-yes{
+  background:linear-gradient(135deg,#B91C1C,#DC2626) !important;
+  color:#FFFFFF !important;
+  box-shadow:0 8px 20px rgba(220,38,38,.22) !important;
+}
+
+html[data-theme="light"] .day-modal{
+  background:#FFFFFF !important;
+  border-color:rgba(20,50,120,.18) !important;
+  box-shadow:0 22px 55px rgba(15,23,42,.18) !important;
+}
+
+html[data-theme="light"] .day-modal-header{
+  border-bottom-color:rgba(20,50,120,.12) !important;
+}
+
+html[data-theme="light"] .day-modal-title{
+  color:#0E1530 !important;
+}
+
+html[data-theme="light"] .day-modal-overlay{
+  background:rgba(15,23,42,.28) !important;
+}
+
 </style>
 
 {{-- ---- HTML ---- --}}
@@ -465,7 +540,7 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
               timestamp: Date.now()
             }));
           } catch(e) {}
-          window.location.href = '{{ route('pacientes') }}?paciente=' + encodeURIComponent(name);
+          window.location.href = '{{ url('/pacientes') }}?paciente=' + encodeURIComponent(name);
         });
       }
       if (MENSAJE_LABELS_DIA.includes(b.label)) {
@@ -666,7 +741,7 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
                 timestamp: Date.now()
               }));
             } catch(e) {}
-            window.location.href = '{{ route('pacientes') }}?paciente=' + encodeURIComponent(name);
+            window.location.href = '{{ url('/pacientes') }}?paciente=' + encodeURIComponent(name);
           });
         }
         if (MENSAJE_LABELS_DIA.includes(b.label)) {

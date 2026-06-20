@@ -1,12 +1,22 @@
 {{-- ============================================================
      AGENDAR / _cita.blade.php
      Paso 2: Datos de la cita
+     Duración libre en minutos
      ============================================================ --}}
+
 <style>
 .cita-icon-wrap{display:flex;align-items:center;gap:8px}
 .cita-icon-wrap svg{color:var(--ag-soft);flex:none}
-
 html[data-theme="light"] .cita-icon-wrap svg{color:#5B6A99}
+
+.duracion-libre-wrap{display:flex;align-items:center;gap:8px}
+.duracion-libre-wrap .ag-input{flex:1}
+.duracion-suffix{
+  font-size:12px;
+  color:var(--ag-soft);
+  white-space:nowrap;
+}
+html[data-theme="light"] .duracion-suffix{color:#5B6A99}
 </style>
 
 <div class="ag-card" id="stepCita">
@@ -46,6 +56,7 @@ html[data-theme="light"] .cita-icon-wrap svg{color:#5B6A99}
         <input class="ag-input" id="citaFecha" type="text" placeholder="DD/MM/AAAA" value="{{ date('d/m/Y') }}">
       </div>
     </div>
+
     <div>
       <label class="ag-label">Hora</label>
       <input class="ag-input" id="citaHora" type="text" placeholder="10:00 AM" value="10:00 AM">
@@ -55,13 +66,21 @@ html[data-theme="light"] .cita-icon-wrap svg{color:#5B6A99}
   <div class="ag-row ag-field">
     <div>
       <label class="ag-label">Duración</label>
-      <select class="ag-input ag-select" id="citaDuracion">
-        <option>30 minutos</option>
-        <option selected>60 minutos</option>
-        <option>90 minutos</option>
-        <option>120 minutos</option>
-      </select>
+      <div class="duracion-libre-wrap">
+        <input
+          class="ag-input"
+          id="citaDuracion"
+          type="number"
+          min="1"
+          max="1440"
+          step="1"
+          value="60"
+          placeholder="Ej. 45"
+        >
+        <span class="duracion-suffix">min</span>
+      </div>
     </div>
+
     <div>
       <label class="ag-label">Sala</label>
       <select class="ag-input ag-select" id="citaSala">

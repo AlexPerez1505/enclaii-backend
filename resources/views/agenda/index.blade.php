@@ -4,7 +4,7 @@
 @section('active', 'agenda')
 @section('header-title', 'Buenos días, Dr. Victor')
 @section('header-sub')
-  Tiene <b>8</b> pacientes el día de hoy
+  Tiene <b>{{ $citasHoy ?? 0 }}</b> pacientes el día de hoy
 @endsection
 
 {{--

@@ -78,6 +78,25 @@ html[data-theme="light"] .legend-item{color:#5B6A99}
 @media(max-width:540px){
   .slots-grid{grid-template-columns:repeat(2,1fr)}
 }
+
+.reprogram-info{
+  display:none;
+  margin-bottom:12px;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1.5px solid rgba(22,139,217,.35);
+  background:rgba(22,139,217,.08);
+  color:var(--ag-txt);
+  font-size:12.5px;
+  line-height:1.45;
+}
+.reprogram-info.open{display:block}
+.reprogram-info strong{color:var(--ag-blue)}
+html[data-theme="light"] .reprogram-info{
+  background:rgba(22,104,217,.08);
+  border-color:rgba(20,50,120,.22);
+  color:#0E1530;
+}
 </style>
 
 <div class="ag-card" id="stepCalendario">
@@ -85,6 +104,8 @@ html[data-theme="light"] .legend-item{color:#5B6A99}
     <span class="ag-step-badge">3</span>
     Selección de Fecha y Hora
   </div>
+
+  <div class="reprogram-info" id="reprogramInfo"></div>
 
   <div class="cal-ag-wrap">
     <div class="cal-ag-nav-header">
@@ -130,15 +151,31 @@ html[data-theme="light"] .legend-item{color:#5B6A99}
     const EVENTS = (typeof window.__AGENDA_EVENTS !== 'undefined') ? window.__AGENDA_EVENTS : {};
     const key = `${y}-${m+1}-${d}`;
     const dayEvs = EVENTS[key] || [];
-    const match  = dayEvs.find(ev => ev.h === hour);
+    const currentId = window.__CITA_EDITAR_ID ? String(window.__CITA_EDITAR_ID) : null;
+
+    const match = dayEvs.find(ev => {
+      if (!ev) return false;
+
+      // Si estamos reprogramando esta misma cita, su horario anterior queda libre.
+      if (currentId && String(ev.id || '') === currentId) return false;
+
+      return parseInt(ev.h, 10) === parseInt(hour, 10);
+    });
+
     if (!match) return 'libre';
     if (match.cls === 'ev-wait') return 'espera';
+
     return 'ocupado';
   }
 
-  let agY = new Date().getFullYear();
-  let agM = new Date().getMonth();
-  let agSelected = null;
+  const __reprogramFecha = window.__CITA_EDITAR_FECHA || null;
+  const __reprogramDate = __reprogramFecha ? new Date(__reprogramFecha + 'T00:00:00') : new Date();
+
+  let agY = __reprogramDate.getFullYear();
+  let agM = __reprogramDate.getMonth();
+  let agSelected = window.__CITA_EDITAR_FECHA
+    ? { y: __reprogramDate.getFullYear(), m: __reprogramDate.getMonth(), d: __reprogramDate.getDate() }
+    : null;
   let selectedSlot = null;
 
   function renderCalAg() {
@@ -217,8 +254,25 @@ html[data-theme="light"] .legend-item{color:#5B6A99}
   document.getElementById('calAgMonthPrev').addEventListener('click', () => { if(--agM<0){agM=11;agY--;} renderCalAg(); });
   document.getElementById('calAgMonthNext').addEventListener('click', () => { if(++agM>11){agM=0;agY++;} renderCalAg(); });
 
+  function renderReprogramInfo() {
+    const box = document.getElementById('reprogramInfo');
+
+    if (!box || !window.__CITA_EDITAR_ID) return;
+
+    const fecha = window.__CITA_EDITAR_FECHA_TEXTO || '';
+    const hora = window.__CITA_EDITAR_HORA_TEXTO || '';
+
+    box.classList.add('open');
+    box.innerHTML = `<strong>Estaba programada:</strong> ${fecha} a las ${hora}. Selecciona otra fecha y otro horario disponible.`;
+  }
+
   renderCalAg();
-  renderSlots(new Date().getDate());
+  renderSlots(agSelected ? agSelected.d : new Date().getDate());
+  renderReprogramInfo();
+
+  if (agSelected && window.__agOnDateSelect) {
+    window.__agOnDateSelect(new Date(agSelected.y, agSelected.m, agSelected.d));
+  }
 
   window.__renderSlots = renderSlots;
   window.__renderCalAg = renderCalAg;

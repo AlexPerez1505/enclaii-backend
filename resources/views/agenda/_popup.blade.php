@@ -99,7 +99,16 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
       const displayName = (window.__displayName ? window.__displayName(fullName) : fullName);
       const initials = displayName.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
       const cls = el.dataset.cls || [...el.classList].find(c => c.startsWith('ev-')) || 'ev-done';
-      return { fullName, displayName, initials, proc, time, cls };
+      return {
+        id: el.dataset.citaId || el.dataset.id || '',
+        reprogramar_url: el.dataset.reprogramarUrl || '',
+        fullName,
+        displayName,
+        initials,
+        proc,
+        time,
+        cls
+      };
     }
 
     function positionPopup(e) {
@@ -129,6 +138,12 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
     const INFORME_LABELS = ['Ver Informe'];
 
     function buildAgendarUrl(d, fechaTxt) {
+      if (d.reprogramar_url) return d.reprogramar_url;
+
+      if (d.id) {
+        return '{{ route("agendar") }}?cita_id=' + encodeURIComponent(d.id);
+      }
+
       const params = new URLSearchParams();
       if (d.fullName) params.set('paciente', d.fullName);
       if (d.proc)     params.set('proc', d.proc);
@@ -152,6 +167,8 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
           proc:     el.dataset.proc || 'Procedimiento',
           time:     el.dataset.time || '00:00',
           cls:      el.dataset.evcls || 'ev-done',
+          id:       el.dataset.citaId || el.dataset.id || '',
+          reprogramar_url: el.dataset.reprogramarUrl || '',
         };
       } else {
         d = parseEvent(el);
@@ -209,7 +226,7 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
                 timestamp: Date.now()
               }));
             } catch(e) {}
-            window.location.href = '{{ route('pacientes') }}?paciente=' + encodeURIComponent(d.fullName);
+            window.location.href = '{{ url('/pacientes') }}?paciente=' + encodeURIComponent(d.fullName);
           });
         }
         if (MENSAJE_LABELS.includes(b.label)) {

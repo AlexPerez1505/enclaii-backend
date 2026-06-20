@@ -4,6 +4,8 @@ use App\Http\Controllers\Auth\EndoCareAuthController;
 use App\Http\Controllers\IaReporteController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AgendaController;
+use App\Http\Controllers\PacienteController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -72,13 +74,6 @@ Route::middleware('auth')->group(function () {
         return view('mensajes.dashboard');
     })->name('mensajes.correo');
 
-    Route::get('/agenda', function () {
-        return view('agenda.index');
-    })->name('agenda');
-
-    Route::get('/agendar', function () {
-        return view('agenda.agendar.index');
-    })->name('agendar');
 
     Route::get('/mensajes', function () {
         return view('mensajes.dashboard');
@@ -132,6 +127,13 @@ Route::middleware('auth')->group(function () {
     })->name('galeria.imagen');
 });
 
-use App\Http\Controllers\PacienteController;
 
 Route::resource('pacientes', PacienteController::class);
+
+Route::get('/agenda', [AgendaController::class, 'index'])->name('agenda');
+Route::get('/agendar', [AgendaController::class, 'create'])->name('agendar');
+
+Route::post('/agenda/citas', [AgendaController::class, 'store'])->name('agenda.citas.store');
+Route::put('/agenda/citas/{cita}', [AgendaController::class, 'update'])->name('agenda.citas.update');
+Route::patch('/agenda/citas/{cita}/estado', [AgendaController::class, 'cambiarEstado'])->name('agenda.citas.estado');
+Route::delete('/agenda/citas/{cita}', [AgendaController::class, 'destroy'])->name('agenda.citas.destroy');
