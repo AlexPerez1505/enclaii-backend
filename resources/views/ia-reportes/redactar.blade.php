@@ -330,12 +330,12 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
         </div>
 
         <div class="doc-meta">
-          <span class="k">Paciente:</span><span contenteditable="true" data-ph="Nombre del paciente"></span>
-          <span class="k">Edad:</span><span contenteditable="true" data-ph="—"></span>
-          <span class="k">Sexo:</span><span contenteditable="true" data-ph="—"></span>
-          <span class="k">Fecha de Nac.:</span><span contenteditable="true" data-ph="dd/mm/aaaa"></span>
-          <span class="k">Fecha del Estudio:</span><span contenteditable="true" data-ph="dd/mm/aaaa"></span>
-          <span class="k">Procedimiento:</span><span contenteditable="true" data-ph="Tipo de procedimiento"></span>
+          <span class="k">Paciente:</span><span contenteditable="true" id="docPaciente" data-ph="Nombre del paciente"></span>
+          <span class="k">Edad:</span><span contenteditable="true" id="docEdad" data-ph="—"></span>
+          <span class="k">Sexo:</span><span contenteditable="true" id="docSexo" data-ph="—"></span>
+          <span class="k">Fecha de Nac.:</span><span contenteditable="true" id="docNac" data-ph="dd/mm/aaaa"></span>
+          <span class="k">Fecha del Estudio:</span><span contenteditable="true" id="docFechaEstudio" data-ph="dd/mm/aaaa"></span>
+          <span class="k">Procedimiento:</span><span contenteditable="true" id="docProcedimiento" data-ph="Tipo de procedimiento"></span>
         </div>
 
         {{-- Imágenes del estudio --}}
@@ -1307,6 +1307,40 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
       if (statusEl && data.guardadoEn) statusEl.textContent = 'Reporte guardado';
     }
   } catch (e) {}
+})();
+</script>
+
+<script>
+/* ===== Precarga de datos del paciente desde la URL (al venir de Pacientes) ===== */
+(function(){
+  const q = new URLSearchParams(window.location.search);
+  if (![...q.keys()].length) return;
+
+  const setTx = (id, val) => { const el = document.getElementById(id); if (el && val) el.textContent = val; };
+
+  const name   = q.get('name');
+  const age    = q.get('age');
+  const gender = q.get('gender');
+  const dob    = q.get('dob');
+  const study  = q.get('study');
+
+  setTx('docPaciente', name);
+  setTx('docEdad', age);
+  setTx('docSexo', gender);
+  setTx('docNac', dob);
+  setTx('docProcedimiento', study);
+
+  // Tipo de estudio: seleccionar la opción que coincida y notificar a los listeners
+  if (study) {
+    const sel = document.getElementById('edTipo');
+    if (sel) {
+      const opt = [...sel.options].find(o => o.textContent.trim().toLowerCase() === study.toLowerCase());
+      if (opt) {
+        sel.value = opt.value;
+        sel.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    }
+  }
 })();
 </script>
 @endpush

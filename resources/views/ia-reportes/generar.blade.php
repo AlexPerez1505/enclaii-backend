@@ -134,21 +134,21 @@
           <svg class="step-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11.5 14.5 16 9.5"/></svg>
         </div>
         <div class="gen-field gen-search">
-          <input class="gen-input" type="text" placeholder="Buscar paciente...">
+          <input class="gen-input" type="text" id="genSearch" placeholder="Buscar paciente...">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </div>
         <div class="gen-pat">
-          <span class="av">MG</span>
+          <span class="av" id="genAv">MG</span>
           <div>
             <div class="nm" id="genPat">María Gonzales</div>
-            <div class="mt">Femenino · 45 años</div>
+            <div class="mt" id="genMeta">Femenino · 45 años</div>
           </div>
         </div>
         <div class="gen-pat-grid">
-          <div><div class="k">Expediente</div><div class="v">EXP-2024-0001</div></div>
-          <div><div class="k">NSS</div><div class="v">1234 5678 9101 1122</div></div>
-          <div><div class="k">Médico responsable</div><div class="v">Dr. Victor</div></div>
-          <div><div class="k">Fecha de nacimiento</div><div class="v">12/04/1979</div></div>
+          <div><div class="k">Expediente</div><div class="v" id="genExp">EXP-2024-0001</div></div>
+          <div><div class="k">NSS</div><div class="v" id="genNss">1234 5678 9101 1122</div></div>
+          <div><div class="k">Médico responsable</div><div class="v" id="genMedico">Dr. Victor</div></div>
+          <div><div class="k">Fecha de nacimiento</div><div class="v" id="genDob">12/04/1979</div></div>
         </div>
       </div>
 
@@ -321,6 +321,40 @@
 
 @push('scripts')
 <script>
+// Precarga de datos del paciente desde la URL (al venir de la sección Pacientes)
+(function(){
+  const q = new URLSearchParams(window.location.search);
+  if (![...q.keys()].length) return;
+  const setTx = (id, val) => { const el = document.getElementById(id); if (el && val) el.textContent = val; };
+
+  const name     = q.get('name');
+  const initials = q.get('initials');
+  const age      = q.get('age');
+  const gender   = q.get('gender');
+  const folio    = q.get('folio');
+  const dob      = q.get('dob');
+  const study    = q.get('study');
+
+  setTx('genPat', name);
+  setTx('genAv', initials);
+  setTx('genDob', dob);
+  if (folio) setTx('genExp', 'EXP-' + folio);
+  const meta = [gender, age].filter(Boolean).join(' · ');
+  if (meta) setTx('genMeta', meta);
+
+  const search = document.getElementById('genSearch');
+  if (search && name) search.value = name;
+
+  // Tipo de estudio: seleccionar la opción que coincida con la del paciente
+  if (study) {
+    const sel = document.getElementById('genTipo');
+    if (sel) {
+      const opt = [...sel.options].find(o => o.value.toLowerCase() === study.toLowerCase());
+      if (opt) sel.value = opt.value;
+    }
+  }
+})();
+
 (function(){
   const btn = document.getElementById('btnGenerar');
   if (!btn) return;

@@ -2210,6 +2210,23 @@ for(let i=seed.length;i<128;i++){
 }
 const patientsData = seed;
 
+// URLs con los datos del paciente precargados
+const GEN_BASE     = @json(route('ia-reportes.generar'));   // Generar reporte IA
+const REDACT_BASE  = @json(route('ia-reportes.redactar'));  // Crear informe (editor manual, sin IA)
+function patientParams(p){
+  return new URLSearchParams({
+    name: p.name || '',
+    initials: p.initials || '',
+    age: p.age || '',
+    gender: p.gender || '',
+    folio: p.folio || '',
+    dob: p.dob || '',
+    study: p.study_type || '',
+  }).toString();
+}
+function reportUrl(p){ return GEN_BASE + '?' + patientParams(p); }
+function redactUrl(p){ return REDACT_BASE + '?' + patientParams(p); }
+
 // ============ PAGINACIÓN ============
 const PAGE_SIZE = 15;
 let currentPage = 1;
@@ -2240,10 +2257,10 @@ function rowHTML(patient, globalIndex) {
         <button class="btn-more" aria-label="Más opciones" onclick="event.stopPropagation();toggleMenu(this)">⋮</button>
       </div>
       <div class="actions-dropdown" onclick="event.stopPropagation()">
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Crear informe</a>
+        <a href="${redactUrl(patient)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Crear informe</a>
         <a href="{{ route('pacientes.edit') }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Editar información</a>
         <a href="{{ route('nuevo-estudio') }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/><line x1="12" y1="17" x2="12" y2="22"/></svg>Iniciar estudio</a>
-        <a href="{{ route('ia-reportes.generar') }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><path d="M9 22h6"/><circle cx="12" cy="11" r="1" fill="currentColor"/></svg>Generar reporte IA</a>
+        <a href="${reportUrl(patient)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><path d="M9 22h6"/><circle cx="12" cy="11" r="1" fill="currentColor"/></svg>Generar reporte IA</a>
         <a href="{{ route('agendar') }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Programar cita</a>
         <a href="{{ route('mensajes') }}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.292-.995-.69-2.058-.997a4.88 4.88 0 0 0-.82-.166c-.197.233-.486.652-.675.99-.785 1.4-2.055 1.412-2.839 0-.189-.338-.478-.757-.675-.99a4.88 4.88 0 0 0-.82.166c-1.063.307-1.761.705-2.058.997-.09.092-.09.242 0 .333.297.298.995.705 2.058 1.012.82.236 1.638.178 2.189-.089.12-.055.235-.117.345-.185.11.068.225.13.345.185.55.267 1.369.325 2.189.089 1.063-.307 1.761-.714 2.058-1.012.09-.091.09-.241 0-.333zM12 2C6.486 2 2 6.486 2 12s4.486 10 10 10c1.468 0 2.861-.332 4.113-.912 1.29-.596 2.4-1.476 3.245-2.563a9.95 9.95 0 0 0 1.542-4.06A9.95 9.95 0 0 0 22 12c0-5.514-4.486-10-10-10zm0 18c-4.411 0-8-3.589-8-8 0-1.473.403-2.85 1.105-4.033a2 2 0 0 1 2.034-.967c.96.13 1.846.516 2.555 1.098a5.96 5.96 0 0 1 2.612 0c.709-.582 1.595-.968 2.555-1.098a2 2 0 0 1 2.034.967A7.963 7.963 0 0 1 20 12c0 4.411-3.589 8-8 8z"/></svg>Enviar WhatsApp/correo</a>
         <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Descargar expediente PDF</a>

@@ -405,12 +405,6 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
     <article class="card rep-tbl rise d5">
       <div class="card-head">
         <h3>Reportes generados por IA</h3>
-<<<<<<< HEAD
-        <a class="btn-gen" href="{{ route('ia-reportes.generar') }}">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="M9 15l3 3 3-3"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>
-          Generar reporte IA
-        </a>
-=======
         <div class="card-head-actions">
           <a class="btn-gen secondary" href="{{ route('ia-reportes.redactar') }}">
             <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
@@ -421,7 +415,6 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
             Generar reporte IA
           </a>
         </div>
->>>>>>> d75dde5 (implementacion del informe normal)
       </div>
 
       <div class="tbl-wrap">
