@@ -154,21 +154,21 @@ html[data-theme="light"] .np-res-item.active { background: var(--hover-bg-strong
   background: var(--card-bg);
   border: 1px solid var(--stroke);
   border-radius: 18px;
-  padding: 32px 36px;
-  margin-bottom: 28px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
 }
 
 /* Sección header */
 .np-sec-header {
-  font-size: 20px; font-weight: 700; color: var(--txt);
-  margin-bottom: 24px;
+  font-size: 18px; font-weight: 700; color: var(--txt);
+  margin-bottom: 16px;
 }
 
 /* Layout: foto + campos */
 .np-personal-layout {
   display: grid;
-  grid-template-columns: 180px 1fr;
-  gap: 28px;
+  grid-template-columns: 80px 1fr;
+  gap: 12px;
   align-items: start;
 }
 
@@ -648,6 +648,199 @@ html[data-theme="light"] .pa-duration { background: rgba(0,0,0,.55); color: #fff
 html[data-theme="light"] .pa-btn:hover { border-color: rgba(46,123,246,.45); }
 html[data-theme="light"] .pa-btn.primary { background: rgba(46,123,246,.14); border-color: rgba(46,123,246,.35); }
 html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22); }
+
+/* Estilos para campos de valor plano - solo texto */
+.np-field-value {
+  padding: 1px 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--txt);
+  display: block;
+  line-height: 1.2;
+}
+html[data-theme="light"] .np-field-value {
+  color: #1e293b;
+}
+
+/* Mejorar espaciado entre etiquetas y valores */
+.np-field {
+  margin-bottom: 4px;
+}
+.np-field label {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--txt-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 1px;
+  transition: color 200ms ease;
+}
+html[data-theme="light"] .np-field label {
+  color: #64748b;
+}
+
+/* Estilos para campos tipo textarea */
+.np-textarea-value {
+  font-family: inherit;
+  font-size: 14px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Estilos para foto ovalada */
+.np-foto-box {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--stroke);
+  background: var(--panel);
+  position: relative;
+}
+html[data-theme="light"] .np-foto-box {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+}
+.np-foto-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.np-foto-ph {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+/* Mejorar diseño de cards */
+.np-card {
+  background: var(--panel);
+  border: 1px solid var(--stroke);
+  border-radius: var(--r-lg);
+  padding: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+html[data-theme="light"] .np-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* Mejorar diseño del header de sección */
+.np-sec-header {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--txt);
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--stroke);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+html[data-theme="light"] .np-sec-header {
+  color: #1e293b;
+  border-color: #e2e8f0;
+}
+
+/* Iconos para headers */
+.np-sec-header::before {
+  content: '';
+  width: 4px;
+  height: 20px;
+  background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+  border-radius: 2px;
+}
+
+/* Estilos para secciones de información */
+.np-info-section {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--stroke);
+}
+.np-info-section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+.np-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--txt-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  padding-left: 8px;
+  border-left: 3px solid var(--blue);
+}
+html[data-theme="light"] .np-section-title {
+  color: #64748b;
+  border-color: #3b82f6;
+}
+html[data-theme="light"] .np-info-section {
+  border-color: #e2e8f0;
+}
+
+/* Estilos para recuadros de información */
+.np-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  width: 100%;
+}
+.np-info-box {
+  background: rgba(var(--card-rgb), 0.3);
+  border: 1px solid rgba(var(--stroke-rgb), 0.5);
+  border-radius: 6px;
+  padding: 6px;
+  transition: all 200ms ease;
+  cursor: default;
+}
+.np-info-box:hover {
+  background: rgba(var(--card-rgb), 0.4);
+  border-color: rgba(var(--stroke-rgb), 0.7);
+}
+.np-info-box.np-wide {
+  grid-column: 1 / -1;
+}
+.np-info-box label {
+  display: block;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--txt-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 3px;
+}
+.np-info-box .np-field-value {
+  font-size: 13px;
+  color: var(--txt);
+  line-height: 1.2;
+  pointer-events: none;
+}
+html[data-theme="light"] .np-info-box {
+  background: rgba(248, 250, 252, 0.7);
+  border-color: rgba(226, 232, 240, 0.8);
+}
+html[data-theme="light"] .np-info-box:hover {
+  background: rgba(241, 245, 249, 0.8);
+  border-color: rgba(203, 213, 225, 0.9);
+}
+html[data-theme="light"] .np-info-box label {
+  color: #64748b;
+}
+html[data-theme="light"] .np-info-box .np-field-value {
+  color: #475569;
+}
 </style>
 @endpush
 
@@ -668,10 +861,6 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
   <button class="np-back-btn" type="button" id="npBackToPatientsTop">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
     Volver a pacientes
-  </button>
-  <button class="np-new-study-btn" type="button" id="npNewStudyBtn">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    Agregar nuevo estudio
   </button>
   <div class="np-search-wrap">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -742,9 +931,9 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
   <form method="POST" action="#" id="formNuevoPaciente">
     @csrf
 
-    {{-- Card informacion personal --}}
+    {{-- Card unificada de información del paciente --}}
     <div class="np-card rise d2">
-      <div class="np-sec-header">Informacion personal</div>
+      <div class="np-sec-header">Información del paciente</div>
 
       <div class="np-personal-layout">
 
@@ -760,100 +949,70 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
           <input type="file" id="npFotoCamera" accept="image/*" capture="environment" style="display:none">
         </div>
 
-        {{-- Campos personales --}}
-        <div>
-          <div class="np-fields np-row-3" style="margin-bottom:16px">
-            <div class="np-field" style="grid-column:span 2">
-              <label>Nombre completo</label>
-              <input type="text" id="nombre" name="nombre" placeholder="Maria Fernanda Lopez Ruiz" autocomplete="off" readonly>
-            </div>
-            <div class="np-field">
-              <label>Identificacion</label>
-              <input type="text" id="identificacion" name="identificacion" placeholder="0256987450" autocomplete="off" readonly>
-            </div>
+        {{-- Datos del paciente en recuadros hacia la derecha --}}
+        <div class="np-info-grid">
+          <div class="np-info-box">
+            <label>Nombre completo</label>
+            <div class="np-field-value" id="nombre">Maria Fernanda Lopez Ruiz</div>
           </div>
-
-          <div class="np-fields np-row-4" style="margin-bottom:16px">
-            <div class="np-field">
-              <label>Fecha de nacimiento</label>
-              <input type="date" id="fecha_nac" name="fecha_nac" readonly>
-            </div>
-            <div class="np-field">
-              <label>Edad</label>
-              <input type="text" id="edad" name="edad" placeholder="28 años" autocomplete="off" readonly>
-            </div>
-            <div class="np-field">
-              <label>Peso</label>
-              <input type="text" id="peso" name="peso" placeholder="30 kg" autocomplete="off" readonly>
-            </div>
-            <div class="np-field">
-              <label>Altura</label>
-              <input type="text" id="altura" name="altura" placeholder="1.75 m" autocomplete="off" readonly>
-            </div>
+          
+                    
+          <div class="np-info-box">
+            <label>Edad</label>
+            <div class="np-field-value" id="edad">28 años</div>
           </div>
-
-          <div class="np-fields np-row-3b" style="margin-bottom:16px">
-            <div class="np-field">
-              <label>Sexo</label>
-              <select id="sexo" name="sexo" disabled>
-                <option value="" disabled selected>Elegir</option>
-                <option value="F">Femenino</option>
-                <option value="M">Masculino</option>
-              </select>
-            </div>
-            <div class="np-field">
-              <label>N.S.S</label>
-              <input type="text" id="nss" name="nss" placeholder="25849563-9" autocomplete="off" readonly>
-            </div>
-            <div class="np-field">
-              <label>Telefono</label>
-              <input type="tel" id="telefono" name="telefono" placeholder="722 162 0815" autocomplete="off" readonly>
-            </div>
+          
+          <div class="np-info-box">
+            <label>Sexo</label>
+            <div class="np-field-value" id="sexo">Femenino</div>
           </div>
-
-          <div class="np-fields np-row-2" style="margin-bottom:0">
-            <div class="np-field">
-              <label>Direccion</label>
-              <input type="text" id="direccion" name="direccion" placeholder="CALLE, CP" autocomplete="off" readonly>
-            </div>
-            <div class="np-field">
-              <label>E-MAIL</label>
-              <input type="email" id="email" name="email" placeholder="@gmail.com" autocomplete="off" readonly>
-            </div>
+          
+          <div class="np-info-box">
+            <label>Fecha nacimiento</label>
+            <div class="np-field-value" id="fecha_nac">1998-12-25</div>
+          </div>
+          
+          <div class="np-info-box">
+            <label>Peso</label>
+            <div class="np-field-value" id="peso">30 kg</div>
+          </div>
+          
+          <div class="np-info-box">
+            <label>Altura</label>
+            <div class="np-field-value" id="altura">1.75 m</div>
+          </div>
+          
+          <div class="np-info-box">
+            <label>Número de Seguro Social</label>
+            <div class="np-field-value" id="nss">25849563-9</div>
+          </div>
+          
+          <div class="np-info-box">
+            <label>Teléfono</label>
+            <div class="np-field-value" id="telefono">722 162 0815</div>
+          </div>
+          
+          <div class="np-info-box">
+            <label>Correo electrónico</label>
+            <div class="np-field-value" id="email">@gmail.com</div>
+          </div>
+          
+          <div class="np-info-box">
+            <label>Procedimiento</label>
+            <div class="np-field-value">Colonoscopia</div>
+          </div>
+          
+          <div class="np-info-box">
+            <label>Fecha de registro</label>
+            <div class="np-field-value" id="fecha_registro">2025-06-20</div>
+          </div>
+          
+          <div class="np-info-box np-wide">
+            <label>Diagnóstico Preliminar</label>
+            <div class="np-field-value np-textarea-value" style="min-height:50px; line-height: 1.3;">Define lo que podria tener</div>
           </div>
         </div>
 
-      </div>
-    </div>
-
-    {{-- Card informacion medica --}}
-    <div class="np-card rise d3" style="margin-top:16px">
-      <div class="np-sec-header">Informacion medica</div>
-
-      {{-- Procedimiento izq + Diagnostico textarea der --}}
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;align-items:start">
-        <div class="np-field">
-          <label>Procedimiento</label>
-          <select id="procedimiento" name="procedimiento" disabled>
-            <option value="" disabled selected>Seleccione</option>
-            <option value="endoscopia">Endoscopia diagnostica</option>
-            <option value="colonoscopia" selected>Colonoscopia</option>
-            <option value="gastroscopia">Gastroscopia</option>
-            <option value="sigmoidoscopia">Sigmoidoscopia</option>
-            <option value="cpre">CPRE</option>
-            <option value="ecoendoscopia">Ecoendoscopia</option>
-          </select>
-        </div>
-        <div class="np-field" style="grid-row:span 2">
-          <label>Diagnostico Preliminar</label>
-          <textarea id="diagnostico" name="diagnostico" placeholder="Define lo que podria tener" style="min-height:150px" readonly></textarea>
-        </div>
-      </div>
-
-      {{-- Fecha de registro --}}
-      <div class="np-field" style="max-width:50%">
-        <label>Fecha de registro</label>
-        <input type="date" id="fecha_registro" name="fecha_registro" readonly>
       </div>
     </div>
 
@@ -862,12 +1021,12 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
   {{-- Sidebar acciones --}}
   <div class="np-side rise d4">
     <div class="np-action-btns">
-      <a class="np-action-btn" href="{{ route('nuevo-estudio.grabando') }}">
+      <button class="np-action-btn" type="button" id="btnIniciarGrabacion" onclick="window.openDispositivoModal()">
         <span class="np-ab-icon" style="background:rgba(255,59,59,.12);border-color:rgba(255,90,110,.4)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff5a6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="#ff5a6e" stroke="none"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff5a6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="#ff5a6e" stroke="none"/></svg>
         </span>
         Iniciar Grabacion
-      </a>
+      </button>
       <a class="np-action-btn" href="{{ route('nuevo-estudio.configuracion') }}">
         <span class="np-ab-icon">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87 1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
@@ -1063,6 +1222,63 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
           <div class="ns-option-desc">Sube imagenes o videos ya capturados para formar un estudio sin grabar.</div>
         </div>
         <svg class="ns-option-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+    </div>
+  </div>
+</div>
+
+{{-- Modal de verificación de dispositivo --}}
+<div class="ns-modal-backdrop" id="dispositivoModalBackdrop">
+  <div class="ns-modal" style="max-width:420px">
+    <div class="ns-modal-header">
+      <div>
+        <div class="ns-modal-title">Verificar dispositivo</div>
+        <div class="ns-modal-subtitle">Confirma que el dispositivo de grabación está conectado</div>
+      </div>
+      <button class="ns-modal-close" type="button" id="dispositivoModalClose" aria-label="Cerrar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="ns-modal-body">
+      <div style="margin-bottom:20px">
+        <label style="display:block;font-size:12px;font-weight:600;color:var(--txt-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Dispositivo de grabación</label>
+        <select id="selDispositivo" style="width:100%;padding:12px 14px;background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-md);font-size:14px;color:var(--txt);outline:none">
+          <option value="Endoscopio EG-530" selected>Endoscopio EG-530</option>
+          <option value="Endoscopio CF-HQ190L">Endoscopio CF-HQ190L</option>
+          <option value="Endoscopio GIF-HQ190">Endoscopio GIF-HQ190</option>
+          <option value="Endoscopio Olympus EVIS EXERA III">Endoscopio Olympus EVIS EXERA III</option>
+          <option value="Cámara USB HD 1080p">Cámara USB HD 1080p</option>
+          <option value="USB Video Device">USB Video Device</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
+        <div id="dispositivoStatusIcon" style="width:52px;height:52px;border-radius:14px;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);display:grid;place-items:center;color:#16a34a">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h7l2 3h6c1.1 0 2 .9 2 2v3c0 1.1-.9 2-2 2h-3"/><circle cx="18" cy="16" r="3"/><path d="M18 13v-1"/></svg>
+        </div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--txt)" id="dispositivoNombre">Endoscopio EG-530</div>
+          <div style="font-size:13px;color:var(--txt-soft)" id="dispositivoStatusText">Dispositivo conectado</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+        <div style="padding:12px;background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-md)">
+          <div style="font-size:11px;color:var(--txt-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Resolución</div>
+          <div style="font-size:14px;font-weight:600;color:var(--txt)">1920 x 1080</div>
+        </div>
+        <div style="padding:12px;background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-md)">
+          <div style="font-size:11px;color:var(--txt-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">FPS</div>
+          <div style="font-size:14px;font-weight:600;color:var(--txt)">30</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--txt);cursor:pointer">
+          <input type="checkbox" id="chkDispositivoConectado" checked>
+          Sí, el dispositivo está conectado
+        </label>
+      </div>
+      <a href="{{ route('nuevo-estudio.grabando') }}" class="np-new-study-btn" id="btnComenzarGrabar" style="width:100%;justify-content:center;text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>
+        Comenzar a grabar
       </a>
     </div>
   </div>
@@ -1406,6 +1622,55 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
       tab.classList.add('active');
       document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
     });
+  });
+
+  /* Modal de verificación de dispositivo */
+  var dispositivoModalBackdrop = document.getElementById('dispositivoModalBackdrop');
+  var dispositivoModalClose = document.getElementById('dispositivoModalClose');
+  var selDispositivo = document.getElementById('selDispositivo');
+  var dispositivoNombre = document.getElementById('dispositivoNombre');
+  var chkDispositivoConectado = document.getElementById('chkDispositivoConectado');
+  var dispositivoStatusIcon = document.getElementById('dispositivoStatusIcon');
+  var dispositivoStatusText = document.getElementById('dispositivoStatusText');
+  var btnComenzarGrabar = document.getElementById('btnComenzarGrabar');
+
+  function openDispositivoModal() {
+    if (dispositivoModalBackdrop) dispositivoModalBackdrop.classList.add('open');
+    updateDispositivoStatus();
+  }
+  function closeDispositivoModal() {
+    if (dispositivoModalBackdrop) dispositivoModalBackdrop.classList.remove('open');
+  }
+  function updateDispositivoStatus() {
+    if (!chkDispositivoConectado) return;
+    var conectado = chkDispositivoConectado.checked;
+    if (conectado) {
+      dispositivoStatusIcon.style.background = 'rgba(34,197,94,.12)';
+      dispositivoStatusIcon.style.borderColor = 'rgba(34,197,94,.3)';
+      dispositivoStatusIcon.style.color = '#16a34a';
+      dispositivoStatusText.textContent = 'Dispositivo conectado';
+      btnComenzarGrabar.style.opacity = '1';
+      btnComenzarGrabar.style.pointerEvents = 'auto';
+    } else {
+      dispositivoStatusIcon.style.background = 'rgba(220,38,38,.12)';
+      dispositivoStatusIcon.style.borderColor = 'rgba(220,38,38,.3)';
+      dispositivoStatusIcon.style.color = '#dc2626';
+      dispositivoStatusText.textContent = 'Dispositivo no conectado';
+      btnComenzarGrabar.style.opacity = '.5';
+      btnComenzarGrabar.style.pointerEvents = 'none';
+    }
+  }
+
+  window.openDispositivoModal = openDispositivoModal;
+  window.closeDispositivoModal = closeDispositivoModal;
+
+  dispositivoModalClose?.addEventListener('click', closeDispositivoModal);
+  dispositivoModalBackdrop?.addEventListener('click', function(e){
+    if (e.target === dispositivoModalBackdrop) closeDispositivoModal();
+  });
+  chkDispositivoConectado?.addEventListener('change', updateDispositivoStatus);
+  selDispositivo?.addEventListener('change', function(){
+    if (dispositivoNombre) dispositivoNombre.textContent = selDispositivo.value;
   });
 
 })();
