@@ -1059,7 +1059,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
     <h2 class="section-title">Información médica</h2>
 
     <div style="display:flex;gap:32px;align-items:flex-start;">
-      {{-- Columna izquierda: Procedimiento + Fecha --}}
+      {{-- Columna izquierda --}}
       <div style="flex:1;">
         <div class="form-group" style="margin-bottom:18px;">
           <label>Médico</label>
@@ -1127,12 +1127,39 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
             </button>
           </div>
         </div>
+        <div class="form-group" style="margin-bottom:18px;">
+          <label>Alergias</label>
+          <input type="text" placeholder="Ej: Penicilina, látex, mariscos...">
+        </div>
+        <div class="form-group" style="margin-bottom:18px;">
+          <label>Tipo de sangre</label>
+          <select>
+            <option value="" disabled selected>Seleccionar</option>
+            <option>A+</option><option>A-</option>
+            <option>B+</option><option>B-</option>
+            <option>AB+</option><option>AB-</option>
+            <option>O+</option><option>O-</option>
+          </select>
+        </div>
       </div>
-      {{-- Columna derecha: Diagnóstico --}}
-      <div style="flex:1;display:flex;flex-direction:column;">
-        <div class="form-group" style="flex:1;">
+      {{-- Columna derecha --}}
+      <div style="flex:1;display:flex;flex-direction:column;gap:18px;">
+        <div class="form-group">
           <label>Diagnóstico Preliminar</label>
-          <textarea placeholder="Define lo que podría tener" style="min-height:220px;width:100%;"></textarea>
+          <textarea placeholder="Define lo que podría tener" style="min-height:140px;width:100%;"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Enfermedades / Antecedentes</label>
+          <textarea placeholder="Ej: Diabetes tipo 2, Hipertensión arterial..." style="min-height:100px;width:100%;resize:vertical;"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Estudios previos y recetas</label>
+          <div id="archivosEstudiosLista" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;"></div>
+          <label id="btnSubirEstudio" style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border:1.5px dashed var(--stroke-strong);border-radius:var(--r-md);cursor:pointer;font-size:13px;font-weight:600;color:var(--cyan);background:var(--panel-2);transition:border-color 150ms,background 150ms;" onmouseover="this.style.borderColor='var(--cyan)';this.style.background='rgba(56,199,244,.07)'" onmouseout="this.style.borderColor='var(--stroke-strong)';this.style.background='var(--panel-2)'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Subir archivo (PDF, imagen, DOC)
+            <input type="file" id="inputEstudios" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none" onchange="agregarArchivosEstudios(this)">
+          </label>
         </div>
       </div>
     </div>
@@ -1319,6 +1346,21 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
 
 @push('scripts')
 <script>
+function agregarArchivosEstudios(input){
+  var lista = document.getElementById('archivosEstudiosLista');
+  Array.from(input.files).forEach(function(file){
+    var item = document.createElement('div');
+    item.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--panel-2);border:1px solid var(--stroke);border-radius:8px;font-size:13px;';
+    var ext = file.name.split('.').pop().toLowerCase();
+    var iconColor = ext === 'pdf' ? '#f87171' : (ext === 'doc' || ext === 'docx' ? '#60a5fa' : '#34d399');
+    item.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="'+iconColor+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
+      + '<span style="flex:1;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+file.name+'</span>'
+      + '<span style="color:var(--txt-soft);font-size:11px;">'+( file.size > 1024*1024 ? (file.size/1024/1024).toFixed(1)+' MB' : Math.round(file.size/1024)+' KB' )+'</span>'
+      + '<button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--txt-soft);padding:2px;line-height:1;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
+    lista.appendChild(item);
+  });
+  input.value = '';
+}
 (function(){
 
   // ===== MINI MODAL AGREGAR OPCIÓN (se inyecta en body) =====
