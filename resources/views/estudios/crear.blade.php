@@ -1059,12 +1059,13 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
 <script>
 (function () {
 
+
   /* Fecha por defecto */
   var now  = new Date();
   var pad  = function(n){ return String(n).padStart(2,'0'); };
   var fechaNac = document.getElementById('fecha_nac');
   var fechaReg = document.getElementById('fecha_registro');
-  if (fechaNac) fechaNac.value = '1998-12-25';
+  if (fechaNac && !fechaNac.value) fechaNac.value = '1998-12-25';
   if (fechaReg) fechaReg.value = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate());
 
   /* Foto menu (formulario oculto, solo por seguridad) */
@@ -1334,6 +1335,48 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
   document.addEventListener('keydown', function(e){
     if (e.key === 'Escape' && nsBackdrop?.classList.contains('open')) closeNsModal();
   });
+
+  /* Precarga datos del paciente desde URL (viene de Pacientes > Iniciar estudio) */
+  (function(){
+    var params = new URLSearchParams(window.location.search);
+    var name   = params.get('name');
+    if (!name) return;
+
+    var age    = params.get('age')    || '';
+    var gender = params.get('gender') || '';
+    var dob    = params.get('dob')    || '';
+
+    var elNombre = document.getElementById('nombre');
+    if (elNombre) elNombre.value = name;
+
+    var elEdad = document.getElementById('edad');
+    if (elEdad) elEdad.value = age;
+
+    var elSexo = document.getElementById('sexo');
+    if (elSexo){
+      var g = gender.toLowerCase();
+      if (g === 'femenino' || g === 'f') elSexo.value = 'F';
+      else if (g === 'masculino' || g === 'm') elSexo.value = 'M';
+    }
+
+    var elFecha = document.getElementById('fecha_nac');
+    if (elFecha && dob) elFecha.value = dob;
+
+    var elSearch = document.getElementById('npSearch');
+    if (elSearch) elSearch.value = name;
+
+    var emptyState = document.getElementById('npEmptyState');
+    var formLayout = document.getElementById('npFormLayout');
+    var npResults  = document.getElementById('npResults');
+    if (emptyState) emptyState.style.display = 'none';
+    if (formLayout) formLayout.style.display = 'grid';
+    if (npResults)  npResults.classList.remove('open');
+    document.querySelectorAll('.np-tab.hidden').forEach(function(t){ t.classList.remove('hidden'); });
+    var topBack = document.getElementById('npBackToPatientsTop');
+    var topNew  = document.getElementById('npNewStudyBtn');
+    if (topBack) topBack.classList.add('visible');
+    if (topNew)  topNew.classList.add('visible');
+  })();
 
   /* Pestañas */
   document.querySelectorAll('.np-tab[data-tab]').forEach(function(tab){
