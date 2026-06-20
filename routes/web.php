@@ -23,18 +23,7 @@ Route::middleware('auth')->group(function () {
         return view('dashboard');
     })->name('dashboard');
     
-    Route::get('/pacientes', function () {
-        return view('pacientes.index');
-    })->name('pacientes');
 
-    Route::get('/pacientes/nuevo', function () {
-        return view('pacientes.create');
-    })->name('pacientes.create');
-
-    Route::get('/pacientes/editar', function () {
-        $paciente = (object) ['folio' => 'P-125'];
-        return view('pacientes.edit', compact('paciente'));
-    })->name('pacientes.edit');
 
     Route::get('/ia-reportes', function () {
         return view('ia-reportes.index');
@@ -78,10 +67,6 @@ Route::middleware('auth')->group(function () {
 
     Route::patch('/configuracion/general', [SettingsController::class, 'update'])
         ->name('configuracion.general.update');
-
-    Route::get('/pacientes/estudios', function () {
-        return view('pacientes.estudios');
-    })->name('pacientes.estudios');
 
     Route::get('/mensajes/correo', function () {
         return view('mensajes.dashboard');
@@ -146,3 +131,7 @@ Route::middleware('auth')->group(function () {
         return view('galeria.verimagen', ['id' => $id]);
     })->name('galeria.imagen');
 });
+
+use App\Http\Controllers\PacienteController;
+
+Route::resource('pacientes', PacienteController::class);
