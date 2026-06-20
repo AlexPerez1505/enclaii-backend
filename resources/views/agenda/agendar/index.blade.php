@@ -13,9 +13,6 @@
 
 @section('content')
 
-{{-- Datos de eventos compartidos --}}
-@include('agenda._events')
-
 {{-- ===== PARTIALS: HTML + CSS + JS inline ===== --}}
 @include('agenda.agendar._paciente')
 @include('agenda.agendar._cita')
@@ -78,11 +75,6 @@
     document.getElementById('cfmPaciente').textContent = this.value || 'Sofía Lozano';
   });
 
-  /* Sincronizar especialista con confirmación */
-  document.getElementById('citaEspecialista').addEventListener('change', function() {
-    document.getElementById('cfmEspecialista').textContent = this.value;
-  });
-
   /* Sincronizar procedimiento con confirmación */
   document.getElementById('citaProcedimiento').addEventListener('change', function() {
     document.getElementById('cfmProcedimiento').textContent = this.value;
@@ -92,25 +84,6 @@
   document.getElementById('citaSala').addEventListener('change', function() {
     document.getElementById('cfmSala').textContent = this.value;
   });
-
-  /* Inicializar confirmación con valores actuales */
-  (function initConfirmation() {
-    const selEsp = document.getElementById('citaEspecialista');
-    if (selEsp) selEsp.dispatchEvent(new Event('change'));
-    const selProc = document.getElementById('citaProcedimiento');
-    if (selProc) selProc.dispatchEvent(new Event('change'));
-    const selSala = document.getElementById('citaSala');
-    if (selSala) selSala.dispatchEvent(new Event('change'));
-    const citaFecha = document.getElementById('citaFecha');
-    const cfmFecha  = document.getElementById('cfmFecha');
-    if (citaFecha && cfmFecha && citaFecha.value) cfmFecha.textContent = citaFecha.value;
-    const citaHora = document.getElementById('citaHora');
-    const cfmHora  = document.getElementById('cfmHora');
-    if (citaHora && cfmHora && citaHora.value) cfmHora.textContent = citaHora.value;
-    const pacSearch = document.getElementById('pacSearch');
-    const cfmPaciente = document.getElementById('cfmPaciente');
-    if (pacSearch && cfmPaciente && pacSearch.value) cfmPaciente.textContent = pacSearch.value;
-  })();
 
   /* ---- Precarga desde query params (Reprogramar) ---- */
   (function prefillFromUrl() {
@@ -162,32 +135,12 @@
     }
   })();
 
-  /* Cancelar -> volver a agenda principal */
-  document.getElementById('cfmCancelar').addEventListener('click', () => {
-    window.location.href = '{{ route('agenda') }}';
-  });
+  /* Cancelar */
+  document.getElementById('cfmCancelar').addEventListener('click', () => window.history.back());
 
   /* Agendar */
   document.getElementById('cfmAgendar').addEventListener('click', () => {
-    const paciente = document.getElementById('cfmPaciente').textContent.trim() || 'Paciente';
-    const hora     = document.getElementById('cfmHora').textContent.trim() || 'la hora indicada';
-    const fecha    = document.getElementById('cfmFecha').textContent.trim() || 'la fecha indicada';
-    const mensaje  = `Su cita está agendada el ${fecha} a las ${hora}. Por favor llegar 15 minutos antes.`;
-
-    // Guardar chat en localStorage para que se cree al abrir Mensajes
-    try {
-      localStorage.setItem('pendingChat', JSON.stringify({
-        name: paciente,
-        message: mensaje,
-        timestamp: Date.now()
-      }));
-    } catch(e) {}
-
-    // Mostrar overlay de éxito
-    const overlay = document.getElementById('successOverlay');
-    const txt     = document.getElementById('successText');
-    if (overlay) overlay.classList.add('open');
-    if (txt) txt.textContent = `La cita de ${paciente} se guardó correctamente. Se enviará una notificación al paciente.`;
+    alert('¡Cita agendada con éxito!');
   });
 })();
 </script>
