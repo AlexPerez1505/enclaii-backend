@@ -79,6 +79,10 @@ class EndoCareAuthController extends Controller
 
         return match ($view) {
             'IA Reportes' => 'ia-reportes',
+            'Agenda' => 'agendar',
+            'Mensajes' => 'mensajes',
+            'Nuevo estudio' => 'nuevo-estudio',
+            'Galería' => 'galeria',
             default => 'dashboard',
         };
     }

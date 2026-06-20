@@ -35,3 +35,4 @@
     <button type="button" class="vi-annotation-btn danger" id="viAnnoClear">Limpiar</button>
   </div>
 </div>
+

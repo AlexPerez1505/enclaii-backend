@@ -20,17 +20,6 @@
 .pac-link{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ag-blue);background:none;border:none;cursor:pointer;padding:0;font-family:inherit;margin-top:4px}
 .pac-link:hover{opacity:.8}
 
-/* Autocomplete */
-.pac-suggestions{position:absolute;top:calc(100% + 6px);left:0;right:0;background:#001A30;border:1.5px solid var(--ag-stroke);border-radius:10px;max-height:220px;overflow-y:auto;z-index:1100;display:none;box-shadow:0 12px 40px rgba(0,0,0,.5)}
-.pac-suggestions.open{display:block}
-.pac-suggestion{padding:10px 14px;cursor:pointer;font-size:13px;color:var(--ag-txt);border-bottom:1px solid rgba(255,255,255,.06)}
-.pac-suggestion:last-child{border-bottom:none}
-.pac-suggestion:hover,.pac-suggestion.active{background:rgba(22,139,217,.18)}
-.pac-suggestion .sug-folio{font-size:11px;color:var(--ag-soft);margin-left:6px}
-html[data-theme="light"] .pac-suggestions{background:#F0F5FF;border-color:rgba(20,50,120,.15)}
-html[data-theme="light"] .pac-suggestion{color:#0E1530;border-bottom-color:rgba(20,50,120,.08)}
-html[data-theme="light"] .pac-suggestion:hover,html[data-theme="light"] .pac-suggestion.active{background:rgba(22,104,217,.1)}
-
 /* Filtro panel */
 .pac-filter-btn{position:absolute;right:40px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;display:grid;place-items:center;padding:4px;color:var(--ag-blue)}
 .pac-filter-btn:hover{opacity:.8}
@@ -165,7 +154,6 @@ html[data-theme="light"] .pac-meta-item{color:#5B6A99}
     <button class="pac-search-btn" id="pacSearchBtn">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     </button>
-    <div class="pac-suggestions" id="pacSuggestions"></div>
   </div>
 
   {{-- Panel de filtros --}}
@@ -197,10 +185,10 @@ html[data-theme="light"] .pac-meta-item{color:#5B6A99}
         <div class="pac-filter-lbl">Tipo de estudio</div>
         <select class="pac-filter-select" id="pfEstudio">
           <option value="">Todos los estudios</option>
+          <option>Endoscopia</option>
           <option>Colonoscopia</option>
-          <option>Gastroscopía</option>
-          <option>Dudoescopía</option>
-          <option>Broncoscopia</option>
+          <option>Ultrasonido</option>
+          <option>Radiografía</option>
         </select>
       </div>
       <div>
@@ -355,19 +343,10 @@ html[data-theme="light"] .pac-meta-item{color:#5B6A99}
     { nombre:'María Gómez',       folio:'00045', edad:45, genero:'Mujer',  nac:'18/05/1979', tel:'55 4455 6677', email:'maria.gomez@correo.com',       dir:'Av. Revolución 1011, CDMX' },
   ];
 
-  const searchInput = document.getElementById('pacSearch');
-  const suggestions = document.getElementById('pacSuggestions');
-  let sugIndex = -1;
-
-  function findPatients(query) {
-    if (!query || query.trim().length < 1) return [];
-    const q = query.trim().toLowerCase();
-    return PACIENTES.filter(p => p.nombre.toLowerCase().includes(q));
-  }
-
   function findPatient(query) {
-    const list = findPatients(query);
-    return list[0] || null;
+    if (!query || query.trim().length < 2) return null;
+    const q = query.trim().toLowerCase();
+    return PACIENTES.find(p => p.nombre.toLowerCase().includes(q)) || null;
   }
 
   function updatePacResult(pac) {
@@ -385,130 +364,12 @@ html[data-theme="light"] .pac-meta-item{color:#5B6A99}
     if (emailEl) emailEl.value = pac.email;
   }
 
-  function renderSuggestions(list) {
-    suggestions.innerHTML = '';
-    sugIndex = -1;
-    if (!list.length) {
-      suggestions.classList.remove('open');
-      return;
-    }
-    list.forEach((p, i) => {
-      const div = document.createElement('div');
-      div.className = 'pac-suggestion';
-      div.dataset.index = i;
-      div.innerHTML = `<span>${p.nombre}</span><span class="sug-folio">Folio ${p.folio}</span>`;
-      div.addEventListener('click', () => selectPatient(p));
-      suggestions.appendChild(div);
-    });
-    suggestions.classList.add('open');
-  }
-
-  function closeSuggestions() {
-    suggestions.classList.remove('open');
-    sugIndex = -1;
-  }
-
-  function selectPatient(pac) {
-    updatePacResult(pac);
-    searchInput.value = pac.nombre;
-    closeSuggestions();
-
-    // Actualizar confirmación
-    const cfmPaciente = document.getElementById('cfmPaciente');
-    if (cfmPaciente) cfmPaciente.textContent = pac.nombre;
-
-    // Guardar paciente en caché
-    try {
-      localStorage.setItem('lastPatient', JSON.stringify(pac));
-    } catch(e) {}
-
-    // Generar cita en caché
-    const fecha = document.getElementById('cfmFecha')?.textContent || document.getElementById('citaFecha')?.value || new Date().toLocaleDateString('es-ES');
-    const hora  = document.getElementById('cfmHora')?.textContent || document.getElementById('citaHora')?.value || '10:00 AM';
-    const proc  = document.getElementById('cfmProcedimiento')?.textContent || document.getElementById('citaProcedimiento')?.value || 'Endoscopia';
-    const cita = {
-      paciente: pac.nombre,
-      folio: pac.folio,
-      fecha: fecha,
-      hora: hora,
-      procedimiento: proc,
-      timestamp: Date.now()
-    };
-    try {
-      const citas = JSON.parse(localStorage.getItem('agendaCitas') || '[]');
-      citas.push(cita);
-      localStorage.setItem('agendaCitas', JSON.stringify(citas));
-    } catch(e) {}
-
-    // Reflejar inmediatamente en el calendario de agendamiento si está disponible
-    if (typeof window.__AGENDA_EVENTS !== 'undefined') {
-      try {
-        const [d, m, y] = fecha.split('/').map(Number);
-        const key = `${y}-${m}-${d}`;
-        const hMatch = hora.match(/(\d+):(\d+)\s*(AM|PM)?/i);
-        let h = hMatch ? parseInt(hMatch[1], 10) : 10;
-        const ampm = hMatch ? hMatch[3] : 'AM';
-        if (ampm && ampm.toUpperCase() === 'PM' && h < 12) h += 12;
-        if (ampm && ampm.toUpperCase() === 'AM' && h === 12) h = 0;
-        window.__AGENDA_EVENTS[key] = window.__AGENDA_EVENTS[key] || [];
-        window.__AGENDA_EVENTS[key].push({
-          t: `${hora} ${pac.nombre} · ${proc}`,
-          name: pac.nombre,
-          proc: proc,
-          cls: 'ev-soon',
-          h: h
-        });
-        // Re-renderizar el calendario para que el nuevo horario se pinte rojo/naranja
-        if (typeof window.__renderSlots === 'function') {
-          window.__renderSlots(d);
-        }
-        if (typeof window.__renderCalAg === 'function') {
-          window.__renderCalAg();
-        }
-      } catch(e) {}
-    }
-  }
-
   window.__updatePacResult = updatePacResult;
   window.__findPatient     = findPatient;
-  window.__selectPatient   = selectPatient;
 
-  searchInput.addEventListener('input', function() {
-    const list = findPatients(this.value);
-    renderSuggestions(list);
-  });
-
-  searchInput.addEventListener('keydown', function(e) {
-    const items = suggestions.querySelectorAll('.pac-suggestion');
-    if (!items.length) return;
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      sugIndex = Math.min(sugIndex + 1, items.length - 1);
-      items.forEach((it, i) => it.classList.toggle('active', i === sugIndex));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      sugIndex = Math.max(sugIndex - 1, 0);
-      items.forEach((it, i) => it.classList.toggle('active', i === sugIndex));
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      if (sugIndex >= 0 && items[sugIndex]) {
-        items[sugIndex].click();
-      } else if (items.length === 1) {
-        items[0].click();
-      }
-    } else if (e.key === 'Escape') {
-      closeSuggestions();
-    }
-  });
-
-  document.addEventListener('click', e => {
-    if (!e.target.closest('.pac-search-wrap')) closeSuggestions();
-  });
-
-  document.getElementById('pacSearchBtn').addEventListener('click', () => {
-    const list = findPatients(searchInput.value);
-    if (list.length === 1) selectPatient(list[0]);
-    else renderSuggestions(list);
+  document.getElementById('pacSearch').addEventListener('input', function() {
+    const pac = findPatient(this.value);
+    if (pac) updatePacResult(pac);
   });
 })();
 </script>

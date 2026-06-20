@@ -81,25 +81,20 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
       'ev-cancel':[{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
       'ev-soon':  [{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
     };
-    const STATUS_LABELS = {'ev-done':'Completado','ev-wait':'En espera','ev-cancel':'Cancelado','ev-soon':'Próximos'};
+    const STATUS_LABELS = {'ev-done':'Completado','ev-wait':'En espera','ev-cancel':'Cancelado','ev-soon':'Próximamente'};
     const STATUS_BADGE_CLS = {'ev-done':'done','ev-wait':'wait','ev-cancel':'cancel','ev-soon':'soon'};
 
     function parseEvent(el) {
       const text = el.textContent.trim();
       const timeMatch = text.match(/^(\d+:\d+)/);
-      let time = el.dataset.time || (timeMatch ? timeMatch[1] : '00:00');
+      const time = timeMatch ? timeMatch[1] : '00:00';
       const rest = text.replace(/^\d+:\d+\s*/, '');
-      let fullName = el.dataset.name || '';
-      let proc = el.dataset.proc || '';
-      if (!fullName) {
-        const parts = rest.split('·').map(s => s.trim());
-        fullName = parts[0] || 'Paciente';
-        proc = parts[1] || 'Procedimiento';
-      }
-      const displayName = (window.__displayName ? window.__displayName(fullName) : fullName);
-      const initials = displayName.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
-      const cls = el.dataset.cls || [...el.classList].find(c => c.startsWith('ev-')) || 'ev-done';
-      return { fullName, displayName, initials, proc, time, cls };
+      const parts = rest.split('·').map(s => s.trim());
+      const fullName = parts[0] || 'Paciente';
+      const proc = parts[1] || 'Procedimiento';
+      const initials = fullName.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+      const cls = [...el.classList].find(c => c.startsWith('ev-')) || 'ev-done';
+      return { fullName, initials, proc, time, cls };
     }
 
     function positionPopup(e) {
@@ -124,9 +119,6 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
     }
 
     const REPROG_LABELS = ['Reprogramar nueva cita','Reprogramar Paciente'];
-    const PACIENTE_LABELS = ['Datos del paciente','Datos del Paciente'];
-    const MENSAJE_LABELS = ['Enviar mensaje'];
-    const INFORME_LABELS = ['Ver Informe'];
 
     function buildAgendarUrl(d, fechaTxt) {
       const params = new URLSearchParams();
@@ -144,11 +136,9 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
       let d;
       const isDayEvent = el.classList.contains('day-event');
       if (isDayEvent && el.dataset.name) {
-        const displayName = (window.__displayName ? window.__displayName(el.dataset.name) : el.dataset.name);
         d = {
           fullName: el.dataset.name,
-          displayName: displayName,
-          initials: el.dataset.inits || displayName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),
+          initials: el.dataset.inits || el.dataset.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),
           proc:     el.dataset.proc || 'Procedimiento',
           time:     el.dataset.time || '00:00',
           cls:      el.dataset.evcls || 'ev-done',
@@ -178,7 +168,7 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
         }
       }
       evPopAvatar.textContent = d.initials;
-      evPopName.textContent   = d.displayName || d.fullName;
+      evPopName.textContent   = d.fullName;
       evPopDate.innerHTML     = fechaTxt ? `<b>Fecha:</b> ${fechaTxt}` : '';
       evPopInfo.innerHTML =
         `<b>Motivo:</b> ${d.proc}<br>` +
@@ -197,31 +187,6 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
           btn.addEventListener('click', ev => {
             ev.stopPropagation();
             window.location.href = buildAgendarUrl(d, fechaTxt);
-          });
-        }
-        if (PACIENTE_LABELS.includes(b.label)) {
-          btn.addEventListener('click', ev => {
-            ev.stopPropagation();
-            try {
-              localStorage.setItem('lastPatient', JSON.stringify({
-                name: d.fullName,
-                source: 'agenda',
-                timestamp: Date.now()
-              }));
-            } catch(e) {}
-            window.location.href = '{{ route('pacientes') }}?paciente=' + encodeURIComponent(d.fullName);
-          });
-        }
-        if (MENSAJE_LABELS.includes(b.label)) {
-          btn.addEventListener('click', ev => {
-            ev.stopPropagation();
-            window.location.href = '{{ route('mensajes') }}?paciente=' + encodeURIComponent(d.displayName || d.fullName);
-          });
-        }
-        if (INFORME_LABELS.includes(b.label)) {
-          btn.addEventListener('click', ev => {
-            ev.stopPropagation();
-            window.location.href = '{{ route('ia-reportes.ver') }}?paciente=' + encodeURIComponent(d.displayName || d.fullName) + '&procedimiento=' + encodeURIComponent(d.proc || 'Endoscopia');
           });
         }
         evPopBtns.appendChild(btn);
@@ -244,26 +209,16 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
 
     let popupAnchoredEl = null;
     let popupCloseTimer = null;
-    let mouseOverEl = null;
 
     function hidePopup() {
       popupAnchoredEl = null;
       evPopup.classList.remove('visible');
     }
 
-    function isHovered(selector) {
-      if (!mouseOverEl) return false;
-      return selector ? mouseOverEl.closest(selector) === selector : false;
-    }
-
     function scheduleHide() {
       if (popupCloseTimer) clearTimeout(popupCloseTimer);
       popupCloseTimer = setTimeout(() => {
-        const inPopup = mouseOverEl && mouseOverEl.closest('#evPopup');
-        const inEvent = popupAnchoredEl && popupAnchoredEl.contains(mouseOverEl);
-        const cell = popupAnchoredEl?.closest('td');
-        const inCell = cell && (cell === mouseOverEl || cell.contains(mouseOverEl));
-        if (!inPopup && !inEvent && !inCell) {
+        if (!evPopup.matches(':hover') && !popupAnchoredEl?.matches(':hover')) {
           hidePopup();
         }
       }, 200);
@@ -273,23 +228,14 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
       if (popupCloseTimer) { clearTimeout(popupCloseTimer); popupCloseTimer = null; }
     }
 
-    document.addEventListener('mousemove', e => {
-      mouseOverEl = e.target;
-    });
-
-    /* ---- Desktop: hover en cal/week/day events ---- */
+    /* ---- Desktop: hover en cal/week events ---- */
     document.addEventListener('mouseover', e => {
-      mouseOverEl = e.target;
       if (window.innerWidth < 600) return;
-      const ev = e.target.closest('.cal-event, .wk-event, .day-event');
-      if (ev && !ev.classList.contains('ev-block')) {
-        // En desktop, ev-done en la vista día sigue usando el panel lateral
-        const isDayEvent = ev.classList.contains('day-event');
-        if (!isDayEvent || !ev.classList.contains('ev-done')) {
-          cancelHide();
-          if (popupAnchoredEl !== ev) { popupAnchoredEl = ev; __showPopup(ev, e); }
-          return;
-        }
+      const ev = e.target.closest('.cal-event, .wk-event');
+      if (ev) {
+        cancelHide();
+        if (popupAnchoredEl !== ev) { popupAnchoredEl = ev; __showPopup(ev, e); }
+        return;
       }
       if (e.target.closest('#evPopup')) { cancelHide(); return; }
       scheduleHide();
@@ -324,50 +270,6 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
     /* Cerrar popup con Escape */
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') { popupAnchoredEl = null; evPopup.classList.remove('visible'); }
-    });
-
-    /* ---- Arrastrar el popup ---- */
-    let isDragging = false;
-    let dragOffsetX = 0, dragOffsetY = 0;
-    let dragStartX = 0, dragStartY = 0;
-    let dragHasMoved = false;
-
-    evPopup.addEventListener('mousedown', e => {
-      if (e.target.closest('.ev-pop-btn') || e.target.closest('a')) return;
-      e.preventDefault();
-      e.stopPropagation();
-      isDragging = true;
-      dragHasMoved = false;
-      const rect = evPopup.getBoundingClientRect();
-      dragOffsetX = e.clientX - rect.left;
-      dragOffsetY = e.clientY - rect.top;
-      dragStartX = e.clientX;
-      dragStartY = e.clientY;
-      cancelHide();
-    });
-
-    document.addEventListener('mousemove', e => {
-      if (!isDragging) return;
-      dragHasMoved = true;
-      const x = e.clientX - dragOffsetX;
-      const y = e.clientY - dragOffsetY;
-      evPopup.style.left = x + 'px';
-      evPopup.style.top  = y + 'px';
-      evPopup.style.transform = 'none';
-      cancelHide();
-    });
-
-    document.addEventListener('mouseup', e => {
-      if (!isDragging) return;
-      isDragging = false;
-      const rect = evPopup.getBoundingClientRect();
-      const outside = e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom;
-      if (outside) {
-        popupAnchoredEl = null;
-        evPopup.classList.remove('visible');
-      } else {
-        scheduleHide();
-      }
     });
   };
 })();
