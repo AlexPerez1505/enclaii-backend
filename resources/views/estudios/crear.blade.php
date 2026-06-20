@@ -648,6 +648,59 @@ html[data-theme="light"] .pa-duration { background: rgba(0,0,0,.55); color: #fff
 html[data-theme="light"] .pa-btn:hover { border-color: rgba(46,123,246,.45); }
 html[data-theme="light"] .pa-btn.primary { background: rgba(46,123,246,.14); border-color: rgba(46,123,246,.35); }
 html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22); }
+
+/* ===== REPORTE CLINICO ===== */
+.rpt-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0 16px;flex-wrap:wrap;}
+.rpt-toolbar-left{display:flex;align-items:center;gap:12px;}
+.rpt-toolbar-right{display:flex;align-items:center;gap:8px;}
+.rpt-pat-chip{display:flex;align-items:center;gap:10px;}
+.rpt-pat-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#c084fc,#a78bfa);display:grid;place-items:center;font-size:11.5px;font-weight:800;color:#fff;flex:none;}
+.rpt-pat-name{font-size:13.5px;font-weight:700;color:var(--txt);}
+.rpt-pat-id{font-size:11px;color:var(--txt-soft);margin-top:1px;}
+.rpt-badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(245,158,45,.12);color:var(--orange);border:1px solid rgba(245,158,45,.25);}
+.rpt-act-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;border:1px solid var(--stroke);background:var(--panel-2);color:var(--txt-soft);font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none;transition:all 150ms;}
+.rpt-act-btn:hover{border-color:var(--stroke-strong);color:var(--txt);}
+.rpt-act-btn.primary{background:rgba(46,123,246,.12);border-color:rgba(46,123,246,.35);color:var(--blue);}
+.rpt-act-btn.primary:hover{background:rgba(46,123,246,.2);}
+.rpt-act-btn.accent{background:rgba(56,199,244,.1);border-color:rgba(56,199,244,.3);color:var(--cyan);}
+.rpt-act-btn.accent:hover{background:rgba(56,199,244,.18);}
+.rpt-doc-wrap{display:flex;justify-content:center;padding-bottom:32px;}
+.rpt-doc{background:var(--panel);border:1px solid var(--stroke);border-radius:16px;width:100%;max-width:820px;padding:40px 48px;box-shadow:0 8px 40px rgba(0,0,0,.18);}
+.rpt-doc-header{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:24px;}
+.rpt-doc-logo{display:flex;align-items:center;gap:12px;}
+.rpt-logo-icon{width:44px;height:44px;border-radius:12px;background:rgba(46,123,246,.12);border:1px solid rgba(46,123,246,.25);display:grid;place-items:center;flex:none;}
+.rpt-logo-name{font-size:18px;font-weight:800;color:var(--txt);letter-spacing:-.02em;}
+.rpt-logo-sub{font-size:11px;color:var(--txt-soft);margin-top:2px;}
+.rpt-doc-meta{display:flex;flex-direction:column;gap:5px;text-align:right;}
+.rpt-meta-row{display:flex;align-items:center;gap:8px;justify-content:flex-end;font-size:12px;}
+.rpt-meta-row span{color:var(--txt-soft);}
+.rpt-meta-row strong{color:var(--txt);}
+.rpt-estado-txt{color:var(--orange);}
+.rpt-divider{height:1px;background:var(--stroke);margin:22px 0;}
+.rpt-section-title{font-size:10.5px;font-weight:800;color:var(--txt-soft);text-transform:uppercase;letter-spacing:.09em;margin-bottom:14px;}
+.rpt-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:4px;}
+.rpt-field-view{display:flex;flex-direction:column;gap:3px;}
+.rpt-field-view span{font-size:10.5px;color:var(--txt-soft);}
+.rpt-field-view strong{font-size:13.5px;color:var(--txt);}
+.rpt-imgs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:4px;}
+.rpt-img-item{display:flex;flex-direction:column;gap:6px;}
+.rpt-img-ph{aspect-ratio:4/3;border-radius:10px;background:var(--panel-2);border:1px solid var(--stroke);display:grid;place-items:center;color:var(--txt-soft);}
+.rpt-img-label{font-size:10.5px;color:var(--txt-soft);text-align:center;}
+.rpt-text-block{font-size:13.5px;line-height:1.8;color:var(--txt);background:var(--panel-2);border:1px solid var(--stroke);border-radius:10px;padding:14px 18px;margin-bottom:4px;}
+.rpt-firma-row{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding-top:10px;}
+.rpt-firma-box{display:flex;flex-direction:column;gap:6px;min-width:200px;}
+.rpt-firma-line{height:1px;background:var(--stroke-strong);margin-bottom:2px;}
+.rpt-firma-name{font-size:14px;font-weight:700;color:var(--txt);}
+.rpt-firma-cargo{font-size:11px;color:var(--txt-soft);}
+.rpt-sello-box{display:flex;justify-content:flex-end;}
+.rpt-sello{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;border:1px solid rgba(46,123,246,.25);background:rgba(46,123,246,.06);}
+.rpt-sello-txt{font-size:12px;font-weight:800;color:var(--blue);line-height:1.3;}
+.rpt-sello-txt span{font-size:10px;font-weight:600;color:var(--txt-soft);}
+html[data-theme="light"] .rpt-doc{background:#fff;border-color:#e2e8f0;box-shadow:0 8px 40px rgba(0,0,0,.08);}
+html[data-theme="light"] .rpt-text-block{background:#f8fafc;border-color:#e2e8f0;}
+html[data-theme="light"] .rpt-img-ph{background:#f1f5f9;border-color:#e2e8f0;}
+html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color:rgba(46,123,246,.2);}
+@media print{.rpt-toolbar{display:none!important;}.rpt-doc-wrap{padding:0;}.rpt-doc{box-shadow:none;border:none;border-radius:0;max-width:100%;}}
 </style>
 @endpush
 
@@ -657,7 +710,7 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
 <div class="np-tabs rise d1">
   <button class="np-tab active" data-tab="pacientes">Pacientes</button>
   <button class="np-tab hidden np-tab-extra" data-tab="galeria">Galeria</button>
-  <a class="np-tab hidden np-tab-extra" href="{{ url('/ia-reportes') }}">Reportes</a>
+  <button class="np-tab hidden np-tab-extra" data-tab="reportes">Reportes</button>
 </div>
 
 {{-- Panel Pacientes --}}
@@ -1034,11 +1087,156 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
 
 {{-- Panel Reportes --}}
 <div class="np-tab-panel" id="tab-reportes">
-  <div class="np-empty-state rise d2">
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
-    <p>Reportes medicos</p>
-    <span>Selecciona un paciente para generar o ver reportes</span>
+
+  {{-- Barra de acciones del reporte --}}
+  <div class="rpt-toolbar rise d1">
+    <div class="rpt-toolbar-left">
+      <div class="rpt-pat-chip">
+        <div class="rpt-pat-av" id="rptPatAv">MG</div>
+        <div>
+          <div class="rpt-pat-name" id="rptPatName">Maria Gonzalez</div>
+          <div class="rpt-pat-id" id="rptPatId">ID: 00012345</div>
+        </div>
+      </div>
+      <span class="rpt-badge" id="rptBadge">Borrador</span>
+    </div>
+    <div class="rpt-toolbar-right">
+      <button class="rpt-act-btn" onclick="window.print()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Imprimir
+      </button>
+      <button class="rpt-act-btn primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Descargar PDF
+      </button>
+      <a class="rpt-act-btn accent" href="{{ url('/ia-reportes') }}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>
+        Editar con IA
+      </a>
+    </div>
   </div>
+
+  {{-- Documento del reporte --}}
+  <div class="rpt-doc-wrap rise d2">
+    <div class="rpt-doc" id="rptDoc">
+
+      {{-- Encabezado del documento --}}
+      <div class="rpt-doc-header">
+        <div class="rpt-doc-logo">
+          <div class="rpt-logo-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          <div>
+            <div class="rpt-logo-name">Enclaii</div>
+            <div class="rpt-logo-sub">Sistema de Endoscopia Médica</div>
+          </div>
+        </div>
+        <div class="rpt-doc-meta">
+          <div class="rpt-meta-row"><span>No. Reporte</span><strong id="rptNumero">RPT-2025-0034</strong></div>
+          <div class="rpt-meta-row"><span>Fecha</span><strong id="rptFechaDoc">15/07/2025</strong></div>
+          <div class="rpt-meta-row"><span>Estado</span><strong class="rpt-estado-txt" id="rptEstadoDoc">Borrador</strong></div>
+        </div>
+      </div>
+
+      <div class="rpt-divider"></div>
+
+      {{-- Datos del paciente --}}
+      <div class="rpt-section-title">Datos del Paciente</div>
+      <div class="rpt-grid-2">
+        <div class="rpt-field-view"><span>Nombre completo</span><strong id="rptNombre">Maria Gonzalez</strong></div>
+        <div class="rpt-field-view"><span>Identificacion</span><strong id="rptId">00012345</strong></div>
+        <div class="rpt-field-view"><span>Edad</span><strong id="rptEdad">38 años</strong></div>
+        <div class="rpt-field-view"><span>Sexo</span><strong id="rptSexo">Femenino</strong></div>
+        <div class="rpt-field-view"><span>N.S.S.</span><strong id="rptNss">—</strong></div>
+        <div class="rpt-field-view"><span>Telefono</span><strong id="rptTelefono">—</strong></div>
+      </div>
+
+      <div class="rpt-divider"></div>
+
+      {{-- Datos del estudio --}}
+      <div class="rpt-section-title">Informacion del Estudio</div>
+      <div class="rpt-grid-2">
+        <div class="rpt-field-view"><span>Procedimiento</span><strong id="rptProcedimiento">Colonoscopia</strong></div>
+        <div class="rpt-field-view"><span>Medico responsable</span><strong id="rptMedico">Dr. Victor</strong></div>
+        <div class="rpt-field-view"><span>Fecha del estudio</span><strong id="rptFechaEstudio">15/07/2025</strong></div>
+        <div class="rpt-field-view"><span>Total de estudios</span><strong id="rptTotalEstudios">15</strong></div>
+      </div>
+
+      <div class="rpt-divider"></div>
+
+      {{-- Imagenes del estudio --}}
+      <div class="rpt-section-title">Imagenes del Estudio</div>
+      <div class="rpt-imgs-grid">
+        <div class="rpt-img-item">
+          <div class="rpt-img-ph">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <div class="rpt-img-label">Fotograma 0:01:25</div>
+        </div>
+        <div class="rpt-img-item">
+          <div class="rpt-img-ph">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <div class="rpt-img-label">Fotograma 0:02:15</div>
+        </div>
+        <div class="rpt-img-item">
+          <div class="rpt-img-ph">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <div class="rpt-img-label">Fotograma 0:04:32</div>
+        </div>
+        <div class="rpt-img-item">
+          <div class="rpt-img-ph">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <div class="rpt-img-label">Fotograma 0:06:18</div>
+        </div>
+      </div>
+
+      <div class="rpt-divider"></div>
+
+      {{-- Hallazgos --}}
+      <div class="rpt-section-title">Hallazgos Clinicos</div>
+      <div class="rpt-text-block" id="rptHallazgos">
+        Se realizo colonoscopia total con preparacion adecuada. Se visualizo mucosa colonica de aspecto normal en todos los segmentos explorados. No se observaron lesiones polipoídeas, masas, ulceraciones ni signos de inflamacion activa. Valvula ileocecal de aspecto normal. Apendice visible sin alteraciones.
+      </div>
+
+      <div class="rpt-divider"></div>
+
+      {{-- Diagnóstico --}}
+      <div class="rpt-section-title">Diagnostico</div>
+      <div class="rpt-text-block" id="rptDiagnostico">
+        Colonoscopia sin hallazgos patologicos significativos. Estudio dentro de parametros normales para la edad y antecedentes del paciente.
+      </div>
+
+      <div class="rpt-divider"></div>
+
+      {{-- Observaciones --}}
+      <div class="rpt-section-title">Observaciones y Recomendaciones</div>
+      <div class="rpt-text-block" id="rptObservaciones">
+        Se recomienda control en 3 años si el paciente no presenta sintomatologia. Continuar con dieta balanceada y seguimiento clinico de rutina. Repetir estudio antes si aparecen sintomas como dolor abdominal persistente, sangrado o cambios en habito intestinal.
+      </div>
+
+      <div class="rpt-divider"></div>
+
+      {{-- Firma médica --}}
+      <div class="rpt-firma-row">
+        <div class="rpt-firma-box">
+          <div class="rpt-firma-line"></div>
+          <div class="rpt-firma-name" id="rptFirmaNombre">Dr. Victor</div>
+          <div class="rpt-firma-cargo">Medico Endoscopista</div>
+        </div>
+        <div class="rpt-sello-box">
+          <div class="rpt-sello">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <div class="rpt-sello-txt">Enclaii<br><span>Verificado</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </div>
 
 {{-- Modal Nuevo Estudio --}}
@@ -1218,6 +1416,7 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
         document.getElementById('edad').value           = p.edad + ' años';
         document.getElementById('npSearch').value       = p.nombre;
         populateGallery(p);
+        populateReport(p);
         hideResults();
         showForm();
       });
@@ -1259,6 +1458,59 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
     }
     var sideUltimo = document.getElementById('npGalSideUltimo');
     if (sideUltimo) sideUltimo.textContent = p.ultimo;
+  }
+
+  function populateReport(p) {
+    var ini = p.nombre.split(' ').slice(0,2).map(function(w){ return w[0]; }).join('');
+    var sexoTxt = p.sexo === 'F' ? 'Femenino' : 'Masculino';
+    var procMap = {
+      colonoscopia: 'Colonoscopia', endoscopia: 'Endoscopia Diagnostica',
+      gastroscopia: 'Gastroscopia', sigmoidoscopia: 'Sigmoidoscopia',
+      cpre: 'CPRE', ecoendoscopia: 'Ecoendoscopia'
+    };
+    var medicoMap = { dr_victor: 'Dr. Victor', dr_ricardo: 'Dr. Ricardo' };
+    var procLabel = procMap[p.proc] || p.proc;
+    var medicoLabel = medicoMap[p.medico] || p.medico;
+    var hallazgosMap = {
+      colonoscopia: 'Se realizo colonoscopia total con preparacion adecuada. Se visualizo mucosa colonica de aspecto normal en todos los segmentos explorados. No se observaron lesiones polipoídeas, masas ni signos de inflamacion activa.',
+      endoscopia: 'Se realizo endoscopia digestiva alta sin complicaciones. Mucosa esofagica, gastrica y duodenal de aspecto normal. No se evidenciaron ulceraciones, lesiones ni signos de sangrado activo.',
+      gastroscopia: 'Gastroscopia realizada con buena visibilidad. Mucosa gastrica con leve eritema antral sin lesiones relevantes. Peristalsis conservada. No se observaron signos de hemorragia ni perforacion.',
+      sigmoidoscopia: 'Sigmoidoscopia sin hallazgos patologicos. Mucosa del colon sigmoide de aspecto normal. No se apreciaron polipos ni lesiones mucosas.',
+      cpre: 'CPRE realizada con canulacion exitosa de la via biliar. Sin evidencia de calculos ni estenosis. Papila de aspecto normal.',
+      ecoendoscopia: 'Ecoendoscopia sin alteraciones ecograficas significativas. Paredes gastricas de grosor normal. Sin adenopatias perilesionales identificadas.'
+    };
+    var diagnosticoMap = {
+      colonoscopia: 'Colonoscopia dentro de parametros normales. Sin hallazgos patologicos significativos.',
+      endoscopia: 'Endoscopia alta sin alteraciones. Estudio normal para la edad y antecedentes del paciente.',
+      gastroscopia: 'Gastritis antral leve. Sin lesiones que requieran tratamiento inmediato.',
+      sigmoidoscopia: 'Sigmoidoscopia normal. Sin evidencia de patologia colonica.',
+      cpre: 'Via biliar permeable sin litiasis. Estudio endoscopico satisfactorio.',
+      ecoendoscopia: 'Ecoendoscopia sin signos de malignidad. Seguimiento clinico recomendado.'
+    };
+    var num = 'RPT-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random()*9000)+1000);
+
+    var set = function(id, val){ var el = document.getElementById(id); if(el) el.textContent = val; };
+    set('rptPatAv',    ini);
+    set('rptPatName',  p.nombre);
+    set('rptPatId',    'ID: ' + p.id);
+    set('rptNumero',   num);
+    set('rptFechaDoc', p.ultimo);
+    set('rptEstadoDoc','Borrador');
+    set('rptNombre',   p.nombre);
+    set('rptId',       p.id);
+    set('rptEdad',     p.edad + ' años');
+    set('rptSexo',     sexoTxt);
+    set('rptProcedimiento', procLabel);
+    set('rptMedico',   medicoLabel);
+    set('rptFechaEstudio', p.ultimo);
+    set('rptTotalEstudios', p.estudios);
+    set('rptHallazgos',   hallazgosMap[p.proc] || 'Estudio realizado sin complicaciones. Se documentan los hallazgos correspondientes al procedimiento.');
+    set('rptDiagnostico', diagnosticoMap[p.proc] || 'Estudio dentro de parametros normales.');
+    set('rptObservaciones', 'Se recomienda seguimiento clinico en ' + (p.sexo === 'F' ? 'la' : 'el') + ' paciente ' + p.nombre + '. Proxima revision en 6 meses o antes si presenta sintomatologia.');
+    set('rptFirmaNombre', medicoLabel);
+
+    var av = document.getElementById('rptPatAv');
+    if (av) av.style.background = p.color;
   }
 
   function showForm(){
