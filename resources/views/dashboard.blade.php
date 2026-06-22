@@ -2,9 +2,9 @@
 
 @section('title', 'Dashboard')
 @section('active', 'dashboard')
-@section('header-title', 'Buenos días, Dr. Victor')
+@section('header-title', 'Buenos dias, Dr. Victor 👋')
 @section('header-sub')
-  Tiene <b>8</b> pacientes el día de hoy
+  Resumen general de tu actividad clinica
 @endsection
 
 @push('styles')

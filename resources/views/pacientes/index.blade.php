@@ -1569,22 +1569,6 @@
     overflow-y:auto;
   }
 }
-
-.patient-avatar img,
-.panel-avatar img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  border-radius:50%;
-  display:block;
-}
-.panel-avatar{
-  overflow:hidden;
-}
-.patient-avatar{
-  overflow:hidden;
-}
-
 </style>
 @endpush
 
@@ -1865,7 +1849,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               <span>Médico</span>
             </div>
-            <div class="info-value" id="panelMedicoInfo">Sin médico</div>
+            <div class="info-value">Dr. Victor</div>
           </div>
         </div>
       </div>
@@ -1966,10 +1950,6 @@
             </div>
           </div>
         </div>
-        <button class="btn-view-all">
-          Ver todo el resumen de historial
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-        </button>
       </div>
     </div>
 
@@ -2078,7 +2058,7 @@
           </div>
         </div>
 
-        <a href="#" class="btn-view-all">
+        <a href="{{ route('pacientes.estudios') }}" class="btn-view-all">
           Ver todos los informes
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </a>
@@ -2136,7 +2116,7 @@
           </div>
         </div>
         
-        <a href="#" class="btn-view-all">
+        <a href="{{ route('ia-reportes.analisis') }}" class="btn-view-all">
           Ver reporte de IA
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </a>
@@ -2144,6 +2124,18 @@
     </div>
   </aside>
 
+</div>
+
+{{-- Modal Descarga PDF --}}
+<div id="modalDescargaPDF" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+  <div style="background:var(--card,#1a2035);border:1px solid var(--stroke-strong,#2e3a55);border-radius:16px;padding:32px 28px;max-width:400px;width:90%;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.5);">
+    <div style="width:60px;height:60px;border-radius:50%;background:rgba(61,220,151,.12);border:1px solid rgba(61,220,151,.3);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#3ddc97" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    </div>
+    <h3 style="font-size:17px;font-weight:700;color:var(--txt,#e2e8f0);margin:0 0 8px;">Expediente descargado</h3>
+    <p style="font-size:13px;color:var(--txt-soft,#8896ae);margin:0 0 24px;line-height:1.6;">El expediente PDF de <strong id="modalDescargaNombre" style="color:var(--txt,#e2e8f0);"></strong><br>se ha descargado correctamente.</p>
+    <button onclick="document.getElementById('modalDescargaPDF').style.display='none'" style="width:100%;padding:10px 0;border-radius:10px;border:none;background:#3ddc97;color:#fff;font-size:14px;font-weight:600;cursor:pointer;">Aceptar</button>
+  </div>
 </div>
 
 {{-- Modal Eliminar Paciente --}}
@@ -2164,88 +2156,123 @@
 @endsection
 
 @push('scripts')
-@php
-  $pacientesColeccion = isset($pacientes) ? collect($pacientes) : collect();
-  $pacientesJs = $pacientesColeccion->values()->map(function ($paciente) {
-      $nombre = trim($paciente->nombre_completo ?? 'Paciente sin nombre');
-      $partes = preg_split('/\s+/', $nombre);
-      $iniciales = '';
-
-      if (count($partes) >= 2) {
-          $iniciales = mb_substr($partes[0], 0, 1) . mb_substr($partes[1], 0, 1);
-      } else {
-          $iniciales = mb_substr($nombre, 0, 2);
-      }
-
-      return [
-          'id' => $paciente->id,
-          'name' => $nombre,
-          'initials' => mb_strtoupper($iniciales),
-          'age' => $paciente->edad ? $paciente->edad . ' años' : 'Sin edad',
-          'gender' => $paciente->sexo ? ucfirst($paciente->sexo) : 'No especificado',
-          'folio' => $paciente->folio ?? 'Sin folio',
-          'dob' => $paciente->fecha_nacimiento ? $paciente->fecha_nacimiento->format('d/m/Y') : 'Sin fecha',
-          'phone' => $paciente->telefono ?? 'Sin teléfono',
-          'email' => $paciente->email ?? 'Sin correo',
-          'address' => $paciente->direccion ?? 'Sin dirección',
-          'medico' => $paciente->medico ?? 'Sin médico',
-          'study_date' => $paciente->updated_at ? $paciente->updated_at->format('d M Y') : '',
-          'study_type' => $paciente->procedimiento ?? 'Sin procedimiento',
-          'status' => 'completed',
-          'foto_url' => $paciente->foto ? asset('storage/' . $paciente->foto) : null,
-      ];
-  });
-@endphp
-
 <script>
-// Datos de pacientes enviados desde el controlador
-const routes = {
-  edit: "{{ route('pacientes.edit', ':id') }}",
-  destroy: "{{ route('pacientes.destroy', ':id') }}"
-};
-
-const patientsData = @json($pacientesJs);
+// Datos de pacientes (128 registros)
+const nombresF = ['María','Sofía','Ana','Laura','Marta','Lucía','Gabriela','Isabel','Valeria','Patricia','Rosa','Carmen','Elena','Beatriz','Claudia','Diana','Fernanda','Alejandra','Yolanda','Mónica','Silvia','Alicia','Teresa','Norma','Verónica','Leticia','Sandra','Miriam','Lorena','Natalia','Adriana','Esther','Gloria','Irene','Karla','Liliana','Margarita','Nadia','Olivia','Paulina'];
+const nombresM = ['Juan','Carlos','Pedro','Roberto','Fernando','Andrés','Miguel','Jorge','Luis','Héctor','Raúl','Antonio','Francisco','Eduardo','Alejandro','Sergio','Ricardo','Arturo','Guillermo','Enrique','José','Manuel','Rafael','Óscar','Víctor','Alfredo','Ernesto','Ramón','Ignacio','Javier','Felipe','Adrián','Benjamín','César','Daniel','Diego','Emanuel','Félix','Gerardo','Hugo'];
+const apellidos = ['González','López','Martínez','Pérez','Ramírez','Torres','García','Hernández','Sánchez','Díaz','Ruiz','Flores','Castillo','Morales','Jiménez','Vargas','Reyes','Cruz','Herrera','Gutiérrez','Ortega','Vega','Medina','Ríos','Mora','Aguilar','Guerrero','Mendoza','Salinas','Rojas','Núñez','Peña','Fuentes','Delgado','Cabrera','Ramos','Lozano','Paredes','Romero','Ibáñez'];
+const estudios = ['Colonoscopia','Panendoscopia','Endoscopia diagnóstica','Gastroscopia','CPRE','Endoscopia alta'];
+const statuses = ['completed','waiting','cancelled'];
 const statusTexts = {completed:'Completado',waiting:'En espera',cancelled:'Cancelado'};
+const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+function padZ(n){return String(n).padStart(2,'0');}
+function rnd(min,max){return Math.floor(Math.random()*((max-min)+1))+min;}
+function genDate(y1,y2){const y=rnd(y1,y2),m=rnd(1,12),d=rnd(1,28);return padZ(d)+'/'+padZ(m)+'/'+y;}
+function genStudyDate(){const y=rnd(2023,2025),m=rnd(1,12),d=rnd(1,28);return d+' '+meses[m-1]+' '+y;}
+
+const seed = [
+  {name:'María Gonzales',    initials:'MG', age:'45 años', gender:'Femenino',  folio:'00045', dob:'16/04/1979', phone:'+52 722 162 0815', email:'maria.g@email.com',    address:'Temaya, Francisco 01',    study_date:'22 Mayo 2024',  study_type:'Endoscopia diagnóstica',  status:'completed'},
+  {name:'Sofía Lozano',      initials:'SL', age:'28 años', gender:'Femenino',  folio:'00046', dob:'22/05/1996', phone:'+52 722 123 4567', email:'sofia.l@email.com',    address:'Av. Hidalgo 123',         study_date:'18 Jun 2024',   study_type:'Colonoscopia',            status:'waiting'},
+  {name:'Juan Pérez',        initials:'JP', age:'35 años', gender:'Masculino', folio:'00047', dob:'10/03/1989', phone:'+52 722 987 6543', email:'juan.p@email.com',     address:'Calle Reforma 45',        study_date:'05 Jun 2024',   study_type:'Endoscopia alta',         status:'completed'},
+  {name:'Ana Ramírez',       initials:'AR', age:'40 años', gender:'Femenino',  folio:'00048', dob:'03/04/1984', phone:'+52 722 456 7890', email:'ana.r@email.com',      address:'Av. Juárez 789',          study_date:'30 May 2024',   study_type:'Endoscopia diagnóstica',  status:'completed'},
+  {name:'Carlos López',      initials:'CL', age:'32 años', gender:'Masculino', folio:'00049', dob:'15/08/1992', phone:'+52 722 789 0123', email:'carlos.l@email.com',   address:'Calle Madero 234',        study_date:'12 Jun 2024',   study_type:'CPRE',                    status:'waiting'},
+  {name:'Laura Martínez',    initials:'LM', age:'29 años', gender:'Femenino',  folio:'00050', dob:'25/12/1994', phone:'+52 722 321 6547', email:'laura.m@email.com',    address:'Av. Insurgentes 567',     study_date:'01 Jun 2024',   study_type:'Colonoscopia',            status:'cancelled'},
+  {name:'Pedro Sánchez',     initials:'PS', age:'50 años', gender:'Masculino', folio:'00051', dob:'08/07/1974', phone:'+52 722 654 3210', email:'pedro.s@email.com',    address:'Calle 5 de Mayo 890',     study_date:'20 May 2024',   study_type:'Endoscopia diagnóstica',  status:'completed'},
+  {name:'Marta Díaz',        initials:'MD', age:'38 años', gender:'Femenino',  folio:'00052', dob:'12/11/1986', phone:'+52 722 147 2583', email:'marta.d@email.com',    address:'Av. Morelos 147',         study_date:'25 May 2024',   study_type:'Endoscopia alta',         status:'completed'},
+  {name:'Roberto Ruiz',      initials:'RR', age:'42 años', gender:'Masculino', folio:'00053', dob:'18/02/1982', phone:'+52 722 369 8521', email:'roberto.r@email.com',  address:'Calle Allende 369',       study_date:'10 Jun 2024',   study_type:'CPRE',                    status:'waiting'},
+  {name:'Lucía Herrera',     initials:'LH', age:'36 años', gender:'Femenino',  folio:'00054', dob:'07/09/1988', phone:'+52 722 258 3697', email:'lucia.h@email.com',    address:'Av. Constitución 258',    study_date:'03 Jun 2024',   study_type:'Colonoscopia',            status:'completed'},
+  {name:'Fernando Torres',   initials:'FT', age:'55 años', gender:'Masculino', folio:'00055', dob:'23/01/1969', phone:'+52 722 741 8520', email:'fernando.t@email.com', address:'Calle Zaragoza 741',      study_date:'15 Jun 2024',   study_type:'Endoscopia diagnóstica',  status:'completed'},
+  {name:'Gabriela Mora',     initials:'GM', age:'31 años', gender:'Femenino',  folio:'00056', dob:'14/06/1993', phone:'+52 722 963 1472', email:'gabriela.m@email.com', address:'Av. Chapultepec 963',     study_date:'08 Jun 2024',   study_type:'Endoscopia alta',         status:'cancelled'},
+  {name:'Andrés Vargas',     initials:'AV', age:'47 años', gender:'Masculino', folio:'00057', dob:'29/10/1977', phone:'+52 722 852 0369', email:'andres.v@email.com',   address:'Calle Guerrero 852',      study_date:'19 Jun 2024',   study_type:'Colonoscopia',            status:'waiting'},
+  {name:'Isabel Castillo',   initials:'IC', age:'53 años', gender:'Femenino',  folio:'00058', dob:'05/03/1971', phone:'+52 722 159 7530', email:'isabel.c@email.com',   address:'Av. Revolución 159',      study_date:'27 May 2024',   study_type:'Endoscopia diagnóstica',  status:'completed'},
+  {name:'Miguel Ríos',       initials:'MR', age:'60 años', gender:'Masculino', folio:'00059', dob:'11/12/1964', phone:'+52 722 630 4815', email:'miguel.r@email.com',   address:'Blvd. Toluca 630',        study_date:'21 Jun 2024',   study_type:'CPRE',                    status:'completed'},
+];
+
+// Generar 113 pacientes adicionales para completar 128
+const stList=['completed','waiting','completed','completed','cancelled','waiting','completed'];
+for(let i=seed.length;i<128;i++){
+  const esF = i%2===0;
+  const nArr = esF ? nombresF : nombresM;
+  const nombre = nArr[i % nArr.length];
+  const ap1 = apellidos[i % apellidos.length];
+  const ap2 = apellidos[(i+7) % apellidos.length];
+  const fullName = nombre+' '+ap1+' '+ap2;
+  const initials = nombre[0]+(ap1[0]);
+  const edad = rnd(18,75);
+  const status = stList[i % stList.length];
+  seed.push({
+    name: fullName,
+    initials: initials,
+    age: edad+' años',
+    gender: esF ? 'Femenino' : 'Masculino',
+    folio: padZ(60+i),
+    dob: genDate(2024-edad-1, 2024-edad+1),
+    phone: '+52 722 '+rnd(100,999)+' '+rnd(1000,9999),
+    email: nombre.toLowerCase().replace(/[áéíóúü]/g,c=>({á:'a',é:'e',í:'i',ó:'o',ú:'u',ü:'u'}[c]||c))+'.'+(ap1[0].toLowerCase())+i+'@email.com',
+    address: 'Calle '+ap2+' '+rnd(1,999),
+    study_date: genStudyDate(),
+    study_type: estudios[i % estudios.length],
+    status: status,
+  });
+}
+const patientsData = seed;
+
+// URLs con los datos del paciente precargados
+const GEN_BASE     = @json(route('ia-reportes.generar'));   // Generar reporte IA
+const REDACT_BASE  = @json(route('ia-reportes.redactar'));  // Crear informe (editor manual, sin IA)
+const ESTUDIO_BASE = @json(route('nuevo-estudio'));          // Iniciar estudio
+function patientParams(p){
+  return new URLSearchParams({
+    name: p.name || '',
+    initials: p.initials || '',
+    age: p.age || '',
+    gender: p.gender || '',
+    folio: p.folio || '',
+    dob: p.dob || '',
+    study: p.study_type || '',
+  }).toString();
+}
+function reportUrl(p){ return GEN_BASE + '?' + patientParams(p); }
+function redactUrl(p){ return REDACT_BASE + '?' + patientParams(p); }
 
 // ============ PAGINACIÓN ============
 const PAGE_SIZE = 15;
 let currentPage = 1;
 
 function rowHTML(patient, globalIndex) {
-  const st = patient.status || 'completed';
+  const st = patient.status;
   const stText = statusTexts[st] || st;
-  const editUrl = routes.edit.replace(':id', patient.id);
-
   return `<div class="patient-row" onclick="openPanel(${globalIndex})" data-index="${globalIndex}" data-status="${st}">
     <div class="patient-info">
-      <div class="patient-avatar">${patient.foto_url ? `<img src="${patient.foto_url}" alt="${patient.name || 'Paciente'}">` : (patient.initials || 'PX')}</div>
+      <div class="patient-avatar">${patient.initials}</div>
       <div>
-        <div class="patient-name">${patient.name || 'Paciente sin nombre'}</div>
-        <div class="patient-meta">${patient.age || 'Sin edad'} · ${patient.gender || 'No especificado'}</div>
+        <div class="patient-name">${patient.name}</div>
+        <div class="patient-meta">${patient.age} · ${patient.gender}</div>
       </div>
     </div>
-    <div class="cell">${patient.folio || 'Sin folio'}</div>
-    <div class="cell cell-fecha cell-muted">${patient.dob || 'Sin fecha'}</div>
+    <div class="cell">${patient.folio}</div>
+    <div class="cell cell-fecha cell-muted">${patient.dob}</div>
     <div class="cell-study">
-      <span class="date study-date">${patient.study_date || ''}</span>
-      <span class="type">${patient.study_type || 'Sin procedimiento'}</span>
+      <span class="date study-date">${patient.study_date||''}</span>
+      <span class="type">${patient.study_type||''}</span>
     </div>
     <div class="col-status"><span class="status ${st}">${stText}</span></div>
     <div class="actions-wrapper">
       <div class="actions">
-        <button type="button" class="btn-action" aria-label="Ver paciente" onclick="event.stopPropagation(); openPanel(${globalIndex});">
+        <button class="btn-action" aria-label="Ver paciente">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
         <button class="btn-more" aria-label="Más opciones" onclick="event.stopPropagation();toggleMenu(this)">⋮</button>
       </div>
       <div class="actions-dropdown" onclick="event.stopPropagation()">
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Crear informe</a>
-        <a href="${editUrl}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Editar información</a>
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/><line x1="12" y1="17" x2="12" y2="22"/></svg>Iniciar estudio</a>
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><path d="M9 22h6"/><circle cx="12" cy="11" r="1" fill="currentColor"/></svg>Generar reporte IA</a>
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Programar cita</a>
-        <a href="#"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.292-.995-.69-2.058-.997a4.88 4.88 0 0 0-.82-.166c-.197.233-.486.652-.675.99-.785 1.4-2.055 1.412-2.839 0-.189-.338-.478-.757-.675-.99a4.88 4.88 0 0 0-.82.166c-1.063.307-1.761.705-2.058.997-.09.092-.09.242 0 .333.297.298.995.705 2.058 1.012.82.236 1.638.178 2.189-.089.12-.055.235-.117.345-.185.11.068.225.13.345.185.55.267 1.369.325 2.189.089 1.063-.307 1.761-.714 2.058-1.012.09-.091.09-.241 0-.333zM12 2C6.486 2 2 6.486 2 12s4.486 10 10 10c1.468 0 2.861-.332 4.113-.912 1.29-.596 2.4-1.476 3.245-2.563a9.95 9.95 0 0 0 1.542-4.06A9.95 9.95 0 0 0 22 12c0-5.514-4.486-10-10-10zm0 18c-4.411 0-8-3.589-8-8 0-1.473.403-2.85 1.105-4.033a2 2 0 0 1 2.034-.967c.96.13 1.846.516 2.555 1.098a5.96 5.96 0 0 1 2.612 0c.709-.582 1.595-.968 2.555-1.098a2 2 0 0 1 2.034.967A7.963 7.963 0 0 1 20 12c0 4.411-3.589 8-8 8z"/></svg>Enviar WhatsApp/correo</a>
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Descargar expediente PDF</a>
+        <a href="${redactUrl(patient)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Crear informe</a>
+        <a href="{{ route('pacientes.edit') }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Editar información</a>
+        <a href="${ESTUDIO_BASE}?${patientParams(patient)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/><line x1="12" y1="17" x2="12" y2="22"/></svg>Iniciar estudio</a>
+        <a href="${reportUrl(patient)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><path d="M9 22h6"/><circle cx="12" cy="11" r="1" fill="currentColor"/></svg>Generar reporte IA</a>
+        <a href="{{ route('agendar') }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Programar cita</a>
+        <a href="{{ route('mensajes') }}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.292-.995-.69-2.058-.997a4.88 4.88 0 0 0-.82-.166c-.197.233-.486.652-.675.99-.785 1.4-2.055 1.412-2.839 0-.189-.338-.478-.757-.675-.99a4.88 4.88 0 0 0-.82.166c-1.063.307-1.761.705-2.058.997-.09.092-.09.242 0 .333.297.298.995.705 2.058 1.012.82.236 1.638.178 2.189-.089.12-.055.235-.117.345-.185.11.068.225.13.345.185.55.267 1.369.325 2.189.089 1.063-.307 1.761-.714 2.058-1.012.09-.091.09-.241 0-.333zM12 2C6.486 2 2 6.486 2 12s4.486 10 10 10c1.468 0 2.861-.332 4.113-.912 1.29-.596 2.4-1.476 3.245-2.563a9.95 9.95 0 0 0 1.542-4.06A9.95 9.95 0 0 0 22 12c0-5.514-4.486-10-10-10zm0 18c-4.411 0-8-3.589-8-8 0-1.473.403-2.85 1.105-4.033a2 2 0 0 1 2.034-.967c.96.13 1.846.516 2.555 1.098a5.96 5.96 0 0 1 2.612 0c.709-.582 1.595-.968 2.555-1.098a2 2 0 0 1 2.034.967A7.963 7.963 0 0 1 20 12c0 4.411-3.589 8-8 8z"/></svg>Enviar WhatsApp/correo</a>
+        <a href="#" onclick="event.preventDefault();event.stopPropagation();descargarExpediente(${globalIndex})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Descargar expediente PDF</a>
         <a href="#" class="danger" onclick="deletePatient(${globalIndex})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Eliminar paciente</a>
       </div>
     </div>
@@ -2260,67 +2287,62 @@ function deletePatient(index) {
   document.getElementById('modalEliminarNombre').textContent = patient.name;
   document.getElementById('modalEliminar').style.display = 'flex';
 }
+function descargarExpediente(index) {
+  var patient = patientsData[index];
+  if (!patient) return;
+  // Generar contenido del PDF como texto plano descargable
+  var contenido = 'EXPEDIENTE MÉDICO\n';
+  contenido += '================================\n';
+  contenido += 'Nombre: ' + (patient.name || '') + '\n';
+  contenido += 'Folio: ' + (patient.folio || '') + '\n';
+  contenido += 'Edad: ' + (patient.age || '') + '\n';
+  contenido += 'Género: ' + (patient.gender || '') + '\n';
+  contenido += 'Tipo de estudio: ' + (patient.study_type || '') + '\n';
+  contenido += 'Fecha de estudio: ' + (patient.study_date || '') + '\n';
+  contenido += '================================\n';
+  contenido += 'Generado: ' + new Date().toLocaleString('es-MX') + '\n';
+
+  var blob = new Blob([contenido], { type: 'text/plain;charset=utf-8' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'expediente_' + (patient.name || 'paciente').replace(/\s+/g, '_') + '.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  document.getElementById('modalDescargaNombre').textContent = patient.name || 'el paciente';
+  document.getElementById('modalDescargaPDF').style.display = 'flex';
+}
 function cancelarEliminar() {
   _deleteIndex = null;
   document.getElementById('modalEliminar').style.display = 'none';
 }
-async function confirmarEliminar() {
+function confirmarEliminar() {
   if (_deleteIndex === null) return;
-  const patient = patientsData[_deleteIndex];
-  if (!patient) return;
-
-  try {
-    const response = await fetch(routes.destroy.replace(':id', patient.id), {
-      method: 'POST',
-      headers: {
-        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-        'X-Requested-With': 'XMLHttpRequest',
-        'Accept': 'application/json'
-      },
-      body: new URLSearchParams({'_method':'DELETE'})
-    });
-
-    if (!response.ok && response.status !== 302) {
-      alert('No se pudo eliminar el paciente.');
-      return;
-    }
-
-    patientsData.splice(_deleteIndex, 1);
-    _deleteIndex = null;
-    document.getElementById('modalEliminar').style.display = 'none';
-    closePanel();
-
-    const totalPages = Math.ceil(patientsData.length / PAGE_SIZE);
-    if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
-    renderPage(currentPage || 1);
-  } catch (error) {
-    alert('Ocurrió un error al eliminar el paciente.');
-  }
+  patientsData.splice(_deleteIndex, 1);
+  _deleteIndex = null;
+  document.getElementById('modalEliminar').style.display = 'none';
+  closePanel();
+  const totalPages = Math.ceil(patientsData.length / PAGE_SIZE);
+  if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+  renderPage(currentPage || 1);
 }
 
 function renderPage(page) {
   currentPage = page;
   const total = patientsData.length;
-  const totalPages = Math.max(Math.ceil(total / PAGE_SIZE), 1);
+  const totalPages = Math.ceil(total / PAGE_SIZE);
   const start = (page-1)*PAGE_SIZE;
   const end = Math.min(start+PAGE_SIZE, total);
   const pageData = patientsData.slice(start, end);
 
   const body = document.getElementById('patientsTableBody');
-  if(body) {
-    if (pageData.length === 0) {
-      body.innerHTML = `<div style="padding:32px 20px;text-align:center;color:var(--txt-soft);">No hay pacientes registrados.</div>`;
-    } else {
-      body.innerHTML = pageData.map((p,i) => rowHTML(p, start+i)).join('');
-    }
-  }
+  if(body) body.innerHTML = pageData.map((p,i) => rowHTML(p, start+i)).join('');
 
   const info = document.getElementById('paginationInfo');
-  if(info) {
-    info.textContent = total === 0
-      ? 'Mostrando 0 pacientes'
-      : 'Mostrando '+(start+1)+' a '+end+' de '+total+' pacientes';
-  }
+  if(info) info.textContent = 'Mostrando '+(start+1)+' a '+end+' de '+total+' pacientes';
 
   renderPaginationControls(page, totalPages);
 }
@@ -2330,8 +2352,10 @@ function renderPaginationControls(page, totalPages) {
   if(!container) return;
 
   let html = '';
+  // Anterior
   html += `<button class="page-btn" onclick="renderPage(${page-1})" ${page===1?'disabled':''}>‹</button>`;
 
+  // Páginas
   const delta = 2;
   const pages = [];
   for(let i=1;i<=totalPages;i++){
@@ -2343,12 +2367,55 @@ function renderPaginationControls(page, totalPages) {
     else html += `<button class="page-btn${p===page?' active':''}" onclick="renderPage(${p})">${p}</button>`;
   });
 
+  // Siguiente
   html += `<button class="page-btn" onclick="renderPage(${page+1})" ${page===totalPages?'disabled':''}>›</button>`;
   container.innerHTML = html;
 }
 
+// Inicializar tabla
 renderPage(1);
 
+// Abrir automáticamente el expediente si llega ?folio= o ?paciente= desde otra pantalla
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  const folio = params.get('folio');
+  const nombre = params.get('paciente');
+  let idx = -1;
+  if (folio) {
+    idx = patientsData.findIndex(p => p.folio === folio);
+  } else if (nombre) {
+    const q = nombre.trim().toLowerCase();
+    idx = patientsData.findIndex(p => p.name.toLowerCase().includes(q));
+  }
+  if (idx < 0 && nombre) {
+    const parts = nombre.trim().split(/\s+/);
+    const initials = parts.slice(0,2).map(p => p[0].toUpperCase()).join('');
+    const newPatient = {
+      name: nombre.trim(),
+      initials: initials || '??',
+      age: '38 años',
+      gender: 'No especificado',
+      folio: 'TEMP' + Date.now().toString().slice(-6),
+      dob: '01/01/1986',
+      phone: '+52 722 000 0000',
+      email: 'paciente@email.com',
+      address: 'Dirección no registrada',
+      study_date: 'Pendiente',
+      study_type: 'No registrado',
+      status: 'waiting'
+    };
+    patientsData.unshift(newPatient);
+    savePatientToCache(newPatient);
+    idx = 0;
+  }
+  if(idx < 0) return;
+  renderPage(Math.floor(idx / PAGE_SIZE) + 1);
+  openPanel(idx);
+  // Limpiar el query param para que no se recargue el panel al refrescar
+  if (window.history.replaceState) {
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+})();
 
 /* ============ PANEL FILTROS ============ */
 function openFilters() {
@@ -2410,14 +2477,7 @@ function openPanel(index) {
   const patient = patientsData[index] || patientsData[0];
   savePatientToCache(patient);
 
-  const panelAvatar = document.getElementById('panelAvatar');
-  if (panelAvatar) {
-    if (patient.foto_url) {
-      panelAvatar.innerHTML = `<img src="${patient.foto_url}" alt="${patient.name || 'Paciente'}">`;
-    } else {
-      panelAvatar.textContent = patient.initials || 'PX';
-    }
-  }
+  document.getElementById('panelAvatar').textContent = patient.initials;
   document.getElementById('panelName').textContent = patient.name;
   document.getElementById('panelFolio').textContent = 'Folio: ' + patient.folio;
   document.getElementById('panelAge').textContent = patient.age;
@@ -2426,14 +2486,11 @@ function openPanel(index) {
   document.getElementById('panelPhone').textContent = patient.phone;
   document.getElementById('panelEmail').textContent = patient.email;
   document.getElementById('panelAddress').textContent = patient.address;
-  const panelMedicoInfo = document.getElementById('panelMedicoInfo');
-  if (panelMedicoInfo) panelMedicoInfo.textContent = patient.medico || 'Sin médico';
-
+  
   document.getElementById('contentWrapper').classList.add('panel-open');
   
   document.querySelectorAll('.patient-row').forEach(row => row.classList.remove('active'));
-  const activeRow = document.querySelector('[data-index="' + index + '"]');
-  if (activeRow) activeRow.classList.add('active');
+  document.querySelector('[data-index="' + index + '"]').classList.add('active');
 }
 
 function closePanel() {

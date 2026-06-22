@@ -25,6 +25,7 @@
   display: flex; align-items: center; gap: 8px;
   border-bottom: 1px solid var(--stroke-strong);
   margin-bottom: 22px;
+  padding-top: 6px;
 }
 .np-tab {
   padding: 12px 18px; cursor: pointer;
@@ -153,21 +154,21 @@ html[data-theme="light"] .np-res-item.active { background: var(--hover-bg-strong
   background: var(--card-bg);
   border: 1px solid var(--stroke);
   border-radius: 18px;
-  padding: 30px 32px;
+  padding: 20px 24px;
   margin-bottom: 20px;
 }
 
 /* Sección header */
 .np-sec-header {
-  font-size: 20px; font-weight: 700; color: var(--txt);
-  margin-bottom: 24px;
+  font-size: 18px; font-weight: 700; color: var(--txt);
+  margin-bottom: 16px;
 }
 
 /* Layout: foto + campos */
 .np-personal-layout {
   display: grid;
-  grid-template-columns: 180px 1fr;
-  gap: 28px;
+  grid-template-columns: 80px 1fr;
+  gap: 12px;
   align-items: start;
 }
 
@@ -285,6 +286,36 @@ html[data-theme="light"] .np-res-item.active { background: var(--hover-bg-strong
 .np-empty-state svg { opacity: .25; }
 .np-empty-state p { font-size: 16px; font-weight: 600; color: var(--txt-soft); }
 .np-empty-state span { font-size: 13px; color: var(--off); }
+
+/* Tema claro: campos de solo lectura */
+html[data-theme="light"] .np-field input:read-only,
+html[data-theme="light"] .np-field textarea:read-only,
+html[data-theme="light"] .np-field select:disabled {
+  background: var(--panel-2);
+  color: var(--txt);
+  border-color: var(--stroke-strong);
+  opacity: 1;
+}
+html[data-theme="light"] .np-field select:disabled {
+  color: var(--txt-soft);
+}
+
+/* Tema claro: dropdown de filtros */
+html[data-theme="light"] .np-filter-drop {
+  background: var(--panel);
+  border-color: var(--stroke-strong);
+  box-shadow: 0 16px 40px rgba(0,0,0,.12);
+}
+html[data-theme="light"] .np-filter-btn {
+  background: var(--panel-2);
+  border-color: var(--stroke-strong);
+  color: var(--txt);
+}
+html[data-theme="light"] .np-filter-btn:hover,
+html[data-theme="light"] .np-filter-btn.open {
+  background: var(--card);
+  border-color: var(--blue);
+}
 
 /* Boton Agendar cita */
 .np-agendar-btn {
@@ -617,6 +648,110 @@ html[data-theme="light"] .pa-duration { background: rgba(0,0,0,.55); color: #fff
 html[data-theme="light"] .pa-btn:hover { border-color: rgba(46,123,246,.45); }
 html[data-theme="light"] .pa-btn.primary { background: rgba(46,123,246,.14); border-color: rgba(46,123,246,.35); }
 html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22); }
+
+/* Estilos para recuadros de información */
+.np-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  width: 100%;
+}
+.np-info-box {
+  background: rgba(var(--card-rgb), 0.3);
+  border: 1px solid rgba(var(--stroke-rgb), 0.5);
+  border-radius: 6px;
+  padding: 6px;
+  transition: all 200ms ease;
+  cursor: default;
+}
+.np-info-box:hover {
+  background: rgba(var(--card-rgb), 0.4);
+  border-color: rgba(var(--stroke-rgb), 0.7);
+}
+.np-info-box.np-wide {
+  grid-column: 1 / -1;
+}
+.np-info-box label {
+  display: block;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--txt-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 3px;
+}
+.np-info-box .np-field-value {
+  font-size: 13px;
+  color: var(--txt);
+  line-height: 1.2;
+  pointer-events: none;
+}
+html[data-theme="light"] .np-info-box {
+  background: rgba(248, 250, 252, 0.7);
+  border-color: rgba(226, 232, 240, 0.8);
+}
+html[data-theme="light"] .np-info-box:hover {
+  background: rgba(241, 245, 249, 0.8);
+  border-color: rgba(203, 213, 225, 0.9);
+}
+html[data-theme="light"] .np-info-box label {
+  color: #64748b;
+}
+html[data-theme="light"] .np-info-box .np-field-value {
+  color: #475569;
+}
+/* ===== REPORTE CLINICO ===== */
+.rpt-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0 16px;flex-wrap:wrap;}
+.rpt-toolbar-left{display:flex;align-items:center;gap:12px;}
+.rpt-toolbar-right{display:flex;align-items:center;gap:8px;}
+.rpt-pat-chip{display:flex;align-items:center;gap:10px;}
+.rpt-pat-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#c084fc,#a78bfa);display:grid;place-items:center;font-size:11.5px;font-weight:800;color:#fff;flex:none;}
+.rpt-pat-name{font-size:13.5px;font-weight:700;color:var(--txt);}
+.rpt-pat-id{font-size:11px;color:var(--txt-soft);margin-top:1px;}
+.rpt-badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(245,158,45,.12);color:var(--orange);border:1px solid rgba(245,158,45,.25);}
+.rpt-act-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;border:1px solid var(--stroke);background:var(--panel-2);color:var(--txt-soft);font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none;transition:all 150ms;}
+.rpt-act-btn:hover{border-color:var(--stroke-strong);color:var(--txt);}
+.rpt-act-btn.primary{background:rgba(46,123,246,.12);border-color:rgba(46,123,246,.35);color:var(--blue);}
+.rpt-act-btn.primary:hover{background:rgba(46,123,246,.2);}
+.rpt-act-btn.accent{background:rgba(56,199,244,.1);border-color:rgba(56,199,244,.3);color:var(--cyan);}
+.rpt-act-btn.accent:hover{background:rgba(56,199,244,.18);}
+.rpt-doc-wrap{display:flex;justify-content:center;padding-bottom:32px;}
+.rpt-doc{background:var(--panel);border:1px solid var(--stroke);border-radius:16px;width:100%;max-width:820px;padding:40px 48px;box-shadow:0 8px 40px rgba(0,0,0,.18);}
+.rpt-doc-header{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:24px;}
+.rpt-doc-logo{display:flex;align-items:center;gap:12px;}
+.rpt-logo-icon{width:44px;height:44px;border-radius:12px;background:rgba(46,123,246,.12);border:1px solid rgba(46,123,246,.25);display:grid;place-items:center;flex:none;}
+.rpt-logo-name{font-size:18px;font-weight:800;color:var(--txt);letter-spacing:-.02em;}
+.rpt-logo-sub{font-size:11px;color:var(--txt-soft);margin-top:2px;}
+.rpt-doc-meta{display:flex;flex-direction:column;gap:5px;text-align:right;}
+.rpt-meta-row{display:flex;align-items:center;gap:8px;justify-content:flex-end;font-size:12px;}
+.rpt-meta-row span{color:var(--txt-soft);}
+.rpt-meta-row strong{color:var(--txt);}
+.rpt-estado-txt{color:var(--orange);}
+.rpt-divider{height:1px;background:var(--stroke);margin:22px 0;}
+.rpt-section-title{font-size:10.5px;font-weight:800;color:var(--txt-soft);text-transform:uppercase;letter-spacing:.09em;margin-bottom:14px;}
+.rpt-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:4px;}
+.rpt-field-view{display:flex;flex-direction:column;gap:3px;}
+.rpt-field-view span{font-size:10.5px;color:var(--txt-soft);}
+.rpt-field-view strong{font-size:13.5px;color:var(--txt);}
+.rpt-imgs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:4px;}
+.rpt-img-item{display:flex;flex-direction:column;gap:6px;}
+.rpt-img-ph{aspect-ratio:4/3;border-radius:10px;background:var(--panel-2);border:1px solid var(--stroke);display:grid;place-items:center;color:var(--txt-soft);}
+.rpt-img-label{font-size:10.5px;color:var(--txt-soft);text-align:center;}
+.rpt-text-block{font-size:13.5px;line-height:1.8;color:var(--txt);background:var(--panel-2);border:1px solid var(--stroke);border-radius:10px;padding:14px 18px;margin-bottom:4px;}
+.rpt-firma-row{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding-top:10px;}
+.rpt-firma-box{display:flex;flex-direction:column;gap:6px;min-width:200px;}
+.rpt-firma-line{height:1px;background:var(--stroke-strong);margin-bottom:2px;}
+.rpt-firma-name{font-size:14px;font-weight:700;color:var(--txt);}
+.rpt-firma-cargo{font-size:11px;color:var(--txt-soft);}
+.rpt-sello-box{display:flex;justify-content:flex-end;}
+.rpt-sello{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;border:1px solid rgba(46,123,246,.25);background:rgba(46,123,246,.06);}
+.rpt-sello-txt{font-size:12px;font-weight:800;color:var(--blue);line-height:1.3;}
+.rpt-sello-txt span{font-size:10px;font-weight:600;color:var(--txt-soft);}
+html[data-theme="light"] .rpt-doc{background:#fff;border-color:#e2e8f0;box-shadow:0 8px 40px rgba(0,0,0,.08);}
+html[data-theme="light"] .rpt-text-block{background:#f8fafc;border-color:#e2e8f0;}
+html[data-theme="light"] .rpt-img-ph{background:#f1f5f9;border-color:#e2e8f0;}
+html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color:rgba(46,123,246,.2);}
+@media print{.rpt-toolbar{display:none!important;}.rpt-doc-wrap{padding:0;}.rpt-doc{box-shadow:none;border:none;border-radius:0;max-width:100%;}}
 </style>
 @endpush
 
@@ -625,8 +760,8 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
 {{-- Pestañas --}}
 <div class="np-tabs rise d1">
   <button class="np-tab active" data-tab="pacientes">Pacientes</button>
-  <button class="np-tab hidden" data-tab="galeria">Galeria</button>
-  <button class="np-tab hidden" data-tab="reportes">Reportes</button>
+  <button class="np-tab hidden np-tab-extra" data-tab="galeria">Galeria</button>
+  <button class="np-tab hidden np-tab-extra" data-tab="reportes">Reportes</button>
 </div>
 
 {{-- Panel Pacientes --}}
@@ -637,10 +772,6 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
   <button class="np-back-btn" type="button" id="npBackToPatientsTop">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
     Volver a pacientes
-  </button>
-  <button class="np-new-study-btn" type="button" id="npNewStudyBtn">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    Agregar nuevo estudio
   </button>
   <div class="np-search-wrap">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -711,15 +842,15 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
   <form method="POST" action="#" id="formNuevoPaciente">
     @csrf
 
-    {{-- Card informacion personal --}}
+    {{-- Card unificada de información del paciente --}}
     <div class="np-card rise d2">
-      <div class="np-sec-header">Informacion personal</div>
+      <div class="np-sec-header">Información del paciente</div>
 
       <div class="np-personal-layout">
 
         {{-- Foto --}}
         <div class="np-foto-col">
-          <div class="np-foto-box" id="npFotoBox" onclick="document.getElementById('npFotoInput').click()">
+          <div class="np-foto-box" id="npFotoBox">
             <img id="npFotoPreview" src="" alt="">
             <div class="np-foto-ph" id="npFotoPh">
               <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -727,118 +858,72 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
           </div>
           <input type="file" id="npFotoInput" accept="image/*" style="display:none">
           <input type="file" id="npFotoCamera" accept="image/*" capture="environment" style="display:none">
-          <div style="position:relative;width:100%">
-            <button class="np-add-foto-btn" type="button" id="npBtnFotoMenu">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-              <span id="npBtnFotoTxt">Agregar foto</span>
-            </button>
-            <div id="npFotoMenu" style="display:none;position:absolute;bottom:calc(100% + 6px);left:0;right:0;background:var(--panel);border:1px solid var(--stroke-strong);border-radius:var(--r-md);overflow:hidden;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.4)">
-              <button type="button" id="npBtnGaleria" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;background:none;border:none;border-bottom:1px solid var(--stroke);font:inherit;font-size:13px;font-weight:600;color:var(--txt);cursor:pointer;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-                Abrir galeria
-              </button>
-              <button type="button" id="npBtnCamara" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;background:none;border:none;font:inherit;font-size:13px;font-weight:600;color:var(--txt);cursor:pointer;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                Tomar foto
-              </button>
-            </div>
+        </div>
+
+        {{-- Datos del paciente en recuadros hacia la derecha --}}
+        <div class="np-info-grid">
+          <div class="np-info-box">
+            <label>Nombre completo</label>
+            <div class="np-field-value" id="nombre">Maria Fernanda Lopez Ruiz</div>
+          </div>
+          
+                    
+          <div class="np-info-box">
+            <label>Edad</label>
+            <div class="np-field-value" id="edad">28 años</div>
+          </div>
+          
+          <div class="np-info-box">
+            <label>Sexo</label>
+            <div class="np-field-value" id="sexo">Femenino</div>
+          </div>
+          
+          <div class="np-info-box">
+            <label>Fecha nacimiento</label>
+            <div class="np-field-value" id="fecha_nac">1998-12-25</div>
+          </div>
+          
+          <div class="np-info-box">
+            <label>Peso</label>
+            <div class="np-field-value" id="peso">30 kg</div>
+          </div>
+          
+          <div class="np-info-box">
+            <label>Altura</label>
+            <div class="np-field-value" id="altura">1.75 m</div>
+          </div>
+          
+          <div class="np-info-box">
+            <label>Número de Seguro Social</label>
+            <div class="np-field-value" id="nss">25849563-9</div>
+          </div>
+          
+          <div class="np-info-box">
+            <label>Teléfono</label>
+            <div class="np-field-value" id="telefono">722 162 0815</div>
+          </div>
+          
+          <div class="np-info-box">
+            <label>Correo electrónico</label>
+            <div class="np-field-value" id="email">@gmail.com</div>
+          </div>
+          
+          <div class="np-info-box">
+            <label>Procedimiento</label>
+            <div class="np-field-value">Colonoscopia</div>
+          </div>
+          
+          <div class="np-info-box">
+            <label>Fecha de registro</label>
+            <div class="np-field-value" id="fecha_registro">2025-06-20</div>
+          </div>
+          
+          <div class="np-info-box np-wide">
+            <label>Diagnóstico Preliminar</label>
+            <div class="np-field-value np-textarea-value" style="min-height:50px; line-height: 1.3;">Define lo que podria tener</div>
           </div>
         </div>
 
-        {{-- Campos personales --}}
-        <div>
-          <div class="np-fields np-row-3" style="margin-bottom:16px">
-            <div class="np-field" style="grid-column:span 2">
-              <label>Nombre completo</label>
-              <input type="text" id="nombre" name="nombre" placeholder="Maria Fernanda Lopez Ruiz" autocomplete="off">
-            </div>
-            <div class="np-field">
-              <label>Identificacion</label>
-              <input type="text" id="identificacion" name="identificacion" placeholder="0256987450" autocomplete="off">
-            </div>
-          </div>
-
-          <div class="np-fields np-row-4" style="margin-bottom:16px">
-            <div class="np-field">
-              <label>Fecha de nacimiento</label>
-              <input type="date" id="fecha_nac" name="fecha_nac">
-            </div>
-            <div class="np-field">
-              <label>Edad</label>
-              <input type="text" id="edad" name="edad" placeholder="28 años" autocomplete="off">
-            </div>
-            <div class="np-field">
-              <label>Peso</label>
-              <input type="text" id="peso" name="peso" placeholder="30 kg" autocomplete="off">
-            </div>
-            <div class="np-field">
-              <label>Altura</label>
-              <input type="text" id="altura" name="altura" placeholder="1.75 m" autocomplete="off">
-            </div>
-          </div>
-
-          <div class="np-fields np-row-3b" style="margin-bottom:16px">
-            <div class="np-field">
-              <label>Sexo</label>
-              <select id="sexo" name="sexo">
-                <option value="" disabled selected>Elegir</option>
-                <option value="F">Femenino</option>
-                <option value="M">Masculino</option>
-              </select>
-            </div>
-            <div class="np-field">
-              <label>N.S.S</label>
-              <input type="text" id="nss" name="nss" placeholder="25849563-9" autocomplete="off">
-            </div>
-            <div class="np-field">
-              <label>Telefono</label>
-              <input type="tel" id="telefono" name="telefono" placeholder="722 162 0815" autocomplete="off">
-            </div>
-          </div>
-
-          <div class="np-fields np-row-2" style="margin-bottom:0">
-            <div class="np-field">
-              <label>Direccion</label>
-              <input type="text" id="direccion" name="direccion" placeholder="CALLE, CP" autocomplete="off">
-            </div>
-            <div class="np-field">
-              <label>E-MAIL</label>
-              <input type="email" id="email" name="email" placeholder="@gmail.com" autocomplete="off">
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    {{-- Card informacion medica --}}
-    <div class="np-card rise d3" style="margin-top:16px">
-      <div class="np-sec-header">Informacion medica</div>
-
-      {{-- Procedimiento izq + Diagnostico textarea der --}}
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;align-items:start">
-        <div class="np-field">
-          <label>Procedimiento</label>
-          <select id="procedimiento" name="procedimiento">
-            <option value="" disabled selected>Seleccione</option>
-            <option value="endoscopia">Endoscopia diagnostica</option>
-            <option value="colonoscopia" selected>Colonoscopia</option>
-            <option value="gastroscopia">Gastroscopia</option>
-            <option value="sigmoidoscopia">Sigmoidoscopia</option>
-            <option value="cpre">CPRE</option>
-            <option value="ecoendoscopia">Ecoendoscopia</option>
-          </select>
-        </div>
-        <div class="np-field" style="grid-row:span 2">
-          <label>Diagnostico Preliminar</label>
-          <textarea id="diagnostico" name="diagnostico" placeholder="Define lo que podria tener" style="min-height:150px"></textarea>
-        </div>
-      </div>
-
-      {{-- Fecha de registro --}}
-      <div class="np-field" style="max-width:50%">
-        <label>Fecha de registro</label>
-        <input type="date" id="fecha_registro" name="fecha_registro">
       </div>
     </div>
 
@@ -847,12 +932,12 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
   {{-- Sidebar acciones --}}
   <div class="np-side rise d4">
     <div class="np-action-btns">
-      <a class="np-action-btn" href="{{ route('nuevo-estudio.grabando') }}">
+      <button class="np-action-btn" type="button" id="btnIniciarGrabacion" onclick="window.openDispositivoModal()">
         <span class="np-ab-icon" style="background:rgba(255,59,59,.12);border-color:rgba(255,90,110,.4)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff5a6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="#ff5a6e" stroke="none"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff5a6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="#ff5a6e" stroke="none"/></svg>
         </span>
         Iniciar Grabacion
-      </a>
+      </button>
       <a class="np-action-btn" href="{{ route('nuevo-estudio.configuracion') }}">
         <span class="np-ab-icon">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87 1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
@@ -1019,11 +1104,156 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
 
 {{-- Panel Reportes --}}
 <div class="np-tab-panel" id="tab-reportes">
-  <div class="np-empty-state rise d2">
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
-    <p>Reportes medicos</p>
-    <span>Selecciona un paciente para generar o ver reportes</span>
+
+  {{-- Barra de acciones del reporte --}}
+  <div class="rpt-toolbar rise d1">
+    <div class="rpt-toolbar-left">
+      <div class="rpt-pat-chip">
+        <div class="rpt-pat-av" id="rptPatAv">MG</div>
+        <div>
+          <div class="rpt-pat-name" id="rptPatName">Maria Gonzalez</div>
+          <div class="rpt-pat-id" id="rptPatId">ID: 00012345</div>
+        </div>
+      </div>
+      <span class="rpt-badge" id="rptBadge">Borrador</span>
+    </div>
+    <div class="rpt-toolbar-right">
+      <button class="rpt-act-btn" onclick="window.print()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Imprimir
+      </button>
+      <button class="rpt-act-btn primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Descargar PDF
+      </button>
+      <a class="rpt-act-btn accent" href="{{ url('/ia-reportes') }}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>
+        Editar con IA
+      </a>
+    </div>
   </div>
+
+  {{-- Documento del reporte --}}
+  <div class="rpt-doc-wrap rise d2">
+    <div class="rpt-doc" id="rptDoc">
+
+      {{-- Encabezado del documento --}}
+      <div class="rpt-doc-header">
+        <div class="rpt-doc-logo">
+          <div class="rpt-logo-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          <div>
+            <div class="rpt-logo-name">Enclaii</div>
+            <div class="rpt-logo-sub">Sistema de Endoscopia Médica</div>
+          </div>
+        </div>
+        <div class="rpt-doc-meta">
+          <div class="rpt-meta-row"><span>No. Reporte</span><strong id="rptNumero">RPT-2025-0034</strong></div>
+          <div class="rpt-meta-row"><span>Fecha</span><strong id="rptFechaDoc">15/07/2025</strong></div>
+          <div class="rpt-meta-row"><span>Estado</span><strong class="rpt-estado-txt" id="rptEstadoDoc">Borrador</strong></div>
+        </div>
+      </div>
+
+      <div class="rpt-divider"></div>
+
+      {{-- Datos del paciente --}}
+      <div class="rpt-section-title">Datos del Paciente</div>
+      <div class="rpt-grid-2">
+        <div class="rpt-field-view"><span>Nombre completo</span><strong id="rptNombre">Maria Gonzalez</strong></div>
+        <div class="rpt-field-view"><span>Identificacion</span><strong id="rptId">00012345</strong></div>
+        <div class="rpt-field-view"><span>Edad</span><strong id="rptEdad">38 años</strong></div>
+        <div class="rpt-field-view"><span>Sexo</span><strong id="rptSexo">Femenino</strong></div>
+        <div class="rpt-field-view"><span>N.S.S.</span><strong id="rptNss">—</strong></div>
+        <div class="rpt-field-view"><span>Telefono</span><strong id="rptTelefono">—</strong></div>
+      </div>
+
+      <div class="rpt-divider"></div>
+
+      {{-- Datos del estudio --}}
+      <div class="rpt-section-title">Informacion del Estudio</div>
+      <div class="rpt-grid-2">
+        <div class="rpt-field-view"><span>Procedimiento</span><strong id="rptProcedimiento">Colonoscopia</strong></div>
+        <div class="rpt-field-view"><span>Medico responsable</span><strong id="rptMedico">Dr. Victor</strong></div>
+        <div class="rpt-field-view"><span>Fecha del estudio</span><strong id="rptFechaEstudio">15/07/2025</strong></div>
+        <div class="rpt-field-view"><span>Total de estudios</span><strong id="rptTotalEstudios">15</strong></div>
+      </div>
+
+      <div class="rpt-divider"></div>
+
+      {{-- Imagenes del estudio --}}
+      <div class="rpt-section-title">Imagenes del Estudio</div>
+      <div class="rpt-imgs-grid">
+        <div class="rpt-img-item">
+          <div class="rpt-img-ph">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <div class="rpt-img-label">Fotograma 0:01:25</div>
+        </div>
+        <div class="rpt-img-item">
+          <div class="rpt-img-ph">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <div class="rpt-img-label">Fotograma 0:02:15</div>
+        </div>
+        <div class="rpt-img-item">
+          <div class="rpt-img-ph">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <div class="rpt-img-label">Fotograma 0:04:32</div>
+        </div>
+        <div class="rpt-img-item">
+          <div class="rpt-img-ph">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <div class="rpt-img-label">Fotograma 0:06:18</div>
+        </div>
+      </div>
+
+      <div class="rpt-divider"></div>
+
+      {{-- Hallazgos --}}
+      <div class="rpt-section-title">Hallazgos Clinicos</div>
+      <div class="rpt-text-block" id="rptHallazgos">
+        Se realizo colonoscopia total con preparacion adecuada. Se visualizo mucosa colonica de aspecto normal en todos los segmentos explorados. No se observaron lesiones polipoídeas, masas, ulceraciones ni signos de inflamacion activa. Valvula ileocecal de aspecto normal. Apendice visible sin alteraciones.
+      </div>
+
+      <div class="rpt-divider"></div>
+
+      {{-- Diagnóstico --}}
+      <div class="rpt-section-title">Diagnostico</div>
+      <div class="rpt-text-block" id="rptDiagnostico">
+        Colonoscopia sin hallazgos patologicos significativos. Estudio dentro de parametros normales para la edad y antecedentes del paciente.
+      </div>
+
+      <div class="rpt-divider"></div>
+
+      {{-- Observaciones --}}
+      <div class="rpt-section-title">Observaciones y Recomendaciones</div>
+      <div class="rpt-text-block" id="rptObservaciones">
+        Se recomienda control en 3 años si el paciente no presenta sintomatologia. Continuar con dieta balanceada y seguimiento clinico de rutina. Repetir estudio antes si aparecen sintomas como dolor abdominal persistente, sangrado o cambios en habito intestinal.
+      </div>
+
+      <div class="rpt-divider"></div>
+
+      {{-- Firma médica --}}
+      <div class="rpt-firma-row">
+        <div class="rpt-firma-box">
+          <div class="rpt-firma-line"></div>
+          <div class="rpt-firma-name" id="rptFirmaNombre">Dr. Victor</div>
+          <div class="rpt-firma-cargo">Medico Endoscopista</div>
+        </div>
+        <div class="rpt-sello-box">
+          <div class="rpt-sello">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <div class="rpt-sello-txt">Enclaii<br><span>Verificado</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </div>
 
 {{-- Modal Nuevo Estudio --}}
@@ -1053,18 +1283,76 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
   </div>
 </div>
 
+{{-- Modal de verificación de dispositivo --}}
+<div class="ns-modal-backdrop" id="dispositivoModalBackdrop">
+  <div class="ns-modal" style="max-width:420px">
+    <div class="ns-modal-header">
+      <div>
+        <div class="ns-modal-title">Verificar dispositivo</div>
+        <div class="ns-modal-subtitle">Confirma que el dispositivo de grabación está conectado</div>
+      </div>
+      <button class="ns-modal-close" type="button" id="dispositivoModalClose" aria-label="Cerrar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="ns-modal-body">
+      <div style="margin-bottom:20px">
+        <label style="display:block;font-size:12px;font-weight:600;color:var(--txt-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Dispositivo de grabación</label>
+        <select id="selDispositivo" style="width:100%;padding:12px 14px;background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-md);font-size:14px;color:var(--txt);outline:none">
+          <option value="Endoscopio EG-530" selected>Endoscopio EG-530</option>
+          <option value="Endoscopio CF-HQ190L">Endoscopio CF-HQ190L</option>
+          <option value="Endoscopio GIF-HQ190">Endoscopio GIF-HQ190</option>
+          <option value="Endoscopio Olympus EVIS EXERA III">Endoscopio Olympus EVIS EXERA III</option>
+          <option value="Cámara USB HD 1080p">Cámara USB HD 1080p</option>
+          <option value="USB Video Device">USB Video Device</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
+        <div id="dispositivoStatusIcon" style="width:52px;height:52px;border-radius:14px;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);display:grid;place-items:center;color:#16a34a">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h7l2 3h6c1.1 0 2 .9 2 2v3c0 1.1-.9 2-2 2h-3"/><circle cx="18" cy="16" r="3"/><path d="M18 13v-1"/></svg>
+        </div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--txt)" id="dispositivoNombre">Endoscopio EG-530</div>
+          <div style="font-size:13px;color:var(--txt-soft)" id="dispositivoStatusText">Dispositivo conectado</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+        <div style="padding:12px;background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-md)">
+          <div style="font-size:11px;color:var(--txt-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Resolución</div>
+          <div style="font-size:14px;font-weight:600;color:var(--txt)">1920 x 1080</div>
+        </div>
+        <div style="padding:12px;background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-md)">
+          <div style="font-size:11px;color:var(--txt-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">FPS</div>
+          <div style="font-size:14px;font-weight:600;color:var(--txt)">30</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--txt);cursor:pointer">
+          <input type="checkbox" id="chkDispositivoConectado" checked>
+          Sí, el dispositivo está conectado
+        </label>
+      </div>
+      <a href="{{ route('nuevo-estudio.grabando') }}" class="np-new-study-btn" id="btnComenzarGrabar" style="width:100%;justify-content:center;text-decoration:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>
+        Comenzar a grabar
+      </a>
+    </div>
+  </div>
+</div>
+
 @endsection
 
 @push('scripts')
 <script>
 (function () {
 
+
   /* Fecha por defecto */
   var now  = new Date();
   var pad  = function(n){ return String(n).padStart(2,'0'); };
   var fechaNac = document.getElementById('fecha_nac');
   var fechaReg = document.getElementById('fecha_registro');
-  if (fechaNac) fechaNac.value = '1998-12-25';
+  if (fechaNac && !fechaNac.value) fechaNac.value = '1998-12-25';
   if (fechaReg) fechaReg.value = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate());
 
   /* Foto menu (formulario oculto, solo por seguridad) */
@@ -1113,8 +1401,12 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
 
   filterBtn.addEventListener('click', function(e){
     e.stopPropagation();
+    var isOpen = filterDrop.classList.contains('open');
     filterDrop.classList.toggle('open');
     filterBtn.classList.toggle('open');
+    if (!isOpen) {
+      doSearch();
+    }
   });
   document.addEventListener('click', function(){
     filterDrop.classList.remove('open');
@@ -1198,6 +1490,7 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
         document.getElementById('edad').value           = p.edad + ' años';
         document.getElementById('npSearch').value       = p.nombre;
         populateGallery(p);
+        populateReport(p);
         hideResults();
         showForm();
       });
@@ -1241,6 +1534,59 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
     if (sideUltimo) sideUltimo.textContent = p.ultimo;
   }
 
+  function populateReport(p) {
+    var ini = p.nombre.split(' ').slice(0,2).map(function(w){ return w[0]; }).join('');
+    var sexoTxt = p.sexo === 'F' ? 'Femenino' : 'Masculino';
+    var procMap = {
+      colonoscopia: 'Colonoscopia', endoscopia: 'Endoscopia Diagnostica',
+      gastroscopia: 'Gastroscopia', sigmoidoscopia: 'Sigmoidoscopia',
+      cpre: 'CPRE', ecoendoscopia: 'Ecoendoscopia'
+    };
+    var medicoMap = { dr_victor: 'Dr. Victor', dr_ricardo: 'Dr. Ricardo' };
+    var procLabel = procMap[p.proc] || p.proc;
+    var medicoLabel = medicoMap[p.medico] || p.medico;
+    var hallazgosMap = {
+      colonoscopia: 'Se realizo colonoscopia total con preparacion adecuada. Se visualizo mucosa colonica de aspecto normal en todos los segmentos explorados. No se observaron lesiones polipoídeas, masas ni signos de inflamacion activa.',
+      endoscopia: 'Se realizo endoscopia digestiva alta sin complicaciones. Mucosa esofagica, gastrica y duodenal de aspecto normal. No se evidenciaron ulceraciones, lesiones ni signos de sangrado activo.',
+      gastroscopia: 'Gastroscopia realizada con buena visibilidad. Mucosa gastrica con leve eritema antral sin lesiones relevantes. Peristalsis conservada. No se observaron signos de hemorragia ni perforacion.',
+      sigmoidoscopia: 'Sigmoidoscopia sin hallazgos patologicos. Mucosa del colon sigmoide de aspecto normal. No se apreciaron polipos ni lesiones mucosas.',
+      cpre: 'CPRE realizada con canulacion exitosa de la via biliar. Sin evidencia de calculos ni estenosis. Papila de aspecto normal.',
+      ecoendoscopia: 'Ecoendoscopia sin alteraciones ecograficas significativas. Paredes gastricas de grosor normal. Sin adenopatias perilesionales identificadas.'
+    };
+    var diagnosticoMap = {
+      colonoscopia: 'Colonoscopia dentro de parametros normales. Sin hallazgos patologicos significativos.',
+      endoscopia: 'Endoscopia alta sin alteraciones. Estudio normal para la edad y antecedentes del paciente.',
+      gastroscopia: 'Gastritis antral leve. Sin lesiones que requieran tratamiento inmediato.',
+      sigmoidoscopia: 'Sigmoidoscopia normal. Sin evidencia de patologia colonica.',
+      cpre: 'Via biliar permeable sin litiasis. Estudio endoscopico satisfactorio.',
+      ecoendoscopia: 'Ecoendoscopia sin signos de malignidad. Seguimiento clinico recomendado.'
+    };
+    var num = 'RPT-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random()*9000)+1000);
+
+    var set = function(id, val){ var el = document.getElementById(id); if(el) el.textContent = val; };
+    set('rptPatAv',    ini);
+    set('rptPatName',  p.nombre);
+    set('rptPatId',    'ID: ' + p.id);
+    set('rptNumero',   num);
+    set('rptFechaDoc', p.ultimo);
+    set('rptEstadoDoc','Borrador');
+    set('rptNombre',   p.nombre);
+    set('rptId',       p.id);
+    set('rptEdad',     p.edad + ' años');
+    set('rptSexo',     sexoTxt);
+    set('rptProcedimiento', procLabel);
+    set('rptMedico',   medicoLabel);
+    set('rptFechaEstudio', p.ultimo);
+    set('rptTotalEstudios', p.estudios);
+    set('rptHallazgos',   hallazgosMap[p.proc] || 'Estudio realizado sin complicaciones. Se documentan los hallazgos correspondientes al procedimiento.');
+    set('rptDiagnostico', diagnosticoMap[p.proc] || 'Estudio dentro de parametros normales.');
+    set('rptObservaciones', 'Se recomienda seguimiento clinico en ' + (p.sexo === 'F' ? 'la' : 'el') + ' paciente ' + p.nombre + '. Proxima revision en 6 meses o antes si presenta sintomatologia.');
+    set('rptFirmaNombre', medicoLabel);
+
+    var av = document.getElementById('rptPatAv');
+    if (av) av.style.background = p.color;
+  }
+
   function showForm(){
     document.getElementById('npEmptyState').style.display = 'none';
     document.getElementById('npFormLayout').style.display = 'grid';
@@ -1259,6 +1605,7 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
     document.querySelectorAll('.np-tab-panel').forEach(function(p){ p.classList.remove('active'); });
     document.querySelector('.np-tab[data-tab="pacientes"]').classList.add('active');
     document.getElementById('tab-pacientes').classList.add('active');
+    document.querySelectorAll('.np-tab-extra').forEach(function(t){ t.classList.add('hidden'); });
     const topBack = document.getElementById('npBackToPatientsTop');
     const topNew = document.getElementById('npNewStudyBtn');
     if (topBack) topBack.classList.remove('visible');
@@ -1335,6 +1682,48 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
     if (e.key === 'Escape' && nsBackdrop?.classList.contains('open')) closeNsModal();
   });
 
+  /* Precarga datos del paciente desde URL (viene de Pacientes > Iniciar estudio) */
+  (function(){
+    var params = new URLSearchParams(window.location.search);
+    var name   = params.get('name');
+    if (!name) return;
+
+    var age    = params.get('age')    || '';
+    var gender = params.get('gender') || '';
+    var dob    = params.get('dob')    || '';
+
+    var elNombre = document.getElementById('nombre');
+    if (elNombre) elNombre.value = name;
+
+    var elEdad = document.getElementById('edad');
+    if (elEdad) elEdad.value = age;
+
+    var elSexo = document.getElementById('sexo');
+    if (elSexo){
+      var g = gender.toLowerCase();
+      if (g === 'femenino' || g === 'f') elSexo.value = 'F';
+      else if (g === 'masculino' || g === 'm') elSexo.value = 'M';
+    }
+
+    var elFecha = document.getElementById('fecha_nac');
+    if (elFecha && dob) elFecha.value = dob;
+
+    var elSearch = document.getElementById('npSearch');
+    if (elSearch) elSearch.value = name;
+
+    var emptyState = document.getElementById('npEmptyState');
+    var formLayout = document.getElementById('npFormLayout');
+    var npResults  = document.getElementById('npResults');
+    if (emptyState) emptyState.style.display = 'none';
+    if (formLayout) formLayout.style.display = 'grid';
+    if (npResults)  npResults.classList.remove('open');
+    document.querySelectorAll('.np-tab.hidden').forEach(function(t){ t.classList.remove('hidden'); });
+    var topBack = document.getElementById('npBackToPatientsTop');
+    var topNew  = document.getElementById('npNewStudyBtn');
+    if (topBack) topBack.classList.add('visible');
+    if (topNew)  topNew.classList.add('visible');
+  })();
+
   /* Pestañas */
   document.querySelectorAll('.np-tab[data-tab]').forEach(function(tab){
     tab.addEventListener('click', function(){
@@ -1343,6 +1732,55 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
       tab.classList.add('active');
       document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
     });
+  });
+
+  /* Modal de verificación de dispositivo */
+  var dispositivoModalBackdrop = document.getElementById('dispositivoModalBackdrop');
+  var dispositivoModalClose = document.getElementById('dispositivoModalClose');
+  var selDispositivo = document.getElementById('selDispositivo');
+  var dispositivoNombre = document.getElementById('dispositivoNombre');
+  var chkDispositivoConectado = document.getElementById('chkDispositivoConectado');
+  var dispositivoStatusIcon = document.getElementById('dispositivoStatusIcon');
+  var dispositivoStatusText = document.getElementById('dispositivoStatusText');
+  var btnComenzarGrabar = document.getElementById('btnComenzarGrabar');
+
+  function openDispositivoModal() {
+    if (dispositivoModalBackdrop) dispositivoModalBackdrop.classList.add('open');
+    updateDispositivoStatus();
+  }
+  function closeDispositivoModal() {
+    if (dispositivoModalBackdrop) dispositivoModalBackdrop.classList.remove('open');
+  }
+  function updateDispositivoStatus() {
+    if (!chkDispositivoConectado) return;
+    var conectado = chkDispositivoConectado.checked;
+    if (conectado) {
+      dispositivoStatusIcon.style.background = 'rgba(34,197,94,.12)';
+      dispositivoStatusIcon.style.borderColor = 'rgba(34,197,94,.3)';
+      dispositivoStatusIcon.style.color = '#16a34a';
+      dispositivoStatusText.textContent = 'Dispositivo conectado';
+      btnComenzarGrabar.style.opacity = '1';
+      btnComenzarGrabar.style.pointerEvents = 'auto';
+    } else {
+      dispositivoStatusIcon.style.background = 'rgba(220,38,38,.12)';
+      dispositivoStatusIcon.style.borderColor = 'rgba(220,38,38,.3)';
+      dispositivoStatusIcon.style.color = '#dc2626';
+      dispositivoStatusText.textContent = 'Dispositivo no conectado';
+      btnComenzarGrabar.style.opacity = '.5';
+      btnComenzarGrabar.style.pointerEvents = 'none';
+    }
+  }
+
+  window.openDispositivoModal = openDispositivoModal;
+  window.closeDispositivoModal = closeDispositivoModal;
+
+  dispositivoModalClose?.addEventListener('click', closeDispositivoModal);
+  dispositivoModalBackdrop?.addEventListener('click', function(e){
+    if (e.target === dispositivoModalBackdrop) closeDispositivoModal();
+  });
+  chkDispositivoConectado?.addEventListener('change', updateDispositivoStatus);
+  selDispositivo?.addEventListener('change', function(){
+    if (dispositivoNombre) dispositivoNombre.textContent = selDispositivo.value;
   });
 
 })();

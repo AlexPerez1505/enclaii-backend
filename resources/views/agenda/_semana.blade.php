@@ -22,7 +22,7 @@
 .week-table .hr-label{font-size:9.5px;color:var(--txt-soft);text-align:right;padding:0 5px 0 0;width:38px;vertical-align:top;padding-top:3px;border-right:1px solid rgba(110,160,255,.1);white-space:nowrap}
 .week-table td.wk-cell{vertical-align:top;border:1px solid rgba(110,160,255,.06);padding:2px 3px;height:40px;position:relative}
 .week-table td.wk-cell.wk-today-col{background:rgba(22,139,217,.05)}
-.wk-event{border-radius:4px;padding:2px 5px;font-size:9.5px;font-weight:600;line-height:1.2;margin-bottom:1px;cursor:pointer;transition:opacity 150ms ease;word-wrap:break-word;hyphens:auto}
+.wk-event{border-radius:4px;padding:2px 5px;font-size:9.5px;font-weight:600;line-height:1.2;margin-bottom:1px;cursor:pointer;transition:opacity 150ms ease;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-height:40px}
 .wk-event:hover{opacity:.8}
 .wk-line1{font-weight:700;line-height:1.2}
 .wk-line2{font-size:8.5px;opacity:.9;line-height:1.2;margin-top:1px}
