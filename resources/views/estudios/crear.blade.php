@@ -167,28 +167,28 @@ html[data-theme="light"] .np-res-item.active { background: var(--hover-bg-strong
 /* Layout: foto + campos */
 .np-personal-layout {
   display: grid;
-  grid-template-columns: 90px 1fr;
-  gap: 14px;
+  grid-template-columns: 80px 1fr;
+  gap: 12px;
   align-items: start;
 }
 
 /* Foto */
 .np-foto-col {
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
 }
 .np-foto-box {
-  width: 80px; height: 80px;
+  width: 170px; height: 170px;
   background: var(--card-bg-2);
-  border-radius: 50%;
-  border: 2px solid var(--stroke-strong);
+  border-radius: 12px;
+  border: 1px solid var(--stroke-strong);
   display: grid; place-items: center;
   overflow: hidden; cursor: pointer;
   transition: border-color 150ms;
 }
 .np-foto-box:hover { border-color: var(--blue); }
-.np-foto-box img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: none; }
+.np-foto-box img { width: 100%; height: 100%; object-fit: cover; display: none; }
 .np-foto-ph {
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
   color: var(--txt-soft);
 }
 .np-foto-ph svg { opacity: .7; }
@@ -767,13 +767,57 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
 {{-- Panel Pacientes --}}
 <div class="np-tab-panel active" id="tab-pacientes">
 
-{{-- Barra superior --}}
+{{-- Buscador + Filtros + Acciones --}}
 <div class="np-searchbar rise d1">
   <button class="np-back-btn" type="button" id="npBackToPatientsTop">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
     Volver a pacientes
   </button>
-  <input type="hidden" id="npSearch" value="">
+  <div class="np-search-wrap">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input class="np-search" type="text" id="npSearch" placeholder="Buscar paciente por nombre..." autocomplete="off">
+  </div>
+  <div class="np-filter-wrap">
+    <button class="np-filter-btn" type="button" id="npFilterBtn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      Filtrar
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="np-filter-drop" id="npFilterDrop">
+      <div class="np-flt-title">Filtros de busqueda</div>
+      <div class="np-flt-group">
+        <div class="np-flt-lbl">Procedimiento</div>
+        <select class="np-flt-sel" id="fltProc">
+          <option value="">Todos</option>
+          <option value="endoscopia">Endoscopia diagnostica</option>
+          <option value="colonoscopia">Colonoscopia</option>
+          <option value="gastroscopia">Gastroscopia</option>
+          <option value="sigmoidoscopia">Sigmoidoscopia</option>
+          <option value="cpre">CPRE</option>
+          <option value="ecoendoscopia">Ecoendoscopia</option>
+        </select>
+      </div>
+      <div class="np-flt-group">
+        <div class="np-flt-lbl">Sexo</div>
+        <div class="np-flt-chks">
+          <label class="np-flt-chk"><input type="checkbox" id="fltSexoF" checked> Femenino</label>
+          <label class="np-flt-chk"><input type="checkbox" id="fltSexoM" checked> Masculino</label>
+        </div>
+      </div>
+      <div class="np-flt-group">
+        <div class="np-flt-lbl">Medico</div>
+        <select class="np-flt-sel" id="fltMed">
+          <option value="">Todos</option>
+          <option value="dr_victor">Dr. Victor</option>
+          <option value="dr_ricardo">Dr. Ricardo</option>
+        </select>
+      </div>
+      <div class="np-flt-actions">
+        <button class="np-flt-apply" id="npFltApply">Aplicar</button>
+        <button class="np-flt-clear" id="npFltClear">Limpiar</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 {{-- Resultados --}}
@@ -809,7 +853,7 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
           <div class="np-foto-box" id="npFotoBox">
             <img id="npFotoPreview" src="" alt="">
             <div class="np-foto-ph" id="npFotoPh">
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
           </div>
           <input type="file" id="npFotoInput" accept="image/*" style="display:none">
@@ -1648,19 +1692,21 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
     var gender = params.get('gender') || '';
     var dob    = params.get('dob')    || '';
 
-    function setText(id, val){ var el = document.getElementById(id); if (el && val) el.textContent = val; }
+    var elNombre = document.getElementById('nombre');
+    if (elNombre) elNombre.value = name;
 
-    setText('nombre', name);
-    setText('edad', age ? age + ' años' : '');
-    setText('fecha_nac', dob);
+    var elEdad = document.getElementById('edad');
+    if (elEdad) elEdad.value = age;
 
     var elSexo = document.getElementById('sexo');
-    if (elSexo && gender){
+    if (elSexo){
       var g = gender.toLowerCase();
-      if (g === 'f' || g === 'femenino') elSexo.textContent = 'Femenino';
-      else if (g === 'm' || g === 'masculino') elSexo.textContent = 'Masculino';
-      else elSexo.textContent = gender;
+      if (g === 'femenino' || g === 'f') elSexo.value = 'F';
+      else if (g === 'masculino' || g === 'm') elSexo.value = 'M';
     }
+
+    var elFecha = document.getElementById('fecha_nac');
+    if (elFecha && dob) elFecha.value = dob;
 
     var elSearch = document.getElementById('npSearch');
     if (elSearch) elSearch.value = name;
