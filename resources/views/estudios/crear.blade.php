@@ -167,28 +167,28 @@ html[data-theme="light"] .np-res-item.active { background: var(--hover-bg-strong
 /* Layout: foto + campos */
 .np-personal-layout {
   display: grid;
-  grid-template-columns: 80px 1fr;
-  gap: 12px;
+  grid-template-columns: 90px 1fr;
+  gap: 14px;
   align-items: start;
 }
 
 /* Foto */
 .np-foto-col {
-  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
 }
 .np-foto-box {
-  width: 170px; height: 170px;
+  width: 80px; height: 80px;
   background: var(--card-bg-2);
-  border-radius: 12px;
-  border: 1px solid var(--stroke-strong);
+  border-radius: 50%;
+  border: 2px solid var(--stroke-strong);
   display: grid; place-items: center;
   overflow: hidden; cursor: pointer;
   transition: border-color 150ms;
 }
 .np-foto-box:hover { border-color: var(--blue); }
-.np-foto-box img { width: 100%; height: 100%; object-fit: cover; display: none; }
+.np-foto-box img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: none; }
 .np-foto-ph {
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
   color: var(--txt-soft);
 }
 .np-foto-ph svg { opacity: .7; }
@@ -853,7 +853,7 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
           <div class="np-foto-box" id="npFotoBox">
             <img id="npFotoPreview" src="" alt="">
             <div class="np-foto-ph" id="npFotoPh">
-              <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
           </div>
           <input type="file" id="npFotoInput" accept="image/*" style="display:none">
