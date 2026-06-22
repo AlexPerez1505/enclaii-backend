@@ -767,57 +767,13 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
 {{-- Panel Pacientes --}}
 <div class="np-tab-panel active" id="tab-pacientes">
 
-{{-- Buscador + Filtros + Acciones --}}
+{{-- Barra superior --}}
 <div class="np-searchbar rise d1">
   <button class="np-back-btn" type="button" id="npBackToPatientsTop">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
     Volver a pacientes
   </button>
-  <div class="np-search-wrap">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    <input class="np-search" type="text" id="npSearch" placeholder="Buscar paciente por nombre..." autocomplete="off">
-  </div>
-  <div class="np-filter-wrap">
-    <button class="np-filter-btn" type="button" id="npFilterBtn">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-      Filtrar
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-    </button>
-    <div class="np-filter-drop" id="npFilterDrop">
-      <div class="np-flt-title">Filtros de busqueda</div>
-      <div class="np-flt-group">
-        <div class="np-flt-lbl">Procedimiento</div>
-        <select class="np-flt-sel" id="fltProc">
-          <option value="">Todos</option>
-          <option value="endoscopia">Endoscopia diagnostica</option>
-          <option value="colonoscopia">Colonoscopia</option>
-          <option value="gastroscopia">Gastroscopia</option>
-          <option value="sigmoidoscopia">Sigmoidoscopia</option>
-          <option value="cpre">CPRE</option>
-          <option value="ecoendoscopia">Ecoendoscopia</option>
-        </select>
-      </div>
-      <div class="np-flt-group">
-        <div class="np-flt-lbl">Sexo</div>
-        <div class="np-flt-chks">
-          <label class="np-flt-chk"><input type="checkbox" id="fltSexoF" checked> Femenino</label>
-          <label class="np-flt-chk"><input type="checkbox" id="fltSexoM" checked> Masculino</label>
-        </div>
-      </div>
-      <div class="np-flt-group">
-        <div class="np-flt-lbl">Medico</div>
-        <select class="np-flt-sel" id="fltMed">
-          <option value="">Todos</option>
-          <option value="dr_victor">Dr. Victor</option>
-          <option value="dr_ricardo">Dr. Ricardo</option>
-        </select>
-      </div>
-      <div class="np-flt-actions">
-        <button class="np-flt-apply" id="npFltApply">Aplicar</button>
-        <button class="np-flt-clear" id="npFltClear">Limpiar</button>
-      </div>
-    </div>
-  </div>
+  <input type="hidden" id="npSearch" value="">
 </div>
 
 {{-- Resultados --}}
