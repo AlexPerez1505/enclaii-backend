@@ -1692,21 +1692,19 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
     var gender = params.get('gender') || '';
     var dob    = params.get('dob')    || '';
 
-    var elNombre = document.getElementById('nombre');
-    if (elNombre) elNombre.value = name;
+    function setText(id, val){ var el = document.getElementById(id); if (el && val) el.textContent = val; }
 
-    var elEdad = document.getElementById('edad');
-    if (elEdad) elEdad.value = age;
+    setText('nombre', name);
+    setText('edad', age ? age + ' años' : '');
+    setText('fecha_nac', dob);
 
     var elSexo = document.getElementById('sexo');
-    if (elSexo){
+    if (elSexo && gender){
       var g = gender.toLowerCase();
-      if (g === 'femenino' || g === 'f') elSexo.value = 'F';
-      else if (g === 'masculino' || g === 'm') elSexo.value = 'M';
+      if (g === 'f' || g === 'femenino') elSexo.textContent = 'Femenino';
+      else if (g === 'm' || g === 'masculino') elSexo.textContent = 'Masculino';
+      else elSexo.textContent = gender;
     }
-
-    var elFecha = document.getElementById('fecha_nac');
-    if (elFecha && dob) elFecha.value = dob;
 
     var elSearch = document.getElementById('npSearch');
     if (elSearch) elSearch.value = name;
