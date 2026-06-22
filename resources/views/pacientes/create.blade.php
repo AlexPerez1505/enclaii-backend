@@ -1874,13 +1874,38 @@ textarea{
     }
   }
 
-  function asignarArchivoDesdeBlob(blob) {
+  function asignarArchivoDesdeBlob(blob, name = 'foto-paciente.png', type = 'image/png') {
     if (!inputFileFotoAuto) return;
 
-    const file = new File([blob], 'foto-paciente.png', { type: 'image/png' });
+    const file = new File([blob], name, { type: type });
     const dataTransfer = new DataTransfer();
     dataTransfer.items.add(file);
     inputFileFotoAuto.files = dataTransfer.files;
+  }
+
+  function dataURLtoBlob(dataUrl) {
+    const byteString = atob(dataUrl.split(',')[1]);
+    const mimeString = dataUrl.split(',')[0].split(':')[1].split(';')[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ab], { type: mimeString });
+  }
+
+  function redimensionarCanvas(canvas, maxWidth, maxHeight) {
+    let { width, height } = canvas;
+    if (width <= maxWidth && height <= maxHeight) return canvas;
+    const ratio = Math.min(maxWidth / width, maxHeight / height);
+    width = Math.floor(width * ratio);
+    height = Math.floor(height * ratio);
+    const resized = document.createElement('canvas');
+    resized.width = width;
+    resized.height = height;
+    const ctx = resized.getContext('2d');
+    ctx.drawImage(canvas, 0, 0, width, height);
+    return resized;
   }
 
   function mostrarFotoSeleccionada(dataUrl) {
@@ -1911,11 +1936,12 @@ textarea{
     const context = canvas.getContext('2d');
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    currentPhotoDataAuto = canvas.toDataURL('image/png');
+    // Redimensionar y comprimir para no pasar el límite de 4 MB y reducir carga
+    const resized = redimensionarCanvas(canvas, 1280, 1280);
 
-    canvas.toBlob(function(blob) {
-      if (blob) asignarArchivoDesdeBlob(blob);
-    }, 'image/png');
+    currentPhotoDataAuto = resized.toDataURL('image/jpeg', 0.85);
+    const blob = dataURLtoBlob(currentPhotoDataAuto);
+    asignarArchivoDesdeBlob(blob, 'foto-paciente.jpg', 'image/jpeg');
 
     mostrarFotoSeleccionada(currentPhotoDataAuto);
     detenerCamaraPaciente();
@@ -2028,6 +2054,17 @@ textarea{
 
       detenerCamaraPaciente();
       modalFotoAuto.classList.remove('active');
+    });
+  }
+
+  // Safety net: asegurar que la foto capturada esté en el input antes de enviar
+  const pacienteForm = document.getElementById('pacienteForm');
+  if (pacienteForm && inputFileFotoAuto) {
+    pacienteForm.addEventListener('submit', function(e) {
+      if (currentPhotoDataAuto && inputFileFotoAuto.files.length === 0) {
+        const blob = dataURLtoBlob(currentPhotoDataAuto);
+        asignarArchivoDesdeBlob(blob, 'foto-paciente.jpg', 'image/jpeg');
+      }
     });
   }
 

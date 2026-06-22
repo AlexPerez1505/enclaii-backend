@@ -479,6 +479,8 @@ html[data-theme="light"] .day-modal-overlay{
   }
 
   window.openDayModal = function(ev, dayNames, dow, d, m, y) {
+    const key = `${y}-${m+1}-${d}`;
+    const liveCls = typeof window.__recomputeClass === 'function' ? window.__recomputeClass(ev, key) : (ev.cls || 'ev-done');
     const text = ev.t ? ev.t.trim() : '';
     const timeM = text.match(/^(\d+:\d+)/);
     const time = timeM ? timeM[1] : (ev.h ? String(ev.h).padStart(2,'0') + ':00' : '');
@@ -493,7 +495,7 @@ html[data-theme="light"] .day-modal-overlay{
     const displayName = (window.__displayName ? window.__displayName(name) : name);
     const inits = displayName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     const endHr = parseInt(time) + 1;
-    const cls = ev.cls || 'ev-done';
+    const cls = liveCls;
     const badgeKey = STATUS_BADGE_KEY[cls] || 'done';
     const badgeLabel = STATUS_LABELS_MODAL[cls] || 'Completado';
 
@@ -609,6 +611,7 @@ html[data-theme="light"] .day-modal-overlay{
       } else {
         // Mostrar eventos individualmente
         hourEvs.forEach(ev => {
+          const liveCls = typeof window.__recomputeClass === 'function' ? window.__recomputeClass(ev, key) : ev.cls;
           const text = ev.t ? ev.t.trim() : '';
           const timeM = text.match(/^(\d+:\d+)/);
           const time = timeM ? timeM[1] : (ev.h ? String(ev.h).padStart(2,'0') + ':00' : '');
@@ -624,8 +627,8 @@ html[data-theme="light"] .day-modal-overlay{
           const inits = displayName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
 
           const card = document.createElement('div');
-          card.className = 'day-event ' + ev.cls;
-          card.dataset.evcls = ev.cls;
+          card.className = 'day-event ' + liveCls;
+          card.dataset.evcls = liveCls;
           card.dataset.name = name;
           card.dataset.proc = proc;
           card.dataset.time = time;
@@ -638,7 +641,7 @@ html[data-theme="light"] .day-modal-overlay{
           }
 
           const thumb = document.createElement('div');
-          thumb.className = 'day-event-thumb ' + ev.cls;
+          thumb.className = 'day-event-thumb ' + liveCls;
 
           if (ev.cls === 'ev-block') {
             thumb.innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#8FA3CF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
@@ -651,11 +654,11 @@ html[data-theme="light"] .day-modal-overlay{
             info.className = 'day-event-info';
             info.innerHTML = `<strong>${displayName}</strong><span>${proc}</span>`;
             const status = document.createElement('div');
-            status.className = 'day-event-status ' + ev.cls;
-            status.textContent = STATUS_LABEL_DAY[ev.cls] || '';
+            status.className = 'day-event-status ' + liveCls;
+            status.textContent = STATUS_LABEL_DAY[liveCls] || '';
             const icon = document.createElement('div');
             icon.className = 'day-event-icon';
-            icon.innerHTML = STATUS_ICONS_SVG[ev.cls] || '';
+            icon.innerHTML = STATUS_ICONS_SVG[liveCls] || '';
             card.appendChild(thumb); card.appendChild(info);
             card.appendChild(status); card.appendChild(icon);
             // Click handler para modo expandido con 1 cita

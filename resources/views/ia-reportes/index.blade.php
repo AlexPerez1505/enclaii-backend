@@ -406,7 +406,7 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
       <div class="card-head">
         <h3>Reportes generados por IA</h3>
         <div class="card-head-actions">
-          <a class="btn-gen secondary" href="{{ route('ia-reportes.redactar') }}">
+          <a class="btn-gen secondary" href="{{ url('/ia-reportes/redactar') }}">
             <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
             Generar reporte
           </a>

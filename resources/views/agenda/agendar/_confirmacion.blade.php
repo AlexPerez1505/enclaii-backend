@@ -137,7 +137,7 @@ html[data-theme="light"] .info-item{color:#5B6A99}
     <h3>¡Cita agendada!</h3>
     <p id="successText">La cita se guardó correctamente. Se enviará una notificación al paciente.</p>
     <div class="success-actions">
-      <a class="btn-primary" href="{{ route('agenda') }}">Ir a la agenda</a>
+      <a class="btn-primary" href="{{ route('agenda') }}">Salir</a>
       <a class="btn-secondary" href="{{ route('mensajes') }}" id="btnGoChat">Ver mensaje</a>
     </div>
   </div>
