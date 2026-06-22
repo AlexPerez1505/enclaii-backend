@@ -1,0 +1,170 @@
+* [33m660e979[m[33m ([m[1;31morigin/Nuevo_Estudio[m[33m)[m Restauracion
+* [33m18f6bb6[m Quitar Nuevo estudio del sidebar, agregar Finanzas y fix icono Reportes
+* [33meda7096[m Conectar botón Iniciar estudio en pacientes con crear.blade.php
+[31m|[m * [33mbd4c2c2[m[33m ([m[1;31morigin/Todo-todo[m[33m)[m Quitar buscador y filtrar de crear.blade.php; limpiar app.blade.php
+[31m|[m * [33m6a6f0fc[m Corregir precarga de datos del paciente desde URL en crear.blade.php
+[31m|[m * [33mf6eb904[m Cambiar foto del paciente a forma ovalada en crear.blade.php
+[31m|[m *   [33m199d7c4[m Merge branch 'Todo-todo' of https://github.com/AlexPerez1505/enclaii-backend into Todo-todo
+[31m|[m [33m|[m[34m\[m  
+[31m|[m * [34m\[m   [33mf767f3a[m Merge branch 'Paulina-Pacientes' into Todo-todo
+[31m|[m [35m|[m[36m\[m [34m\[m  
+[31m|[m [35m|[m * [34m|[m [33m483e6ac[m[33m ([m[1;31morigin/Paulina-Pacientes[m[33m)[m Pacientes: agregar campos historial clínico (alergias, tipo sangre, enfermedades, estudios/recetas) en info médica
+[31m|[m [35m|[m [36m|[m [34m|[m *   [33m719f29b[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/nuevo-estudio[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Merge Todo-todo a main - diseño compacto con recuadros y mejoras
+[31m|[m [35m|[m [36m|[m [34m|[m [1;31m|[m[34m\[m  
+[31m|[m [35m|[m [36m|[m [34m|[m [1;31m|[m[34m/[m  
+[31m|[m [35m|[m [36m|[m [34m|[m[34m/[m[1;31m|[m   
+[31m|[m [35m|[m [36m|[m * [1;31m|[m   [33m8d70ddc[m Resolver conflicto de merge y mantener diseño compacto con recuadros
+[31m|[m [35m|[m [36m|[m [1;33m|[m[1;34m\[m [1;31m\[m  
+[31m|[m [35m|[m [36m|[m [1;33m|[m * [1;31m|[m [33m36aee54[m Agregue nuevo apartado Finanzas
+[31m|[m [35m|[m [36m|[m [1;33m|[m * [1;31m|[m [33m78217c9[m Cambie el logo-Ricardo
+[31m|[m [35m|[m [36m|[m [1;33m|[m * [1;31m|[m [33m1452a5b[m API y en seccion de reportes en el apartado de nuevo estudio se agrego
+[31m|[m [35m|[m [36m|[m [1;33m|[m * [1;31m|[m [33m3c9df66[m Gestionar el plan
+[31m|[m [35m|[m [36m|[m [1;33m|[m * [1;31m|[m [33mb89c0d7[m Configuracion de pantalla predetirminadas implementado
+[31m|[m [35m|[m [36m|[m[35m_[m[1;33m|[m[35m/[m [1;31m/[m  
+[31m|[m [35m|[m[35m/[m[36m|[m [1;33m|[m [1;31m|[m   
+[31m|[m * [36m|[m [1;33m|[m [1;31m|[m   [33mb9832cf[m Merge remote-tracking branch 'origin/ricardo-galeria' into Todo-todo
+[31m|[m [1;35m|[m[1;36m\[m [36m\[m [1;33m\[m [1;31m\[m  
+[31m|[m [1;35m|[m * [36m|[m [1;33m|[m [1;31m|[m [33m43fb094[m[33m ([m[1;31morigin/ricardo-galeria[m[33m)[m Dashboard
+[31m|[m * [1;36m|[m [36m|[m [1;33m|[m [1;31m|[m   [33meac0646[m Merge remote-tracking branch 'origin/JoseCarlos-Agenda' into Todo-todo
+[31m|[m [31m|[m[32m\[m [1;36m\[m [36m\[m [1;33m\[m [1;31m\[m  
+[31m|[m * [32m\[m [1;36m\[m [36m\[m [1;33m\[m [1;31m\[m   [33m0721cac[m Merge remote-tracking branch 'origin/Frontend-Dylan' into Todo-todo
+[31m|[m [33m|[m[34m\[m [32m\[m [1;36m\[m [36m\[m [1;33m\[m [1;31m\[m  
+[31m|[m [33m|[m * [32m|[m [1;36m|[m [36m|[m [1;33m|[m [1;31m|[m [33m23cc680[m[33m ([m[1;31morigin/Frontend-Dylan[m[33m)[m Plantillas funcionales, reporte guardado
+[31m|[m [33m|[m * [32m|[m [1;36m|[m [36m|[m [1;33m|[m [1;31m|[m [33md75dde5[m implementacion del informe normal
+[31m|[m [33m|[m [34m|[m [32m|[m [1;36m|[m [36m|[m * [1;31m|[m [33maad6bbf[m Refinar visualización de información del paciente - diseño compacto con recuadros
+[31m|[m [33m|[m [34m|[m[33m_[m[32m|[m[33m_[m[1;36m|[m[33m_[m[36m|[m[33m/[m [1;31m/[m  
+[31m|[m [33m|[m[33m/[m[34m|[m [32m|[m [1;36m|[m [36m|[m [1;31m|[m   
+[31m|[m * [34m|[m [32m|[m [1;36m|[m [36m|[m [1;31m|[m [33mc243ae2[m Agrego funcionamiento de botones
+[31m|[m * [34m|[m [32m|[m [1;36m|[m [36m|[m [1;31m|[m   [33m511cca5[m Merge branch 'Todo-todo' of https://github.com/AlexPerez1505/enclaii-backend into Todo-todo
+[31m|[m [35m|[m[36m\[m [34m\[m [32m\[m [1;36m\[m [36m\[m [1;31m\[m  
+[31m|[m [35m|[m * [34m|[m [32m|[m [1;36m|[m [36m|[m [1;31m|[m [33m5225798[m Se elimino el boton
+[31m|[m * [36m|[m [34m|[m [32m|[m [1;36m|[m [36m|[m [1;31m|[m [33m28e451e[m Pacientes: descarga expediente PDF, quitar btn editar informes, conectar iniciar estudio con precarga
+[31m|[m [36m|[m[36m/[m [34m/[m [32m/[m [1;36m/[m [36m/[m [1;31m/[m  
+[31m|[m * [34m|[m [32m|[m [1;36m|[m [36m|[m [1;31m|[m   [33mb99339c[m Merge branch 'Todo-todo' of https://github.com/AlexPerez1505/enclaii-backend into Todo-todo
+[31m|[m [1;31m|[m[1;32m\[m [34m\[m [32m\[m [1;36m\[m [36m\[m [1;31m\[m  
+[31m|[m [1;31m|[m * [34m|[m [32m|[m [1;36m|[m [36m|[m [1;31m|[m [33m9b83ab2[m Superpocicion
+[31m|[m [1;31m|[m * [34m|[m [32m|[m [1;36m|[m [36m|[m [1;31m|[m [33mcaee277[m Superposicion de Mes arrglado
+[31m|[m * [1;32m|[m [34m|[m [32m|[m [1;36m|[m [36m|[m [1;31m|[m   [33mc41248b[m Merge branch 'Paulina-Pacientes' into Todo-todo
+[31m|[m [1;32m|[m[36m\[m [1;32m\[m [34m\[m [32m\[m [1;36m\[m [36m\[m [1;31m\[m  
+[31m|[m [1;32m|[m [36m|[m[1;32m/[m [34m/[m [32m/[m [1;36m/[m [36m/[m [1;31m/[m  
+[31m|[m [1;32m|[m[1;32m/[m[36m|[m [34m|[m [32m|[m [1;36m|[m [36m/[m [1;31m/[m   
+[31m|[m [1;32m|[m [36m|[m [34m|[m[36m_[m[32m|[m[36m_[m[1;36m|[m[36m/[m [1;31m/[m    
+[31m|[m [1;32m|[m [36m|[m[36m/[m[34m|[m [32m|[m [1;36m|[m [1;31m|[m     
+[31m|[m [1;32m|[m * [34m|[m [32m|[m [1;36m|[m [1;31m|[m [33m03a75b6[m Pacientes: fixes modal tema, eliminar campo identificacion, boton historial, calcular edad
+[31m|[m * [1;34m|[m [34m|[m [32m|[m [1;36m|[m [1;31m|[m [33m5f43f57[m Se agrego el funcionamiento de reportes en paciente
+[31m|[m * [1;34m|[m [34m|[m [32m|[m [1;36m|[m [1;31m|[m [33m7ec57b5[m Plantillas funcionales, reporte guardado
+[31m|[m * [1;34m|[m [34m|[m [32m|[m [1;36m|[m [1;31m|[m [33m746026d[m implementacion del informe normal
+[31m|[m [1;34m|[m [1;34m|[m [34m|[m [32m|[m [1;36m|[m [1;31m|[m * [33mcbb7c3f[m[33m ([m[1;31morigin/JoseCarlos-Wigdests[m[33m)[m Inicia el trabajo en los widgets
+[31m|[m [1;34m|[m [1;34m|[m [34m|[m [32m|[m [1;36m|[m [1;31m|[m[1;31m/[m  
+[31m|[m [1;34m|[m [1;34m|[m [34m|[m [32m|[m [1;36m|[m * [33m9f72d5e[m a
+[31m|[m [1;34m|[m [1;34m|[m [34m|[m [32m|[m [1;36m|[m * [33m14f2b35[m a
+[31m|[m [1;34m|[m [1;34m|[m[1;34m_[m[34m|[m[1;34m_[m[32m|[m[1;34m_[m[1;36m|[m[1;34m/[m  
+[31m|[m [1;34m|[m[1;34m/[m[1;34m|[m [34m|[m [32m|[m [1;36m|[m   
+[31m|[m * [1;34m|[m [34m|[m [32m|[m [1;36m|[m [33m032fdb3[m feat: ajustes de interfaz, modal nuevo estudio, importar fotos y soporte tema claro en estudios y galeria
+[31m|[m * [1;34m|[m [34m|[m [32m|[m [1;36m|[m [33mc14b905[m Enlaces de Agenda
+[31m|[m * [1;34m|[m [34m|[m [32m|[m [1;36m|[m [33m1b5d5a1[m Guarda mis cambios en la rama Todo todo
+[31m|[m * [1;34m|[m [34m|[m [32m|[m [1;36m|[m [33ma20ebd1[m Pacientes conexiones
+[31m|[m * [1;34m|[m [34m|[m [32m|[m [1;36m|[m   [33mf3684e3[m Merge branch 'Todo-todo' of https://github.com/AlexPerez1505/enclaii-backend into Todo-todo
+[31m|[m [1;36m|[m[31m\[m [1;34m\[m [34m\[m [32m\[m [1;36m\[m  
+[31m|[m [1;36m|[m[31m/[m [1;34m/[m [34m/[m [32m/[m [1;36m/[m  
+[31m|[m[31m/[m[1;36m|[m [1;34m|[m [34m|[m [32m|[m [1;36m|[m   
+* [1;36m|[m [1;34m|[m [34m|[m [32m|[m [1;36m|[m   [33mf12c0e7[m Merge branch 'Todo-todo' of https://github.com/AlexPerez1505/enclaii-backend into Todo-todo .
+[32m|[m[33m\[m [1;36m\[m [1;34m\[m [34m\[m [32m\[m [1;36m\[m  
+* [33m|[m [1;36m|[m [1;34m|[m [34m|[m [32m|[m [1;36m|[m [33ma782a85[m Cambios : Actualizacion de estudio,galeria,pacientes,mensajes
+* [33m|[m [1;36m|[m [1;34m|[m [34m|[m [32m|[m [1;36m|[m   [33m10203ec[m Resolviendo conflictos de merge con JoseCarlos-Agenda
+[34m|[m[35m\[m [33m\[m [1;36m\[m [1;34m\[m [34m\[m [32m\[m [1;36m\[m  
+[34m|[m * [33m|[m [1;36m|[m [1;34m|[m [34m|[m [32m|[m [1;36m|[m [33m8ada9d2[m Cambios
+* [35m|[m [33m|[m [1;36m|[m [1;34m|[m [34m|[m [32m|[m [1;36m|[m [33mbf98385[m Merge remote-tracking branch 'origin/JoseCarlos-Agenda' into Todo-todo
+[36m|[m[35m\[m[35m|[m [33m|[m [1;36m|[m [1;34m|[m [34m|[m [32m|[m [1;36m|[m 
+[36m|[m * [33m|[m [1;36m|[m [1;34m|[m [34m|[m [32m|[m [1;36m|[m [33m7b295db[m Eliminar cita, Proximas citas ajustadas, Horario integrado, Cargar datos depnediendo de usuario
+[36m|[m * [33m|[m [1;36m|[m [1;34m|[m [34m|[m [32m|[m [1;36m|[m [33m2d7cb41[m Guarda la recuperación de mis rutas de la agenda
+[36m|[m * [33m|[m [1;36m|[m [1;34m|[m [34m|[m [32m|[m [1;36m|[m   [33m53cb35d[m Finaliza la fusión de Nuevo_Estudio y elimina referencia rota del submódulo
+[36m|[m [1;32m|[m[1;33m\[m [33m\[m [1;36m\[m [1;34m\[m [34m\[m [32m\[m [1;36m\[m  
+* [1;32m|[m [1;33m|[m [33m|[m [1;36m|[m [1;34m|[m [34m|[m [32m|[m [1;36m|[m [33m7a6d024[m Cambios : Actualizacion de estudio,galeria,pacientes,mensajes
+* [1;32m|[m [1;33m|[m [33m|[m [1;36m|[m [1;34m|[m [34m|[m [32m|[m [1;36m|[m   [33mb727fba[m Merge remote-tracking branch 'origin/Nuevo_Estudio' into Todo-todo
+[1;34m|[m[1;35m\[m [1;32m\[m [1;33m\[m [33m\[m [1;36m\[m [1;34m\[m [34m\[m [32m\[m [1;36m\[m  
+* [1;35m\[m [1;32m\[m [1;33m\[m [33m\[m [1;36m\[m [1;34m\[m [34m\[m [32m\[m [1;36m\[m   [33m6c8aa42[m Merge remote-tracking branch 'origin/Paulina-Pacientes' into Todo-todo
+[1;36m|[m[1;34m\[m [1;35m\[m [1;32m\[m [1;33m\[m [33m\[m [1;36m\[m [1;34m\[m [34m\[m [32m\[m [1;36m\[m  
+[1;36m|[m [1;34m|[m [1;35m|[m[1;34m_[m[1;32m|[m[1;34m_[m[1;33m|[m[1;34m_[m[33m|[m[1;34m_[m[1;36m|[m[1;34m/[m [34m/[m [32m/[m [1;36m/[m  
+[1;36m|[m [1;34m|[m[1;34m/[m[1;35m|[m [1;32m|[m [1;33m|[m [33m|[m [1;36m|[m [34m|[m [32m|[m [1;36m|[m   
+[1;36m|[m * [1;35m|[m [1;32m|[m [1;33m|[m [33m|[m [1;36m|[m [34m|[m [32m|[m [1;36m|[m [33m4cab991[m Actualizacion modulo pacientes y mensajes
+* [31m|[m [1;35m|[m [1;32m|[m [1;33m|[m [33m|[m [1;36m|[m [34m|[m [32m|[m [1;36m|[m   [33mf1db852[m Resolviendo conflictos de merge con ricardo-galeria
+[32m|[m[1;36m\[m [31m\[m [1;35m\[m [1;32m\[m [1;33m\[m [33m\[m [1;36m\[m [34m\[m [32m\[m [1;36m\[m  
+[32m|[m [1;36m|[m [31m|[m[1;36m_[m[1;35m|[m[1;36m_[m[1;32m|[m[1;36m_[m[1;33m|[m[1;36m_[m[33m|[m[1;36m_[m[1;36m|[m[1;36m_[m[34m|[m[1;36m_[m[32m|[m[1;36m/[m  
+[32m|[m [1;36m|[m[1;36m/[m[31m|[m [1;35m|[m [1;32m|[m [1;33m|[m [33m|[m [1;36m|[m [34m|[m [32m|[m   
+[32m|[m * [31m|[m [1;35m|[m [1;32m|[m [1;33m|[m [33m|[m [1;36m|[m [34m|[m [32m|[m [33m9d7b0b5[m Escribe aquí tu mensaje
+[32m|[m * [31m|[m [1;35m|[m [1;32m|[m [1;33m|[m [33m|[m [1;36m|[m [34m|[m [32m|[m [33m614c934[m Cambios Martes
+[32m|[m * [31m|[m [1;35m|[m [1;32m|[m [1;33m|[m [33m|[m [1;36m|[m [34m|[m [32m|[m   [33m8910b58[m Merge branch 'Frontend-Dylan' of https://github.com/AlexPerez1505/enclaii-backend into ricardo-galeria
+[32m|[m [34m|[m[34m\[m [31m\[m [1;35m\[m [1;32m\[m [1;33m\[m [33m\[m [1;36m\[m [34m\[m [32m\[m  
+[32m|[m [34m|[m [34m|[m [31m|[m[34m_[m[1;35m|[m[34m_[m[1;32m|[m[34m_[m[1;33m|[m[34m_[m[33m|[m[34m_[m[1;36m|[m[34m/[m [32m/[m  
+[32m|[m [34m|[m [34m|[m[34m/[m[31m|[m [1;35m|[m [1;32m|[m [1;33m|[m [33m|[m [1;36m|[m [32m|[m   
+* [34m|[m [34m|[m [31m|[m [1;35m|[m [1;32m|[m [1;33m|[m [33m|[m [1;36m|[m [32m|[m   [33mc2d7907[m Resolviendo conflictos de merge con Paulia-Pacientes
+[36m|[m[31m\[m [34m\[m [34m\[m [31m\[m [1;35m\[m [1;32m\[m [1;33m\[m [33m\[m [1;36m\[m [32m\[m  
+[36m|[m [31m|[m [34m|[m[31m_[m[34m|[m[31m/[m [1;35m/[m [1;32m/[m [1;33m/[m [33m/[m [1;36m/[m [32m/[m  
+[36m|[m [31m|[m[31m/[m[34m|[m [34m|[m [1;35m|[m [1;32m|[m [1;33m|[m [33m|[m [1;36m|[m [32m|[m   
+[36m|[m * [34m|[m [34m|[m [1;35m|[m [1;32m|[m [1;33m|[m [33m|[m [1;36m|[m [32m|[m [33m89ed384[m Actualizacion modulo pacientes y mensajes
+[36m|[m * [34m|[m [34m|[m [1;35m|[m [1;32m|[m [1;33m|[m [33m|[m [1;36m|[m [32m|[m [33m13dcccb[m Actualizacion modulo pacientes y mensajes
+[36m|[m * [34m|[m [34m|[m [1;35m|[m [1;32m|[m [1;33m|[m [33m|[m [1;36m|[m [32m|[m [33m2c173e5[m Actualizacion modulo pacientes y estudios
+* [1;31m|[m [34m|[m [34m|[m [1;35m|[m [1;32m|[m [1;33m|[m [33m|[m [1;36m|[m [32m|[m   [33ma394b68[m Merge remote-tracking branch 'origin/Nuevo_Estudio' into Todo-todo
+[1;32m|[m[1;33m\[m [1;31m\[m [34m\[m [34m\[m [1;35m\[m [1;32m\[m [1;33m\[m [33m\[m [1;36m\[m [32m\[m  
+[1;32m|[m [1;33m|[m [1;31m|[m [34m|[m [34m|[m [1;35m|[m [1;32m|[m [1;33m|[m [33m|[m * [32m|[m [33m9a6279b[m fix: reemplaza iconos hugeicons/fluentui por SVGs inline y actualiza tabs de Nuevo Estudio
+[1;32m|[m [1;33m|[m [1;31m|[m [34m|[m [34m|[m [1;35m|[m [1;32m|[m [1;33m|[m [33m|[m[33m/[m [32m/[m  
+[1;32m|[m [1;33m|[m [1;31m|[m [34m|[m [34m|[m [1;35m|[m [1;32m|[m [1;33m|[m * [32m/[m [33m27aff59[m Merge branch 'Nuevo_Estudio' into Todo-todo
+[1;32m|[m [1;33m|[m[1;32m_[m[1;31m|[m[1;32m_[m[34m|[m[1;32m_[m[34m|[m[1;32m_[m[1;35m|[m[1;32m_[m[1;32m|[m[1;32m_[m[1;33m|[m[1;32m/[m[1;35m|[m [32m|[m 
+[1;32m|[m[1;32m/[m[1;33m|[m [1;31m|[m [34m|[m [34m|[m [1;35m|[m [1;32m|[m [1;33m|[m[1;35m/[m [32m/[m  
+[1;32m|[m [1;33m|[m [1;31m|[m [34m|[m [34m|[m [1;35m|[m [1;32m|[m[1;35m/[m[1;33m|[m [32m|[m   
+[1;32m|[m [1;33m|[m [1;31m|[m [34m|[m [34m|[m [1;35m|[m[1;35m/[m[1;32m|[m [1;33m|[m [32m|[m   
+[1;32m|[m [1;33m|[m [1;31m|[m [34m|[m [34m|[m * [1;32m|[m [1;33m|[m [32m|[m [33mfda8fd2[m Nuevo estudio actulizado
+[1;32m|[m [1;33m|[m [1;31m|[m[1;33m_[m[34m|[m[1;33m_[m[34m|[m[1;33m/[m [1;32m/[m [1;33m/[m [32m/[m  
+[1;32m|[m [1;33m|[m[1;33m/[m[1;31m|[m [34m|[m [34m|[m [1;32m|[m [1;33m|[m [32m|[m   
+[1;32m|[m * [1;31m|[m [34m|[m [34m|[m [1;32m|[m [1;33m|[m [32m|[m [33mf161464[m fix: conectar botones de acciones en capturas - editar, exportar, imprimir y eliminar
+[1;32m|[m * [1;31m|[m [34m|[m [34m|[m [1;32m|[m [1;33m|[m [32m|[m [33m6e893da[m feat: interfaz mensajes con WhatsApp y Correo Electronico
+[1;32m|[m * [1;31m|[m [34m|[m [34m|[m [1;32m|[m [1;33m|[m [32m|[m [33m36bd513[m feat: ocultar formulario hasta seleccionar paciente, mostrar estado vacio
+[1;32m|[m * [1;31m|[m [34m|[m [34m|[m [1;32m|[m [1;33m|[m [32m|[m [33m25ee8ba[m fix: quitar boton agendar cita
+[1;32m|[m * [1;31m|[m [34m|[m [34m|[m [1;32m|[m [1;33m|[m [32m|[m [33mf9c5a16[m fix: informacion medica - procedimiento, diagnostico textarea, fecha registro y agendar cita
+[1;32m|[m * [1;31m|[m [34m|[m [34m|[m [1;32m|[m [1;33m|[m [32m|[m [33m4802934[m feat: rediseno crear.blade.php igual a imagen - foto grande, labels mayusculas, cards oscuras, buscador y filtros
+[1;32m|[m * [1;31m|[m [34m|[m [34m|[m [1;32m|[m [1;33m|[m [32m|[m [33mbd594fa[m fix: ruta nuevo-estudio apunta directo a estudios.crear
+[1;32m|[m * [1;31m|[m [34m|[m [34m|[m [1;32m|[m [1;33m|[m [32m|[m [33m4cd4cbb[m feat: rediseno crear.blade.php - nuevo estilo oscuro, buscador funcional, filtros dropdown, sin boton guardar
+[1;32m|[m * [1;31m|[m [34m|[m [34m|[m [1;32m|[m [1;33m|[m [32m|[m [33mbd63bc4[m fix: eliminar caracteres corruptos en importar.blade.php, reescritura limpia UTF-8
+[1;32m|[m * [1;31m|[m [34m|[m [34m|[m [1;32m|[m [1;33m|[m [32m|[m [33md845a39[m feat: rediseno profesional Importar Fotos - UI 3 columnas, lectura real de imagenes con dimensiones, arbol navegable, filtros de formato, vista previa con metadatos y modales
+[1;32m|[m * [1;31m|[m [34m|[m [34m|[m [1;32m|[m [1;33m|[m [32m|[m [33m569d4fe[m feat: panel Exportar PDF con carrusel, checkboxes, protección con contraseña y panel Imprimir con modales de confirmación
+[1;32m|[m [1;33m|[m [1;31m|[m[1;33m_[m[34m|[m[1;33m_[m[34m|[m[1;33m_[m[1;32m|[m[1;33m/[m [32m/[m  
+[1;32m|[m [1;33m|[m[1;33m/[m[1;31m|[m [34m|[m [34m|[m [1;32m|[m [32m|[m   
+* [1;33m|[m [1;31m|[m [34m|[m [34m|[m [1;32m|[m [32m|[m [33md0b73f9[m se elimino la seccion de informes
+* [1;33m|[m [1;31m|[m [34m|[m [34m|[m [1;32m|[m [32m|[m [33me9af5c9[m Fix merge conflict con submódulo enclaii-backend
+[1;32m|[m[1;33m\[m[1;33m|[m [1;31m|[m [34m|[m [34m|[m [1;32m|[m [32m|[m 
+[1;32m|[m [1;33m|[m[1;32m_[m[1;31m|[m[1;32m_[m[34m|[m[1;32m_[m[34m|[m[1;32m/[m [32m/[m  
+[1;32m|[m[1;32m/[m[1;33m|[m [1;31m|[m [34m|[m [34m|[m [32m|[m   
+[1;32m|[m * [1;31m|[m [34m|[m [34m|[m [32m|[m [33m709c14e[m Actualizar dashboard y configuración de grabación - agregar menú más opciones con canales e iconos funcionales
+* [31m|[m [1;31m|[m [34m|[m [34m|[m [32m|[m [33m1d9e138[m Eliminamos seccions de informes, agregamos los informes normales
+* [31m|[m [1;31m|[m [34m|[m [34m|[m [32m|[m   [33ma99cab2[m Merge remote-tracking branch 'origin/ricardo-galeria' into Todo-todo .
+[32m|[m[34m\[m [31m\[m [1;31m\[m [34m\[m [34m\[m [32m\[m  
+[32m|[m [34m|[m [31m|[m[34m_[m[1;31m|[m[34m/[m [34m/[m [32m/[m  
+[32m|[m [34m|[m[34m/[m[31m|[m [1;31m|[m [34m|[m [32m|[m   
+[32m|[m * [31m|[m [1;31m|[m [34m|[m [32m|[m [33mbad1da2[m Guarda mis cambios locales de galeria e informes
+[32m|[m [31m|[m[31m/[m [1;31m/[m [34m/[m [32m/[m  
+* [31m|[m [1;31m|[m [34m|[m [32m|[m   [33m2e21b5e[m Merge remote-tracking branch 'origin/Paulina-Pacientes' into Todo-todo Merge de Paulina-Pacientes en Todo-todo
+[34m|[m[1;31m\[m [31m\[m [1;31m\[m [34m\[m [32m\[m  
+[34m|[m [1;31m|[m [31m|[m[1;31m/[m [34m/[m [32m/[m  
+[34m|[m [1;31m|[m[1;31m/[m[31m|[m [34m|[m [32m|[m   
+[34m|[m * [31m|[m [34m|[m [32m|[m [33mab4d513[m Se agrega modulo y perfil de pacientes
+[34m|[m [31m|[m[31m/[m [34m/[m [32m/[m  
+* [31m|[m [34m|[m [32m|[m   [33mc78565a[m Fusionar rutas de agenda e ia-reportes
+[34m|[m[1;31m\[m [31m\[m [34m\[m [32m\[m  
+[34m|[m [1;31m|[m[34m_[m[31m|[m[34m/[m [32m/[m  
+[34m|[m[34m/[m[1;31m|[m [31m|[m [32m|[m   
+* [1;31m|[m [31m|[m [32m|[m [33mb718c93[m Se agrego funcionamiento en configuracion general a las siguientes funciones Modo lectura,Formato de fecha ,Formato de hora ,Animaciones y transiciones ,Modo compacto.
+* [1;31m|[m [31m|[m [32m|[m [33mdc67e97[m Se agrego la IA en el apartado de reportes IA, en configuracion se agrego el lenguaje en ingles
+* [1;31m|[m [31m|[m [32m|[m [33mbb28b90[m Se añadio funcionamiento de cada boton del apartado y se añadio animacion
+* [1;31m|[m [31m|[m [32m|[m [33m8b5f83e[m Se agrega en el apartado de views Reporte AI, primera version
+[31m|[m [1;31m|[m[31m/[m [32m/[m  
+[31m|[m[31m/[m[1;31m|[m [32m|[m   
+[31m|[m [1;31m|[m [32m|[m * [33m3389ddb[m[33m ([m[1;31morigin/JoseCarlos-Agenda[m[33m)[m Agenda V1
+[31m|[m [1;31m|[m [32m|[m[32m/[m  
+[31m|[m [1;31m|[m * [33m9885c16[m Agrega vistas, rutas y scripts exclusivos de la agenda
+[31m|[m [1;31m|[m[1;31m/[m  
+[31m|[m * [33mcad67af[m Agenda completa hecha
+[31m|[m * [33mf500678[m Angenda visual terminada
+[31m|[m * [33m3030cfb[m Agenda completa
+[31m|[m[31m/[m  
+* [33ma2a24dd[m first commit
