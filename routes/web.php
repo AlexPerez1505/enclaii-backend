@@ -99,6 +99,10 @@ Route::middleware('auth')->group(function () {
         return view('mensajes.dashboard');
     })->name('mensajes');
 
+    Route::get('/finanzas', function () {
+        return view('finanzas.index');
+    })->name('finanzas');
+
     Route::get('/nuevo-estudio', function () {
         return view('estudios.crear');
     })->name('nuevo-estudio');
