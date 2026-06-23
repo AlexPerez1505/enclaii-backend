@@ -403,14 +403,32 @@ html[data-theme="light"] .day-modal-overlay{
     dayModalWrap.appendChild(panel);
     document.getElementById('delConfirmNo').addEventListener('click', () => panel.remove());
     document.getElementById('delConfirmYes').addEventListener('click', () => {
-      const { ev: e, y: ey, m: em, d: ed } = __currentDelEv;
-      const key = `${ey}-${String(em+1).padStart(2,'0')}-${String(ed).padStart(2,'0')}`;
-      if (window.__EVENTS_DIA && window.__EVENTS_DIA[key]) {
-        window.__EVENTS_DIA[key] = window.__EVENTS_DIA[key].filter(x => x !== e);
+      const current = __currentDelEv;
+      const url = current.ev && current.ev.delete_url;
+      const id = current.ev && current.ev.id;
+      const finish = () => {
+        panel.remove();
+        closeDayModal();
+        if (window.__rebuildAgenda) window.__rebuildAgenda();
+      };
+      if (url) {
+        window.__deleteCita(url, {
+          onSuccess: () => {
+            if (id) window.__removeAgendaEventById(id);
+            finish();
+          },
+          onError: (msg) => {
+            alert(msg);
+            panel.remove();
+          }
+        });
+      } else {
+        const key = `${current.y}-${String(current.m+1).padStart(2,'0')}-${String(current.d).padStart(2,'0')}`;
+        if (window.__EVENTS_DIA && window.__EVENTS_DIA[key]) {
+          window.__EVENTS_DIA[key] = window.__EVENTS_DIA[key].filter(x => x !== current.ev);
+        }
+        finish();
       }
-      panel.remove();
-      closeDayModal();
-      if (window.__buildDay) window.__buildDay(new Date(ey, em, ed), window.__EVENTS_DIA || {}, MESES_DIA, null, null);
     });
   }
 
@@ -425,16 +443,18 @@ html[data-theme="light"] .day-modal-overlay{
   const delGlobalYes     = document.getElementById('delGlobalYes');
   const delGlobalNo      = document.getElementById('delGlobalNo');
   let   __globalDelEl    = null;
+  let   __globalDelUrl   = null;
 
   function closeGlobalDel() {
     delGlobalOverlay.style.display = 'none';
     __globalDelEl = null;
+    __globalDelUrl = null;
   }
 
   delGlobalNo.addEventListener('click', closeGlobalDel);
   delGlobalOverlay.addEventListener('click', e => { if (e.target === delGlobalOverlay) closeGlobalDel(); });
 
-  delGlobalYes.addEventListener('click', () => {
+  function finishGlobalDelRemove() {
     const el = __globalDelEl;
     if (el) {
       el.style.transition = 'opacity 250ms ease, transform 250ms ease';
@@ -444,10 +464,32 @@ html[data-theme="light"] .day-modal-overlay{
     }
     closeGlobalDel();
     if (window.__rebuildProximas) window.__rebuildProximas();
+    if (window.__rebuildAgenda) window.__rebuildAgenda();
+  }
+
+  delGlobalYes.addEventListener('click', () => {
+    const el = __globalDelEl;
+    const url = __globalDelUrl || (el && el.dataset.deleteUrl) || '';
+    const id = el && el.dataset.citaId;
+    if (url) {
+      window.__deleteCita(url, {
+        onSuccess: () => {
+          if (id) window.__removeAgendaEventById(id);
+          finishGlobalDelRemove();
+        },
+        onError: (msg) => {
+          alert(msg);
+          closeGlobalDel();
+        }
+      });
+    } else {
+      finishGlobalDelRemove();
+    }
   });
 
-  window.showDelConfirmGlobal = function(evEl) {
+  window.showDelConfirmGlobal = function(evEl, url) {
     __globalDelEl = evEl;
+    __globalDelUrl = url || (evEl && evEl.dataset.deleteUrl) || '';
     delGlobalOverlay.style.display = 'flex';
   };
   dayModalClose.addEventListener('click', closeDayModal);
@@ -634,6 +676,8 @@ html[data-theme="light"] .day-modal-overlay{
           card.dataset.time = time;
           card.dataset.inits = inits;
           card.dataset.fechatxt = `${dayNames[dow]} ${d} de ${MESES[m]}`;
+          card.dataset.citaId = ev.id || '';
+          card.dataset.deleteUrl = ev.delete_url || '';
           if (ev.cls === 'ev-block' && ev.blockId !== undefined) {
             card.dataset.blockid    = ev.blockId;
             card.dataset.blockkey   = key;
@@ -702,6 +746,7 @@ html[data-theme="light"] .day-modal-overlay{
       const displayName = (window.__displayName ? window.__displayName(name) : name);
       const inits = displayName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
       const endHr = parseInt(time) + 1;
+      const liveCls = typeof window.__recomputeClass === 'function' ? window.__recomputeClass(ev, key) : ev.cls;
 
       const card = document.createElement('div');
       card.className = 'day-panel-card';
@@ -715,8 +760,8 @@ html[data-theme="light"] .day-modal-overlay{
         `<b>Fecha:</b> ${dayNames[dow]} ${d} de ${MESES[m]}<br>` +
         `<b>Tiempo:</b> ${time} AM – ${endHr}:00 PM<br>` +
         `<b>Habitación:</b> Sala 3`;
-      const panelBadgeKey = STATUS_BADGE_KEY[ev.cls] || 'done';
-      const panelBadgeLabel = STATUS_LABELS_MODAL[ev.cls] || 'Completado';
+      const panelBadgeKey = STATUS_BADGE_KEY[liveCls] || 'done';
+      const panelBadgeLabel = STATUS_LABELS_MODAL[liveCls] || 'Completado';
       const panelBadge = document.createElement('div');
       panelBadge.className = 'ev-pop-badge ' + panelBadgeKey;
       panelBadge.textContent = panelBadgeLabel;

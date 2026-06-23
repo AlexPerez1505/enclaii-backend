@@ -248,10 +248,11 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
       delBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>Borrar cita`;
       delBtn.addEventListener('click', e => {
         e.stopPropagation();
-        hidePopup();
         const evEl = popupAnchoredEl;
+        const deleteUrl = evEl && evEl.dataset.deleteUrl;
+        hidePopup();
         if (window.showDelConfirmGlobal) {
-          window.showDelConfirmGlobal(evEl);
+          window.showDelConfirmGlobal(evEl, deleteUrl);
         }
       });
       evPopBtns.appendChild(delBtn);
