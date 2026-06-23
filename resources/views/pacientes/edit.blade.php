@@ -915,7 +915,7 @@ textarea{
       </div>
       <div class="form-group">
         <label>Edad</label>
-        <input type="text" name="edad" id="edadCalculadaEdit" value="{{ old('edad', $paciente->edad) }}" readonly style="background:var(--panel-2);color:var(--txt-soft);cursor:default;">
+        <input type="text" name="edad" id="edadCalculadaEdit" value="{{ old('edad', $paciente->edad ?? '') }}" readonly style="background:var(--panel-2);color:var(--txt-soft);cursor:default;">
       </div>
       <script>
         document.addEventListener('DOMContentLoaded', function() {
