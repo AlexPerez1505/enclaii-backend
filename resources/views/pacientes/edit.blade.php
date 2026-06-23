@@ -915,8 +915,29 @@ textarea{
       </div>
       <div class="form-group">
         <label>Edad</label>
-        <input type="text" id="edadCalculadaEdit" value="28 años" readonly style="background:var(--panel-2);color:var(--txt-soft);">
+        <input type="text" name="edad" id="edadCalculadaEdit" value="{{ old('edad', $paciente->edad) }}" readonly style="background:var(--panel-2);color:var(--txt-soft);cursor:default;">
       </div>
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          var fi = document.getElementById('fechaNacimientoEdit');
+          var fe = document.getElementById('edadCalculadaEdit');
+          if (!fi || !fe) return;
+          function calcE() {
+            var v = fi.value; if (!v) { fe.value=''; return; }
+            var p = v.split('-');
+            var n = new Date(+p[0], +p[1]-1, +p[2]);
+            var h = new Date();
+            if (isNaN(n) || n > h) { fe.value=''; return; }
+            var e = h.getFullYear()-n.getFullYear();
+            var m = h.getMonth()-n.getMonth();
+            if (m<0||(m===0&&h.getDate()<n.getDate())) e--;
+            fe.value = e<0?'':(e===0?(((h.getFullYear()-n.getFullYear())*12+h.getMonth()-n.getMonth())+' meses'):(e+' años'));
+          }
+          fi.addEventListener('change', calcE);
+          fi.addEventListener('input', calcE);
+          calcE();
+        });
+      </script>
       <div class="form-group">
         <label>Peso</label>
         <input type="text" value="30 kg">

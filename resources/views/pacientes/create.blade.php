@@ -1021,6 +1021,27 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
         <label>Edad</label>
         <input type="text" name="edad" id="edadCalculada" value="{{ old('edad') }}" placeholder="--" readonly style="background:var(--panel-2);color:var(--txt-soft);cursor:default;">
       </div>
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          var fi = document.getElementById('fechaNacimiento');
+          var fe = document.getElementById('edadCalculada');
+          if (!fi || !fe) return;
+          function calcE() {
+            var v = fi.value; if (!v) { fe.value=''; return; }
+            var p = v.split('-');
+            var n = new Date(+p[0], +p[1]-1, +p[2]);
+            var h = new Date();
+            if (isNaN(n) || n > h) { fe.value=''; return; }
+            var e = h.getFullYear()-n.getFullYear();
+            var m = h.getMonth()-n.getMonth();
+            if (m<0||(m===0&&h.getDate()<n.getDate())) e--;
+            fe.value = e<0?'':(e===0?(((h.getFullYear()-n.getFullYear())*12+h.getMonth()-n.getMonth())+' meses'):(e+' años'));
+          }
+          fi.addEventListener('change', calcE);
+          fi.addEventListener('input', calcE);
+          calcE();
+        });
+      </script>
       <div class="form-group">
         <label>Peso</label>
         <input type="text" placeholder="30 kg">
