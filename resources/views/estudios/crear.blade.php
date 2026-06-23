@@ -167,8 +167,8 @@ html[data-theme="light"] .np-res-item.active { background: var(--hover-bg-strong
 /* Layout: foto + campos */
 .np-personal-layout {
   display: grid;
-  grid-template-columns: 80px 1fr;
-  gap: 12px;
+  grid-template-columns: 190px 1fr;
+  gap: 24px;
   align-items: start;
 }
 
@@ -756,6 +756,23 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
 @endpush
 
 @section('content')
+@php
+  $paciente = $paciente ?? null;
+  $galImagenes = $galImagenes ?? collect();
+  $galVideos = $galVideos ?? collect();
+  $galNombre = $paciente?->nombre_completo ?? 'Maria Gonzales';
+  $galIni = $paciente
+    ? (collect(explode(' ', $galNombre))->filter()->take(2)->map(fn($x)=>mb_strtoupper(mb_substr($x,0,1)))->implode('') ?: 'PX')
+    : 'MG';
+  $galEstudios = $paciente
+    ? $galImagenes->pluck('estudio_id')->merge($galVideos->pluck('estudio_id'))->filter()->unique()->count()
+    : 15;
+  $galUltimoArchivo = $galImagenes->first() ?? $galVideos->first();
+  $galUltimo = $paciente ? (optional($galUltimoArchivo?->capturado_en)->format('d/m/Y') ?? '—') : '15/07/2025';
+  $galSexo = $paciente?->sexo ?? 'Femenino';
+  $galEdad = $paciente ? ($paciente->edad ? $paciente->edad.' años' : '—') : '38 años';
+  $galCodigo = $paciente ? ($paciente->folio ?? $paciente->identificacion ?? '—') : '00012345';
+@endphp
 
 {{-- Pestañas --}}
 <div class="np-tabs rise d1">
@@ -850,9 +867,10 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
 
         {{-- Foto --}}
         <div class="np-foto-col">
+          @php($pacFoto = $paciente && $paciente->foto ? asset('storage/'.$paciente->foto) : '')
           <div class="np-foto-box" id="npFotoBox">
-            <img id="npFotoPreview" src="" alt="">
-            <div class="np-foto-ph" id="npFotoPh">
+            <img id="npFotoPreview" src="{{ $pacFoto }}" alt="{{ $paciente?->nombre_completo }}" @if($pacFoto) style="display:block;" @endif>
+            <div class="np-foto-ph" id="npFotoPh" @if($pacFoto) style="display:none;" @endif>
               <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
           </div>
@@ -864,58 +882,58 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
         <div class="np-info-grid">
           <div class="np-info-box">
             <label>Nombre completo</label>
-            <div class="np-field-value" id="nombre">Maria Fernanda Lopez Ruiz</div>
+            <div class="np-field-value" id="nombre">{{ $paciente?->nombre_completo ?? '—' }}</div>
           </div>
           
                     
           <div class="np-info-box">
             <label>Edad</label>
-            <div class="np-field-value" id="edad">28 años</div>
+            <div class="np-field-value" id="edad">{{ $paciente && $paciente->edad ? $paciente->edad.' años' : '—' }}</div>
           </div>
           
           <div class="np-info-box">
             <label>Sexo</label>
-            <div class="np-field-value" id="sexo">Femenino</div>
+            <div class="np-field-value" id="sexo">{{ $paciente && $paciente->sexo ? ucfirst($paciente->sexo) : '—' }}</div>
           </div>
           
           <div class="np-info-box">
             <label>Fecha nacimiento</label>
-            <div class="np-field-value" id="fecha_nac">1998-12-25</div>
+            <div class="np-field-value" id="fecha_nac">{{ $paciente?->fecha_nacimiento?->format('Y-m-d') ?? '—' }}</div>
           </div>
           
           <div class="np-info-box">
             <label>Peso</label>
-            <div class="np-field-value" id="peso">30 kg</div>
+            <div class="np-field-value" id="peso">{{ $paciente && $paciente->peso ? $paciente->peso.' kg' : '—' }}</div>
           </div>
           
           <div class="np-info-box">
             <label>Altura</label>
-            <div class="np-field-value" id="altura">1.75 m</div>
+            <div class="np-field-value" id="altura">{{ $paciente && $paciente->altura ? $paciente->altura.' m' : '—' }}</div>
           </div>
           
           <div class="np-info-box">
             <label>Número de Seguro Social</label>
-            <div class="np-field-value" id="nss">25849563-9</div>
+            <div class="np-field-value" id="nss">{{ $paciente?->identificacion ?? '—' }}</div>
           </div>
           
           <div class="np-info-box">
             <label>Teléfono</label>
-            <div class="np-field-value" id="telefono">722 162 0815</div>
+            <div class="np-field-value" id="telefono">{{ $paciente?->telefono ?? '—' }}</div>
           </div>
           
           <div class="np-info-box">
             <label>Correo electrónico</label>
-            <div class="np-field-value" id="email">@gmail.com</div>
+            <div class="np-field-value" id="email">{{ $paciente?->email ?? '—' }}</div>
           </div>
           
           <div class="np-info-box">
             <label>Procedimiento</label>
-            <div class="np-field-value">Colonoscopia</div>
+            <div class="np-field-value">{{ $paciente?->procedimiento ?? '—' }}</div>
           </div>
           
           <div class="np-info-box">
             <label>Fecha de registro</label>
-            <div class="np-field-value" id="fecha_registro">2025-06-20</div>
+            <div class="np-field-value" id="fecha_registro">{{ $paciente?->created_at?->format('Y-m-d') ?? '—' }}</div>
           </div>
           
           <div class="np-info-box np-wide">
@@ -936,7 +954,7 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
         <span class="np-ab-icon" style="background:rgba(255,59,59,.12);border-color:rgba(255,90,110,.4)">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff5a6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="#ff5a6e" stroke="none"/></svg>
         </span>
-        Iniciar Grabacion
+        Iniciar estudio
       </button>
       <a class="np-action-btn" href="{{ route('nuevo-estudio.configuracion') }}">
         <span class="np-ab-icon">
@@ -972,15 +990,15 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
   <div class="pa-shell rise d3">
     <div>
       <section class="pa-hero">
-        <div class="pa-avatar" id="npGalAvatar">MG</div>
+        <div class="pa-avatar" id="npGalAvatar">{{ $galIni }}</div>
         <div>
-          <div class="pa-title" id="npGalName">Maria Gonzales</div>
-          <div class="pa-sub" id="npGalMeta">ID: 00012345 · Femenino · 38 años · Último estudio: 15/07/2025</div>
+          <div class="pa-title" id="npGalName">{{ $galNombre }}</div>
+          <div class="pa-sub" id="npGalMeta">ID: {{ $galCodigo }} · {{ $galSexo }} · {{ $galEdad }} · Último estudio: {{ $galUltimo }}</div>
         </div>
         <div class="pa-stats">
-          <div class="pa-stat"><strong id="npGalEstudios">15</strong><span>Estudios</span></div>
-          <div class="pa-stat"><strong id="npGalFotos">126</strong><span>Fotos</span></div>
-          <div class="pa-stat"><strong id="npGalVideos">12</strong><span>Videos</span></div>
+          <div class="pa-stat"><strong id="npGalEstudios">{{ $galEstudios }}</strong><span>Estudios</span></div>
+          <div class="pa-stat"><strong id="npGalFotos">{{ $paciente ? $galImagenes->count() : 126 }}</strong><span>Fotos</span></div>
+          <div class="pa-stat"><strong id="npGalVideos">{{ $paciente ? $galVideos->count() : 12 }}</strong><span>Videos</span></div>
         </div>
       </section>
 
@@ -989,9 +1007,29 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
       <section class="pa-section">
         <div class="pa-section-head">
           <h2 class="pa-section-title">Videos</h2>
-          <span class="pa-section-count">2 archivos</span>
+          <span class="pa-section-count">{{ $paciente ? $galVideos->count().' archivos' : '2 archivos' }}</span>
         </div>
         <div class="pa-grid">
+          @if($paciente)
+          @forelse($galVideos as $v)
+          <article class="pa-card" data-kind="video" data-title="{{ strtolower($v->nombre_original ?? 'video') }}">
+            <div class="pa-thumb">
+              <video src="{{ asset('storage/'.$v->path) }}" preload="metadata" muted style="width:100%;height:100%;object-fit:cover"></video>
+              <span class="pa-badge video">VIDEO</span>
+              <div class="pa-play"><span><svg width="17" height="17" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg></span></div>
+            </div>
+            <div class="pa-body">
+              <div class="pa-name">{{ $v->nombre_original ?? 'Video del estudio' }}</div>
+              <div class="pa-meta">Estudio {{ $v->estudio?->folio }}<br>{{ optional($v->capturado_en)->format('d/m/Y H:i') }}</div>
+              <div class="pa-actions">
+                <a class="pa-btn primary" href="{{ asset('storage/'.$v->path) }}" target="_blank">Ver</a>
+              </div>
+            </div>
+          </article>
+          @empty
+          <p style="color:var(--txt-soft);font-size:13px">No hay videos para este paciente.</p>
+          @endforelse
+          @else
           <article class="pa-card" data-kind="video" data-title="video edd-2025-001245 endoscopia digestiva alta">
             <div class="pa-thumb">
               <span class="pa-badge video">VIDEO</span>
@@ -1007,30 +1045,36 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
               </div>
             </div>
           </article>
-          <article class="pa-card" data-kind="video" data-title="video edd-2025-001246 revision de antro">
-            <div class="pa-thumb">
-              <span class="pa-badge video">VIDEO</span>
-              <div class="pa-play"><span><svg width="17" height="17" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg></span></div>
-              <span class="pa-duration">00:08:36</span>
-            </div>
-            <div class="pa-body">
-              <div class="pa-name">Video EDD-2025-001246</div>
-              <div class="pa-meta">Revision de antro<br>15/07/2025</div>
-              <div class="pa-actions">
-                <a class="pa-btn primary" href="{{ route('galeria.video', 2) }}">Ver</a>
-                <a class="pa-btn" href="{{ route('galeria.video.editar', 2) }}">Editar</a>
-              </div>
-            </div>
-          </article>
+          @endif
         </div>
       </section>
 
       <section class="pa-section">
         <div class="pa-section-head">
           <h2 class="pa-section-title">Imagenes</h2>
-          <span class="pa-section-count">4 archivos</span>
+          <span class="pa-section-count">{{ $paciente ? $galImagenes->count().' archivos' : '4 archivos' }}</span>
         </div>
         <div class="pa-grid">
+          @if($paciente)
+          @forelse($galImagenes as $img)
+          <article class="pa-card" data-kind="imagen" data-title="{{ strtolower($img->nombre_original ?? 'imagen') }}">
+            <div class="pa-thumb">
+              <img src="{{ asset('storage/'.$img->path) }}" alt="{{ $img->nombre_original ?? 'Captura' }}">
+              <span class="pa-badge image">IMG</span>
+              <span class="pa-duration">{{ optional($img->capturado_en)->format('H:i') }}</span>
+            </div>
+            <div class="pa-body">
+              <div class="pa-name">{{ $img->nombre_original ?? 'Captura' }}</div>
+              <div class="pa-meta">Captura del estudio {{ $img->estudio?->folio }}<br>{{ optional($img->capturado_en)->format('d/m/Y') }}</div>
+              <div class="pa-actions">
+                <a class="pa-btn primary" href="{{ route('galeria.imagen', $img->id) }}">Ver imagen</a>
+              </div>
+            </div>
+          </article>
+          @empty
+          <p style="color:var(--txt-soft);font-size:13px">No hay imágenes capturadas para este paciente.</p>
+          @endforelse
+          @else
           <article class="pa-card" data-kind="imagen" data-title="imagen 1 fotograma 0:01:25">
             <div class="pa-thumb">
               <img src="{{ asset('images/colonoscopia.jpg') }}" alt="Imagen 1">
@@ -1045,34 +1089,7 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
               </div>
             </div>
           </article>
-          <article class="pa-card" data-kind="imagen" data-title="imagen 2 fotograma 0:02:15">
-            <div class="pa-thumb">
-              <img src="{{ asset('images/colonoscopia.jpg') }}" alt="Imagen 2">
-              <span class="pa-badge image">IMG</span>
-              <span class="pa-duration">0:02:15</span>
-            </div>
-            <div class="pa-body">
-              <div class="pa-name">Imagen 2 - Fotograma 0:02:15</div>
-              <div class="pa-meta">Captura del estudio<br>15/07/2025</div>
-              <div class="pa-actions">
-                <a class="pa-btn primary" href="{{ route('galeria.imagen', 2) }}">Ver imagen</a>
-              </div>
-            </div>
-          </article>
-          <article class="pa-card" data-kind="imagen" data-title="imagen 3 fotograma 0:04:32">
-            <div class="pa-thumb">
-              <img src="{{ asset('images/colonoscopia.jpg') }}" alt="Imagen 3">
-              <span class="pa-badge image">IMG</span>
-              <span class="pa-duration">0:04:32</span>
-            </div>
-            <div class="pa-body">
-              <div class="pa-name">Imagen 3 - Fotograma 0:04:32</div>
-              <div class="pa-meta">Captura del estudio<br>15/07/2025</div>
-              <div class="pa-actions">
-                <a class="pa-btn primary" href="{{ route('galeria.imagen', 3) }}">Ver imagen</a>
-              </div>
-            </div>
-          </article>
+          @endif
         </div>
       </section>
     </div>
@@ -1081,11 +1098,11 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
       <section class="pa-panel">
         <h3 class="pa-panel-title">Informacion del paciente</h3>
         <div class="pa-info">
-          <div class="pa-info-row"><span>ID</span><strong id="npGalSideId">00012345</strong></div>
-          <div class="pa-info-row"><span>Sexo</span><strong id="npGalSideSexo">Femenino</strong></div>
-          <div class="pa-info-row"><span>Edad</span><strong id="npGalSideEdad">38 años</strong></div>
+          <div class="pa-info-row"><span>ID</span><strong id="npGalSideId">{{ $galCodigo }}</strong></div>
+          <div class="pa-info-row"><span>Sexo</span><strong id="npGalSideSexo">{{ $galSexo }}</strong></div>
+          <div class="pa-info-row"><span>Edad</span><strong id="npGalSideEdad">{{ $galEdad }}</strong></div>
           <div class="pa-info-row"><span>Estado</span><strong id="npGalSideEstado" style="color:var(--green)">Activo</strong></div>
-          <div class="pa-info-row"><span>Ultimo estudio</span><strong id="npGalSideUltimo">15/07/2025</strong></div>
+          <div class="pa-info-row"><span>Ultimo estudio</span><strong id="npGalSideUltimo">{{ $galUltimo }}</strong></div>
         </div>
       </section>
 
@@ -1332,10 +1349,15 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
           Sí, el dispositivo está conectado
         </label>
       </div>
-      <a href="{{ route('nuevo-estudio.grabando') }}" class="np-new-study-btn" id="btnComenzarGrabar" style="width:100%;justify-content:center;text-decoration:none">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>
-        Comenzar a grabar
-      </a>
+      <form method="POST" action="{{ route('nuevo-estudio.store') }}" style="width:100%">
+        @csrf
+        <input type="hidden" name="paciente_id" value="{{ $paciente?->id }}">
+        <input type="hidden" name="tipo" value="{{ $paciente?->procedimiento }}">
+        <button type="submit" class="np-new-study-btn" id="btnComenzarGrabar" style="width:100%;justify-content:center;text-decoration:none" @unless($paciente) disabled style="opacity:.5" @endunless>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>
+          Iniciar estudio
+        </button>
+      </form>
     </div>
   </div>
 </div>
@@ -1682,34 +1704,11 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
     if (e.key === 'Escape' && nsBackdrop?.classList.contains('open')) closeNsModal();
   });
 
-  /* Precarga datos del paciente desde URL (viene de Pacientes > Iniciar estudio) */
+  /* Precarga datos del paciente (viene de Pacientes > Iniciar estudio) */
+  @if($paciente)
   (function(){
-    var params = new URLSearchParams(window.location.search);
-    var name   = params.get('name');
-    if (!name) return;
-
-    var age    = params.get('age')    || '';
-    var gender = params.get('gender') || '';
-    var dob    = params.get('dob')    || '';
-
-    var elNombre = document.getElementById('nombre');
-    if (elNombre) elNombre.value = name;
-
-    var elEdad = document.getElementById('edad');
-    if (elEdad) elEdad.value = age;
-
-    var elSexo = document.getElementById('sexo');
-    if (elSexo){
-      var g = gender.toLowerCase();
-      if (g === 'femenino' || g === 'f') elSexo.value = 'F';
-      else if (g === 'masculino' || g === 'm') elSexo.value = 'M';
-    }
-
-    var elFecha = document.getElementById('fecha_nac');
-    if (elFecha && dob) elFecha.value = dob;
-
     var elSearch = document.getElementById('npSearch');
-    if (elSearch) elSearch.value = name;
+    if (elSearch) elSearch.value = @json($paciente->nombre_completo);
 
     var emptyState = document.getElementById('npEmptyState');
     var formLayout = document.getElementById('npFormLayout');
@@ -1723,6 +1722,7 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
     if (topBack) topBack.classList.add('visible');
     if (topNew)  topNew.classList.add('visible');
   })();
+  @endif
 
   /* Pestañas */
   document.querySelectorAll('.np-tab[data-tab]').forEach(function(tab){

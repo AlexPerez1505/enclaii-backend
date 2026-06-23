@@ -2219,20 +2219,7 @@ function rowHTML(patient, globalIndex) {
   const st = patient.status || 'completed';
   const stText = statusTexts[st] || st;
   const editUrl = routes.edit.replace(':id', patient.id);
-  const ageNum = String(patient.age || '').match(/\d+/) ? String(patient.age).match(/\d+/)[0] : '';
-  let dobIso = '';
-  if (patient.dob && patient.dob !== 'Sin fecha') {
-    const dp = String(patient.dob).split('/');
-    if (dp.length === 3) {
-      dobIso = `${dp[2]}-${dp[1].padStart(2,'0')}-${dp[0].padStart(2,'0')}`;
-    }
-  }
-  const nsp = new URLSearchParams();
-  nsp.set('name', patient.name);
-  if (ageNum) nsp.set('age', ageNum);
-  if (patient.gender && patient.gender !== 'No especificado') nsp.set('gender', patient.gender);
-  if (dobIso) nsp.set('dob', dobIso);
-  const nuevoEstudioUrl = `${routes.nuevoEstudio}?${nsp.toString()}`;
+  const nuevoEstudioUrl = `${routes.nuevoEstudio}?paciente=${encodeURIComponent(patient.id)}`;
 
   return `<div class="patient-row" onclick="openPanel(${globalIndex})" data-index="${globalIndex}" data-status="${st}">
     <div class="patient-info">

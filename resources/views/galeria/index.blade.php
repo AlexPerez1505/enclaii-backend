@@ -81,14 +81,6 @@ html[data-theme="light"] .gp-page.active{border-color:rgba(46,123,246,.45);backg
 @endpush
 
 @section('content')
-@php
-$pacientes = [
-  ['id'=>1,'nombre'=>'Maria Gonzales','codigo'=>'00012345','sexo'=>'Femenino','edad'=>'38 años','ultimo'=>'15/07/2025','estudios'=>15,'fotos'=>126,'videos'=>12,'estado'=>'Activo','ini'=>'MG','color'=>'linear-gradient(135deg,#c084fc,#a78bfa)'],
-  ['id'=>2,'nombre'=>'Jorge Lopez','codigo'=>'00012346','sexo'=>'Masculino','edad'=>'52 años','ultimo'=>'10/06/2025','estudios'=>8,'fotos'=>74,'videos'=>6,'estado'=>'Activo','ini'=>'JL','color'=>'linear-gradient(135deg,#7dd3fc,#60a5fa)'],
-  ['id'=>3,'nombre'=>'Ana Perez','codigo'=>'00012347','sexo'=>'Femenino','edad'=>'45 años','ultimo'=>'06/07/2025','estudios'=>12,'fotos'=>102,'videos'=>9,'estado'=>'Activo','ini'=>'AP','color'=>'linear-gradient(135deg,#f9a8d4,#f472b6)'],
-  ['id'=>4,'nombre'=>'Carlos Ruiz','codigo'=>'00012348','sexo'=>'Masculino','edad'=>'60 años','ultimo'=>'22/05/2025','estudios'=>4,'fotos'=>37,'videos'=>3,'estado'=>'Inactivo','ini'=>'CR','color'=>'linear-gradient(135deg,#99f6e4,#6ee7b7)'],
-];
-@endphp
 
 <div class="gp-shell rise d2">
   <div class="gp-toolbar">
@@ -105,7 +97,7 @@ $pacientes = [
   <div class="gp-empty" id="gpEmpty">No se encontraron pacientes con esa búsqueda.</div>
 
   <div class="gp-list" id="gpList">
-    @foreach($pacientes as $p)
+    @forelse($pacientes as $p)
       <a href="{{ route('galeria.paciente', $p['id']) }}"
          class="gp-card"
          data-name="{{ strtolower($p['nombre']) }}"
@@ -132,18 +124,13 @@ $pacientes = [
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </span>
       </a>
-    @endforeach
+    @empty
+      <p style="color:var(--txt-soft);font-size:13px;padding:24px 0;text-align:center">No hay pacientes registrados todavía.</p>
+    @endforelse
   </div>
 
   <div class="gp-footer">
-    <span>Mostrando 1 a 4 de 120 pacientes</span>
-    <div class="gp-pages">
-      <span class="gp-page active">1</span>
-      <span class="gp-page">2</span>
-      <span class="gp-page">3</span>
-      <span style="padding:0 4px">...</span>
-      <span class="gp-page">30</span>
-    </div>
+    <span>Mostrando {{ $pacientes->count() }} paciente(s)</span>
   </div>
 </div>
 @endsection
