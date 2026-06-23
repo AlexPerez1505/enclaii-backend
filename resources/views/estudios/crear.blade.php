@@ -784,74 +784,7 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
 {{-- Panel Pacientes --}}
 <div class="np-tab-panel active" id="tab-pacientes">
 
-{{-- Buscador + Filtros + Acciones --}}
-<div class="np-searchbar rise d1">
-  <button class="np-back-btn" type="button" id="npBackToPatientsTop">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-    Volver a pacientes
-  </button>
-  <div class="np-search-wrap">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    <input class="np-search" type="text" id="npSearch" placeholder="Buscar paciente por nombre..." autocomplete="off">
-  </div>
-  <div class="np-filter-wrap">
-    <button class="np-filter-btn" type="button" id="npFilterBtn">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-      Filtrar
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-    </button>
-    <div class="np-filter-drop" id="npFilterDrop">
-      <div class="np-flt-title">Filtros de busqueda</div>
-      <div class="np-flt-group">
-        <div class="np-flt-lbl">Procedimiento</div>
-        <select class="np-flt-sel" id="fltProc">
-          <option value="">Todos</option>
-          <option value="endoscopia">Endoscopia diagnostica</option>
-          <option value="colonoscopia">Colonoscopia</option>
-          <option value="gastroscopia">Gastroscopia</option>
-          <option value="sigmoidoscopia">Sigmoidoscopia</option>
-          <option value="cpre">CPRE</option>
-          <option value="ecoendoscopia">Ecoendoscopia</option>
-        </select>
-      </div>
-      <div class="np-flt-group">
-        <div class="np-flt-lbl">Sexo</div>
-        <div class="np-flt-chks">
-          <label class="np-flt-chk"><input type="checkbox" id="fltSexoF" checked> Femenino</label>
-          <label class="np-flt-chk"><input type="checkbox" id="fltSexoM" checked> Masculino</label>
-        </div>
-      </div>
-      <div class="np-flt-group">
-        <div class="np-flt-lbl">Medico</div>
-        <select class="np-flt-sel" id="fltMed">
-          <option value="">Todos</option>
-          <option value="dr_victor">Dr. Victor</option>
-          <option value="dr_ricardo">Dr. Ricardo</option>
-        </select>
-      </div>
-      <div class="np-flt-actions">
-        <button class="np-flt-apply" id="npFltApply">Aplicar</button>
-        <button class="np-flt-clear" id="npFltClear">Limpiar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-{{-- Resultados --}}
-<div class="np-results rise d1" id="npResults">
-  <div class="np-results-head">
-    <span>Paciente</span>
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-  </div>
-  <div id="npResultsList" class="np-res-list"></div>
-</div>
-
-{{-- Estado vacio: ningun paciente seleccionado --}}
-<div id="npEmptyState" class="np-empty-state rise d2">
-  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-  <p>Busca un paciente para ver su informacion</p>
-  <span>Usa el buscador o los filtros de arriba</span>
-</div>
+{{-- Buscador, lista de pacientes y estado vacio eliminados: se va directo al formulario --}}
 
 {{-- Formulario / informacion del paciente --}}
 <div class="np-layout" id="npFormLayout" style="display:none">
@@ -973,14 +906,6 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
 <div class="np-tab-panel" id="tab-galeria">
 
   <div class="pa-topbar rise d2">
-    <button class="pa-back" type="button" id="npBackToPatientsGal">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-      Volver a pacientes
-    </button>
-    <label class="pa-search">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="npGalSearch" placeholder="Buscar video o imagen...">
-    </label>
     <button class="np-new-study-btn" type="button" id="npNewStudyBtnGal" style="margin-left:auto">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Agregar nuevo estudio
@@ -1417,200 +1342,11 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
   if (fotoInput) fotoInput.addEventListener('change', function(){ applyPreview(this.files[0]); });
   if (fotoCamera) fotoCamera.addEventListener('change', function(){ applyPreview(this.files[0]); });
 
-  /* Filtros */
-  var filterBtn  = document.getElementById('npFilterBtn');
-  var filterDrop = document.getElementById('npFilterDrop');
-
-  filterBtn.addEventListener('click', function(e){
-    e.stopPropagation();
-    var isOpen = filterDrop.classList.contains('open');
-    filterDrop.classList.toggle('open');
-    filterBtn.classList.toggle('open');
-    if (!isOpen) {
-      doSearch();
-    }
-  });
-  document.addEventListener('click', function(){
-    filterDrop.classList.remove('open');
-    filterBtn.classList.remove('open');
-  });
-  filterDrop.addEventListener('click', function(e){ e.stopPropagation(); });
-
-  document.getElementById('npFltApply').addEventListener('click', function(){
-    filterDrop.classList.remove('open');
-    filterBtn.classList.remove('open');
-    doSearch();
-  });
-  document.getElementById('npFltClear').addEventListener('click', function(){
-    document.getElementById('fltProc').value   = '';
-    document.getElementById('fltSexoF').checked = true;
-    document.getElementById('fltSexoM').checked = true;
-    document.getElementById('fltMed').value    = '';
-    document.getElementById('npSearch').value  = '';
-    showResults(PACS);
-  });
-
-  /* Pacientes demo */
-  var PACS = [
-    { nombre:'Maria Gonzalez',    id:'00012345', sexo:'F', medico:'dr_victor',  proc:'colonoscopia',   edad:38, ultimo:'15/07/2025', estudios:15, fotos:126, videos:12, estado:'Activo',   color:'linear-gradient(135deg,#c084fc,#a78bfa)' },
-    { nombre:'Jose Ramirez',      id:'00012346', sexo:'M', medico:'dr_victor',  proc:'endoscopia',     edad:45, ultimo:'10/06/2025', estudios:8,  fotos:74,  videos:6,  estado:'Activo',   color:'linear-gradient(135deg,#7dd3fc,#60a5fa)' },
-    { nombre:'Ana Torres',        id:'00012347', sexo:'F', medico:'dr_ricardo', proc:'gastroscopia',   edad:33, ultimo:'06/07/2025', estudios:12, fotos:102, videos:9,  estado:'Activo',   color:'linear-gradient(135deg,#f9a8d4,#f472b6)' },
-    { nombre:'Carlos Mendez',     id:'00012348', sexo:'M', medico:'dr_ricardo', proc:'colonoscopia',   edad:52, ultimo:'22/05/2025', estudios:4,  fotos:37,  videos:3,  estado:'Inactivo', color:'linear-gradient(135deg,#99f6e4,#6ee7b7)' },
-    { nombre:'Laura Perez',       id:'00012349', sexo:'F', medico:'dr_victor',  proc:'ecoendoscopia',  edad:41, ultimo:'18/06/2025', estudios:9,  fotos:81,  videos:7,  estado:'Activo',   color:'linear-gradient(135deg,#c084fc,#a78bfa)' },
-    { nombre:'Roberto Flores',    id:'00012350', sexo:'M', medico:'dr_victor',  proc:'cpre',           edad:60, ultimo:'01/05/2025', estudios:3,  fotos:29,  videos:2,  estado:'Inactivo', color:'linear-gradient(135deg,#7dd3fc,#60a5fa)' },
-    { nombre:'Sofia Martinez',    id:'00012351', sexo:'F', medico:'dr_ricardo', proc:'sigmoidoscopia', edad:29, ultimo:'12/07/2025', estudios:11, fotos:95,  videos:8,  estado:'Activo',   color:'linear-gradient(135deg,#f9a8d4,#f472b6)' },
-    { nombre:'Miguel Hernandez',  id:'00012352', sexo:'M', medico:'dr_victor',  proc:'endoscopia',     edad:38, ultimo:'30/06/2025', estudios:7,  fotos:58,  videos:5,  estado:'Activo',   color:'linear-gradient(135deg,#7dd3fc,#60a5fa)' },
-  ];
-
-  function doSearch(){
-    var q    = document.getElementById('npSearch').value.trim().toLowerCase();
-    var proc = document.getElementById('fltProc').value;
-    var sexF = document.getElementById('fltSexoF').checked;
-    var sexM = document.getElementById('fltSexoM').checked;
-    var med  = document.getElementById('fltMed').value;
-
-    var res = PACS.filter(function(p){
-      return (!q    || p.nombre.toLowerCase().includes(q) || p.id.includes(q))
-          && (!proc  || p.proc   === proc)
-          && ((p.sexo==='F'&&sexF)||(p.sexo==='M'&&sexM))
-          && (!med   || p.medico === med);
-    });
-    showResults(res);
-  }
-
-  function showResults(res){
-    var panel = document.getElementById('npResults');
-    var list  = document.getElementById('npResultsList');
-    var empty = document.getElementById('npEmptyState');
-    var form  = document.getElementById('npFormLayout');
-    var topBack = document.getElementById('npBackToPatientsTop');
-    if (topBack) topBack.classList.remove('visible');
-    panel.classList.add('open');
-    empty.style.display = 'none';
-    if (!res.length){
-      list.innerHTML = '<div class="np-res-empty">No se encontraron pacientes</div>';
-      return;
-    }
-    list.innerHTML = res.map(function(p){
-      var ini = p.nombre.split(' ').slice(0,2).map(function(w){ return w[0]; }).join('');
-      var sexoTxt = p.sexo === 'F' ? 'Femenino' : 'Masculino';
-      return '<div class="np-res-item" data-nombre="'+p.nombre+'" data-id="'+p.id+'" data-sexo="'+p.sexo+'">'
-        +'<div class="np-res-av">'+ini+'</div>'
-        +'<div><div class="np-res-name">'+p.nombre+'</div>'
-        +'<div class="np-res-meta">'+p.edad+' anos · '+sexoTxt+'</div></div>'
-        +'</div>';
-    }).join('');
-    list.querySelectorAll('.np-res-item').forEach(function(el){
-      el.addEventListener('click', function(){
-        var p = PACS.find(function(x){ return x.id === el.dataset.id; });
-        if (!p) return;
-        list.querySelectorAll('.np-res-item').forEach(function(i){ i.classList.remove('active'); });
-        el.classList.add('active');
-        document.getElementById('nombre').value         = p.nombre;
-        document.getElementById('identificacion').value = p.id;
-        document.getElementById('sexo').value           = p.sexo;
-        document.getElementById('edad').value           = p.edad + ' años';
-        document.getElementById('npSearch').value       = p.nombre;
-        populateGallery(p);
-        populateReport(p);
-        hideResults();
-        showForm();
-      });
-    });
-  }
-
-  function hideResults(){
-    document.getElementById('npResults').classList.remove('open');
-    if (document.getElementById('npFormLayout').style.display !== 'grid'){
-      document.getElementById('npEmptyState').style.display = 'flex';
-    }
-  }
-
-  function populateGallery(p){
-    var sexoTxt = p.sexo === 'F' ? 'Femenino' : 'Masculino';
-    var ini = p.nombre.split(' ').slice(0,2).map(function(w){ return w[0]; }).join('');
-    var av = document.getElementById('npGalAvatar');
-    if (av) { av.textContent = ini; av.style.background = p.color; }
-    var nameEl = document.getElementById('npGalName');
-    if (nameEl) nameEl.textContent = p.nombre;
-    var metaEl = document.getElementById('npGalMeta');
-    if (metaEl) metaEl.textContent = 'ID: ' + p.id + ' · ' + sexoTxt + ' · ' + p.edad + ' años · Último estudio: ' + p.ultimo;
-    var estEl = document.getElementById('npGalEstudios');
-    if (estEl) estEl.textContent = p.estudios;
-    var fotEl = document.getElementById('npGalFotos');
-    if (fotEl) fotEl.textContent = p.fotos;
-    var vidEl = document.getElementById('npGalVideos');
-    if (vidEl) vidEl.textContent = p.videos;
-    var sideId = document.getElementById('npGalSideId');
-    if (sideId) sideId.textContent = p.id;
-    var sideSexo = document.getElementById('npGalSideSexo');
-    if (sideSexo) sideSexo.textContent = sexoTxt;
-    var sideEdad = document.getElementById('npGalSideEdad');
-    if (sideEdad) sideEdad.textContent = p.edad + ' años';
-    var sideEstado = document.getElementById('npGalSideEstado');
-    if (sideEstado) {
-      sideEstado.textContent = p.estado;
-      sideEstado.style.color = p.estado === 'Activo' ? 'var(--green)' : 'var(--orange)';
-    }
-    var sideUltimo = document.getElementById('npGalSideUltimo');
-    if (sideUltimo) sideUltimo.textContent = p.ultimo;
-  }
-
-  function populateReport(p) {
-    var ini = p.nombre.split(' ').slice(0,2).map(function(w){ return w[0]; }).join('');
-    var sexoTxt = p.sexo === 'F' ? 'Femenino' : 'Masculino';
-    var procMap = {
-      colonoscopia: 'Colonoscopia', endoscopia: 'Endoscopia Diagnostica',
-      gastroscopia: 'Gastroscopia', sigmoidoscopia: 'Sigmoidoscopia',
-      cpre: 'CPRE', ecoendoscopia: 'Ecoendoscopia'
-    };
-    var medicoMap = { dr_victor: 'Dr. Victor', dr_ricardo: 'Dr. Ricardo' };
-    var procLabel = procMap[p.proc] || p.proc;
-    var medicoLabel = medicoMap[p.medico] || p.medico;
-    var hallazgosMap = {
-      colonoscopia: 'Se realizo colonoscopia total con preparacion adecuada. Se visualizo mucosa colonica de aspecto normal en todos los segmentos explorados. No se observaron lesiones polipoídeas, masas ni signos de inflamacion activa.',
-      endoscopia: 'Se realizo endoscopia digestiva alta sin complicaciones. Mucosa esofagica, gastrica y duodenal de aspecto normal. No se evidenciaron ulceraciones, lesiones ni signos de sangrado activo.',
-      gastroscopia: 'Gastroscopia realizada con buena visibilidad. Mucosa gastrica con leve eritema antral sin lesiones relevantes. Peristalsis conservada. No se observaron signos de hemorragia ni perforacion.',
-      sigmoidoscopia: 'Sigmoidoscopia sin hallazgos patologicos. Mucosa del colon sigmoide de aspecto normal. No se apreciaron polipos ni lesiones mucosas.',
-      cpre: 'CPRE realizada con canulacion exitosa de la via biliar. Sin evidencia de calculos ni estenosis. Papila de aspecto normal.',
-      ecoendoscopia: 'Ecoendoscopia sin alteraciones ecograficas significativas. Paredes gastricas de grosor normal. Sin adenopatias perilesionales identificadas.'
-    };
-    var diagnosticoMap = {
-      colonoscopia: 'Colonoscopia dentro de parametros normales. Sin hallazgos patologicos significativos.',
-      endoscopia: 'Endoscopia alta sin alteraciones. Estudio normal para la edad y antecedentes del paciente.',
-      gastroscopia: 'Gastritis antral leve. Sin lesiones que requieran tratamiento inmediato.',
-      sigmoidoscopia: 'Sigmoidoscopia normal. Sin evidencia de patologia colonica.',
-      cpre: 'Via biliar permeable sin litiasis. Estudio endoscopico satisfactorio.',
-      ecoendoscopia: 'Ecoendoscopia sin signos de malignidad. Seguimiento clinico recomendado.'
-    };
-    var num = 'RPT-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random()*9000)+1000);
-
-    var set = function(id, val){ var el = document.getElementById(id); if(el) el.textContent = val; };
-    set('rptPatAv',    ini);
-    set('rptPatName',  p.nombre);
-    set('rptPatId',    'ID: ' + p.id);
-    set('rptNumero',   num);
-    set('rptFechaDoc', p.ultimo);
-    set('rptEstadoDoc','Borrador');
-    set('rptNombre',   p.nombre);
-    set('rptId',       p.id);
-    set('rptEdad',     p.edad + ' años');
-    set('rptSexo',     sexoTxt);
-    set('rptProcedimiento', procLabel);
-    set('rptMedico',   medicoLabel);
-    set('rptFechaEstudio', p.ultimo);
-    set('rptTotalEstudios', p.estudios);
-    set('rptHallazgos',   hallazgosMap[p.proc] || 'Estudio realizado sin complicaciones. Se documentan los hallazgos correspondientes al procedimiento.');
-    set('rptDiagnostico', diagnosticoMap[p.proc] || 'Estudio dentro de parametros normales.');
-    set('rptObservaciones', 'Se recomienda seguimiento clinico en ' + (p.sexo === 'F' ? 'la' : 'el') + ' paciente ' + p.nombre + '. Proxima revision en 6 meses o antes si presenta sintomatologia.');
-    set('rptFirmaNombre', medicoLabel);
-
-    var av = document.getElementById('rptPatAv');
-    if (av) av.style.background = p.color;
-  }
+  /* (Buscador y filtros de pacientes eliminados) */
 
   function showForm(){
-    document.getElementById('npEmptyState').style.display = 'none';
+    var emptyState = document.getElementById('npEmptyState');
+    if (emptyState) emptyState.style.display = 'none';
     document.getElementById('npFormLayout').style.display = 'grid';
     document.querySelectorAll('.np-tab.hidden').forEach(function(t){ t.classList.remove('hidden'); });
     const topBack = document.getElementById('npBackToPatientsTop');
@@ -1619,29 +1355,6 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
     if (topNew) topNew.classList.add('visible');
   }
 
-  function showPatientList(){
-    document.getElementById('npFormLayout').style.display = 'none';
-    document.getElementById('npResults').classList.add('open');
-    document.getElementById('npEmptyState').style.display = 'none';
-    document.querySelectorAll('.np-tab[data-tab]').forEach(function(t){ t.classList.remove('active'); });
-    document.querySelectorAll('.np-tab-panel').forEach(function(p){ p.classList.remove('active'); });
-    document.querySelector('.np-tab[data-tab="pacientes"]').classList.add('active');
-    document.getElementById('tab-pacientes').classList.add('active');
-    document.querySelectorAll('.np-tab-extra').forEach(function(t){ t.classList.add('hidden'); });
-    const topBack = document.getElementById('npBackToPatientsTop');
-    const topNew = document.getElementById('npNewStudyBtn');
-    if (topBack) topBack.classList.remove('visible');
-    if (topNew) topNew.classList.remove('visible');
-  }
-
-  document.getElementById('npBackToPatientsTop')?.addEventListener('click', function(){
-    showPatientList();
-  });
-  document.getElementById('npBackToPatientsGal')?.addEventListener('click', function(){
-    showPatientList();
-  });
-
-  document.getElementById('npSearch').addEventListener('input', doSearch);
 
   /* Filtro de archivos en galeria */
   function setupMediaFilter(inputId, containerSelector){
@@ -1667,8 +1380,8 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
   }
   setupMediaFilter('npGalSearch', '#tab-galeria');
 
-  /* Mostrar todos los pacientes por defecto */
-  showResults(PACS);
+  /* Ir directo al formulario del paciente */
+  showForm();
 
   /* Modal Nuevo Estudio */
   const nsBackdrop = document.getElementById('nsModalBackdrop');
