@@ -38,6 +38,7 @@
       proc: procedimiento,
       cls: cita.cls || 'ev-soon',
       h: parseInt(cita.hora_h ?? String(horaLabel).substring(0, 2), 10),
+      duracion: cita.duracion_minutos ?? 60,
       hora: cita.hora,
       estado: cita.estado,
       estado_texto: cita.estado_texto,

@@ -59,6 +59,22 @@ html[data-theme="light"] .cal-event.ev-soon{background:#F3ECFF;color:#4A1A8A;bor
 
 <script>
 (function(){
+  function _recomputeClass(ev, dateKey) {
+    const now = new Date();
+    const [y, m, d] = dateKey.split('-').map(Number);
+    const timeStr = ev.hora || (ev.h ? String(ev.h).padStart(2, '0') + ':00' : '00:00');
+    const [h, min] = timeStr.split(':').map(Number);
+    const start = new Date(y, m - 1, d, h || 0, min || 0);
+    const waitStart = new Date(start.getTime() - 15 * 60000);
+    const cancelStart = new Date(start.getTime() + 5 * 60000);
+
+    if (ev.cls === 'ev-done' || ev.cls === 'ev-cancel' || ev.cls === 'ev-block') return ev.cls;
+    if (now >= cancelStart) return 'ev-cancel';
+    if (ev.cls === 'ev-wait') return 'ev-wait';
+    if (now >= waitStart) return 'ev-wait';
+    return 'ev-soon';
+  }
+
   window.__buildCal = function(date, EVENTS, MESES, updateSumCards, countEvents) {
     const y = date.getFullYear();
     const m = date.getMonth();
@@ -99,8 +115,9 @@ html[data-theme="light"] .cal-event.ev-soon{background:#F3ECFF;color:#4A1A8A;bor
         const DIAS_MES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 
         evs.slice(0, MAX_VISIBLE).forEach(ev => {
+          const liveCls = _recomputeClass(ev, key);
           const div = document.createElement('div');
-          div.className = 'cal-event ' + ev.cls;
+          div.className = 'cal-event ' + liveCls;
 
           const name = ev.name || 'Paciente';
           const proc = ev.proc || 'Procedimiento';
@@ -109,7 +126,7 @@ html[data-theme="light"] .cal-event.ev-soon{background:#F3ECFF;color:#4A1A8A;bor
 
           div.dataset.name = name;
           div.dataset.proc = proc;
-          div.dataset.cls = ev.cls;
+          div.dataset.cls = liveCls;
           div.dataset.time = timeM ? timeM[1] : (ev.hora || (ev.h ? String(ev.h).padStart(2,'0') + ':00' : ''));
           div.dataset.citaId = ev.id || '';
           div.dataset.deleteUrl = ev.delete_url || '';
@@ -155,5 +172,7 @@ html[data-theme="light"] .cal-event.ev-soon{background:#F3ECFF;color:#4A1A8A;bor
 
     updateSumCards(countEvents(keys));
   };
+
+  window.__recomputeClass = _recomputeClass;
 })();
 </script>

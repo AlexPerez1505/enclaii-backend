@@ -35,6 +35,10 @@ Route::middleware('auth')->group(function () {
         return view('ia-reportes.generar');
     })->name('ia-reportes.generar');
 
+    Route::get('/ia-reportes/redactar', function () {
+        return view('ia-reportes.redactar');
+    })->name('ia-reportes.redactar');
+
     Route::post('/ia-reportes/generar', [IaReporteController::class, 'generar'])
         ->name('ia-reportes.generar.post');
 
@@ -133,6 +137,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/galeria/imagen/{id}', function ($id) {
         return view('galeria.verimagen', ['id' => $id]);
     })->name('galeria.imagen');
+
+    /* ── Finanzas ── */
+    Route::get('/finanzas', function () {
+        return view('finanzas.index');
+    })->name('finanzas');
 });
 
 

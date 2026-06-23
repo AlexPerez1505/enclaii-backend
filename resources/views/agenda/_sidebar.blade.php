@@ -117,7 +117,7 @@
     const extra = items.length - MAX_VISIBLE;
 
     visible.forEach(item => {
-      const inits = item.displayName.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+      const inits = item.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
       const fechaTxt = formatFechaTxt(item.dateObj);
       const horaTxt = formatHora(item.h);
       const isCls = item.ev.cls === 'ev-wait' ? 'prox-avatar wait' : 'prox-avatar soon';
@@ -128,7 +128,7 @@
       div.innerHTML = `
         <div class="${isCls}">${inits}</div>
         <div class="prox-info">
-          <strong>${item.displayName}</strong>
+          <strong>${item.name}</strong>
           <span>${item.proc}</span>
           <span>${fechaTxt} · ${horaTxt}</span>
         </div>`;

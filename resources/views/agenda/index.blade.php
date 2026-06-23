@@ -159,19 +159,6 @@
   let cur = new Date();
   let curView = 'mes';
 
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const counters = document.querySelectorAll('[data-target]');
-  if (reduced || typeof gsap === 'undefined') {
-    counters.forEach(c => { c.textContent = parseInt(c.dataset.target, 10); });
-  } else {
-    counters.forEach((c, i) => {
-      const target = parseInt(c.dataset.target, 10);
-      const obj = { v: 0 };
-      gsap.to(obj, { v: target, duration: 1.2, ease: 'expo.out', delay: 0.3 + i * 0.1,
-        onUpdate: () => { c.textContent = Math.round(obj.v); } });
-    });
-  }
-
   function updateSumCards(counts) {
     const map = {
       'ev-done':   {el: document.querySelector('.sum-done'),  cnt: document.getElementById('cntDone')},
@@ -188,7 +175,13 @@
   }
   function countEvents(keys) {
     const counts = {'ev-done':0,'ev-wait':0,'ev-cancel':0,'ev-soon':0};
-    keys.forEach(k => { (window.__AGENDA_EVENTS[k] || []).forEach(ev => { if (counts[ev.cls] !== undefined) counts[ev.cls]++; }); });
+    const recompute = window.__recomputeClass;
+    keys.forEach(k => {
+      (window.__AGENDA_EVENTS[k] || []).forEach(ev => {
+        const liveCls = typeof recompute === 'function' ? recompute(ev, k) : ev.cls;
+        if (counts[liveCls] !== undefined) counts[liveCls]++;
+      });
+    });
     return counts;
   }
 
@@ -241,6 +234,13 @@
   }
 
   setView('mes');
+
+  setInterval(() => {
+    if (curView === 'mes') buildCal(cur);
+    else if (curView === 'semana') buildWeek(cur);
+    else if (curView === 'dia') buildDayAndSync(cur);
+    if (typeof window.__rebuildProximas === 'function') window.__rebuildProximas();
+  }, 30000);
 
   document.querySelectorAll('.month-nav button').forEach((btn, i) => {
     btn.addEventListener('click', () => {
