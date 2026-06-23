@@ -2155,26 +2155,36 @@
 
 @endsection
 
+@php
+$dbPacientesData = [];
+if (isset($pacientes)) {
+    foreach ($pacientes as $p) {
+        $nombre = $p->nombre_completo ?? 'Sin nombre';
+        $partes = explode(' ', $nombre);
+        $ini = strtoupper(substr($nombre, 0, 1)) . strtoupper(substr($partes[1] ?? 'X', 0, 1));
+        $dbPacientesData[] = [
+            'id'         => $p->id,
+            'name'       => $nombre,
+            'initials'   => $ini,
+            'age'        => $p->edad ? $p->edad.' años' : '--',
+            'gender'     => $p->sexo ?? '',
+            'folio'      => $p->folio ?? '',
+            'dob'        => $p->fecha_nacimiento ? $p->fecha_nacimiento->format('d/m/Y') : '',
+            'phone'      => $p->telefono ?? '',
+            'email'      => $p->email ?? '',
+            'address'    => $p->direccion ?? '',
+            'study_date' => $p->created_at ? $p->created_at->format('d M Y') : '',
+            'study_type' => $p->procedimiento ?? 'Sin procedimiento',
+            'status'     => 'completed',
+        ];
+    }
+}
+@endphp
+
 @push('scripts')
 <script>
 // Pacientes reales de la base de datos
-const dbPacientes = @json(isset($pacientes) ? $pacientes->map(function($p) {
-  return [
-    'id'         => $p->id,
-    'name'       => $p->nombre_completo ?? 'Sin nombre',
-    'initials'   => strtoupper(substr($p->nombre_completo ?? 'P', 0, 1)) . strtoupper(substr(explode(' ', $p->nombre_completo ?? 'P ')[1] ?? 'X', 0, 1)),
-    'age'        => $p->edad ? $p->edad.' años' : '--',
-    'gender'     => $p->sexo ?? '',
-    'folio'      => $p->folio ?? '',
-    'dob'        => $p->fecha_nacimiento ? $p->fecha_nacimiento->format('d/m/Y') : '',
-    'phone'      => $p->telefono ?? '',
-    'email'      => $p->email ?? '',
-    'address'    => $p->direccion ?? '',
-    'study_date' => $p->created_at ? $p->created_at->format('d M Y') : '',
-    'study_type' => $p->procedimiento ?? 'Sin procedimiento',
-    'status'     => 'completed',
-  ];
-}) : []);
+const dbPacientes = @json($dbPacientesData);
 
 // Datos de pacientes (128 registros)
 const nombresF = ['María','Sofía','Ana','Laura','Marta','Lucía','Gabriela','Isabel','Valeria','Patricia','Rosa','Carmen','Elena','Beatriz','Claudia','Diana','Fernanda','Alejandra','Yolanda','Mónica','Silvia','Alicia','Teresa','Norma','Verónica','Leticia','Sandra','Miriam','Lorena','Natalia','Adriana','Esther','Gloria','Irene','Karla','Liliana','Margarita','Nadia','Olivia','Paulina'];
