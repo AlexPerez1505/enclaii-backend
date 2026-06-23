@@ -1653,53 +1653,34 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
   // ===== CALCULAR EDAD AUTOMÁTICAMENTE =====
-  const fechaNacimientoEdit = document.getElementById('fechaNacimientoEdit');
-  const edadCalculadaEdit = document.getElementById('edadCalculadaEdit');
-  
-  function calcularYMostrarEdadEdit(input) {
-    if (!input || !edadCalculadaEdit) return;
-    const fechaNac = new Date(input.value);
-    const hoy = new Date();
-    if (isNaN(fechaNac.getTime())) { edadCalculadaEdit.value = ''; return; }
-    let edad = hoy.getFullYear() - fechaNac.getFullYear();
-    const m = hoy.getMonth() - fechaNac.getMonth();
-    if (m < 0 || (m === 0 && hoy.getDate() < fechaNac.getDate())) edad--;
-    if (edad < 0) edadCalculadaEdit.value = '';
-    else if (edad === 0) { const meses = (hoy.getFullYear()-fechaNac.getFullYear())*12 + hoy.getMonth()-fechaNac.getMonth(); edadCalculadaEdit.value = meses + ' meses'; }
-    else edadCalculadaEdit.value = edad + ' años';
-  }
+  (function() {
+    var fnInput = document.getElementById('fechaNacimientoEdit');
+    var fnEdad  = document.getElementById('edadCalculadaEdit');
+    if (!fnInput || !fnEdad) return;
 
-  if (fechaNacimientoEdit && edadCalculadaEdit) {
-    calcularYMostrarEdadEdit(fechaNacimientoEdit);
-    fechaNacimientoEdit.addEventListener('change', function() {
-      const fechaNac = new Date(this.value);
-      const hoy = new Date();
-      
-      if (isNaN(fechaNac.getTime())) {
-        edadCalculadaEdit.value = '';
-        edadCalculadaEdit.placeholder = '--';
-        return;
-      }
-      
-      let edad = hoy.getFullYear() - fechaNac.getFullYear();
-      const mes = hoy.getMonth() - fechaNac.getMonth();
-      
-      if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
-        edad--;
-      }
-      
-      if (edad < 0) {
-        edadCalculadaEdit.value = '';
-        edadCalculadaEdit.placeholder = '--';
-      } else if (edad === 0) {
-        // Calcular meses para bebés
-        const meses = (hoy.getMonth() + 12) - fechaNac.getMonth();
-        edadCalculadaEdit.value = meses + ' meses';
+    function calcEdad() {
+      var val = fnInput.value;
+      if (!val) { fnEdad.value = ''; return; }
+      var parts = val.split('-');
+      var nac = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+      var hoy = new Date();
+      if (isNaN(nac.getTime()) || nac > hoy) { fnEdad.value = ''; return; }
+      var edad = hoy.getFullYear() - nac.getFullYear();
+      var m = hoy.getMonth() - nac.getMonth();
+      if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--;
+      if (edad < 0) fnEdad.value = '';
+      else if (edad === 0) {
+        var meses = (hoy.getFullYear() - nac.getFullYear()) * 12 + hoy.getMonth() - nac.getMonth();
+        fnEdad.value = meses + ' meses';
       } else {
-        edadCalculadaEdit.value = edad + ' años';
+        fnEdad.value = edad + ' años';
       }
-    });
-  }
+    }
+
+    fnInput.addEventListener('change', calcEdad);
+    fnInput.addEventListener('input', calcEdad);
+    calcEdad();
+  })();
 </script>
 @endpush
 
