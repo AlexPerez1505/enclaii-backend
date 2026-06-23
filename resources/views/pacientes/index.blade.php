@@ -2202,6 +2202,7 @@ for(let i=seed.length;i<128;i++){
   const edad = rnd(18,75);
   const status = stList[i % stList.length];
   seed.push({
+    id: 60+i,
     name: fullName,
     initials: initials,
     age: edad+' años',
@@ -2222,7 +2223,7 @@ const patientsData = seed;
 const GEN_BASE     = @json(route('ia-reportes.generar'));   // Generar reporte IA
 const REDACT_BASE  = @json(route('ia-reportes.redactar'));  // Crear informe (editor manual, sin IA)
 const ESTUDIO_BASE = @json(route('nuevo-estudio'));          // Iniciar estudio
-const BASE_URL     = @json(url('/'));                          // URL base
+const BASE_URL     = @json(url('/')) + '/';                   // URL base
 function patientParams(p){
   return new URLSearchParams({
     name: p.name || '',
