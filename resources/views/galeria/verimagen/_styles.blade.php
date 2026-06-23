@@ -195,6 +195,9 @@
   transform:scale(2.2);
   transform-origin:center;
 }
+.vi-measure-fa-icon{
+  width:26px;height:26px;display:block;color:currentColor;
+}
 @media(hover:hover)and(pointer:fine){
   .vi-measure-btn:hover{background:rgba(46,123,246,.12);border-color:rgba(46,123,246,.4);color:var(--blue)}
   .vi-measure-btn.danger:hover{background:rgba(255,90,110,.22);border-color:rgba(255,90,110,.5);color:var(--red)}

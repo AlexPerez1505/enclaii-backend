@@ -49,6 +49,10 @@ Route::middleware('auth')->group(function () {
         return view('ia-reportes.reportes');
     })->name('ia-reportes.todos');
 
+    Route::get('/ia-reportes/redactar', function () {
+        return view('ia-reportes.redactar');
+    })->name('ia-reportes.redactar');
+
     Route::get('/ia-reportes/editar', function () {
         return view('ia-reportes.editar');
     })->name('ia-reportes.editar');
@@ -66,6 +70,10 @@ Route::middleware('auth')->group(function () {
             'userSettings' => request()->user()->resolvedSettings(),
         ]);
     })->name('configuracion');
+
+    Route::get('/finanzas', function () {
+        return view('finanzas.index');
+    })->name('finanzas');
 
     Route::patch('/configuracion/general', [SettingsController::class, 'update'])
         ->name('configuracion.general.update');

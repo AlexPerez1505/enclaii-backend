@@ -208,6 +208,7 @@
   const measureSave = document.getElementById('viAnnoSave');
   const measureClear = document.getElementById('viAnnoClear');
   const viewer = document.getElementById('viViewer');
+  const measureHeart = document.getElementById('viMeasureHeart');
   let measuring = false;
   let measureDrawing = false;
   let measureTool = 'circle';
@@ -215,6 +216,8 @@
   let measurePreview = null;
   let measureImageIndex = current;
   const measureStates = {};
+  let draggingItem = null;
+  let dragOffset = { x: 0, y: 0 };
 
   function emptyMeasureState(){
     return { items: [], redo: [] };
@@ -243,6 +246,18 @@
     };
   }
 
+  function drawHeartPath(ctx, cx, cy, size){
+    const s = Math.max(size, 1);
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy + s * 0.58);
+    ctx.bezierCurveTo(cx - s * 0.82, cy + s * 0.08, cx - s * 0.9, cy - s * 0.48, cx - s * 0.48, cy - s * 0.68);
+    ctx.bezierCurveTo(cx - s * 0.22, cy - s * 0.8, cx - s * 0.04, cy - s * 0.62, cx, cy - s * 0.4);
+    ctx.bezierCurveTo(cx + s * 0.04, cy - s * 0.62, cx + s * 0.22, cy - s * 0.8, cx + s * 0.48, cy - s * 0.68);
+    ctx.bezierCurveTo(cx + s * 0.9, cy - s * 0.48, cx + s * 0.82, cy + s * 0.08, cx, cy + s * 0.58);
+    ctx.closePath();
+  }
+
   function drawMeasureItem(item){
     measureCtx.save();
     measureCtx.strokeStyle = item.color;
@@ -254,6 +269,11 @@
     if(item.type === 'circle'){
       measureCtx.beginPath();
       measureCtx.arc(item.x, item.y, item.radius, 0, Math.PI * 2);
+      measureCtx.stroke();
+    }
+
+    if(item.type === 'heart'){
+      drawHeartPath(measureCtx, item.x, item.y, item.size);
       measureCtx.stroke();
     }
 
@@ -284,6 +304,45 @@
     measureCtx.restore();
   }
 
+  function hitTestItem(item, pos){
+    var margin = Math.max(8, item.width * 1.5);
+    if(item.type === 'circle'){
+      var dist = Math.hypot(pos.x - item.x, pos.y - item.y);
+      return Math.abs(dist - item.radius) < margin || dist < item.radius;
+    }
+    if(item.type === 'heart'){
+      var dist = Math.hypot(pos.x - item.x, pos.y - item.y);
+      return dist < item.size * 0.6;
+    }
+    if(item.type === 'line' || item.type === 'arrow'){
+      var dx = item.x2 - item.x1, dy = item.y2 - item.y1;
+      var len = Math.hypot(dx, dy);
+      if(len < 1) return Math.hypot(pos.x - item.x1, pos.y - item.y1) < margin;
+      var t = Math.max(0, Math.min(1, ((pos.x - item.x1)*dx + (pos.y - item.y1)*dy) / (len*len)));
+      var px = item.x1 + t*dx, py = item.y1 + t*dy;
+      return Math.hypot(pos.x - px, pos.y - py) < margin;
+    }
+    return false;
+  }
+
+  function findItemAtPos(pos){
+    var state = getMeasureState();
+    for(var i = state.items.length - 1; i >= 0; i--){
+      if(hitTestItem(state.items[i], pos)) return state.items[i];
+    }
+    return null;
+  }
+
+  function moveItem(item, dx, dy){
+    if(item.type === 'circle' || item.type === 'heart'){
+      item.x += dx;
+      item.y += dy;
+    } else {
+      item.x1 += dx; item.y1 += dy;
+      item.x2 += dx; item.y2 += dy;
+    }
+  }
+
   function renderMeasurements(){
     const state = getMeasureState();
     measureCtx.clearRect(0, 0, measureCanvas.width, measureCanvas.height);
@@ -301,6 +360,17 @@
         x: from.x,
         y: from.y,
         radius: Math.hypot(to.x - from.x, to.y - from.y),
+        color,
+        width
+      };
+    }
+
+    if(measureTool === 'heart'){
+      return {
+        type: 'heart',
+        x: from.x,
+        y: from.y,
+        size: Math.hypot(to.x - from.x, to.y - from.y),
         color,
         width
       };
@@ -328,17 +398,36 @@
     measureCircle.classList.toggle('active', tool === 'circle');
     measureArrow.classList.toggle('active', tool === 'arrow');
     measureLine.classList.toggle('active', tool === 'line');
+    if(measureHeart) measureHeart.classList.toggle('active', tool === 'heart');
   }
 
   function startMeasure(e){
     if(!measuring) return;
     e.preventDefault();
+    var pos = measurePointerPosition(e);
+    var hit = findItemAtPos(pos);
+    if(hit){
+      draggingItem = hit;
+      dragOffset = { x: pos.x, y: pos.y };
+      measureCanvas.style.cursor = 'grabbing';
+      return;
+    }
     measureDrawing = true;
-    measureStart = measurePointerPosition(e);
+    measureStart = pos;
     measurePreview = null;
   }
 
   function drawMeasure(e){
+    if(draggingItem){
+      e.preventDefault();
+      var pos = measurePointerPosition(e);
+      var dx = pos.x - dragOffset.x;
+      var dy = pos.y - dragOffset.y;
+      moveItem(draggingItem, dx, dy);
+      dragOffset = pos;
+      renderMeasurements();
+      return;
+    }
     if(!measureDrawing) return;
     e.preventDefault();
     measurePreview = buildMeasureItem(measureStart, measurePointerPosition(e));
@@ -346,13 +435,20 @@
   }
 
   function stopMeasure(e){
+    if(draggingItem){
+      e.preventDefault();
+      draggingItem = null;
+      measureCanvas.style.cursor = '';
+      renderMeasurements();
+      return;
+    }
     if(!measureDrawing) return;
     e.preventDefault();
     const state = getMeasureState();
     const end = measurePointerPosition(e.changedTouches ? { touches: e.changedTouches } : e);
     const item = buildMeasureItem(measureStart, end);
 
-    if(item.type !== 'circle' || item.radius > 2){
+    if((item.type === 'circle' || item.type === 'heart') ? (item.radius || item.size) > 2 : true){
       state.items.push(item);
       state.redo = [];
     }
@@ -389,6 +485,7 @@
   measureCircle.addEventListener('click', () => setMeasureTool('circle'));
   measureArrow.addEventListener('click', () => setMeasureTool('arrow'));
   measureLine.addEventListener('click', () => setMeasureTool('line'));
+  if(measureHeart) measureHeart.addEventListener('click', () => setMeasureTool('heart'));
   measureUndo.addEventListener('click', function(){
     if(!measuring) return;
     const state = getMeasureState();

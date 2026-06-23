@@ -167,7 +167,13 @@ html[data-reading="on"]::after{
   gap:6px;
   margin-bottom:26px;
 }
-.side-brand img{width:96px;height:auto;margin-bottom:-12px;filter:drop-shadow(0 0 18px rgba(56,199,244,.35))}
+.side-brand img{
+  width:76px;
+  height:76px;
+  object-fit:contain;
+  margin-bottom:2px;
+  filter:drop-shadow(0 0 18px rgba(56,199,244,.35));
+}
 .side-brand .logo-dark{display:block;}
 .side-brand .logo-light{display:none;}
 html[data-theme="light"] .side-brand .logo-dark{display:none;}
@@ -527,7 +533,7 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
   {{-- ============ SIDEBAR (compartido) ============ --}}
   <aside class="side">
     <div class="side-brand">
-      <img class="logo-dark" src="{{ asset('images/logo-2.png') }}" alt="Logotipo ENCLAII">
+      <img class="logo-dark" src="{{ asset('images/logo-dark.png') }}" alt="Logotipo ENCLAII">
       <img class="logo-light" src="{{ asset('images/logo.png') }}" alt="Logotipo ENCLAII">
       <div>
         <div class="side-brand-name">ENCLA<span>II</span></div>
