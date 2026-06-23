@@ -289,6 +289,9 @@
   overflow:hidden;
   height:fit-content;
 }
+/* Mientras hay un menú abierto, no recortar para que el desplegable se vea completo */
+.patients-card.menu-open{overflow:visible}
+.content-with-panel.menu-open{overflow:visible}
 .table-header{
   display:grid;
   grid-template-columns:2fr 1fr 1fr 1.5fr 1fr 100px;
@@ -2405,6 +2408,14 @@ function clearFilters() {
 }
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closeFilters(); });
 
+// Quita el recorte de los contenedores mientras haya un menú abierto, para que
+// el desplegable no se corte cuando hay pocas filas en la tabla.
+function syncMenuOverflow() {
+  const anyOpen = document.querySelector('.actions-dropdown.active') !== null;
+  document.querySelector('.patients-card')?.classList.toggle('menu-open', anyOpen);
+  document.querySelector('.content-with-panel')?.classList.toggle('menu-open', anyOpen);
+}
+
 function toggleMenu(btn) {
   document.querySelectorAll('.actions-dropdown.active').forEach(menu => {
     if (menu !== btn.closest('.actions-wrapper').querySelector('.actions-dropdown')) {
@@ -2413,6 +2424,7 @@ function toggleMenu(btn) {
   });
   const dropdown = btn.closest('.actions-wrapper').querySelector('.actions-dropdown');
   dropdown.classList.toggle('active');
+  syncMenuOverflow();
 }
 
 function savePatientToCache(patient) {
@@ -2529,6 +2541,7 @@ document.addEventListener('click', function(e) {
     document.querySelectorAll('.actions-dropdown.active').forEach(menu => {
       menu.classList.remove('active');
     });
+    syncMenuOverflow();
   }
 
   // Cerrar filtro de estado al hacer clic fuera

@@ -402,6 +402,26 @@ textarea{
 }
 .mini-modal-footer .btn-confirm:hover{background:var(--cyan) !important;transform:none !important;}
 
+/* Adaptación modo claro */
+html[data-theme="light"] .mini-modal{
+  background:#ffffff;
+  border-color:#e2e8f0;
+  box-shadow:0 20px 60px rgba(0,0,0,.15);
+}
+html[data-theme="light"] .mini-modal h4{color:#1a202c;}
+html[data-theme="light"] .mini-modal p{color:#64748b;}
+html[data-theme="light"] .mini-modal input{
+  background:#f8fafc;
+  border-color:#e2e8f0;
+  color:#1a202c;
+}
+html[data-theme="light"] .mini-modal input::placeholder{color:#94a3b8;}
+html[data-theme="light"] .mini-modal-footer .btn-cancel{
+  border-color:#e2e8f0 !important;
+  color:#64748b !important;
+}
+html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
+
 /* Botón y modal Agendar cita */
 .btn-agendar{
   display:inline-flex;
@@ -1322,14 +1342,14 @@ textarea{
   // ===== MINI MODAL AGREGAR OPCIÓN (se inyecta en body) =====
   (function(){
     var _selId = null;
-    var html = '<div id="_mm" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:99999;align-items:center;justify-content:center;">'
-      +'<div style="background:#1a2035;border:1px solid #2e3d6b;border-radius:14px;padding:28px 24px 20px;width:340px;max-width:92vw;box-shadow:0 24px 64px rgba(0,0,0,.6);">'
-      +'<h4 id="_mmT" style="margin:0 0 4px;font-size:15px;font-weight:700;color:#e0e6f0;">Agregar</h4>'
-      +'<p id="_mmD" style="margin:0 0 14px;font-size:12px;color:#8fa3cf;">Escribe el nombre</p>'
-      +'<input id="_mmI" type="text" placeholder="Nombre..." autocomplete="off" style="display:block;width:100%;box-sizing:border-box;margin-bottom:16px;padding:10px 12px;border-radius:8px;border:1px solid #3d4f7a;background:#252b40;color:#e0e6f0;font-size:14px;">'
-      +'<div style="display:flex;justify-content:flex-end;gap:8px;">'
-      +'<button id="_mmC" type="button" style="padding:8px 18px;border-radius:8px;border:1px solid #2e3d6b;background:transparent;color:#8fa3cf;font-size:13px;cursor:pointer;">Cancelar</button>'
-      +'<button id="_mmO" type="button" style="padding:8px 18px;border-radius:8px;border:none;background:#2e7bf6;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">Agregar</button>'
+    var html = '<div id="_mm" class="mini-modal-overlay" style="display:none;">'
+      +'<div class="mini-modal">'
+      +'<h4 id="_mmT">Agregar</h4>'
+      +'<p id="_mmD">Escribe el nombre</p>'
+      +'<input id="_mmI" type="text" placeholder="Nombre..." autocomplete="off">'
+      +'<div class="mini-modal-footer">'
+      +'<button id="_mmC" type="button" class="btn-cancel">Cancelar</button>'
+      +'<button id="_mmO" type="button" class="btn-confirm">Agregar</button>'
       +'</div></div></div>';
     document.body.insertAdjacentHTML('beforeend', html);
     var ov = document.getElementById('_mm');
@@ -1874,38 +1894,13 @@ textarea{
     }
   }
 
-  function asignarArchivoDesdeBlob(blob, name = 'foto-paciente.png', type = 'image/png') {
+  function asignarArchivoDesdeBlob(blob) {
     if (!inputFileFotoAuto) return;
 
-    const file = new File([blob], name, { type: type });
+    const file = new File([blob], 'foto-paciente.png', { type: 'image/png' });
     const dataTransfer = new DataTransfer();
     dataTransfer.items.add(file);
     inputFileFotoAuto.files = dataTransfer.files;
-  }
-
-  function dataURLtoBlob(dataUrl) {
-    const byteString = atob(dataUrl.split(',')[1]);
-    const mimeString = dataUrl.split(',')[0].split(':')[1].split(';')[0];
-    const ab = new ArrayBuffer(byteString.length);
-    const ia = new Uint8Array(ab);
-    for (let i = 0; i < byteString.length; i++) {
-      ia[i] = byteString.charCodeAt(i);
-    }
-    return new Blob([ab], { type: mimeString });
-  }
-
-  function redimensionarCanvas(canvas, maxWidth, maxHeight) {
-    let { width, height } = canvas;
-    if (width <= maxWidth && height <= maxHeight) return canvas;
-    const ratio = Math.min(maxWidth / width, maxHeight / height);
-    width = Math.floor(width * ratio);
-    height = Math.floor(height * ratio);
-    const resized = document.createElement('canvas');
-    resized.width = width;
-    resized.height = height;
-    const ctx = resized.getContext('2d');
-    ctx.drawImage(canvas, 0, 0, width, height);
-    return resized;
   }
 
   function mostrarFotoSeleccionada(dataUrl) {
@@ -1936,12 +1931,11 @@ textarea{
     const context = canvas.getContext('2d');
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Redimensionar y comprimir para no pasar el límite de 4 MB y reducir carga
-    const resized = redimensionarCanvas(canvas, 1280, 1280);
+    currentPhotoDataAuto = canvas.toDataURL('image/png');
 
-    currentPhotoDataAuto = resized.toDataURL('image/jpeg', 0.85);
-    const blob = dataURLtoBlob(currentPhotoDataAuto);
-    asignarArchivoDesdeBlob(blob, 'foto-paciente.jpg', 'image/jpeg');
+    canvas.toBlob(function(blob) {
+      if (blob) asignarArchivoDesdeBlob(blob);
+    }, 'image/png');
 
     mostrarFotoSeleccionada(currentPhotoDataAuto);
     detenerCamaraPaciente();
@@ -2054,17 +2048,6 @@ textarea{
 
       detenerCamaraPaciente();
       modalFotoAuto.classList.remove('active');
-    });
-  }
-
-  // Safety net: asegurar que la foto capturada esté en el input antes de enviar
-  const pacienteForm = document.getElementById('pacienteForm');
-  if (pacienteForm && inputFileFotoAuto) {
-    pacienteForm.addEventListener('submit', function(e) {
-      if (currentPhotoDataAuto && inputFileFotoAuto.files.length === 0) {
-        const blob = dataURLtoBlob(currentPhotoDataAuto);
-        asignarArchivoDesdeBlob(blob, 'foto-paciente.jpg', 'image/jpeg');
-      }
     });
   }
 

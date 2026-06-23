@@ -159,10 +159,7 @@
     if (hora) hora.value = CITA_EDITAR.hora_formato || '';
 
     const duracion = document.getElementById('citaDuracion');
-    if (duracion) {
-      duracion.value = CITA_EDITAR.duracion_minutos || 60;
-      duracion.dispatchEvent(new Event('input'));
-    }
+    if (duracion) duracion.value = CITA_EDITAR.duracion_minutos || 60;
 
     const motivo = document.getElementById('motivoText');
     if (motivo) {
