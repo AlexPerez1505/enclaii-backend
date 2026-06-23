@@ -917,7 +917,7 @@
   gap:8px;
 }
 .btn-view-all:hover{
-  background:rgba(56,199,244,.1);
+  background:hsla(194, 90%, 59%, 0.10);
   border-color:var(--cyan);
 }
 
@@ -2222,6 +2222,7 @@ const patientsData = seed;
 const GEN_BASE     = @json(route('ia-reportes.generar'));   // Generar reporte IA
 const REDACT_BASE  = @json(route('ia-reportes.redactar'));  // Crear informe (editor manual, sin IA)
 const ESTUDIO_BASE = @json(route('nuevo-estudio'));          // Iniciar estudio
+const BASE_URL     = @json(url('/'));                          // URL base
 function patientParams(p){
   return new URLSearchParams({
     name: p.name || '',
@@ -2267,7 +2268,7 @@ function rowHTML(patient, globalIndex) {
       </div>
       <div class="actions-dropdown" onclick="event.stopPropagation()">
         <a href="${redactUrl(patient)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Crear informe</a>
-        <a href="{{ route('pacientes.edit') }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Editar información</a>
+        <a href="${BASE_URL}pacientes/${patient.id}/edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Editar información</a>
         <a href="${ESTUDIO_BASE}?${patientParams(patient)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/><line x1="12" y1="17" x2="12" y2="22"/></svg>Iniciar estudio</a>
         <a href="${reportUrl(patient)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><path d="M9 22h6"/><circle cx="12" cy="11" r="1" fill="currentColor"/></svg>Generar reporte IA</a>
         <a href="{{ route('agendar') }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Programar cita</a>
