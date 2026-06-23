@@ -10,16 +10,18 @@
 @section('content')
 
 @php
-$testImage = asset('images/colonoscopia.jpg');
-$caps = [
-  ['n'=>1,'ts'=>'0:01:25','bg'=>'radial-gradient(ellipse at 50% 50%,#3a1208 0%,#0a0610 100%)','src'=>$testImage],
-  ['n'=>2,'ts'=>'0:02:15','bg'=>'radial-gradient(ellipse at 40% 60%,#4a1a0a 0%,#0c0612 100%)','src'=>$testImage],
-  ['n'=>3,'ts'=>'0:04:32','bg'=>'radial-gradient(ellipse at 60% 40%,#2a1a3a 0%,#060814 100%)','src'=>$testImage],
-  ['n'=>4,'ts'=>'0:06:18','bg'=>'radial-gradient(ellipse at 50% 50%,#5a1810 0%,#0a0610 100%)','src'=>$testImage],
-  ['n'=>5,'ts'=>'0:08:47','bg'=>'radial-gradient(ellipse at 45% 55%,#1a0a2a 0%,#08060e 100%)','src'=>$testImage],
-  ['n'=>6,'ts'=>'0:11:03','bg'=>'radial-gradient(ellipse at 55% 45%,#4a0a0a 0%,#0c0608 100%)','src'=>$testImage],
-];
-$current = 3; // índice 0-based, imagen 4
+// Si no llegan capturas reales (acceso directo), usar datos de muestra.
+if (empty($caps)) {
+  $testImage = asset('images/colonoscopia.jpg');
+  $caps = [
+    ['n'=>1,'ts'=>'0:01:25','bg'=>'radial-gradient(ellipse at 50% 50%,#3a1208 0%,#0a0610 100%)','src'=>$testImage],
+    ['n'=>2,'ts'=>'0:02:15','bg'=>'radial-gradient(ellipse at 40% 60%,#4a1a0a 0%,#0c0612 100%)','src'=>$testImage],
+    ['n'=>3,'ts'=>'0:04:32','bg'=>'radial-gradient(ellipse at 60% 40%,#2a1a3a 0%,#060814 100%)','src'=>$testImage],
+    ['n'=>4,'ts'=>'0:06:18','bg'=>'radial-gradient(ellipse at 50% 50%,#5a1810 0%,#0a0610 100%)','src'=>$testImage],
+  ];
+  $current = 0;
+}
+$current = $current ?? 0;
 @endphp
 
 <div class="rise d2">

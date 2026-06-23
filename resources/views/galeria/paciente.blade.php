@@ -6,12 +6,12 @@
 @section('header-sub')
   <a href="{{ route('galeria') }}" style="color:var(--txt-soft);text-decoration:none;font-size:13px">Galería de pacientes</a>
   <span style="color:var(--txt-soft);font-size:13px;margin:0 4px">›</span>
-  <span style="font-size:13px;font-weight:600">Maria Gonzales</span>
+  <span style="font-size:13px;font-weight:600">{{ $paciente?->nombre_completo ?? 'Paciente' }}</span>
 @endsection
 
 @push('styles')
 <style>
-.pa-shell{display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start}
+.pa-shell{display:grid;grid-template-columns:1fr;gap:18px;align-items:start}
 .pa-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
 .pa-back{
   height:40px;display:inline-flex;align-items:center;gap:8px;padding:0 16px;
@@ -100,17 +100,13 @@
 
 @section('content')
 @php
-$testImage = asset('images/colonoscopia.jpg');
-$videos = [
-  ['id'=>1,'titulo'=>'Video EDD-2025-001245','fecha'=>'15/07/2025','duracion'=>'00:15:42','tipo'=>'Endoscopia Digestiva Alta'],
-  ['id'=>2,'titulo'=>'Video EDD-2025-001246','fecha'=>'15/07/2025','duracion'=>'00:08:36','tipo'=>'Revisión de antro'],
-];
-$imagenes = [
-  ['id'=>1,'titulo'=>'Imagen 1 - Fotograma 0:01:25','fecha'=>'15/07/2025','hora'=>'0:01:25'],
-  ['id'=>2,'titulo'=>'Imagen 2 - Fotograma 0:02:15','fecha'=>'15/07/2025','hora'=>'0:02:15'],
-  ['id'=>3,'titulo'=>'Imagen 3 - Fotograma 0:04:32','fecha'=>'15/07/2025','hora'=>'0:04:32'],
-  ['id'=>4,'titulo'=>'Imagen 4 - Fotograma 0:06:18','fecha'=>'15/07/2025','hora'=>'0:06:18'],
-];
+$nombrePaciente = $paciente?->nombre_completo ?? 'Paciente';
+$iniciales = collect(explode(' ', $nombrePaciente))->filter()->take(2)->map(fn($p)=>mb_strtoupper(mb_substr($p,0,1)))->implode('') ?: 'PX';
+$totalFotos = $imagenes->count();
+$totalVideos = $videos->count();
+$totalEstudios = $imagenes->pluck('estudio_id')->merge($videos->pluck('estudio_id'))->filter()->unique()->count();
+$ultimoArchivo = $imagenes->first() ?? $videos->first();
+$ultimaFecha = optional($ultimoArchivo?->capturado_en)->format('d/m/Y') ?? '—';
 @endphp
 
 <div class="pa-topbar rise d2">
@@ -127,15 +123,15 @@ $imagenes = [
 <div class="pa-shell rise d3">
   <div>
     <section class="pa-hero">
-      <div class="pa-avatar">MG</div>
+      <div class="pa-avatar">{{ $iniciales }}</div>
       <div>
-        <div class="pa-title">Maria Gonzales</div>
-        <div class="pa-sub">ID: 00012345 · Femenino · 38 años · Último estudio: 15/07/2025</div>
+        <div class="pa-title">{{ $nombrePaciente }}</div>
+        <div class="pa-sub">ID: {{ $paciente?->folio ?? $paciente?->identificacion ?? '—' }} · {{ $paciente?->sexo ?? '—' }} · {{ $paciente?->edad ? $paciente->edad.' años' : '—' }} · Último estudio: {{ $ultimaFecha }}</div>
       </div>
       <div class="pa-stats">
-        <div class="pa-stat"><strong>15</strong><span>Estudios</span></div>
-        <div class="pa-stat"><strong>126</strong><span>Fotos</span></div>
-        <div class="pa-stat"><strong>12</strong><span>Videos</span></div>
+        <div class="pa-stat"><strong>{{ $totalEstudios }}</strong><span>Estudios</span></div>
+        <div class="pa-stat"><strong>{{ $totalFotos }}</strong><span>Fotos</span></div>
+        <div class="pa-stat"><strong>{{ $totalVideos }}</strong><span>Videos</span></div>
       </div>
     </section>
 
@@ -147,23 +143,29 @@ $imagenes = [
         <span class="pa-section-count">{{ count($videos) }} archivos</span>
       </div>
       <div class="pa-grid">
-        @foreach($videos as $v)
-          <article class="pa-card" data-kind="video" data-title="{{ strtolower($v['titulo'].' '.$v['tipo']) }}">
+        @forelse($videos as $v)
+          <article class="pa-card" data-kind="video" data-title="{{ strtolower($v->nombre_original ?? 'video') }}">
             <div class="pa-thumb">
+              <video src="{{ asset('storage/'.$v->path) }}" preload="metadata" muted style="width:100%;height:100%;object-fit:cover"></video>
               <span class="pa-badge video">VIDEO</span>
               <div class="pa-play"><span><svg width="17" height="17" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg></span></div>
-              <span class="pa-duration">{{ $v['duracion'] }}</span>
             </div>
             <div class="pa-body">
-              <div class="pa-name">{{ $v['titulo'] }}</div>
-              <div class="pa-meta">{{ $v['tipo'] }}<br>{{ $v['fecha'] }}</div>
+              <div class="pa-name">{{ $v->nombre_original ?? 'Video del estudio' }}</div>
+              <div class="pa-meta">Estudio {{ $v->estudio?->folio }}<br>{{ optional($v->capturado_en)->format('d/m/Y H:i') }}</div>
               <div class="pa-actions">
+<<<<<<< HEAD
                 <a class="pa-btn primary" href="{{ route('galeria.video', ['id' => $v['id'], 'paciente' => $id]) }}">Ver</a>
                 <a class="pa-btn" href="{{ route('galeria.video.editar', ['id' => $v['id'], 'paciente' => $id]) }}">Editar</a>
+=======
+                <a class="pa-btn primary" href="{{ asset('storage/'.$v->path) }}" target="_blank">Ver</a>
+>>>>>>> origin
               </div>
             </div>
           </article>
-        @endforeach
+        @empty
+          <p style="color:var(--txt-soft);font-size:13px">No hay videos para este paciente.</p>
+        @endforelse
       </div>
     </section>
 
@@ -172,49 +174,38 @@ $imagenes = [
         <h2 class="pa-section-title">Imágenes</h2>
         <span class="pa-section-count" id="paImagesCount">{{ count($imagenes) }} archivos</span>
       </div>
+<<<<<<< HEAD
       <div class="pa-grid" id="paImagesGrid">
         @foreach($imagenes as $img)
           <article class="pa-card" data-kind="imagen" data-title="{{ strtolower($img['titulo']) }}">
+=======
+      <div class="pa-grid">
+        @forelse($imagenes as $img)
+          <article class="pa-card" data-kind="imagen" data-title="{{ strtolower($img->nombre_original ?? 'imagen') }}">
+>>>>>>> origin
             <div class="pa-thumb">
-              <img src="{{ $testImage }}" alt="{{ $img['titulo'] }}">
+              <img src="{{ asset('storage/'.$img->path) }}" alt="{{ $img->nombre_original ?? 'Captura' }}">
               <span class="pa-badge image">IMG</span>
-              <span class="pa-duration">{{ $img['hora'] }}</span>
+              <span class="pa-duration">{{ optional($img->capturado_en)->format('H:i') }}</span>
             </div>
             <div class="pa-body">
-              <div class="pa-name">{{ $img['titulo'] }}</div>
-              <div class="pa-meta">Captura del estudio<br>{{ $img['fecha'] }}</div>
+              <div class="pa-name">{{ $img->nombre_original ?? 'Captura' }}</div>
+              <div class="pa-meta">Captura del estudio {{ $img->estudio?->folio }}<br>{{ optional($img->capturado_en)->format('d/m/Y') }}</div>
               <div class="pa-actions">
+<<<<<<< HEAD
                 <a class="pa-btn primary" href="{{ route('galeria.imagen', ['id' => $img['id'], 'paciente' => $id]) }}">Ver imagen</a>
+=======
+                <a class="pa-btn primary" href="{{ route('galeria.imagen', $img->id) }}">Ver imagen</a>
+>>>>>>> origin
               </div>
             </div>
           </article>
-        @endforeach
+        @empty
+          <p style="color:var(--txt-soft);font-size:13px">No hay imágenes capturadas para este paciente.</p>
+        @endforelse
       </div>
     </section>
   </div>
-
-  <aside class="pa-side">
-    <section class="pa-panel">
-      <h3 class="pa-panel-title">Información del paciente</h3>
-      <div class="pa-info">
-        <div class="pa-info-row"><span>ID</span><strong>00012345</strong></div>
-        <div class="pa-info-row"><span>Sexo</span><strong>Femenino</strong></div>
-        <div class="pa-info-row"><span>Edad</span><strong>38 años</strong></div>
-        <div class="pa-info-row"><span>Estado</span><strong style="color:var(--green)">Activo</strong></div>
-        <div class="pa-info-row"><span>Último estudio</span><strong>15/07/2025</strong></div>
-      </div>
-    </section>
-
-    <section class="pa-panel">
-      <h3 class="pa-panel-title">Etiquetas frecuentes</h3>
-      <div class="pa-tag-list">
-        <span class="pa-tag">Estómago</span>
-        <span class="pa-tag">Antro</span>
-        <span class="pa-tag">Gastritis</span>
-        <span class="pa-tag">Duodeno</span>
-      </div>
-    </section>
-  </aside>
 </div>
 @endsection
 
