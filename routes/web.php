@@ -24,7 +24,8 @@ Route::middleware('auth')->group(function () {
     })->name('dashboard');
     
     Route::get('/pacientes', function () {
-        return view('pacientes.index');
+        $pacientes = \App\Models\Paciente::orderBy('created_at','desc')->get();
+        return view('pacientes.index', compact('pacientes'));
     })->name('pacientes');
 
     Route::get('/pacientes/nuevo', function () {
