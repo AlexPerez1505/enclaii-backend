@@ -2058,10 +2058,10 @@
           </div>
         </div>
 
-        <button class="btn-view-all">
+        <a href="{{ route('pacientes.estudios') }}" class="btn-view-all">
           Ver todos los informes
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-        </button>
+        </a>
       </div>
     </div>
 
@@ -2116,14 +2116,41 @@
           </div>
         </div>
         
-        <button class="btn-view-all">
+        <a href="{{ route('ia-reportes.analisis') }}" class="btn-view-all">
           Ver reporte de IA
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-        </button>
+        </a>
       </div>
     </div>
   </aside>
 
+</div>
+
+{{-- Modal Descarga PDF --}}
+<div id="modalDescargaPDF" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+  <div style="background:var(--card,#1a2035);border:1px solid var(--stroke-strong,#2e3a55);border-radius:16px;padding:32px 28px;max-width:400px;width:90%;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.5);">
+    <div style="width:60px;height:60px;border-radius:50%;background:rgba(61,220,151,.12);border:1px solid rgba(61,220,151,.3);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#3ddc97" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    </div>
+    <h3 style="font-size:17px;font-weight:700;color:var(--txt,#e2e8f0);margin:0 0 8px;">Expediente descargado</h3>
+    <p style="font-size:13px;color:var(--txt-soft,#8896ae);margin:0 0 24px;line-height:1.6;">El expediente PDF de <strong id="modalDescargaNombre" style="color:var(--txt,#e2e8f0);"></strong><br>se ha descargado correctamente.</p>
+    <button onclick="document.getElementById('modalDescargaPDF').style.display='none'" style="width:100%;padding:10px 0;border-radius:10px;border:none;background:#3ddc97;color:#fff;font-size:14px;font-weight:600;cursor:pointer;">Aceptar</button>
+  </div>
+</div>
+
+{{-- Modal Eliminar Paciente --}}
+<div id="modalEliminar" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;">
+  <div style="background:var(--card,#1a2035);border:1px solid var(--stroke-strong,#2e3a55);border-radius:16px;padding:32px 28px;max-width:400px;width:90%;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.5);">
+    <div style="width:60px;height:60px;border-radius:50%;background:rgba(255,90,110,.12);border:1px solid rgba(255,90,110,.3);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ff5a6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+    </div>
+    <h3 style="font-size:17px;font-weight:700;color:var(--txt,#e2e8f0);margin:0 0 8px;">Eliminar paciente</h3>
+    <p style="font-size:13px;color:var(--txt-soft,#8896ae);margin:0 0 24px;line-height:1.6;">¿Estás seguro de que deseas eliminar a <strong id="modalEliminarNombre" style="color:var(--txt,#e2e8f0);"></strong>?<br>Esta acción no se puede deshacer.</p>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button onclick="cancelarEliminar()" style="flex:1;padding:10px 0;border-radius:10px;border:1px solid var(--stroke,#2e3a55);background:transparent;color:var(--txt,#e2e8f0);font-size:14px;font-weight:600;cursor:pointer;">Cancelar</button>
+      <button onclick="confirmarEliminar()" style="flex:1;padding:10px 0;border-radius:10px;border:none;background:#ff5a6e;color:#fff;font-size:14px;font-weight:600;cursor:pointer;">Eliminar</button>
+    </div>
+  </div>
 </div>
 
 @endsection
@@ -2191,6 +2218,24 @@ for(let i=seed.length;i<128;i++){
 }
 const patientsData = seed;
 
+// URLs con los datos del paciente precargados
+const GEN_BASE     = @json(route('ia-reportes.generar'));   // Generar reporte IA
+const REDACT_BASE  = @json(route('ia-reportes.redactar'));  // Crear informe (editor manual, sin IA)
+const ESTUDIO_BASE = @json(route('nuevo-estudio'));          // Iniciar estudio
+function patientParams(p){
+  return new URLSearchParams({
+    name: p.name || '',
+    initials: p.initials || '',
+    age: p.age || '',
+    gender: p.gender || '',
+    folio: p.folio || '',
+    dob: p.dob || '',
+    study: p.study_type || '',
+  }).toString();
+}
+function reportUrl(p){ return GEN_BASE + '?' + patientParams(p); }
+function redactUrl(p){ return REDACT_BASE + '?' + patientParams(p); }
+
 // ============ PAGINACIÓN ============
 const PAGE_SIZE = 15;
 let currentPage = 1;
@@ -2221,17 +2266,68 @@ function rowHTML(patient, globalIndex) {
         <button class="btn-more" aria-label="Más opciones" onclick="event.stopPropagation();toggleMenu(this)">⋮</button>
       </div>
       <div class="actions-dropdown" onclick="event.stopPropagation()">
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Crear informe</a>
+        <a href="${redactUrl(patient)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Crear informe</a>
         <a href="{{ route('pacientes.edit') }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Editar información</a>
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/><line x1="12" y1="17" x2="12" y2="22"/></svg>Iniciar estudio</a>
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><path d="M9 22h6"/><circle cx="12" cy="11" r="1" fill="currentColor"/></svg>Generar informe por IA</a>
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Programar cita</a>
+        <a href="${ESTUDIO_BASE}?${patientParams(patient)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/><line x1="12" y1="17" x2="12" y2="22"/></svg>Iniciar estudio</a>
+        <a href="${reportUrl(patient)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><path d="M9 22h6"/><circle cx="12" cy="11" r="1" fill="currentColor"/></svg>Generar reporte IA</a>
+        <a href="{{ route('agendar') }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Programar cita</a>
         <a href="{{ route('mensajes') }}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.292-.995-.69-2.058-.997a4.88 4.88 0 0 0-.82-.166c-.197.233-.486.652-.675.99-.785 1.4-2.055 1.412-2.839 0-.189-.338-.478-.757-.675-.99a4.88 4.88 0 0 0-.82.166c-1.063.307-1.761.705-2.058.997-.09.092-.09.242 0 .333.297.298.995.705 2.058 1.012.82.236 1.638.178 2.189-.089.12-.055.235-.117.345-.185.11.068.225.13.345.185.55.267 1.369.325 2.189.089 1.063-.307 1.761-.714 2.058-1.012.09-.091.09-.241 0-.333zM12 2C6.486 2 2 6.486 2 12s4.486 10 10 10c1.468 0 2.861-.332 4.113-.912 1.29-.596 2.4-1.476 3.245-2.563a9.95 9.95 0 0 0 1.542-4.06A9.95 9.95 0 0 0 22 12c0-5.514-4.486-10-10-10zm0 18c-4.411 0-8-3.589-8-8 0-1.473.403-2.85 1.105-4.033a2 2 0 0 1 2.034-.967c.96.13 1.846.516 2.555 1.098a5.96 5.96 0 0 1 2.612 0c.709-.582 1.595-.968 2.555-1.098a2 2 0 0 1 2.034.967A7.963 7.963 0 0 1 20 12c0 4.411-3.589 8-8 8z"/></svg>Enviar WhatsApp/correo</a>
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Descargar expediente PDF</a>
-        <a href="#" class="danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Eliminar paciente</a>
+        <a href="#" onclick="event.preventDefault();event.stopPropagation();descargarExpediente(${globalIndex})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Descargar expediente PDF</a>
+        <a href="#" class="danger" onclick="deletePatient(${globalIndex})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Eliminar paciente</a>
       </div>
     </div>
   </div>`;
+}
+
+let _deleteIndex = null;
+function deletePatient(index) {
+  const patient = patientsData[index];
+  if (!patient) return;
+  _deleteIndex = index;
+  document.getElementById('modalEliminarNombre').textContent = patient.name;
+  document.getElementById('modalEliminar').style.display = 'flex';
+}
+function descargarExpediente(index) {
+  var patient = patientsData[index];
+  if (!patient) return;
+  // Generar contenido del PDF como texto plano descargable
+  var contenido = 'EXPEDIENTE MÉDICO\n';
+  contenido += '================================\n';
+  contenido += 'Nombre: ' + (patient.name || '') + '\n';
+  contenido += 'Folio: ' + (patient.folio || '') + '\n';
+  contenido += 'Edad: ' + (patient.age || '') + '\n';
+  contenido += 'Género: ' + (patient.gender || '') + '\n';
+  contenido += 'Tipo de estudio: ' + (patient.study_type || '') + '\n';
+  contenido += 'Fecha de estudio: ' + (patient.study_date || '') + '\n';
+  contenido += '================================\n';
+  contenido += 'Generado: ' + new Date().toLocaleString('es-MX') + '\n';
+
+  var blob = new Blob([contenido], { type: 'text/plain;charset=utf-8' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'expediente_' + (patient.name || 'paciente').replace(/\s+/g, '_') + '.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  document.getElementById('modalDescargaNombre').textContent = patient.name || 'el paciente';
+  document.getElementById('modalDescargaPDF').style.display = 'flex';
+}
+function cancelarEliminar() {
+  _deleteIndex = null;
+  document.getElementById('modalEliminar').style.display = 'none';
+}
+function confirmarEliminar() {
+  if (_deleteIndex === null) return;
+  patientsData.splice(_deleteIndex, 1);
+  _deleteIndex = null;
+  document.getElementById('modalEliminar').style.display = 'none';
+  closePanel();
+  const totalPages = Math.ceil(patientsData.length / PAGE_SIZE);
+  if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+  renderPage(currentPage || 1);
 }
 
 function renderPage(page) {
@@ -2278,6 +2374,48 @@ function renderPaginationControls(page, totalPages) {
 
 // Inicializar tabla
 renderPage(1);
+
+// Abrir automáticamente el expediente si llega ?folio= o ?paciente= desde otra pantalla
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  const folio = params.get('folio');
+  const nombre = params.get('paciente');
+  let idx = -1;
+  if (folio) {
+    idx = patientsData.findIndex(p => p.folio === folio);
+  } else if (nombre) {
+    const q = nombre.trim().toLowerCase();
+    idx = patientsData.findIndex(p => p.name.toLowerCase().includes(q));
+  }
+  if (idx < 0 && nombre) {
+    const parts = nombre.trim().split(/\s+/);
+    const initials = parts.slice(0,2).map(p => p[0].toUpperCase()).join('');
+    const newPatient = {
+      name: nombre.trim(),
+      initials: initials || '??',
+      age: '38 años',
+      gender: 'No especificado',
+      folio: 'TEMP' + Date.now().toString().slice(-6),
+      dob: '01/01/1986',
+      phone: '+52 722 000 0000',
+      email: 'paciente@email.com',
+      address: 'Dirección no registrada',
+      study_date: 'Pendiente',
+      study_type: 'No registrado',
+      status: 'waiting'
+    };
+    patientsData.unshift(newPatient);
+    savePatientToCache(newPatient);
+    idx = 0;
+  }
+  if(idx < 0) return;
+  renderPage(Math.floor(idx / PAGE_SIZE) + 1);
+  openPanel(idx);
+  // Limpiar el query param para que no se recargue el panel al refrescar
+  if (window.history.replaceState) {
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+})();
 
 /* ============ PANEL FILTROS ============ */
 function openFilters() {
@@ -2329,9 +2467,16 @@ function toggleMenu(btn) {
   dropdown.classList.toggle('active');
 }
 
+function savePatientToCache(patient) {
+  try {
+    localStorage.setItem('lastPatient', JSON.stringify(patient));
+  } catch(e) {}
+}
+
 function openPanel(index) {
   const patient = patientsData[index] || patientsData[0];
-  
+  savePatientToCache(patient);
+
   document.getElementById('panelAvatar').textContent = patient.initials;
   document.getElementById('panelName').textContent = patient.name;
   document.getElementById('panelFolio').textContent = 'Folio: ' + patient.folio;

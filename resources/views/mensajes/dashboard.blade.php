@@ -12,7 +12,7 @@
 </button>
 @endsection
 
-@push('styles')
+@push('styles') 
 <style>
 .msg-page{display:grid;grid-template-columns:255px 1fr 0px;height:calc(100vh - 126px);border-radius:14px;overflow:hidden;border:1px solid var(--stroke);box-shadow:0 4px 32px rgba(0,0,0,.2);transition:grid-template-columns 280ms cubic-bezier(.4,0,.2,1);}
 .msg-page.ch-open{grid-template-columns:255px 1fr 215px;}
@@ -66,7 +66,7 @@
 .msg-empty-ico{width:72px;height:72px;border-radius:50%;background:var(--panel);border:1px solid var(--stroke);display:grid;place-items:center;opacity:.4;}
 .msg-empty p{font-size:15px;font-weight:700;margin:0;color:var(--txt);}
 .msg-empty span{font-size:12px;margin:0;}
-#msgContent{display:none;flex-direction:column;flex:1;overflow:hidden;position:relative;z-index:1;}
+#msgContent{flex-direction:column;flex:1;overflow:hidden;position:relative;z-index:1;}
 .mch{display:flex;align-items:center;gap:12px;padding:11px 16px;background:var(--panel);border-bottom:1px solid var(--stroke);flex:none;}
 .mch-av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;color:#fff;flex:none;position:relative;}
 .mch-av.blue{background:linear-gradient(135deg,#2e7bf6,#60a5fa);}
@@ -371,7 +371,7 @@
       <span>para leer o responder mensajes</span>
     </div>
 
-    <div id="msgContent" style="display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
+    <div id="msgContent" style="display:none;">
 
       {{-- Header --}}
       <div class="mch">
@@ -692,10 +692,24 @@
 @endsection
 
 @push('scripts')
+@php
+  $launchContext = [
+    'channel' => request('canal'),
+    'patient' => request('paciente'),
+    'study' => request('estudio'),
+    'video' => request('video'),
+    'image' => request('imagen'),
+    'frame' => request('fotograma'),
+    'type' => request('tipo'),
+    'date' => request('fecha'),
+    'diagnosis' => request('diagnostico'),
+  ];
+@endphp
 <script>
 (function(){
   let activeTab = 'todas';
   let activeType = 'wa';
+  const launchContext = @json($launchContext);
 
   window.toggleChPanel = function() {
     const page = document.getElementById('msgPage');
@@ -731,7 +745,7 @@
 
     document.getElementById('msgEmpty').style.display = 'none';
     const content = document.getElementById('msgContent');
-    content.style.cssText = 'display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;';
+    content.style.display = 'flex';
 
     const av = document.getElementById('mchAv');
     av.textContent = initials;
@@ -941,6 +955,114 @@
       alert('Conectando: ' + email + '\n(Implementa IMAP/SMTP en tu backend Laravel)');
     }
   };
+
+  function buildStudyDraft(data) {
+    const patient = data.patient || 'paciente';
+    const study = data.study || 'tu estudio';
+    const mediaLabel = data.type === 'imagen' ? 'la imagen' : 'el video';
+    const mediaId = data.type === 'imagen' ? data.image : data.video;
+    const media = mediaId ? ` (${mediaId})` : '';
+    const date = data.date ? ` del ${data.date}` : '';
+    const frame = data.type === 'imagen' && data.frame ? ` Fotograma: ${data.frame}.` : '';
+    const diagnosis = data.diagnosis ? ` Diagnostico: ${data.diagnosis}.` : '';
+
+    return `Hola ${patient}, te comparto ${mediaLabel} de ${study}${media}${date}.${frame}${diagnosis}`;
+  }
+
+  function openWhatsAppLaunch(data) {
+    const waConvs = Array.from(document.querySelectorAll('.conv-item[data-type="wa"]'));
+    const patient = (data.patient || '').toLowerCase();
+    const target = waConvs.find(item => {
+      const name = item.querySelector('.conv-name')?.textContent.toLowerCase() || '';
+      return patient && (name === patient || name.includes(patient.split(' ')[0]));
+    }) || waConvs[0];
+
+    if (target) target.click();
+
+    const input = document.getElementById('msgInput');
+    if (input) {
+      input.value = buildStudyDraft(data);
+      input.focus();
+    }
+  }
+
+  if (launchContext.channel === 'whatsapp') {
+    openWhatsAppLaunch(launchContext);
+  } else {
+    const first = document.querySelector('.conv-item[data-type="wa"]');
+    if (first) first.click();
+  }
+  window.__createOrOpenChat = function(name, message) {
+    const convList = document.getElementById('convList');
+    if (!convList) return;
+    const existing = Array.from(convList.querySelectorAll('.conv-item')).find(item => {
+      const n = item.querySelector('.conv-name');
+      return n && n.textContent.trim().toLowerCase() === name.trim().toLowerCase();
+    });
+    let item = existing;
+    if (!item) {
+      const words = name.trim().split(/\s+/);
+      const initials = words.slice(0,2).map(w => w[0].toUpperCase()).join('');
+      const colors = ['blue','purple','teal','orange','red','green'];
+      const color = colors[convList.querySelectorAll('.conv-item').length % colors.length];
+      item = document.createElement('div');
+      item.className = 'conv-item';
+      item.dataset.tab = 'todas';
+      item.dataset.type = 'wa';
+      item.setAttribute('onclick', `openConv(this,'${initials}','${name.replace(/'/g, "\\'")}','${color}','wa','','Ahora',[])`);
+      item.innerHTML = `
+        <div class="conv-avatar ${color}">${initials}</div>
+        <div class="conv-body">
+          <div class="conv-name">${name}</div>
+          <div class="conv-preview">Nuevo chat</div>
+        </div>
+        <div class="conv-meta"><span class="conv-time">Ahora</span></div>`;
+      convList.insertBefore(item, convList.firstChild);
+    }
+    item.click();
+
+    if (message) {
+      setTimeout(() => {
+        const msgs = document.getElementById('chatMessages');
+        if (!msgs) return;
+        const now = new Date();
+        const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+        const row = document.createElement('div');
+        row.className = 'bubble-row sent';
+        row.innerHTML = `<div class="bubble sent">${message.replace(/\n/g, '<br>')}<div class="bubble-time">${time}<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div></div>`;
+        msgs.appendChild(row);
+        msgs.scrollTop = msgs.scrollHeight;
+        const preview = item.querySelector('.conv-preview');
+        if (preview) preview.textContent = message.slice(0, 40) + (message.length > 40 ? '...' : '');
+      }, 100);
+    }
+  };
+
+  // Abrir chat automáticamente si llega ?paciente= desde la agenda
+  (function(){
+    const p = new URLSearchParams(window.location.search).get('paciente');
+    if (p) {
+      window.__createOrOpenChat(p);
+      if (window.history.replaceState) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  })();
+
+  // Crear chat pendiente desde agendar cita
+  (function(){
+    const raw = localStorage.getItem('pendingChat');
+    if (!raw) return;
+    try {
+      const data = JSON.parse(raw);
+      if (data && data.name) {
+        window.__createOrOpenChat(data.name, data.message);
+      }
+      localStorage.removeItem('pendingChat');
+    } catch(e) {
+      localStorage.removeItem('pendingChat');
+    }
+  })();
 
   const first = document.querySelector('.conv-item[data-type="wa"]');
   if (first) first.click();

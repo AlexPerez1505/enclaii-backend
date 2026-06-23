@@ -28,7 +28,7 @@ class EndoCareAuthController extends Controller
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
-            return redirect()->route('dashboard');
+            return redirect()->route($this->defaultRouteFor(Auth::user()));
         }
 
         return back()
@@ -68,6 +68,23 @@ class EndoCareAuthController extends Controller
         Auth::login($user);
 
         return redirect()->route('dashboard');
+    }
+
+    /**
+     * Determina la ruta inicial según la "Vista predeterminada" del usuario.
+     */
+    private function defaultRouteFor(User $user): string
+    {
+        $view = $user->resolvedSettings()['default_view'] ?? 'Dashboard';
+
+        return match ($view) {
+            'IA Reportes' => 'ia-reportes',
+            'Agenda' => 'agendar',
+            'Mensajes' => 'mensajes',
+            'Nuevo estudio' => 'nuevo-estudio',
+            'Galería' => 'galeria',
+            default => 'dashboard',
+        };
     }
 
     public function logout(Request $request)

@@ -1,0 +1,283 @@
+{{-- ============================================================
+     AGENDA / _semana.blade.php
+     Vista Semana: CSS + HTML + JS
+     ============================================================ --}}
+
+{{-- ---- CSS ---- --}}
+<style>
+.week-grid{display:none;width:100%;overflow-x:auto;max-height:480px;overflow-y:auto;min-width:0}
+.week-grid.active{display:block}
+.agenda-left.expanded .week-grid{max-height:none;overflow:visible;width:100%}
+.agenda-left.expanded .week-table{min-width:100%}
+.week-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.week-table thead tr th{
+  text-align:center;font-size:10.5px;font-weight:600;color:#8FA3CF;padding:5px 3px;
+  background:linear-gradient(to bottom,#001525 30%,#004F8B 100%);
+  border-bottom:1px solid var(--stroke);
+  position:sticky;top:0;z-index:2;
+}
+.week-table thead tr th:first-child{border-radius:8px 0 0 0;width:38px}
+.week-table thead tr th:last-child{border-radius:0 8px 0 0}
+.week-table th.wk-today{color:#EAF1FF !important;background:linear-gradient(to bottom,#0A2A5E 30%,#1668D9 100%) !important}
+.week-table .hr-label{font-size:9.5px;color:var(--txt-soft);text-align:right;padding:0 5px 0 0;width:38px;vertical-align:top;padding-top:3px;border-right:1px solid rgba(110,160,255,.1);white-space:nowrap}
+.week-table td.wk-cell{vertical-align:top;border:1px solid rgba(110,160,255,.06);padding:2px 3px;height:40px;position:relative}
+.week-table td.wk-cell.wk-today-col{background:rgba(22,139,217,.05)}
+.wk-event{border-radius:4px;padding:2px 5px;font-size:9.5px;font-weight:600;line-height:1.2;margin-bottom:1px;cursor:pointer;transition:opacity 150ms ease;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-height:40px}
+.wk-event:hover{opacity:.8}
+.wk-line1{font-weight:700;line-height:1.2}
+.wk-line2{font-size:8.5px;opacity:.9;line-height:1.2;margin-top:1px}
+.wk-event.ev-done{background:linear-gradient(to bottom,#042226 20%,#4C9242 80%);color:#fff;border:1.38px solid #284D23}
+.wk-event.ev-wait{background:linear-gradient(to bottom,#351909 29%,#9B491A 100%);color:#fff;border:1.24px solid #E75D01}
+.wk-event.ev-cancel{background:linear-gradient(to bottom,#251117 38%,#D90000 100%);color:#fff;border:1.27px solid #D90000}
+.wk-event.ev-soon{background:linear-gradient(to bottom,#0B1331 43%,#B263FF 100%);color:#fff;border:1.27px solid #B263FF}
+
+/* Tema claro */
+html[data-theme="light"] .week-table thead tr th{background:linear-gradient(to bottom,#DDEAF8 30%,#B3D0F0 100%);color:#2E5CAA;border-bottom-color:rgba(20,50,120,.15)}
+html[data-theme="light"] .week-table th.wk-today{color:#fff !important;background:linear-gradient(to bottom,#1668D9,#2E7BF6) !important}
+html[data-theme="light"] .week-table .hr-label{color:#5B6A99;border-right-color:rgba(20,50,120,.1)}
+html[data-theme="light"] .week-table td.wk-cell{border-color:rgba(20,50,120,.07)}
+html[data-theme="light"] .week-table td.wk-cell.wk-today-col{background:rgba(46,123,246,.05)}
+html[data-theme="light"] .wk-event.ev-done{background:#EBF7EA;color:#1B4518;border-color:#4C9242}
+html[data-theme="light"] .wk-event.ev-wait{background:#FEF3E7;color:#7A2F00;border-color:#E75D01}
+html[data-theme="light"] .wk-event.ev-cancel{background:#FDE8E8;color:#6B0000;border-color:#D90000}
+html[data-theme="light"] .wk-event.ev-soon{background:#F3ECFF;color:#4A1A8A;border-color:#B263FF}
+html[data-theme="light"] .wk-line1{color:#0E1530}
+html[data-theme="light"] .wk-line2{color:rgba(14,21,48,.6)}
+
+/* Eventos de ancho completo */
+.wk-event{display:block;width:100%;box-sizing:border-box}
+.wk-event:only-child{height:100%;display:flex;flex-direction:column;justify-content:center}
+
+/* Botón +X más */
+.wk-more-btn{display:block;width:100%;margin-top:2px;padding:3px 5px;font-size:9px;font-weight:600;color:#8FA3CF;background:transparent;border:1.5px dashed rgba(110,160,255,.4);border-radius:4px;cursor:pointer;transition:all 150ms ease;text-align:center}
+.wk-more-btn:hover{color:#EAF1FF;background:rgba(110,160,255,.15);border-color:rgba(110,160,255,.6)}
+html[data-theme="light"] .wk-more-btn{color:#5B6A99;border-color:rgba(20,50,120,.25)}
+html[data-theme="light"] .wk-more-btn:hover{color:#0E1530;background:rgba(20,50,120,.1);border-color:rgba(20,50,120,.4)}
+
+/* Modal de citas */
+.wk-modal-overlay{position:fixed;inset:0;z-index:1000;background:rgba(0,11,30,.75);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px}
+.wk-modal-overlay.open{display:flex}
+.wk-modal{background:#000B1E;border:1.84px solid #168BD9;box-shadow:inset 0 0 0 1.84px rgba(0,0,0,.47),0 24px 64px rgba(0,0,0,.5);border-radius:16px;width:100%;max-width:420px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column}
+.wk-modal-header{padding:16px 18px;border-bottom:1px solid rgba(110,160,255,.2);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.wk-modal-title{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;color:#EAF1FF}
+.wk-modal-close{width:28px;height:28px;border-radius:8px;border:none;background:transparent;color:#8FA3CF;cursor:pointer;display:grid;place-items:center;transition:all 150ms ease}
+.wk-modal-close:hover{background:rgba(110,160,255,.15);color:#EAF1FF}
+.wk-modal-body{padding:14px 18px;overflow-y:auto;flex:1;max-height:60vh}
+.wk-modal-body::-webkit-scrollbar{width:6px}
+.wk-modal-body::-webkit-scrollbar-track{background:rgba(110,160,255,.08);border-radius:6px}
+.wk-modal-body::-webkit-scrollbar-thumb{background:rgba(110,160,255,.25);border-radius:6px}
+.wk-modal-body::-webkit-scrollbar-thumb:hover{background:rgba(110,160,255,.4)}
+html[data-theme="light"] .wk-modal-body::-webkit-scrollbar-track{background:rgba(20,50,120,.06)}
+html[data-theme="light"] .wk-modal-body::-webkit-scrollbar-thumb{background:rgba(20,50,120,.18)}
+html[data-theme="light"] .wk-modal-body::-webkit-scrollbar-thumb:hover{background:rgba(20,50,120,.3)}
+.wk-modal-item{display:flex;align-items:center;gap:12px;padding:12px;background:#001525;border:1px solid rgba(22,139,217,.25);border-radius:10px;margin-bottom:10px;cursor:pointer;transition:all 150ms ease}
+.wk-modal-item:hover{background:rgba(22,139,217,.12);border-color:rgba(22,139,217,.4)}
+.wk-modal-item:last-child{margin-bottom:0}
+.wk-modal-avatar{width:38px;height:38px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;color:#fff;border:2px solid rgba(22,139,217,.4);background:linear-gradient(135deg,var(--blue),var(--cyan))}
+.wk-modal-info{flex:1;min-width:0}
+.wk-modal-name{font-size:13px;font-weight:700;color:#EAF1FF;margin-bottom:3px}
+.wk-modal-proc{font-size:11px;color:rgba(234,241,255,.55)}
+.wk-modal-badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.wk-modal-badge.done{background:rgba(76,146,66,.2);color:#4C9242;border:1px solid rgba(76,146,66,.4)}
+.wk-modal-badge.wait{background:rgba(231,93,1,.15);color:#E75D01;border:1px solid rgba(231,93,1,.35)}
+.wk-modal-badge.cancel{background:rgba(217,0,0,.15);color:#D90000;border:1px solid rgba(217,0,0,.35)}
+.wk-modal-badge.soon{background:rgba(178,99,255,.15);color:#B263FF;border:1px solid rgba(178,99,255,.35)}
+
+/* Modal tema claro */
+html[data-theme="light"] .wk-modal{background:#FFFFFF;border-color:rgba(20,50,120,.2);box-shadow:0 16px 48px rgba(20,50,120,.15)}
+html[data-theme="light"] .wk-modal-title{color:#0E1530}
+html[data-theme="light"] .wk-modal-close{color:#5B6A99}
+html[data-theme="light"] .wk-modal-close:hover{background:rgba(20,50,120,.1);color:#0E1530}
+html[data-theme="light"] .wk-modal-header{border-bottom-color:rgba(20,50,120,.12)}
+html[data-theme="light"] .wk-modal-item{background:#F6F8FE;border-color:rgba(20,50,120,.15)}
+html[data-theme="light"] .wk-modal-item:hover{background:rgba(20,50,120,.08);border-color:rgba(20,50,120,.25)}
+html[data-theme="light"] .wk-modal-name{color:#0E1530}
+html[data-theme="light"] .wk-modal-proc{color:rgba(14,21,48,.5)}
+html[data-theme="light"] .wk-modal-badge.done{background:#EBF7EA;color:#1B4518;border-color:#4C9242}
+html[data-theme="light"] .wk-modal-badge.wait{background:#FEF3E7;color:#7A2F00;border-color:#E75D01}
+html[data-theme="light"] .wk-modal-badge.cancel{background:#FDE8E8;color:#6B0000;border-color:#D90000}
+html[data-theme="light"] .wk-modal-badge.soon{background:#F3ECFF;color:#4A1A8A;border-color:#B263FF}
+</style>
+
+{{-- ---- HTML ---- --}}
+<div class="week-grid" id="weekGrid">
+  <table class="week-table">
+    <thead id="weekHead"></thead>
+    <tbody id="weekBody"></tbody>
+  </table>
+</div>
+
+{{-- Modal de citas semana --}}
+<div class="wk-modal-overlay" id="wkModalOverlay">
+  <div class="wk-modal">
+    <div class="wk-modal-header">
+      <div class="wk-modal-title" id="wkModalTitle"></div>
+      <button class="wk-modal-close" id="wkModalClose" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="wk-modal-body" id="wkModalBody"></div>
+  </div>
+</div>
+
+{{-- ---- JS ---- --}}
+<script>
+(function(){
+  window.__getMondayOf = function(date) {
+    const d = new Date(date);
+    const dow = d.getDay() === 0 ? 6 : d.getDay() - 1;
+    d.setDate(d.getDate() - dow);
+    d.setHours(0,0,0,0);
+    return d;
+  };
+
+  window.__buildWeek = function(date, EVENTS, MESES, DIAS_CORTO, updateSumCards, countEvents) {
+    const monday = window.__getMondayOf(date);
+    const today  = new Date();
+    const HOURS  = [8,9,10,11,12,13,14,15,16,17,18,19,20,21];
+
+    const thead = document.getElementById('weekHead');
+    thead.innerHTML = '';
+    const headTr = document.createElement('tr');
+    const thHora = document.createElement('th');
+    thHora.textContent = 'Hora';
+    headTr.appendChild(thHora);
+
+    const weekDays = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      weekDays.push(d);
+      const th = document.createElement('th');
+      if (d.toDateString() === today.toDateString()) th.classList.add('wk-today');
+      th.textContent = DIAS_CORTO[i] + ' ' + d.getDate();
+      headTr.appendChild(th);
+    }
+    thead.appendChild(headTr);
+
+    document.getElementById('mesActual').textContent = MESES[monday.getMonth()];
+    document.getElementById('anioActual').textContent = monday.getFullYear();
+
+    const weekKeys = weekDays.map(d => `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`);
+    updateSumCards(countEvents(weekKeys));
+
+    const tbody = document.getElementById('weekBody');
+    tbody.innerHTML = '';
+    HOURS.forEach(hr => {
+      const tr = document.createElement('tr');
+      const tdHr = document.createElement('td');
+      tdHr.className = 'hr-label';
+      tdHr.textContent = hr + ':00';
+      tr.appendChild(tdHr);
+      weekDays.forEach(d => {
+        const td = document.createElement('td');
+        td.className = 'wk-cell';
+        if (d.toDateString() === today.toDateString()) td.classList.add('wk-today-col');
+        const key = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+        const cellEvents = (EVENTS[key] || []).filter(ev => ev.h === hr);
+        const MAX_VISIBLE = 2;
+        cellEvents.slice(0, MAX_VISIBLE).forEach(ev => {
+          const div = document.createElement('div');
+          div.className = 'wk-event ' + ev.cls;
+          let name = ev.name || '';
+          let proc = ev.proc || '';
+          if (!name && ev.t) {
+            const parts = ev.t.split('·').map(s => s.trim());
+            const timeAndName = parts[0] || '';
+            name = timeAndName.replace(/^\d+:\d+\s*/, '');
+            proc = parts[1] || '';
+          }
+          const displayName = (window.__displayName ? window.__displayName(name) : name);
+          const timeM = ev.t ? ev.t.match(/^(\d+:\d+)/) : null;
+          div.innerHTML = `<div class="wk-line1">${displayName}</div><div class="wk-line2">${proc}</div>`;
+          div.dataset.name = name;
+          div.dataset.proc = proc;
+          div.dataset.cls = ev.cls;
+          div.dataset.time = timeM ? timeM[1] : (ev.h ? String(ev.h).padStart(2,'0') + ':00' : '');
+          td.appendChild(div);
+        });
+        if (cellEvents.length > MAX_VISIBLE) {
+          const moreBtn = document.createElement('button');
+          moreBtn.className = 'wk-more-btn';
+          moreBtn.textContent = `+${cellEvents.length - MAX_VISIBLE} más`;
+          moreBtn.dataset.day = d.toDateString();
+          moreBtn.dataset.hour = hr;
+          moreBtn.dataset.key = key;
+          moreBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            openWeekModal(cellEvents, d, hr, DIAS_CORTO[i]);
+          });
+          td.appendChild(moreBtn);
+        }
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+  };
+
+  /* ---- Modal de citas ---- */
+  const wkModalOverlay = document.getElementById('wkModalOverlay');
+  const wkModalTitle   = document.getElementById('wkModalTitle');
+  const wkModalBody    = document.getElementById('wkModalBody');
+  const wkModalClose   = document.getElementById('wkModalClose');
+
+  const STATUS_LABELS = {'ev-done':'Completado','ev-wait':'En espera','ev-cancel':'Cancelado','ev-soon':'Próximos'};
+
+  window.openWeekModal = function(events, date, hour, dayName) {
+    const dStr = `${dayName} ${date.getDate()}`;
+    wkModalTitle.textContent = hour !== '' ? `${dStr} – ${hour}:00` : `${dStr} – Citas del día`;
+    wkModalBody.innerHTML = '';
+    events.forEach(ev => {
+      let name = ev.name || '';
+      let proc = ev.proc || '';
+      if (!name && ev.t) {
+        const parts = ev.t.split('·').map(s => s.trim());
+        const timeAndName = parts[0] || '';
+        name = timeAndName.replace(/^\d+:\d+\s*/, '');
+        proc = parts[1] || '';
+      }
+      const displayName = (window.__displayName ? window.__displayName(name) : name);
+      const inits = displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+      const cls = ev.cls;
+      const statusKey = cls.replace('ev-', '');
+      const statusLabel = STATUS_LABELS[cls] || statusKey;
+
+      const item = document.createElement('div');
+      item.className = 'wk-modal-item';
+      item.dataset.name = name;
+      item.dataset.proc = proc;
+      item.dataset.cls = cls;
+      item.innerHTML = `
+        <div class="wk-modal-avatar">${inits}</div>
+        <div class="wk-modal-info">
+          <div class="wk-modal-name">${displayName}</div>
+          <div class="wk-modal-proc">${proc}</div>
+        </div>
+        <div class="wk-modal-badge ${statusKey}">${statusLabel}</div>
+      `;
+      item.addEventListener('click', () => {
+        console.log('wk-modal-item click', 'openDayModal:', !!window.openDayModal, 'ev:', ev);
+        const DIAS_MODAL = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+        closeWkModal();
+        setTimeout(() => {
+          if (window.openDayModal) {
+            window.openDayModal(ev, DIAS_MODAL, date.getDay(), date.getDate(), date.getMonth(), date.getFullYear());
+          }
+        }, 200);
+      });
+      wkModalBody.appendChild(item);
+    });
+    wkModalOverlay.classList.add('open');
+  };
+
+  function closeWkModal() {
+    wkModalOverlay.classList.remove('open');
+  }
+
+  wkModalClose.addEventListener('click', closeWkModal);
+  wkModalOverlay.addEventListener('click', e => {
+    if (e.target === wkModalOverlay) closeWkModal();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && wkModalOverlay.classList.contains('open')) closeWkModal();
+  });
+})();
+</script>
