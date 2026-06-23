@@ -31,8 +31,8 @@ Route::middleware('auth')->group(function () {
         return view('pacientes.create');
     })->name('pacientes.create');
 
-    Route::get('/pacientes/editar', function () {
-        $paciente = (object) ['folio' => 'P-125'];
+    Route::get('/pacientes/{id}/edit', function ($id) {
+        $paciente = \App\Models\Paciente::findOrFail($id);
         return view('pacientes.edit', compact('paciente'));
     })->name('pacientes.edit');
 

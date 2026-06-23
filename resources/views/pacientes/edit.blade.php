@@ -906,12 +906,12 @@ textarea{
       <div class="form-grid personal" style="flex:1;">
       <div class="form-group span-2">
         <label>Nombre completo</label>
-        <input type="text" value="María Fernanda López Ruiz">
+        <input type="text" name="nombre_completo" value="{{ old('nombre_completo', $paciente->nombre_completo ?? '') }}" placeholder="Nombre completo del paciente" required>
       </div>
 
       <div class="form-group">
         <label>Fecha de nacimiento</label>
-        <input type="date" id="fechaNacimientoEdit" value="1998-12-25" style="color-scheme:dark;">
+        <input type="date" name="fecha_nacimiento" id="fechaNacimientoEdit" value="{{ old('fecha_nacimiento', optional($paciente->fecha_nacimiento)->format('Y-m-d') ?? '') }}" style="color-scheme:dark;">
       </div>
       <div class="form-group">
         <label>Edad</label>
@@ -940,11 +940,11 @@ textarea{
       </script>
       <div class="form-group">
         <label>Peso</label>
-        <input type="text" value="30 kg">
+        <input type="text" name="peso" value="{{ old('peso', $paciente->peso ?? '') }}" placeholder="Peso en kg">
       </div>
       <div class="form-group">
         <label>Altura</label>
-        <input type="text" value="1.75 m">
+        <input type="text" name="altura" value="{{ old('altura', $paciente->altura ?? '') }}" placeholder="Altura en metros">
       </div>
 
       <div class="form-group">
@@ -956,16 +956,16 @@ textarea{
       </div>
       <div class="form-group span-2">
         <label>Dirección</label>
-        <input type="text" value="CALLE, CP">
+        <input type="text" name="direccion" value="{{ old('direccion', $paciente->direccion ?? '') }}" placeholder="CALLE, CP">
       </div>
 
       <div class="form-group">
         <label>Teléfono</label>
-        <input type="tel" value="722 162 0815">
+        <input type="tel" name="telefono" value="{{ old('telefono', $paciente->telefono ?? '') }}" placeholder="722 162 0815">
       </div>
       <div class="form-group span-3">
         <label>e-mail</label>
-        <input type="email" value="@gmail.com">
+        <input type="email" name="email" value="{{ old('email', $paciente->email ?? '') }}" placeholder="correo@ejemplo.com">
       </div>
       </div>{{-- /form-grid personal --}}
     </div>{{-- /personal-layout --}}
