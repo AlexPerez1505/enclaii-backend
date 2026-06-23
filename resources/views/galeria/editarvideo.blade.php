@@ -3,10 +3,13 @@
 @section('title', 'Editar Video')
 @section('active', 'galeria')
 @section('header-title', 'Galería de pacientes')
+@php
+  $pacienteId = request('paciente', 1);
+@endphp
 @section('header-sub')
   <a href="{{ route('galeria') }}" style="color:var(--txt-soft);text-decoration:none;font-size:13px">Galería de pacientes</a>
   <span style="color:var(--txt-soft);font-size:13px;margin:0 4px">›</span>
-  <span style="color:var(--txt-soft);font-size:13px">Maria Gonzales</span>
+  <a href="{{ route('galeria.paciente', $pacienteId) }}" style="color:var(--txt-soft);text-decoration:none;font-size:13px">Maria Gonzales</a>
   <span style="color:var(--txt-soft);font-size:13px;margin:0 4px">›</span>
   <span style="font-size:13px;font-weight:600">Video EDD-2025-001245</span>
 @endsection
@@ -222,7 +225,7 @@
   {{-- Topbar --}}
   <div class="ev-topbar">
     <button class="ev-btn save" id="evSave">Guardar cambios</button>
-    <a href="{{ route('galeria.video', $id) }}" class="ev-btn cancel">Cancelar</a>
+    <a href="{{ route('galeria.video', ['id' => $id, 'paciente' => $pacienteId]) }}" class="ev-btn cancel">Cancelar</a>
     <button class="ev-btn more">···</button>
   </div>
 
@@ -346,10 +349,10 @@
       <div class="ev-trim-title">Edición de video <span>›</span> Recortar</div>
       <div class="ev-trim-actions">
         <button type="button" class="ev-trim-btn" id="evTrimCancel">Cancelar</button>
-        <button type="button" class="ev-trim-btn" id="evTrimBack">
+        <a href="{{ route('galeria.paciente', $pacienteId) }}" class="ev-trim-btn" id="evTrimBack">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
           Volver a galería
-        </button>
+        </a>
         <button type="button" class="ev-trim-btn primary" id="evTrimSave">Guardar recorte</button>
       </div>
     </div>
@@ -702,7 +705,6 @@
 
   document.getElementById('evOpenTrim').addEventListener('click', showTrimMode);
   document.getElementById('evTrimCancel').addEventListener('click', showEditMode);
-  document.getElementById('evTrimBack').addEventListener('click', showEditMode);
   document.getElementById('evTrimStart').addEventListener('change', updateTrimSummary);
   document.getElementById('evTrimEnd').addEventListener('change', updateTrimSummary);
   document.querySelectorAll('.ev-quick button[data-delta]').forEach(btn => {

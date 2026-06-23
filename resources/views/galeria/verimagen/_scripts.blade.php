@@ -1,8 +1,10 @@
 ﻿<script>
 (function(){
   const caps = @json($caps);
+  const pacienteId = @json((string) ($pacienteId ?? request('paciente', 1)));
   let current = {{ $current }};
   const total  = caps.length;
+  const savedCopiesKey = `galeria:paciente:${pacienteId}:imagenes-editadas`;
 
   /* ── helpers ── */
   function goTo(idx){
@@ -192,6 +194,86 @@
 
   const printBtn = document.getElementById('viToolPrint');
   if(printBtn) printBtn.addEventListener('click', printCurrentImage);
+
+  function editedGalleryCopies(){
+    try {
+      return JSON.parse(localStorage.getItem(savedCopiesKey) || '[]');
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function currentImageFilter(){
+    const mainImage = document.getElementById('viMainImage');
+    return mainImage?.style.filter || 'none';
+  }
+
+  function drawEditedImageCopy(){
+    const mainImage = document.getElementById('viMainImage');
+    if(!mainImage || !mainImage.currentSrc){
+      throw new Error('No hay imagen cargada para guardar.');
+    }
+
+    const output = document.createElement('canvas');
+    output.width = 1280;
+    output.height = 720;
+    const out = output.getContext('2d');
+
+    out.fillStyle = '#050505';
+    out.fillRect(0, 0, output.width, output.height);
+    out.filter = currentImageFilter();
+    out.drawImage(mainImage, 0, 0, output.width, output.height);
+    out.filter = 'none';
+
+    out.drawImage(annotationCanvas, 0, 0, output.width, output.height);
+    out.drawImage(measureCanvas, 0, 0, output.width, output.height);
+
+    return output.toDataURL('image/jpeg', 0.82);
+  }
+
+  function saveEditedCopyToGallery(button){
+    const original = button?.innerHTML || '';
+
+    try {
+      const imageData = drawEditedImageCopy();
+      const now = new Date();
+      const copies = editedGalleryCopies();
+      const copyNumber = copies.length + 1;
+      const source = caps[annotationImageIndex] || caps[current] || {};
+      const timestamp = document.getElementById('viInfoTs')?.textContent || source.ts || '';
+
+      copies.unshift({
+        id: `editada-${Date.now()}`,
+        title: `Copia editada ${copyNumber}`,
+        date: now.toLocaleDateString('es-MX'),
+        time: timestamp,
+        src: imageData,
+        createdAt: now.toISOString()
+      });
+
+      localStorage.setItem(savedCopiesKey, JSON.stringify(copies.slice(0, 12)));
+
+      if(button){
+        button.innerHTML = 'Guardado en galería';
+        button.style.background = 'var(--green)';
+        button.style.borderColor = 'rgba(61,220,151,.55)';
+        setTimeout(() => {
+          button.innerHTML = original;
+          button.style.background = '';
+          button.style.borderColor = '';
+        }, 1800);
+      }
+    } catch (error) {
+      alert(error.message || 'No se pudo guardar la copia editada en la galería.');
+    }
+  }
+
+  const saveEditedCopyBtn = document.getElementById('viSaveEditedCopy');
+  if(saveEditedCopyBtn){
+    saveEditedCopyBtn.addEventListener('click', function(){
+      saveEditedCopyToGallery(this);
+    });
+  }
 
   /* ── Mediciones ── */
   const measureCanvas = document.getElementById('viMeasureCanvas');
@@ -510,10 +592,7 @@
   measureSave.addEventListener('click', function(){
     if(!measuring) return;
     renderMeasurements();
-    const link = document.createElement('a');
-    link.href = measureCanvas.toDataURL('image/png');
-    link.download = `mediciones-imagen-${measureImageIndex + 1}.png`;
-    link.click();
+    saveEditedCopyToGallery(this);
   });
 
   measureCanvas.addEventListener('mousedown', startMeasure);
@@ -724,10 +803,7 @@
   });
   annoSave.addEventListener('click', function(){
     if(!annotating) return;
-    const link = document.createElement('a');
-    link.href = annotationCanvas.toDataURL('image/png');
-    link.download = `anotacion-imagen-${annotationImageIndex + 1}.png`;
-    link.click();
+    saveEditedCopyToGallery(this);
   });
 
   annotationCanvas.addEventListener('mousedown', startAnnotation);
@@ -849,23 +925,14 @@
     });
   });
 
-  /* Botón aplicar (descarga canvas con filtros) */
+  /* Botón aplicar: guarda una copia editada en la galería del paciente */
   document.getElementById('viFilterApply').addEventListener('click', function(){
     if(!currentImg){
       this.textContent = '⚠ Sin imagen cargada';
       setTimeout(() => { this.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Aplicar filtros'; }, 2000);
       return;
     }
-    const link = document.createElement('a');
-    link.download = 'imagen-filtrada.png';
-    link.href = filterCanvas.toDataURL('image/png');
-    link.click();
-    this.innerHTML = '✓ Descargado';
-    this.style.background = 'var(--green)';
-    setTimeout(() => {
-      this.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Aplicar filtros';
-      this.style.background = '';
-    }, 2000);
+    saveEditedCopyToGallery(this);
   });
 
   /* Botón restablecer */

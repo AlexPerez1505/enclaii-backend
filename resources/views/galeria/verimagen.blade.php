@@ -1,5 +1,9 @@
 ﻿@extends('layouts.app')
 
+@php
+  $pacienteId = request('paciente', 1);
+@endphp
+
 @include('galeria.verimagen._header')
 @include('galeria.verimagen._styles')
 

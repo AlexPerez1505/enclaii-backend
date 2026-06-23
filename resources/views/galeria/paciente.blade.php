@@ -158,8 +158,8 @@ $imagenes = [
               <div class="pa-name">{{ $v['titulo'] }}</div>
               <div class="pa-meta">{{ $v['tipo'] }}<br>{{ $v['fecha'] }}</div>
               <div class="pa-actions">
-                <a class="pa-btn primary" href="{{ route('galeria.video', $v['id']) }}">Ver</a>
-                <a class="pa-btn" href="{{ route('galeria.video.editar', $v['id']) }}">Editar</a>
+                <a class="pa-btn primary" href="{{ route('galeria.video', ['id' => $v['id'], 'paciente' => $id]) }}">Ver</a>
+                <a class="pa-btn" href="{{ route('galeria.video.editar', ['id' => $v['id'], 'paciente' => $id]) }}">Editar</a>
               </div>
             </div>
           </article>
@@ -170,9 +170,9 @@ $imagenes = [
     <section class="pa-section">
       <div class="pa-section-head">
         <h2 class="pa-section-title">Imágenes</h2>
-        <span class="pa-section-count">{{ count($imagenes) }} archivos</span>
+        <span class="pa-section-count" id="paImagesCount">{{ count($imagenes) }} archivos</span>
       </div>
-      <div class="pa-grid">
+      <div class="pa-grid" id="paImagesGrid">
         @foreach($imagenes as $img)
           <article class="pa-card" data-kind="imagen" data-title="{{ strtolower($img['titulo']) }}">
             <div class="pa-thumb">
@@ -184,7 +184,7 @@ $imagenes = [
               <div class="pa-name">{{ $img['titulo'] }}</div>
               <div class="pa-meta">Captura del estudio<br>{{ $img['fecha'] }}</div>
               <div class="pa-actions">
-                <a class="pa-btn primary" href="{{ route('galeria.imagen', $img['id']) }}">Ver imagen</a>
+                <a class="pa-btn primary" href="{{ route('galeria.imagen', ['id' => $img['id'], 'paciente' => $id]) }}">Ver imagen</a>
               </div>
             </div>
           </article>
@@ -221,9 +221,62 @@ $imagenes = [
 @push('scripts')
 <script>
 (function(){
+  const pacienteId = @json((string) $id);
+  const editedImagesKey = `galeria:paciente:${pacienteId}:imagenes-editadas`;
   const search = document.getElementById('paSearch');
   const cards = [...document.querySelectorAll('.pa-card')];
   const empty = document.getElementById('paEmpty');
+  const imagesGrid = document.getElementById('paImagesGrid');
+  const imagesCount = document.getElementById('paImagesCount');
+
+  function escapeHtml(value){
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    }[char]));
+  }
+
+  function editedImages(){
+    try {
+      return JSON.parse(localStorage.getItem(editedImagesKey) || '[]');
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function renderEditedImages(){
+    if(!imagesGrid) return;
+
+    const copies = editedImages();
+    copies.forEach((copy, index) => {
+      const title = copy.title || `Copia editada ${index + 1}`;
+      const article = document.createElement('article');
+      article.className = 'pa-card pa-card-copy';
+      article.dataset.kind = 'imagen editada copia';
+      article.dataset.title = `${title} ${copy.date || ''} ${copy.time || ''}`.toLowerCase();
+      article.innerHTML = `
+        <div class="pa-thumb">
+          <img src="${escapeHtml(copy.src)}" alt="${escapeHtml(title)}">
+          <span class="pa-badge image">EDITADA</span>
+          <span class="pa-duration">${escapeHtml(copy.time || 'Copia')}</span>
+        </div>
+        <div class="pa-body">
+          <div class="pa-name">${escapeHtml(title)}</div>
+          <div class="pa-meta">Copia guardada por edición<br>${escapeHtml(copy.date || '')}</div>
+        </div>
+      `;
+      imagesGrid.prepend(article);
+      cards.push(article);
+    });
+
+    if(imagesCount){
+      const totalImages = {{ count($imagenes) }} + copies.length;
+      imagesCount.textContent = totalImages + ' archivos';
+    }
+  }
 
   function apply(){
     const q = search.value.trim().toLowerCase();
@@ -243,6 +296,8 @@ $imagenes = [
       apply();
     }
   });
+
+  renderEditedImages();
 })();
 </script>
 @endpush

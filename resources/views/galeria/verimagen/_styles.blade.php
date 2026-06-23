@@ -18,6 +18,8 @@
 .vi-btn.back{background:transparent;border:1px solid var(--stroke);color:var(--txt-soft)}
 @media(hover:hover)and(pointer:fine){.vi-btn.back:hover{background:rgba(110,160,255,.08);color:var(--txt)}}
 .vi-topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.vi-btn.save-copy{background:rgba(61,220,151,.12);border:1px solid rgba(61,220,151,.35);color:var(--green)}
+@media(hover:hover)and(pointer:fine){.vi-btn.save-copy:hover{background:rgba(61,220,151,.22)}}
 .vi-btn.report{background:rgba(46,123,246,.14);border:1px solid rgba(46,123,246,.35);color:var(--blue)}
 @media(hover:hover)and(pointer:fine){.vi-btn.report:hover{background:rgba(46,123,246,.25)}}
 .vi-btn.share{background:transparent;border:1px solid var(--stroke);color:var(--txt-soft)}
