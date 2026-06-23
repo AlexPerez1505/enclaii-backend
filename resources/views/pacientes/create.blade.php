@@ -1015,11 +1015,11 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
 
       <div class="form-group">
         <label>Fecha de nacimiento</label>
-        <input type="date" id="fechaNacimiento" style="color-scheme:dark;">
+        <input type="date" name="fecha_nacimiento" id="fechaNacimiento" value="{{ old('fecha_nacimiento') }}" style="color-scheme:dark;">
       </div>
       <div class="form-group">
         <label>Edad</label>
-        <input type="text" id="edadCalculada" placeholder="--" readonly style="background:var(--panel-2);color:var(--txt-soft);">
+        <input type="text" name="edad" id="edadCalculada" value="{{ old('edad') }}" placeholder="--" readonly style="background:var(--panel-2);color:var(--txt-soft);cursor:default;">
       </div>
       <div class="form-group">
         <label>Peso</label>
@@ -1918,7 +1918,21 @@ function agregarArchivosEstudios(input){
   const fechaNacimiento = document.getElementById('fechaNacimiento');
   const edadCalculada = document.getElementById('edadCalculada');
   
+  function calcularYMostrarEdad(input) {
+    if (!input || !edadCalculada) return;
+    const fechaNac = new Date(input.value);
+    const hoy = new Date();
+    if (isNaN(fechaNac.getTime())) { edadCalculada.value = ''; return; }
+    let edad = hoy.getFullYear() - fechaNac.getFullYear();
+    const m = hoy.getMonth() - fechaNac.getMonth();
+    if (m < 0 || (m === 0 && hoy.getDate() < fechaNac.getDate())) edad--;
+    if (edad < 0) edadCalculada.value = '';
+    else if (edad === 0) { const meses = (hoy.getFullYear()-fechaNac.getFullYear())*12 + hoy.getMonth()-fechaNac.getMonth(); edadCalculada.value = meses + ' meses'; }
+    else edadCalculada.value = edad + ' años';
+  }
+
   if (fechaNacimiento && edadCalculada) {
+    calcularYMostrarEdad(fechaNacimiento);
     fechaNacimiento.addEventListener('change', function() {
       const fechaNac = new Date(this.value);
       const hoy = new Date();

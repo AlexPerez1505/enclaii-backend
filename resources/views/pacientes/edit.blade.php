@@ -1656,7 +1656,21 @@ document.addEventListener('DOMContentLoaded', function() {
   const fechaNacimientoEdit = document.getElementById('fechaNacimientoEdit');
   const edadCalculadaEdit = document.getElementById('edadCalculadaEdit');
   
+  function calcularYMostrarEdadEdit(input) {
+    if (!input || !edadCalculadaEdit) return;
+    const fechaNac = new Date(input.value);
+    const hoy = new Date();
+    if (isNaN(fechaNac.getTime())) { edadCalculadaEdit.value = ''; return; }
+    let edad = hoy.getFullYear() - fechaNac.getFullYear();
+    const m = hoy.getMonth() - fechaNac.getMonth();
+    if (m < 0 || (m === 0 && hoy.getDate() < fechaNac.getDate())) edad--;
+    if (edad < 0) edadCalculadaEdit.value = '';
+    else if (edad === 0) { const meses = (hoy.getFullYear()-fechaNac.getFullYear())*12 + hoy.getMonth()-fechaNac.getMonth(); edadCalculadaEdit.value = meses + ' meses'; }
+    else edadCalculadaEdit.value = edad + ' años';
+  }
+
   if (fechaNacimientoEdit && edadCalculadaEdit) {
+    calcularYMostrarEdadEdit(fechaNacimientoEdit);
     fechaNacimientoEdit.addEventListener('change', function() {
       const fechaNac = new Date(this.value);
       const hoy = new Date();
