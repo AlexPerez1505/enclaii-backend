@@ -1545,7 +1545,8 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
     const guardados = localStorage.getItem('medicosPersonalizados');
     if (guardados) {
       const lista = JSON.parse(guardados);
-      const select = document.getElementById('medicoSelect');
+      const select = document.getElementById('medicoSelectMed');
+      if (!select) return;
       lista.forEach(med => {
         let existe = false;
         for (let i = 0; i < select.options.length; i++) {
