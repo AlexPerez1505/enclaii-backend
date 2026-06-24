@@ -27,7 +27,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
         $estudiosSinReporte = \App\Models\Estudio::whereDoesntHave('reportes')->count();
 
-        return view('dashboard', compact('estudiosSinReporte'));
+        // Próximo paciente: la cita pendiente más cercana
+        $proximaCita = \App\Models\Cita::with('paciente')
+            ->whereNotIn('estado', ['cancelado', 'completado'])
+            ->whereDate('fecha', '>=', now()->toDateString())
+            ->orderBy('fecha')
+            ->orderBy('hora')
+            ->first();
+
+        return view('dashboard', compact('estudiosSinReporte', 'proximaCita'));
     })->name('dashboard');
     
 
