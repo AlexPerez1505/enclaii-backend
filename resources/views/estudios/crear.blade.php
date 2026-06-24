@@ -167,8 +167,8 @@ html[data-theme="light"] .np-res-item.active { background: var(--hover-bg-strong
 /* Layout: foto + campos */
 .np-personal-layout {
   display: grid;
-  grid-template-columns: 80px 1fr;
-  gap: 12px;
+  grid-template-columns: 190px 1fr;
+  gap: 24px;
   align-items: start;
 }
 
@@ -756,6 +756,23 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
 @endpush
 
 @section('content')
+@php
+  $paciente = $paciente ?? null;
+  $galImagenes = $galImagenes ?? collect();
+  $galVideos = $galVideos ?? collect();
+  $galNombre = $paciente?->nombre_completo ?? 'Maria Gonzales';
+  $galIni = $paciente
+    ? (collect(explode(' ', $galNombre))->filter()->take(2)->map(fn($x)=>mb_strtoupper(mb_substr($x,0,1)))->implode('') ?: 'PX')
+    : 'MG';
+  $galEstudios = $paciente
+    ? $galImagenes->pluck('estudio_id')->merge($galVideos->pluck('estudio_id'))->filter()->unique()->count()
+    : 15;
+  $galUltimoArchivo = $galImagenes->first() ?? $galVideos->first();
+  $galUltimo = $paciente ? (optional($galUltimoArchivo?->capturado_en)->format('d/m/Y') ?? '—') : '15/07/2025';
+  $galSexo = $paciente?->sexo ?? 'Femenino';
+  $galEdad = $paciente ? ($paciente->edad ? $paciente->edad.' años' : '—') : '38 años';
+  $galCodigo = $paciente ? ($paciente->folio ?? $paciente->identificacion ?? '—') : '00012345';
+@endphp
 
 {{-- Pestañas --}}
 <div class="np-tabs rise d1">
@@ -767,74 +784,7 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
 {{-- Panel Pacientes --}}
 <div class="np-tab-panel active" id="tab-pacientes">
 
-{{-- Buscador + Filtros + Acciones --}}
-<div class="np-searchbar rise d1">
-  <button class="np-back-btn" type="button" id="npBackToPatientsTop">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-    Volver a pacientes
-  </button>
-  <div class="np-search-wrap">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    <input class="np-search" type="text" id="npSearch" placeholder="Buscar paciente por nombre..." autocomplete="off">
-  </div>
-  <div class="np-filter-wrap">
-    <button class="np-filter-btn" type="button" id="npFilterBtn">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-      Filtrar
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-    </button>
-    <div class="np-filter-drop" id="npFilterDrop">
-      <div class="np-flt-title">Filtros de busqueda</div>
-      <div class="np-flt-group">
-        <div class="np-flt-lbl">Procedimiento</div>
-        <select class="np-flt-sel" id="fltProc">
-          <option value="">Todos</option>
-          <option value="endoscopia">Endoscopia diagnostica</option>
-          <option value="colonoscopia">Colonoscopia</option>
-          <option value="gastroscopia">Gastroscopia</option>
-          <option value="sigmoidoscopia">Sigmoidoscopia</option>
-          <option value="cpre">CPRE</option>
-          <option value="ecoendoscopia">Ecoendoscopia</option>
-        </select>
-      </div>
-      <div class="np-flt-group">
-        <div class="np-flt-lbl">Sexo</div>
-        <div class="np-flt-chks">
-          <label class="np-flt-chk"><input type="checkbox" id="fltSexoF" checked> Femenino</label>
-          <label class="np-flt-chk"><input type="checkbox" id="fltSexoM" checked> Masculino</label>
-        </div>
-      </div>
-      <div class="np-flt-group">
-        <div class="np-flt-lbl">Medico</div>
-        <select class="np-flt-sel" id="fltMed">
-          <option value="">Todos</option>
-          <option value="dr_victor">Dr. Victor</option>
-          <option value="dr_ricardo">Dr. Ricardo</option>
-        </select>
-      </div>
-      <div class="np-flt-actions">
-        <button class="np-flt-apply" id="npFltApply">Aplicar</button>
-        <button class="np-flt-clear" id="npFltClear">Limpiar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-{{-- Resultados --}}
-<div class="np-results rise d1" id="npResults">
-  <div class="np-results-head">
-    <span>Paciente</span>
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-  </div>
-  <div id="npResultsList" class="np-res-list"></div>
-</div>
-
-{{-- Estado vacio: ningun paciente seleccionado --}}
-<div id="npEmptyState" class="np-empty-state rise d2">
-  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-  <p>Busca un paciente para ver su informacion</p>
-  <span>Usa el buscador o los filtros de arriba</span>
-</div>
+{{-- Buscador, lista de pacientes y estado vacio eliminados: se va directo al formulario --}}
 
 {{-- Formulario / informacion del paciente --}}
 <div class="np-layout" id="npFormLayout" style="display:none">
@@ -850,9 +800,10 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
 
         {{-- Foto --}}
         <div class="np-foto-col">
+          @php($pacFoto = $paciente && $paciente->foto ? asset('storage/'.$paciente->foto) : '')
           <div class="np-foto-box" id="npFotoBox">
-            <img id="npFotoPreview" src="" alt="">
-            <div class="np-foto-ph" id="npFotoPh">
+            <img id="npFotoPreview" src="{{ $pacFoto }}" alt="{{ $paciente?->nombre_completo }}" @if($pacFoto) style="display:block;" @endif>
+            <div class="np-foto-ph" id="npFotoPh" @if($pacFoto) style="display:none;" @endif>
               <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
           </div>
@@ -864,58 +815,58 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
         <div class="np-info-grid">
           <div class="np-info-box">
             <label>Nombre completo</label>
-            <div class="np-field-value" id="nombre">Maria Fernanda Lopez Ruiz</div>
+            <div class="np-field-value" id="nombre">{{ $paciente?->nombre_completo ?? '—' }}</div>
           </div>
           
                     
           <div class="np-info-box">
             <label>Edad</label>
-            <div class="np-field-value" id="edad">28 años</div>
+            <div class="np-field-value" id="edad">{{ $paciente && $paciente->edad ? $paciente->edad.' años' : '—' }}</div>
           </div>
           
           <div class="np-info-box">
             <label>Sexo</label>
-            <div class="np-field-value" id="sexo">Femenino</div>
+            <div class="np-field-value" id="sexo">{{ $paciente && $paciente->sexo ? ucfirst($paciente->sexo) : '—' }}</div>
           </div>
           
           <div class="np-info-box">
             <label>Fecha nacimiento</label>
-            <div class="np-field-value" id="fecha_nac">1998-12-25</div>
+            <div class="np-field-value" id="fecha_nac">{{ $paciente?->fecha_nacimiento?->format('Y-m-d') ?? '—' }}</div>
           </div>
           
           <div class="np-info-box">
             <label>Peso</label>
-            <div class="np-field-value" id="peso">30 kg</div>
+            <div class="np-field-value" id="peso">{{ $paciente && $paciente->peso ? $paciente->peso.' kg' : '—' }}</div>
           </div>
           
           <div class="np-info-box">
             <label>Altura</label>
-            <div class="np-field-value" id="altura">1.75 m</div>
+            <div class="np-field-value" id="altura">{{ $paciente && $paciente->altura ? $paciente->altura.' m' : '—' }}</div>
           </div>
           
           <div class="np-info-box">
             <label>Número de Seguro Social</label>
-            <div class="np-field-value" id="nss">25849563-9</div>
+            <div class="np-field-value" id="nss">{{ $paciente?->identificacion ?? '—' }}</div>
           </div>
           
           <div class="np-info-box">
             <label>Teléfono</label>
-            <div class="np-field-value" id="telefono">722 162 0815</div>
+            <div class="np-field-value" id="telefono">{{ $paciente?->telefono ?? '—' }}</div>
           </div>
           
           <div class="np-info-box">
             <label>Correo electrónico</label>
-            <div class="np-field-value" id="email">@gmail.com</div>
+            <div class="np-field-value" id="email">{{ $paciente?->email ?? '—' }}</div>
           </div>
           
           <div class="np-info-box">
             <label>Procedimiento</label>
-            <div class="np-field-value">Colonoscopia</div>
+            <div class="np-field-value">{{ $paciente?->procedimiento ?? '—' }}</div>
           </div>
           
           <div class="np-info-box">
             <label>Fecha de registro</label>
-            <div class="np-field-value" id="fecha_registro">2025-06-20</div>
+            <div class="np-field-value" id="fecha_registro">{{ $paciente?->created_at?->format('Y-m-d') ?? '—' }}</div>
           </div>
           
           <div class="np-info-box np-wide">
@@ -936,7 +887,7 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
         <span class="np-ab-icon" style="background:rgba(255,59,59,.12);border-color:rgba(255,90,110,.4)">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff5a6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="#ff5a6e" stroke="none"/></svg>
         </span>
-        Iniciar Grabacion
+        Iniciar estudio
       </button>
       <a class="np-action-btn" href="{{ route('nuevo-estudio.configuracion') }}">
         <span class="np-ab-icon">
@@ -955,14 +906,6 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
 <div class="np-tab-panel" id="tab-galeria">
 
   <div class="pa-topbar rise d2">
-    <button class="pa-back" type="button" id="npBackToPatientsGal">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-      Volver a pacientes
-    </button>
-    <label class="pa-search">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="npGalSearch" placeholder="Buscar video o imagen...">
-    </label>
     <button class="np-new-study-btn" type="button" id="npNewStudyBtnGal" style="margin-left:auto">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Agregar nuevo estudio
@@ -972,15 +915,15 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
   <div class="pa-shell rise d3">
     <div>
       <section class="pa-hero">
-        <div class="pa-avatar" id="npGalAvatar">MG</div>
+        <div class="pa-avatar" id="npGalAvatar">{{ $galIni }}</div>
         <div>
-          <div class="pa-title" id="npGalName">Maria Gonzales</div>
-          <div class="pa-sub" id="npGalMeta">ID: 00012345 · Femenino · 38 años · Último estudio: 15/07/2025</div>
+          <div class="pa-title" id="npGalName">{{ $galNombre }}</div>
+          <div class="pa-sub" id="npGalMeta">ID: {{ $galCodigo }} · {{ $galSexo }} · {{ $galEdad }} · Último estudio: {{ $galUltimo }}</div>
         </div>
         <div class="pa-stats">
-          <div class="pa-stat"><strong id="npGalEstudios">15</strong><span>Estudios</span></div>
-          <div class="pa-stat"><strong id="npGalFotos">126</strong><span>Fotos</span></div>
-          <div class="pa-stat"><strong id="npGalVideos">12</strong><span>Videos</span></div>
+          <div class="pa-stat"><strong id="npGalEstudios">{{ $galEstudios }}</strong><span>Estudios</span></div>
+          <div class="pa-stat"><strong id="npGalFotos">{{ $paciente ? $galImagenes->count() : 126 }}</strong><span>Fotos</span></div>
+          <div class="pa-stat"><strong id="npGalVideos">{{ $paciente ? $galVideos->count() : 12 }}</strong><span>Videos</span></div>
         </div>
       </section>
 
@@ -989,9 +932,29 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
       <section class="pa-section">
         <div class="pa-section-head">
           <h2 class="pa-section-title">Videos</h2>
-          <span class="pa-section-count">2 archivos</span>
+          <span class="pa-section-count">{{ $paciente ? $galVideos->count().' archivos' : '2 archivos' }}</span>
         </div>
         <div class="pa-grid">
+          @if($paciente)
+          @forelse($galVideos as $v)
+          <article class="pa-card" data-kind="video" data-title="{{ strtolower($v->nombre_original ?? 'video') }}">
+            <div class="pa-thumb">
+              <video src="{{ asset('storage/'.$v->path) }}" preload="metadata" muted style="width:100%;height:100%;object-fit:cover"></video>
+              <span class="pa-badge video">VIDEO</span>
+              <div class="pa-play"><span><svg width="17" height="17" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg></span></div>
+            </div>
+            <div class="pa-body">
+              <div class="pa-name">{{ $v->nombre_original ?? 'Video del estudio' }}</div>
+              <div class="pa-meta">Estudio {{ $v->estudio?->folio }}<br>{{ optional($v->capturado_en)->format('d/m/Y H:i') }}</div>
+              <div class="pa-actions">
+                <a class="pa-btn primary" href="{{ asset('storage/'.$v->path) }}" target="_blank">Ver</a>
+              </div>
+            </div>
+          </article>
+          @empty
+          <p style="color:var(--txt-soft);font-size:13px">No hay videos para este paciente.</p>
+          @endforelse
+          @else
           <article class="pa-card" data-kind="video" data-title="video edd-2025-001245 endoscopia digestiva alta">
             <div class="pa-thumb">
               <span class="pa-badge video">VIDEO</span>
@@ -1007,30 +970,36 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
               </div>
             </div>
           </article>
-          <article class="pa-card" data-kind="video" data-title="video edd-2025-001246 revision de antro">
-            <div class="pa-thumb">
-              <span class="pa-badge video">VIDEO</span>
-              <div class="pa-play"><span><svg width="17" height="17" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg></span></div>
-              <span class="pa-duration">00:08:36</span>
-            </div>
-            <div class="pa-body">
-              <div class="pa-name">Video EDD-2025-001246</div>
-              <div class="pa-meta">Revision de antro<br>15/07/2025</div>
-              <div class="pa-actions">
-                <a class="pa-btn primary" href="{{ route('galeria.video', 2) }}">Ver</a>
-                <a class="pa-btn" href="{{ route('galeria.video.editar', 2) }}">Editar</a>
-              </div>
-            </div>
-          </article>
+          @endif
         </div>
       </section>
 
       <section class="pa-section">
         <div class="pa-section-head">
           <h2 class="pa-section-title">Imagenes</h2>
-          <span class="pa-section-count">4 archivos</span>
+          <span class="pa-section-count">{{ $paciente ? $galImagenes->count().' archivos' : '4 archivos' }}</span>
         </div>
         <div class="pa-grid">
+          @if($paciente)
+          @forelse($galImagenes as $img)
+          <article class="pa-card" data-kind="imagen" data-title="{{ strtolower($img->nombre_original ?? 'imagen') }}">
+            <div class="pa-thumb">
+              <img src="{{ asset('storage/'.$img->path) }}" alt="{{ $img->nombre_original ?? 'Captura' }}">
+              <span class="pa-badge image">IMG</span>
+              <span class="pa-duration">{{ optional($img->capturado_en)->format('H:i') }}</span>
+            </div>
+            <div class="pa-body">
+              <div class="pa-name">{{ $img->nombre_original ?? 'Captura' }}</div>
+              <div class="pa-meta">Captura del estudio {{ $img->estudio?->folio }}<br>{{ optional($img->capturado_en)->format('d/m/Y') }}</div>
+              <div class="pa-actions">
+                <a class="pa-btn primary" href="{{ route('galeria.imagen', $img->id) }}">Ver imagen</a>
+              </div>
+            </div>
+          </article>
+          @empty
+          <p style="color:var(--txt-soft);font-size:13px">No hay imágenes capturadas para este paciente.</p>
+          @endforelse
+          @else
           <article class="pa-card" data-kind="imagen" data-title="imagen 1 fotograma 0:01:25">
             <div class="pa-thumb">
               <img src="{{ asset('images/colonoscopia.jpg') }}" alt="Imagen 1">
@@ -1045,34 +1014,7 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
               </div>
             </div>
           </article>
-          <article class="pa-card" data-kind="imagen" data-title="imagen 2 fotograma 0:02:15">
-            <div class="pa-thumb">
-              <img src="{{ asset('images/colonoscopia.jpg') }}" alt="Imagen 2">
-              <span class="pa-badge image">IMG</span>
-              <span class="pa-duration">0:02:15</span>
-            </div>
-            <div class="pa-body">
-              <div class="pa-name">Imagen 2 - Fotograma 0:02:15</div>
-              <div class="pa-meta">Captura del estudio<br>15/07/2025</div>
-              <div class="pa-actions">
-                <a class="pa-btn primary" href="{{ route('galeria.imagen', 2) }}">Ver imagen</a>
-              </div>
-            </div>
-          </article>
-          <article class="pa-card" data-kind="imagen" data-title="imagen 3 fotograma 0:04:32">
-            <div class="pa-thumb">
-              <img src="{{ asset('images/colonoscopia.jpg') }}" alt="Imagen 3">
-              <span class="pa-badge image">IMG</span>
-              <span class="pa-duration">0:04:32</span>
-            </div>
-            <div class="pa-body">
-              <div class="pa-name">Imagen 3 - Fotograma 0:04:32</div>
-              <div class="pa-meta">Captura del estudio<br>15/07/2025</div>
-              <div class="pa-actions">
-                <a class="pa-btn primary" href="{{ route('galeria.imagen', 3) }}">Ver imagen</a>
-              </div>
-            </div>
-          </article>
+          @endif
         </div>
       </section>
     </div>
@@ -1081,11 +1023,11 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
       <section class="pa-panel">
         <h3 class="pa-panel-title">Informacion del paciente</h3>
         <div class="pa-info">
-          <div class="pa-info-row"><span>ID</span><strong id="npGalSideId">00012345</strong></div>
-          <div class="pa-info-row"><span>Sexo</span><strong id="npGalSideSexo">Femenino</strong></div>
-          <div class="pa-info-row"><span>Edad</span><strong id="npGalSideEdad">38 años</strong></div>
+          <div class="pa-info-row"><span>ID</span><strong id="npGalSideId">{{ $galCodigo }}</strong></div>
+          <div class="pa-info-row"><span>Sexo</span><strong id="npGalSideSexo">{{ $galSexo }}</strong></div>
+          <div class="pa-info-row"><span>Edad</span><strong id="npGalSideEdad">{{ $galEdad }}</strong></div>
           <div class="pa-info-row"><span>Estado</span><strong id="npGalSideEstado" style="color:var(--green)">Activo</strong></div>
-          <div class="pa-info-row"><span>Ultimo estudio</span><strong id="npGalSideUltimo">15/07/2025</strong></div>
+          <div class="pa-info-row"><span>Ultimo estudio</span><strong id="npGalSideUltimo">{{ $galUltimo }}</strong></div>
         </div>
       </section>
 
@@ -1332,10 +1274,15 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
           Sí, el dispositivo está conectado
         </label>
       </div>
-      <a href="{{ route('nuevo-estudio.grabando') }}" class="np-new-study-btn" id="btnComenzarGrabar" style="width:100%;justify-content:center;text-decoration:none">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>
-        Comenzar a grabar
-      </a>
+      <form method="POST" action="{{ route('nuevo-estudio.store') }}" style="width:100%">
+        @csrf
+        <input type="hidden" name="paciente_id" value="{{ $paciente?->id }}">
+        <input type="hidden" name="tipo" value="{{ $paciente?->procedimiento }}">
+        <button type="submit" class="np-new-study-btn" id="btnComenzarGrabar" style="width:100%;justify-content:center;text-decoration:none" @unless($paciente) disabled style="opacity:.5" @endunless>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>
+          Iniciar estudio
+        </button>
+      </form>
     </div>
   </div>
 </div>
@@ -1395,200 +1342,11 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
   if (fotoInput) fotoInput.addEventListener('change', function(){ applyPreview(this.files[0]); });
   if (fotoCamera) fotoCamera.addEventListener('change', function(){ applyPreview(this.files[0]); });
 
-  /* Filtros */
-  var filterBtn  = document.getElementById('npFilterBtn');
-  var filterDrop = document.getElementById('npFilterDrop');
-
-  filterBtn.addEventListener('click', function(e){
-    e.stopPropagation();
-    var isOpen = filterDrop.classList.contains('open');
-    filterDrop.classList.toggle('open');
-    filterBtn.classList.toggle('open');
-    if (!isOpen) {
-      doSearch();
-    }
-  });
-  document.addEventListener('click', function(){
-    filterDrop.classList.remove('open');
-    filterBtn.classList.remove('open');
-  });
-  filterDrop.addEventListener('click', function(e){ e.stopPropagation(); });
-
-  document.getElementById('npFltApply').addEventListener('click', function(){
-    filterDrop.classList.remove('open');
-    filterBtn.classList.remove('open');
-    doSearch();
-  });
-  document.getElementById('npFltClear').addEventListener('click', function(){
-    document.getElementById('fltProc').value   = '';
-    document.getElementById('fltSexoF').checked = true;
-    document.getElementById('fltSexoM').checked = true;
-    document.getElementById('fltMed').value    = '';
-    document.getElementById('npSearch').value  = '';
-    showResults(PACS);
-  });
-
-  /* Pacientes demo */
-  var PACS = [
-    { nombre:'Maria Gonzalez',    id:'00012345', sexo:'F', medico:'dr_victor',  proc:'colonoscopia',   edad:38, ultimo:'15/07/2025', estudios:15, fotos:126, videos:12, estado:'Activo',   color:'linear-gradient(135deg,#c084fc,#a78bfa)' },
-    { nombre:'Jose Ramirez',      id:'00012346', sexo:'M', medico:'dr_victor',  proc:'endoscopia',     edad:45, ultimo:'10/06/2025', estudios:8,  fotos:74,  videos:6,  estado:'Activo',   color:'linear-gradient(135deg,#7dd3fc,#60a5fa)' },
-    { nombre:'Ana Torres',        id:'00012347', sexo:'F', medico:'dr_ricardo', proc:'gastroscopia',   edad:33, ultimo:'06/07/2025', estudios:12, fotos:102, videos:9,  estado:'Activo',   color:'linear-gradient(135deg,#f9a8d4,#f472b6)' },
-    { nombre:'Carlos Mendez',     id:'00012348', sexo:'M', medico:'dr_ricardo', proc:'colonoscopia',   edad:52, ultimo:'22/05/2025', estudios:4,  fotos:37,  videos:3,  estado:'Inactivo', color:'linear-gradient(135deg,#99f6e4,#6ee7b7)' },
-    { nombre:'Laura Perez',       id:'00012349', sexo:'F', medico:'dr_victor',  proc:'ecoendoscopia',  edad:41, ultimo:'18/06/2025', estudios:9,  fotos:81,  videos:7,  estado:'Activo',   color:'linear-gradient(135deg,#c084fc,#a78bfa)' },
-    { nombre:'Roberto Flores',    id:'00012350', sexo:'M', medico:'dr_victor',  proc:'cpre',           edad:60, ultimo:'01/05/2025', estudios:3,  fotos:29,  videos:2,  estado:'Inactivo', color:'linear-gradient(135deg,#7dd3fc,#60a5fa)' },
-    { nombre:'Sofia Martinez',    id:'00012351', sexo:'F', medico:'dr_ricardo', proc:'sigmoidoscopia', edad:29, ultimo:'12/07/2025', estudios:11, fotos:95,  videos:8,  estado:'Activo',   color:'linear-gradient(135deg,#f9a8d4,#f472b6)' },
-    { nombre:'Miguel Hernandez',  id:'00012352', sexo:'M', medico:'dr_victor',  proc:'endoscopia',     edad:38, ultimo:'30/06/2025', estudios:7,  fotos:58,  videos:5,  estado:'Activo',   color:'linear-gradient(135deg,#7dd3fc,#60a5fa)' },
-  ];
-
-  function doSearch(){
-    var q    = document.getElementById('npSearch').value.trim().toLowerCase();
-    var proc = document.getElementById('fltProc').value;
-    var sexF = document.getElementById('fltSexoF').checked;
-    var sexM = document.getElementById('fltSexoM').checked;
-    var med  = document.getElementById('fltMed').value;
-
-    var res = PACS.filter(function(p){
-      return (!q    || p.nombre.toLowerCase().includes(q) || p.id.includes(q))
-          && (!proc  || p.proc   === proc)
-          && ((p.sexo==='F'&&sexF)||(p.sexo==='M'&&sexM))
-          && (!med   || p.medico === med);
-    });
-    showResults(res);
-  }
-
-  function showResults(res){
-    var panel = document.getElementById('npResults');
-    var list  = document.getElementById('npResultsList');
-    var empty = document.getElementById('npEmptyState');
-    var form  = document.getElementById('npFormLayout');
-    var topBack = document.getElementById('npBackToPatientsTop');
-    if (topBack) topBack.classList.remove('visible');
-    panel.classList.add('open');
-    empty.style.display = 'none';
-    if (!res.length){
-      list.innerHTML = '<div class="np-res-empty">No se encontraron pacientes</div>';
-      return;
-    }
-    list.innerHTML = res.map(function(p){
-      var ini = p.nombre.split(' ').slice(0,2).map(function(w){ return w[0]; }).join('');
-      var sexoTxt = p.sexo === 'F' ? 'Femenino' : 'Masculino';
-      return '<div class="np-res-item" data-nombre="'+p.nombre+'" data-id="'+p.id+'" data-sexo="'+p.sexo+'">'
-        +'<div class="np-res-av">'+ini+'</div>'
-        +'<div><div class="np-res-name">'+p.nombre+'</div>'
-        +'<div class="np-res-meta">'+p.edad+' anos · '+sexoTxt+'</div></div>'
-        +'</div>';
-    }).join('');
-    list.querySelectorAll('.np-res-item').forEach(function(el){
-      el.addEventListener('click', function(){
-        var p = PACS.find(function(x){ return x.id === el.dataset.id; });
-        if (!p) return;
-        list.querySelectorAll('.np-res-item').forEach(function(i){ i.classList.remove('active'); });
-        el.classList.add('active');
-        document.getElementById('nombre').value         = p.nombre;
-        document.getElementById('identificacion').value = p.id;
-        document.getElementById('sexo').value           = p.sexo;
-        document.getElementById('edad').value           = p.edad + ' años';
-        document.getElementById('npSearch').value       = p.nombre;
-        populateGallery(p);
-        populateReport(p);
-        hideResults();
-        showForm();
-      });
-    });
-  }
-
-  function hideResults(){
-    document.getElementById('npResults').classList.remove('open');
-    if (document.getElementById('npFormLayout').style.display !== 'grid'){
-      document.getElementById('npEmptyState').style.display = 'flex';
-    }
-  }
-
-  function populateGallery(p){
-    var sexoTxt = p.sexo === 'F' ? 'Femenino' : 'Masculino';
-    var ini = p.nombre.split(' ').slice(0,2).map(function(w){ return w[0]; }).join('');
-    var av = document.getElementById('npGalAvatar');
-    if (av) { av.textContent = ini; av.style.background = p.color; }
-    var nameEl = document.getElementById('npGalName');
-    if (nameEl) nameEl.textContent = p.nombre;
-    var metaEl = document.getElementById('npGalMeta');
-    if (metaEl) metaEl.textContent = 'ID: ' + p.id + ' · ' + sexoTxt + ' · ' + p.edad + ' años · Último estudio: ' + p.ultimo;
-    var estEl = document.getElementById('npGalEstudios');
-    if (estEl) estEl.textContent = p.estudios;
-    var fotEl = document.getElementById('npGalFotos');
-    if (fotEl) fotEl.textContent = p.fotos;
-    var vidEl = document.getElementById('npGalVideos');
-    if (vidEl) vidEl.textContent = p.videos;
-    var sideId = document.getElementById('npGalSideId');
-    if (sideId) sideId.textContent = p.id;
-    var sideSexo = document.getElementById('npGalSideSexo');
-    if (sideSexo) sideSexo.textContent = sexoTxt;
-    var sideEdad = document.getElementById('npGalSideEdad');
-    if (sideEdad) sideEdad.textContent = p.edad + ' años';
-    var sideEstado = document.getElementById('npGalSideEstado');
-    if (sideEstado) {
-      sideEstado.textContent = p.estado;
-      sideEstado.style.color = p.estado === 'Activo' ? 'var(--green)' : 'var(--orange)';
-    }
-    var sideUltimo = document.getElementById('npGalSideUltimo');
-    if (sideUltimo) sideUltimo.textContent = p.ultimo;
-  }
-
-  function populateReport(p) {
-    var ini = p.nombre.split(' ').slice(0,2).map(function(w){ return w[0]; }).join('');
-    var sexoTxt = p.sexo === 'F' ? 'Femenino' : 'Masculino';
-    var procMap = {
-      colonoscopia: 'Colonoscopia', endoscopia: 'Endoscopia Diagnostica',
-      gastroscopia: 'Gastroscopia', sigmoidoscopia: 'Sigmoidoscopia',
-      cpre: 'CPRE', ecoendoscopia: 'Ecoendoscopia'
-    };
-    var medicoMap = { dr_victor: 'Dr. Victor', dr_ricardo: 'Dr. Ricardo' };
-    var procLabel = procMap[p.proc] || p.proc;
-    var medicoLabel = medicoMap[p.medico] || p.medico;
-    var hallazgosMap = {
-      colonoscopia: 'Se realizo colonoscopia total con preparacion adecuada. Se visualizo mucosa colonica de aspecto normal en todos los segmentos explorados. No se observaron lesiones polipoídeas, masas ni signos de inflamacion activa.',
-      endoscopia: 'Se realizo endoscopia digestiva alta sin complicaciones. Mucosa esofagica, gastrica y duodenal de aspecto normal. No se evidenciaron ulceraciones, lesiones ni signos de sangrado activo.',
-      gastroscopia: 'Gastroscopia realizada con buena visibilidad. Mucosa gastrica con leve eritema antral sin lesiones relevantes. Peristalsis conservada. No se observaron signos de hemorragia ni perforacion.',
-      sigmoidoscopia: 'Sigmoidoscopia sin hallazgos patologicos. Mucosa del colon sigmoide de aspecto normal. No se apreciaron polipos ni lesiones mucosas.',
-      cpre: 'CPRE realizada con canulacion exitosa de la via biliar. Sin evidencia de calculos ni estenosis. Papila de aspecto normal.',
-      ecoendoscopia: 'Ecoendoscopia sin alteraciones ecograficas significativas. Paredes gastricas de grosor normal. Sin adenopatias perilesionales identificadas.'
-    };
-    var diagnosticoMap = {
-      colonoscopia: 'Colonoscopia dentro de parametros normales. Sin hallazgos patologicos significativos.',
-      endoscopia: 'Endoscopia alta sin alteraciones. Estudio normal para la edad y antecedentes del paciente.',
-      gastroscopia: 'Gastritis antral leve. Sin lesiones que requieran tratamiento inmediato.',
-      sigmoidoscopia: 'Sigmoidoscopia normal. Sin evidencia de patologia colonica.',
-      cpre: 'Via biliar permeable sin litiasis. Estudio endoscopico satisfactorio.',
-      ecoendoscopia: 'Ecoendoscopia sin signos de malignidad. Seguimiento clinico recomendado.'
-    };
-    var num = 'RPT-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random()*9000)+1000);
-
-    var set = function(id, val){ var el = document.getElementById(id); if(el) el.textContent = val; };
-    set('rptPatAv',    ini);
-    set('rptPatName',  p.nombre);
-    set('rptPatId',    'ID: ' + p.id);
-    set('rptNumero',   num);
-    set('rptFechaDoc', p.ultimo);
-    set('rptEstadoDoc','Borrador');
-    set('rptNombre',   p.nombre);
-    set('rptId',       p.id);
-    set('rptEdad',     p.edad + ' años');
-    set('rptSexo',     sexoTxt);
-    set('rptProcedimiento', procLabel);
-    set('rptMedico',   medicoLabel);
-    set('rptFechaEstudio', p.ultimo);
-    set('rptTotalEstudios', p.estudios);
-    set('rptHallazgos',   hallazgosMap[p.proc] || 'Estudio realizado sin complicaciones. Se documentan los hallazgos correspondientes al procedimiento.');
-    set('rptDiagnostico', diagnosticoMap[p.proc] || 'Estudio dentro de parametros normales.');
-    set('rptObservaciones', 'Se recomienda seguimiento clinico en ' + (p.sexo === 'F' ? 'la' : 'el') + ' paciente ' + p.nombre + '. Proxima revision en 6 meses o antes si presenta sintomatologia.');
-    set('rptFirmaNombre', medicoLabel);
-
-    var av = document.getElementById('rptPatAv');
-    if (av) av.style.background = p.color;
-  }
+  /* (Buscador y filtros de pacientes eliminados) */
 
   function showForm(){
-    document.getElementById('npEmptyState').style.display = 'none';
+    var emptyState = document.getElementById('npEmptyState');
+    if (emptyState) emptyState.style.display = 'none';
     document.getElementById('npFormLayout').style.display = 'grid';
     document.querySelectorAll('.np-tab.hidden').forEach(function(t){ t.classList.remove('hidden'); });
     const topBack = document.getElementById('npBackToPatientsTop');
@@ -1597,29 +1355,6 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
     if (topNew) topNew.classList.add('visible');
   }
 
-  function showPatientList(){
-    document.getElementById('npFormLayout').style.display = 'none';
-    document.getElementById('npResults').classList.add('open');
-    document.getElementById('npEmptyState').style.display = 'none';
-    document.querySelectorAll('.np-tab[data-tab]').forEach(function(t){ t.classList.remove('active'); });
-    document.querySelectorAll('.np-tab-panel').forEach(function(p){ p.classList.remove('active'); });
-    document.querySelector('.np-tab[data-tab="pacientes"]').classList.add('active');
-    document.getElementById('tab-pacientes').classList.add('active');
-    document.querySelectorAll('.np-tab-extra').forEach(function(t){ t.classList.add('hidden'); });
-    const topBack = document.getElementById('npBackToPatientsTop');
-    const topNew = document.getElementById('npNewStudyBtn');
-    if (topBack) topBack.classList.remove('visible');
-    if (topNew) topNew.classList.remove('visible');
-  }
-
-  document.getElementById('npBackToPatientsTop')?.addEventListener('click', function(){
-    showPatientList();
-  });
-  document.getElementById('npBackToPatientsGal')?.addEventListener('click', function(){
-    showPatientList();
-  });
-
-  document.getElementById('npSearch').addEventListener('input', doSearch);
 
   /* Filtro de archivos en galeria */
   function setupMediaFilter(inputId, containerSelector){
@@ -1645,8 +1380,8 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
   }
   setupMediaFilter('npGalSearch', '#tab-galeria');
 
-  /* Mostrar todos los pacientes por defecto */
-  showResults(PACS);
+  /* Ir directo al formulario del paciente */
+  showForm();
 
   /* Modal Nuevo Estudio */
   const nsBackdrop = document.getElementById('nsModalBackdrop');
@@ -1682,34 +1417,11 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
     if (e.key === 'Escape' && nsBackdrop?.classList.contains('open')) closeNsModal();
   });
 
-  /* Precarga datos del paciente desde URL (viene de Pacientes > Iniciar estudio) */
+  /* Precarga datos del paciente (viene de Pacientes > Iniciar estudio) */
+  @if($paciente)
   (function(){
-    var params = new URLSearchParams(window.location.search);
-    var name   = params.get('name');
-    if (!name) return;
-
-    var age    = params.get('age')    || '';
-    var gender = params.get('gender') || '';
-    var dob    = params.get('dob')    || '';
-
-    var elNombre = document.getElementById('nombre');
-    if (elNombre) elNombre.value = name;
-
-    var elEdad = document.getElementById('edad');
-    if (elEdad) elEdad.value = age;
-
-    var elSexo = document.getElementById('sexo');
-    if (elSexo){
-      var g = gender.toLowerCase();
-      if (g === 'femenino' || g === 'f') elSexo.value = 'F';
-      else if (g === 'masculino' || g === 'm') elSexo.value = 'M';
-    }
-
-    var elFecha = document.getElementById('fecha_nac');
-    if (elFecha && dob) elFecha.value = dob;
-
     var elSearch = document.getElementById('npSearch');
-    if (elSearch) elSearch.value = name;
+    if (elSearch) elSearch.value = @json($paciente->nombre_completo);
 
     var emptyState = document.getElementById('npEmptyState');
     var formLayout = document.getElementById('npFormLayout');
@@ -1723,6 +1435,7 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
     if (topBack) topBack.classList.add('visible');
     if (topNew)  topNew.classList.add('visible');
   })();
+  @endif
 
   /* Pestañas */
   document.querySelectorAll('.np-tab[data-tab]').forEach(function(tab){

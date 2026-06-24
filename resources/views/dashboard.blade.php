@@ -9,531 +9,727 @@
 
 @push('styles')
 <style>
-/* ============ DASHBOARD CLINICO ============ */
-body{
-  background:
-    radial-gradient(circle at 14% -8%, rgba(46,123,246,.18), transparent 34%),
-    radial-gradient(circle at 82% 18%, rgba(56,199,244,.08), transparent 32%),
-    #050B18;
-}
-.dash{grid-template-columns:300px 1fr}
-.main{padding:34px 32px 12px}
-.side{
-  background:linear-gradient(180deg,#07101f 0%,#071426 56%,#060d1a 100%);
-  border-color:rgba(72,119,190,.24);
-  box-shadow:inset -1px 0 0 rgba(255,255,255,.02);
-}
-.side-brand{margin-bottom:34px}
-.side-brand img{width:110px}
-.side-brand-name{font-size:20px}
-.side-help{
-  background:linear-gradient(145deg,rgba(20,45,95,.8),rgba(7,18,38,.96));
-  border-color:rgba(74,132,236,.34);
-}
-.head{margin-bottom:28px}
-.head h1{font-size:28px}
-.head-right{gap:16px}
-.btn-ai,.bell,.profile{
-  background:linear-gradient(180deg,rgba(16,35,66,.92),rgba(9,22,42,.96));
-  border-color:rgba(73,132,224,.28);
-}
-.profile{min-width:188px}
-html[data-theme="light"] body{
-  background:#eef2fb;
-}
+/* ============ WIDGET GRID SYSTEM ============ */
 
-.dashboard-shell{
-  --dash-card:rgba(11,24,45,.84);
-  --dash-card-2:rgba(8,19,36,.94);
-  --dash-line:rgba(92,143,215,.22);
-  --dash-line-strong:rgba(90,153,245,.42);
-  display:flex;
-  flex-direction:column;
-  gap:16px;
-}
-.top-grid{
+/* Contenedor principal de widgets */
+#widgetGrid{
   display:grid;
-  grid-template-columns:1.28fr 1.24fr 1.16fr 1.1fr;
-  gap:16px;
-}
-.main-grid{
-  display:grid;
-  grid-template-columns:1.12fr 1.55fr 1.28fr;
-  gap:16px;
+  grid-template-columns:repeat(12,1fr);
+  grid-auto-rows:minmax(60px,auto);
+  gap:18px;
   align-items:start;
 }
-.side-stack{display:flex;flex-direction:column;gap:16px}
-.clinical-card{
-  background:
-    linear-gradient(145deg,rgba(14,31,58,.88),rgba(8,18,34,.96)),
-    radial-gradient(circle at 90% 0%,rgba(46,123,246,.12),transparent 42%);
-  border:1px solid var(--dash-line);
-  border-radius:14px;
-  box-shadow:0 20px 46px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.03);
-  padding:18px 20px;
-}
-.card-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:16px;
-}
-.title{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  font-family:'Sora',sans-serif;
-  font-size:13px;
-  font-weight:700;
-  letter-spacing:.01em;
-  text-transform:uppercase;
-}
-.title svg{width:19px;height:19px;color:var(--blue)}
-.title.purple svg{color:#a968ff}
-.title.cyan svg{color:var(--cyan)}
-.title.orange svg{color:#ff7a2f}
-.title.red svg{color:#ff706f}
-.soft-action,.count{
-  color:#55a4ff;
-  font-size:13px;
-  font-weight:700;
-}
-.count{color:var(--txt-soft);font-weight:600}
-.arrow-link{
-  display:inline-flex;
-  align-items:center;
-  gap:10px;
-  color:#2fa2ff;
-  font-weight:700;
-  font-size:14px;
-  margin-top:14px;
-}
-.arrow-link svg{width:17px;height:17px}
 
-.study-list,.finding-list,.activity-list,.priority-list,.day-list{display:flex;flex-direction:column;gap:12px}
-.study-item{
-  display:grid;
-  grid-template-columns:42px 1fr auto;
-  gap:12px;
-  align-items:center;
-  padding:10px;
-  border:1px solid rgba(93,143,220,.16);
-  border-radius:11px;
-  background:rgba(5,15,30,.34);
+/* Widget wrapper */
+.widget{
+  position:relative;
+  transition:opacity .25s ease, transform .28s cubic-bezier(.4,0,.2,1), box-shadow .2s ease;
+  will-change:transform;
 }
-.icon-badge,.activity-ico,.patient-avatar{
-  width:36px;height:36px;
-  border-radius:50%;
-  display:grid;
-  place-items:center;
-  font-weight:800;
-  font-size:12px;
+.widget.widget-hidden{
+  display:none !important;
 }
-.icon-badge.green{color:#42e38d;background:rgba(45,205,118,.16)}
-.icon-badge.orange{color:#ffad31;background:rgba(245,158,45,.15)}
-.study-item strong,.finding strong,.activity-copy strong,.priority-copy strong,.day-copy strong{display:block;font-size:14px}
-.study-item span,.finding span,.activity-copy span,.priority-copy span,.day-copy span{color:var(--txt-soft);font-size:13px}
-.study-time{font-size:12px;font-weight:800}
-.study-time.green{color:#33db84}.study-time.orange{color:#ff9d2e}
+.widget.widget-dragging{
+  opacity:.55;
+  z-index:100;
+  transform:scale(1.02);
+  box-shadow:0 24px 60px rgba(0,0,0,.6) !important;
+  cursor:grabbing;
+}
+.widget.widget-drop-target > .card{
+  border-color:rgba(178,99,255,.6) !important;
+  box-shadow:0 0 0 2px rgba(178,99,255,.25) !important;
+}
+.widget.widget-appear{
+  animation:wAppear .32s cubic-bezier(.4,0,.2,1) both;
+}
+.widget.widget-disappear{
+  animation:wDisappear .22s cubic-bezier(.4,0,.2,1) both;
+}
+@keyframes wAppear{from{opacity:0;transform:scale(.94) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes wDisappear{from{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(.94) translateY(8px)}}
 
-.finding{
-  display:grid;
-  grid-template-columns:40px 1fr;
-  gap:12px;
-  align-items:center;
-}
-.finding .icon-badge{width:38px;height:38px}
-.bar{
-  height:5px;
-  margin-top:8px;
-  border-radius:99px;
-  background:rgba(112,152,211,.12);
-  overflow:hidden;
-}
-.bar i{display:block;height:100%;border-radius:inherit}
-.bar.green i{width:92%;background:#43c76b}
-.bar.yellow i{width:88%;background:#f5bd2d}
-.bar.red i{width:85%;background:#ef5b65}
-
-.storage-layout{
-  display:grid;
-  grid-template-columns:1fr 86px;
-  gap:16px;
-  align-items:center;
-}
-.storage-main{font-size:15px;color:var(--txt-soft)}
-.storage-main b{
-  color:var(--txt);
-  font-family:'Sora',sans-serif;
-  font-size:23px;
-}
-.progress{
-  height:10px;
-  border-radius:99px;
-  background:rgba(92,130,190,.13);
-  overflow:hidden;
-  margin-top:28px;
-}
-.progress i{
-  display:block;
-  width:43%;
-  height:100%;
-  border-radius:inherit;
-  background:linear-gradient(90deg,#5dd4ff,#2e7bf6);
-}
-.ring{position:relative;width:82px;height:82px}
-.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
-.ring circle{fill:none;stroke-width:9;stroke-linecap:round}
-.ring .track{stroke:rgba(88,128,190,.18)}
-.ring .value{stroke:#38c7f4;stroke-dasharray:226;stroke-dashoffset:145}
-.ring span{
+/* Drag handle en la cabecera */
+.widget-drag-handle{
   position:absolute;
-  inset:0;
-  display:grid;
-  place-items:center;
-  font-family:'Sora',sans-serif;
-  font-size:20px;
-  font-weight:800;
+  top:10px;right:10px;
+  width:22px;height:22px;
+  border-radius:6px;
+  display:grid;place-items:center;
+  color:rgba(234,241,255,.25);
+  cursor:grab;
+  opacity:0;
+  transition:opacity .15s, background .15s;
+  z-index:10;
+}
+.widget:hover .widget-drag-handle{opacity:1}
+.widget-drag-handle:hover{background:rgba(178,99,255,.18);color:rgba(234,241,255,.7)}
+.widget-drag-handle svg{width:14px;height:14px;pointer-events:none}
+
+/* Resize handle (esquina inferior derecha) */
+.widget-resize-handle{
+  position:absolute;
+  bottom:6px;right:6px;
+  width:16px;height:16px;
+  cursor:se-resize;
+  opacity:0;
+  transition:opacity .15s;
+  z-index:10;
+}
+.widget:hover .widget-resize-handle{opacity:1}
+.widget-resize-handle::after{
+  content:'';
+  position:absolute;
+  bottom:3px;right:3px;
+  width:8px;height:8px;
+  border-right:2px solid rgba(178,99,255,.5);
+  border-bottom:2px solid rgba(178,99,255,.5);
+  border-radius:1px;
 }
 
-.month-stat .big{
-  font-family:'Sora',sans-serif;
-  font-size:38px;
-  font-weight:800;
-  line-height:1;
-}
-.trend{
-  display:inline-flex;
-  margin-top:12px;
-  padding:4px 8px;
-  border-radius:8px;
-  color:#20dda2;
-  background:rgba(32,221,162,.1);
-  font-size:12px;
-  font-weight:800;
-}
-.spark{width:100%;height:82px;margin-top:14px}
-.spark path{fill:none;stroke:#28b7ff;stroke-width:3;stroke-linecap:round}
+/* Span de columnas por widget */
+.widget[data-w="3"]{grid-column:span 3}
+.widget[data-w="4"]{grid-column:span 4}
+.widget[data-w="5"]{grid-column:span 5}
+.widget[data-w="6"]{grid-column:span 6}
+.widget[data-w="8"]{grid-column:span 8}
+.widget[data-w="12"]{grid-column:span 12}
 
-.calendar-nav{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:24px;
-  margin-bottom:16px;
-  font-family:'Sora',sans-serif;
-  font-size:13px;
+/* Ghost placeholder al arrastrar */
+.widget-ghost{
+  border-radius:var(--r-lg);
+  background:rgba(178,99,255,.06);
+  border:2px dashed rgba(178,99,255,.35);
+  grid-column:span 3;
+  pointer-events:none;
+  transition:all .18s;
 }
-.calendar-nav button{color:var(--txt-soft);font-size:22px;line-height:1}
-.week{
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:8px;
-  margin-bottom:10px;
-  text-align:center;
-}
-.day{
-  color:var(--txt-soft);
-  font-size:13px;
-  padding:8px 0;
-  border-radius:12px;
-}
-.day b{display:block;color:var(--txt);font-size:16px}
-.day.active{
-  color:#fff;
-  background:linear-gradient(180deg,#3a8cff,#1f65df);
-  box-shadow:0 12px 26px rgba(46,123,246,.34);
-}
-.day.active b{color:#fff}
-.day-item{
-  display:grid;
-  grid-template-columns:70px 38px 1fr auto;
-  gap:12px;
-  align-items:center;
-  padding:12px;
-  border-bottom:1px solid rgba(96,137,202,.12);
-}
-.day-item:last-child{border-bottom:0}
-.day-time{font-size:13px;color:var(--txt)}
-.patient-avatar.purple{background:rgba(151,87,255,.2);color:#bd96ff}
-.patient-avatar.blue{background:rgba(46,123,246,.18);color:#4fb4ff}
-.patient-avatar.cyan{background:rgba(34,207,211,.16);color:#23dce0}
-.patient-avatar.orange{background:rgba(245,121,45,.18);color:#ff9a42}
 
+/* Próximo paciente */
+.card-next{border-color:rgba(46,123,246,.45);position:relative;overflow:hidden}
+.card-next h3{color:var(--cyan)}
+.card-next .name{
+  font-family:'Sora',sans-serif;
+  font-size:26px;
+  font-weight:700;
+  line-height:1.15;
+  margin-bottom:12px;
+}
+.card-next .meta{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--txt-soft);margin-bottom:4px}
+.card-next .meta b{color:var(--txt);font-weight:600}
+.holo{
+  position:absolute;
+  right:14px;top:50%;
+  translate:0 -50%;
+  width:96px;height:150px;
+  pointer-events:none;
+}
+.holo svg{width:100%;height:100%;filter:drop-shadow(0 0 14px rgba(56,199,244,.55))}
+html[data-theme="light"] .holo svg{stroke:#1E5AE8;filter:drop-shadow(0 0 10px rgba(46,123,246,.45))}
+.holo::after{
+  content:'';
+  position:absolute;
+  left:50%;bottom:-4px;
+  translate:-50% 0;
+  width:84px;height:14px;
+  border-radius:50%;
+  background:radial-gradient(ellipse, rgba(56,199,244,.5), transparent 70%);
+  animation:holo-base 2.6s var(--ease-in-out) infinite;
+}
+@keyframes holo-base{0%,100%{opacity:.45}50%{opacity:1}}
+
+/* Reporte IA */
+.card-ia{border-color:rgba(245,158,45,.55);position:relative;overflow:hidden}
+html[data-theme="light"] .card-ia{background:linear-gradient(180deg,#0E1740,#0D1438);color:#EAF1FF}
+html[data-theme="light"] .card-ia .muted{color:#8FA3CF}
+.card-ia h3{color:var(--orange)}
+.card-ia .big-num{font-family:'Sora',sans-serif;font-size:46px;font-weight:800;line-height:1;color:#fff}
+.card-ia .big-label{font-size:15px;font-weight:600;line-height:1.25;margin:4px 0 14px}
+.card-ia .brain-img{
+  position:absolute;right:-26px;top:-14px;width:170px;height:auto;
+  mix-blend-mode:screen;opacity:.9;pointer-events:none;
+  animation:brain-pulse 3s var(--ease-in-out) infinite;
+  -webkit-mask-image:radial-gradient(circle at 60% 40%, #000 55%, transparent 78%);
+          mask-image:radial-gradient(circle at 60% 40%, #000 55%, transparent 78%);
+}
+@keyframes brain-pulse{0%,100%{opacity:.7}50%{opacity:1}}
+.btn-orange{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:10px 16px;
+  border-radius:var(--r-md);
+  border:1px solid rgba(245,158,45,.6);
+  font-size:13.5px;font-weight:700;color:var(--orange);
+  transition:background-color 150ms ease, transform 160ms var(--ease-out);
+}
+.btn-orange:active{transform:scale(.97)}
+@media (hover:hover) and (pointer:fine){.btn-orange:hover{background:rgba(245,158,45,.12)}}
+
+/* Calendario widget */
+.cal-head{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;background:rgba(46,123,246,.15);border:1px solid var(--stroke);border-radius:10px;padding:8px 12px;margin-bottom:10px}
+.cal-head .arrows{display:flex;gap:6px}
+.cal-head .arrows button{color:var(--txt-soft);padding:0 4px;transition:color 150ms ease}
+.cal{width:100%;border-collapse:collapse;font-size:11.5px;text-align:center}
+.cal th{color:var(--txt-soft);font-weight:600;padding:5px 0}
+.cal td{padding:5px 0;color:var(--txt);border-radius:8px}
+.cal td.off{color:var(--off)}
+.cal td.today{background:linear-gradient(135deg,var(--blue),var(--cyan));font-weight:700;box-shadow:0 4px 14px -4px rgba(46,123,246,.8)}
+
+/* Acciones rápidas */
+.quick{display:flex;flex-direction:column;gap:12px}
+.quick .qbtn{display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:var(--r-md);border:1px solid var(--stroke);background:var(--panel-2);font-size:14px;font-weight:600;transition:border-color 150ms ease, background-color 150ms ease, transform 160ms var(--ease-out)}
+.quick .qbtn:active{transform:scale(.97)}
+@media (hover:hover) and (pointer:fine){.quick .qbtn:hover{border-color:var(--stroke-strong);background:var(--card)}}
+.quick .qbtn svg{width:19px;height:19px;color:var(--cyan)}
+.quick .qbtn.wa svg{color:#25D366}
+
+/* Tabla */
 .tbl-wrap{overflow-x:auto}
-.clinical-table{
-  width:100%;
-  min-width:700px;
-  border-collapse:collapse;
-  font-size:13px;
-}
-.clinical-table th{
-  color:var(--txt-soft);
-  font-size:12px;
-  font-weight:600;
-  padding:12px 10px;
-  border-bottom:1px solid rgba(96,137,202,.16);
-}
-.clinical-table td{
-  padding:14px 10px;
-  border-bottom:1px solid rgba(96,137,202,.12);
-}
-.clinical-table tr:last-child td{border-bottom:0}
-.patient-cell{display:flex;align-items:center;gap:10px;font-weight:700}
-.patient-mini{
-  width:32px;height:32px;border-radius:50%;
-  display:grid;place-items:center;
-  color:#fff;font-size:11px;font-weight:800;
-  background:linear-gradient(135deg,#334a67,#81642a);
-}
-.patient-mini.blue{background:linear-gradient(135deg,#135c9d,#153d71)}
-.patient-mini.cyan{background:linear-gradient(135deg,#0b7478,#154d6e)}
-.patient-mini.red{background:linear-gradient(135deg,#7a362d,#563247)}
-.patient-mini.teal{background:linear-gradient(135deg,#0b7375,#24537a)}
-.dots{color:var(--txt-soft);font-size:22px;line-height:1}
+table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:540px}
+.tbl th{text-align:left;font-size:12.5px;font-weight:600;color:var(--txt-soft);padding:10px 12px;border-bottom:1px solid var(--stroke)}
+.tbl td{padding:14px 12px;border-bottom:1px solid rgba(110,160,255,.08)}
+.tbl tr:last-child td{border-bottom:0}
+.tbl tbody tr{transition:background-color 150ms ease}
+@media (hover:hover) and (pointer:fine){.tbl tbody tr:hover{background:rgba(110,160,255,.05)}}
+.pat{display:flex;align-items:center;gap:10px;font-weight:600}
+.pat .mini{width:32px;height:32px;border-radius:50%;background:rgba(46,123,246,.2);border:1px solid var(--stroke-strong);display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--cyan)}
+.tbl .dots{color:var(--txt-soft);font-weight:700;letter-spacing:2px}
 
-.activity-item,.priority-item{
+/* Dona de estudios */
+.donut-box{display:flex;align-items:center;gap:18px;margin-bottom:18px}
+.donut{position:relative;width:128px;height:128px;flex:none}
+.donut svg{width:100%;height:100%;transform:rotate(-90deg)}
+.donut circle{fill:none;stroke-width:14;stroke-linecap:round}
+.donut .track{stroke:rgba(110,160,255,.12)}
+.donut-center{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.donut-center .n{font-family:'Sora',sans-serif;font-size:28px;font-weight:800;line-height:1}
+.donut-center .l{font-size:10.5px;color:var(--txt-soft);line-height:1.2;margin-top:3px}
+.legend{display:flex;flex-direction:column;gap:9px;font-size:13px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px}
+.legend .b i{background:var(--blue)}
+.legend .g i{background:var(--green)}
+.legend .r i{background:var(--red)}
+.next-list h4{font-size:12.5px;font-weight:600;color:var(--txt-soft);margin-bottom:10px}
+.next-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;font-size:13px;border-bottom:1px solid rgba(110,160,255,.08)}
+.next-item:last-child{border-bottom:0}
+.next-item .t{color:var(--txt-soft);font-size:12px;flex:none}
+.next-item .n{font-weight:600;flex:1}
+
+/* IA Predictiva */
+.card-pred{
+  border-color:rgba(56,199,244,.4);
   display:grid;
-  grid-template-columns:38px 1fr auto;
-  gap:12px;
-  align-items:center;
+  grid-template-columns:1.2fr .65fr 1fr 1.15fr;
+  gap:26px;
+  align-items:start;
 }
-.activity-ico.green{background:rgba(54,218,117,.18);color:#54e47d}
-.activity-ico.blue{background:rgba(46,123,246,.18);color:#4fb4ff}
-.activity-ico.purple{background:rgba(151,87,255,.2);color:#c090ff}
-.activity-ico.yellow{background:rgba(245,158,45,.16);color:#f9b332}
-.activity-ico.pink{background:rgba(255,90,110,.17);color:#ff7590}
-.activity-time{color:var(--txt-soft);font-size:12px;white-space:nowrap}
-.priority-card{
-  background:
-    linear-gradient(145deg,rgba(43,17,27,.86),rgba(14,18,34,.94)),
-    radial-gradient(circle at 0% 0%,rgba(255,90,110,.18),transparent 45%);
-  border-color:rgba(255,90,110,.28);
-}
-.priority-item{padding:3px 0}
-.priority-ico{
-  width:38px;height:38px;border-radius:50%;
-  display:grid;place-items:center;
-  color:#ff7d7d;
-  background:rgba(255,90,110,.19);
-}
+.pred-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px}
+.pred-head .orb{width:44px;height:44px;flex:none;border-radius:12px;border:1px solid var(--stroke-strong);display:grid;place-items:center;color:var(--cyan);background:rgba(56,199,244,.08)}
+.pred-head h3{margin-bottom:2px;font-size:16px}
+.pred-head p{font-size:12.5px;color:var(--txt-soft);line-height:1.4}
+.pred-note{border:1px solid var(--stroke-strong);border-radius:var(--r-md);background:rgba(46,123,246,.08);padding:14px 16px;font-size:13.5px;line-height:1.5}
+.pred-note b{color:var(--cyan)}
+.gauge-box{text-align:center}
+.gauge-box h4,.recs h4,.hist h4{font-family:'Sora',sans-serif;font-size:13.5px;font-weight:600;margin-bottom:14px}
+.gauge{position:relative;width:122px;height:122px;margin:0 auto}
+.gauge svg{width:100%;height:100%;transform:rotate(-90deg)}
+.gauge circle{fill:none;stroke-width:11;stroke-linecap:round}
+.gauge .track{stroke:rgba(110,160,255,.12)}
+.gauge .val{stroke:var(--orange);transition:stroke-dashoffset 1.2s var(--ease-out)}
+.gauge-center{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.gauge-center .lvl{font-size:12px;font-weight:700;color:var(--orange)}
+.gauge-center .pct{font-family:'Sora',sans-serif;font-size:25px;font-weight:800;line-height:1.05}
+.recs ul{list-style:none}
+.recs li{display:flex;align-items:flex-start;gap:10px;font-size:13.5px;line-height:1.4;padding:7px 0}
+.recs li svg{width:18px;height:18px;flex:none;color:var(--green);margin-top:1px}
+.hist h4{color:var(--green)}
+.hist-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;font-size:14px;border-bottom:1px solid rgba(110,160,255,.08)}
+.hist-item span{color:var(--txt-soft);font-size:13px}
+.hist .tbl-link{justify-content:flex-start;margin-top:12px}
 
-.status-strip{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:0;
-  margin-top:8px;
-  padding:16px 20px;
-  border:1px solid var(--dash-line);
-  border-radius:14px;
-  background:linear-gradient(145deg,rgba(12,28,52,.88),rgba(7,16,31,.96));
-}
-.status-item{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:0 20px;
-  border-right:1px solid rgba(96,137,202,.16);
-}
-.status-item:first-child{padding-left:0}
-.status-item:last-child{border-right:0}
-.status-ico{
-  width:38px;height:38px;border-radius:50%;
-  display:grid;place-items:center;
-  border:1px solid var(--dash-line-strong);
-  color:var(--txt-soft);
-}
-.status-item strong{display:block;font-size:14px}
-.status-item span{display:block;color:#35db82;font-size:13px}
-.status-item:nth-child(2) span{color:#25d46b}
-.status-item:nth-child(3) span{color:var(--txt-soft)}
-.status-item:nth-child(4) span{color:#35db82}
-
-@media (max-width:1500px){
-  .dash{grid-template-columns:264px 1fr}
-  .top-grid{grid-template-columns:repeat(2,1fr)}
-  .main-grid{grid-template-columns:1fr}
-}
-@media (max-width:1024px){
-  .dash{grid-template-columns:1fr}
-  .main{padding:18px 16px 24px}
-  .top-grid{grid-template-columns:1fr}
-  .status-strip{grid-template-columns:1fr 1fr}
-  .status-item{border-right:0;border-bottom:1px solid rgba(96,137,202,.16);padding:14px 0}
-  .status-item:nth-last-child(-n+2){border-bottom:0}
+/* Responsive */
+@media (max-width:1280px){
+  .widget[data-w="3"]{grid-column:span 6}
+  .widget[data-w="4"]{grid-column:span 6}
+  .widget[data-w="5"]{grid-column:span 6}
+  .widget[data-w="6"]{grid-column:span 12}
+  .widget[data-w="8"]{grid-column:span 12}
+  .card-pred{grid-template-columns:1fr 1fr}
 }
 @media (max-width:720px){
-  .main-grid,.top-grid,.status-strip{grid-template-columns:1fr}
-  .day-item{grid-template-columns:58px 34px 1fr;gap:9px}
-  .day-item .chip{grid-column:3}
-  .storage-layout{grid-template-columns:1fr}
-  .ring{margin:auto}
+  .widget[data-w]{grid-column:span 12 !important}
+  .card-pred{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion: reduce){
+  .holo::after,.card-ia .brain-img{animation:none}
+  .widget{transition:none}
 }
 </style>
 @endpush
 
 @section('content')
-<section class="dashboard-shell">
-  <div class="top-grid">
-    <article class="clinical-card rise d2">
-      <div class="card-head">
-        <div class="title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-          Estudios en curso
-        </div>
-        <span class="count">2 activos</span>
-      </div>
-      <div class="study-list">
-        <div class="study-item">
-          <span class="icon-badge green">▣</span>
-          <div><strong>Sala 1 - Colonoscopia</strong><span>Dr. Ricardo</span></div>
-          <span class="study-time green">10:23 AM</span>
-        </div>
-        <div class="study-item">
-          <span class="icon-badge orange">▣</span>
-          <div><strong>Sala 2 - Endoscopia Alta</strong><span>Dra. Ana</span></div>
-          <span class="study-time orange">10:18 AM</span>
-        </div>
-      </div>
-      <a class="arrow-link" href="#">Ver todos en curso
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-      </a>
-    </article>
 
-    <article class="clinical-card rise d3">
-      <div class="card-head">
-        <div class="title purple">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3Z"/><path d="M8 11c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3Z"/><path d="M2 19c0-2.2 2.7-4 6-4s6 1.8 6 4"/><path d="M10 19c0-2.2 2.7-4 6-4s6 1.8 6 4"/></svg>
-          Ultimos hallazgos IA
-        </div>
-        <a class="soft-action" href="#">Ver todos</a>
-      </div>
-      <div class="finding-list">
-        <div class="finding"><span class="icon-badge green">↻</span><div><strong>Gastritis antral</strong><span>Confianza: 92%</span><div class="bar green"><i></i></div></div></div>
-        <div class="finding"><span class="icon-badge orange">Ω</span><div><strong>Polipo</strong><span>Confianza: 88%</span><div class="bar yellow"><i></i></div></div></div>
-        <div class="finding"><span class="icon-badge red" style="color:#ff626b;background:rgba(255,90,110,.16)">Φ</span><div><strong>Esofagitis</strong><span>Confianza: 85%</span><div class="bar red"><i></i></div></div></div>
-      </div>
-    </article>
+  <div id="widgetGrid">
 
-    <article class="clinical-card rise d4">
-      <div class="card-head">
-        <div class="title cyan">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H7a5 5 0 1 1 1.1-9.88A7 7 0 0 1 21 13a3 3 0 0 1-3.5 6Z"/></svg>
-          Almacenamiento en nube
+    {{-- Widget: Próximo Paciente --}}
+    <div class="widget rise d2" data-widget-id="next-patient" data-w="3">
+      <span class="widget-drag-handle" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+      </span>
+      <article class="card card-next">
+        <h3>PRÓXIMO PACIENTE</h3>
+        <div class="name">María<br>Gonzales</div>
+        <div class="meta">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <b>10:30 AM</b>
         </div>
-      </div>
-      <div class="storage-layout">
-        <div class="storage-main"><b>1.8 TB</b> usados<br>de <strong>5 TB</strong> disponibles</div>
-        <div class="ring"><svg viewBox="0 0 82 82"><circle class="track" cx="41" cy="41" r="36"/><circle class="value" cx="41" cy="41" r="36"/></svg><span>36%</span></div>
-      </div>
-      <div class="progress"><i></i></div>
-      <a class="arrow-link" href="#">Gestionar almacenamiento
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-      </a>
-    </article>
+        <div class="meta"><b>Endoscopia diagnóstica</b></div>
+        <a class="btn-line" href="{{ route('pacientes.index') }}?folio=00045" style="margin-top:16px">
+          Abrir expediente
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+        <div class="holo">
+          <svg viewBox="0 0 60 100" fill="none" stroke="#38C7F4" stroke-width="1.6" stroke-linecap="round">
+            <circle cx="30" cy="14" r="8"/>
+            <path d="M30 24v30M30 30 14 44M30 30l16 14M30 54 18 86M30 54l12 32"/>
+            <path d="M20 38h20" opacity=".5"/>
+            <ellipse cx="30" cy="44" rx="6" ry="8" opacity=".6"/>
+          </svg>
+        </div>
+      </article>
+      <span class="widget-resize-handle"></span>
+    </div>
 
-    <article class="clinical-card month-stat rise d5">
-      <div class="card-head">
-        <div class="title purple">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-          Este mes
-        </div>
-      </div>
-      <div class="big">128</div>
-      <div class="muted">Estudios realizados</div>
-      <span class="trend">↑ 15% <span class="muted" style="margin-left:6px">vs mes anterior</span></span>
-      <svg class="spark" viewBox="0 0 260 82" preserveAspectRatio="none"><path d="M2 66 C24 50,36 76,56 54 S91 48,110 46 S132 20,153 33 S180 20,199 34 S228 4,258 14"/></svg>
-    </article>
-  </div>
+    {{-- Widget: Reporte IA --}}
+    <div class="widget rise d3" data-widget-id="ia-pending" data-w="3">
+      <span class="widget-drag-handle" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+      </span>
+      <article class="card card-ia">
+        <img class="brain-img" src="{{ asset('images/brain-ia.png') }}" alt="">
+        <h3>REPORTE IA</h3>
+        <div class="big-num" id="numReportes" data-target="2">0</div>
+        <div class="big-label">reportes pendientes<br><span class="muted">generados por IA</span></div>
+        <a class="btn-orange" href="{{ route('ia-reportes') }}">
+          Revisar reportes
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      </article>
+      <span class="widget-resize-handle"></span>
+    </div>
 
-  <div class="main-grid">
-    <article class="clinical-card rise d5">
-      <div class="card-head">
-        <div class="title cyan">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-          Agenda del dia
+    {{-- Widget: Agenda --}}
+    <div class="widget rise d4" data-widget-id="agenda-today" data-w="3">
+      <span class="widget-drag-handle" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+      </span>
+      <article class="card" style="cursor:pointer" onclick="window.location.href='{{ route('agendar') }}'">
+        <h3>AGENDAR DÍA</h3>
+        <div class="cal-head">
+          <span>Junio 2026</span>
+          <span class="arrows"><button aria-label="Mes anterior">‹</button><button aria-label="Mes siguiente">›</button></span>
         </div>
-      </div>
-      <div class="calendar-nav"><button>‹</button><span>JUNIO 2026</span><button>›</button></div>
-      <div class="week">
-        <div class="day">Lun<b>9</b></div><div class="day">Mar<b>10</b></div><div class="day">Mie<b>11</b></div><div class="day">Jue<b>12</b></div><div class="day active">Vie<b>13</b></div><div class="day">Sab<b>14</b></div><div class="day">Dom<b>15</b></div>
-      </div>
-      <div class="day-list">
-        <div class="day-item"><span class="day-time">10:30 AM</span><span class="patient-avatar purple">♙</span><div class="day-copy"><strong>Maria Gonzalez</strong><span>Endoscopia diagnostica</span></div><span class="chip wait">En espera</span></div>
-        <div class="day-item"><span class="day-time">11:15 AM</span><span class="patient-avatar blue">♙</span><div class="day-copy"><strong>Jorge Lopez</strong><span>Colonoscopia</span></div><span class="chip urgent">Urgente</span></div>
-        <div class="day-item"><span class="day-time">12:00 PM</span><span class="patient-avatar cyan">♙</span><div class="day-copy"><strong>Ana Ramirez</strong><span>Endoscopia diagnostica</span></div><span class="chip done">Completado</span></div>
-        <div class="day-item"><span class="day-time">12:45 PM</span><span class="patient-avatar orange">♙</span><div class="day-copy"><strong>Pedro Torres</strong><span>Gastroscopia</span></div><span class="chip wait">En espera</span></div>
-      </div>
-      <a class="arrow-link" href="#">Ver agenda completa
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-      </a>
-    </article>
-
-    <article class="clinical-card rise d6">
-      <div class="card-head">
-        <div class="title purple">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          Pacientes pendientes hoy
-        </div>
-        <a class="soft-action" href="#">Ver todos</a>
-      </div>
-      <div class="tbl-wrap">
-        <table class="clinical-table tbl">
-          <thead><tr><th>Paciente</th><th>Hora</th><th>Tipo de estudio</th><th>Estado</th><th>Medico</th><th></th></tr></thead>
+        <table class="cal">
+          <thead>
+            <tr><th>Lun</th><th>Mar</th><th>Mié</th><th>Jue</th><th>Vie</th><th>Sáb</th><th>Dom</th></tr>
+          </thead>
           <tbody>
-            <tr><td><span class="patient-cell"><span class="patient-mini">MG</span>Maria Gonzalez</span></td><td>10:30 AM</td><td>Endoscopia diagnostica</td><td><span class="chip wait">En espera</span></td><td>Dr. Ricardo</td><td><button class="dots">⋮</button></td></tr>
-            <tr><td><span class="patient-cell"><span class="patient-mini blue">JL</span>Jorge Lopez</span></td><td>11:15 AM</td><td>Colonoscopia</td><td><span class="chip urgent">Urgente</span></td><td>Dr. Ricardo</td><td><button class="dots">⋮</button></td></tr>
-            <tr><td><span class="patient-cell"><span class="patient-mini cyan">AR</span>Ana Ramirez</span></td><td>12:00 PM</td><td>Endoscopia diagnostica</td><td><span class="chip done">Completado</span></td><td>Dr. Ricardo</td><td><button class="dots">⋮</button></td></tr>
-            <tr><td><span class="patient-cell"><span class="patient-mini red">PT</span>Pedro Torres</span></td><td>12:45 PM</td><td>Gastroscopia</td><td><span class="chip wait">En espera</span></td><td>Dr. Ricardo</td><td><button class="dots">⋮</button></td></tr>
-            <tr><td><span class="patient-cell"><span class="patient-mini teal">LM</span>Luis Mendoza</span></td><td>02:00 PM</td><td>Colonoscopia</td><td><span class="chip wait">En espera</span></td><td>Dra. Ana</td><td><button class="dots">⋮</button></td></tr>
+            <tr><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td class="today">6</td><td>7</td></tr>
+            <tr><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td><td>14</td></tr>
+            <tr><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td><td>21</td></tr>
+            <tr><td>22</td><td>23</td><td>24</td><td>25</td><td>26</td><td>27</td><td>28</td></tr>
+            <tr><td>29</td><td>30</td><td class="off">1</td><td class="off">2</td><td class="off">3</td><td class="off">4</td><td class="off">5</td></tr>
           </tbody>
         </table>
-      </div>
-      <a class="arrow-link" href="#">Ver todos los pacientes
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-      </a>
-    </article>
-
-    <div class="side-stack">
-      <article class="clinical-card rise d6">
-        <div class="card-head">
-          <div class="title orange">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            Actividad reciente
-          </div>
-          <a class="soft-action" href="#">Ver todas</a>
-        </div>
-        <div class="activity-list">
-          <div class="activity-item"><span class="activity-ico green">✓</span><div class="activity-copy"><strong>Estudio completado</strong><span>Maria Gonzalez - Endoscopia diagnostica</span></div><span class="activity-time">10:30 AM</span></div>
-          <div class="activity-item"><span class="activity-ico blue">▤</span><div class="activity-copy"><strong>Informe generado</strong><span>Jorge Lopez - Colonoscopia</span></div><span class="activity-time">10:28 AM</span></div>
-          <div class="activity-item"><span class="activity-ico purple">▧</span><div class="activity-copy"><strong>Imagen agregada a estudio</strong><span>Ana Ramirez - Imagen #23</span></div><span class="activity-time">10:25 AM</span></div>
-          <div class="activity-item"><span class="activity-ico yellow">▣</span><div class="activity-copy"><strong>Video exportado</strong><span>Pedro Torres - Colonoscopia</span></div><span class="activity-time">10:20 AM</span></div>
-          <div class="activity-item"><span class="activity-ico pink">ψ</span><div class="activity-copy"><strong>Hallazgo IA detectado</strong><span>Luis Mendoza - Polipo (88%)</span></div><span class="activity-time">10:15 AM</span></div>
-        </div>
       </article>
-
-      <article class="clinical-card priority-card rise d7">
-        <div class="card-head">
-          <div class="title red">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M4 22a8 8 0 0 1 16 0"/></svg>
-            Pacientes prioritarios
-          </div>
-          <a class="soft-action" href="#">Ver todos</a>
-        </div>
-        <div class="priority-list">
-          <div class="priority-item"><span class="priority-ico">●</span><div class="priority-copy"><strong>Jorge Lopez</strong><span>Sangrado digestivo - Evaluacion urgente</span></div><span class="chip urgent">Urgente</span></div>
-          <div class="priority-item"><span class="priority-ico">●</span><div class="priority-copy"><strong>Ana Ramirez</strong><span>Control postoperatorio - Prioridad alta</span></div><span class="chip wait">Alta</span></div>
-        </div>
-      </article>
+      <span class="widget-resize-handle"></span>
     </div>
-  </div>
 
-  <footer class="status-strip rise d7">
-    <div class="status-item"><span class="status-ico">✓</span><div><strong>Sistema</strong><span>Todos los sistemas operativos</span></div></div>
-    <div class="status-item"><span class="status-ico">ψ</span><div><strong>IA ENCLAII</strong><span>Activa y analizando</span></div></div>
-    <div class="status-item"><span class="status-ico">☁</span><div><strong>Sincronizacion</strong><span>Ultima: 10:28 AM</span></div></div>
-    <div class="status-item"><span class="status-ico">⌁</span><div><strong>Conexion</strong><span>Excelente</span></div></div>
-  </footer>
-</section>
+    {{-- Widget: Acciones Rápidas --}}
+    <div class="widget rise d5" data-widget-id="new-study" data-w="3">
+      <span class="widget-drag-handle" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+      </span>
+      <article class="card">
+        <h3>ACCIONES RÁPIDAS</h3>
+        <div class="quick">
+          <a class="qbtn" href="{{ route('nuevo-estudio') }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nuevo estudio
+          </a>
+          <a class="qbtn wa" href="{{ route('mensajes') }}">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2a9.9 9.9 0 0 0-8.5 14.9L2 22l5.25-1.5A9.9 9.9 0 1 0 12.04 2zm5.8 14.1c-.25.7-1.45 1.35-2 1.4-.5.05-1.15.07-1.85-.12a16 16 0 0 1-1.7-.62c-3-1.3-4.95-4.3-5.1-4.5-.15-.2-1.2-1.6-1.2-3.05 0-1.45.75-2.15 1-2.45.25-.3.55-.37.75-.37h.55c.17 0 .4-.06.62.48.25.6.8 2.05.87 2.2.07.15.12.32.02.52-.1.2-.15.32-.3.5l-.45.52c-.15.15-.3.32-.13.62.17.3.77 1.27 1.65 2.06 1.13 1 2.1 1.32 2.4 1.47.3.15.47.12.65-.07.17-.2.75-.87.95-1.17.2-.3.4-.25.67-.15.27.1 1.7.8 2 .95.3.15.5.22.57.35.07.12.07.7-.18 1.43z"/></svg>
+            Enviar WhatsApp
+          </a>
+          <a class="qbtn" href="{{ route('pacientes.index') }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Buscar paciente
+          </a>
+        </div>
+      </article>
+      <span class="widget-resize-handle"></span>
+    </div>
+
+    {{-- Widget: Pacientes Pendientes Hoy --}}
+    <div class="widget rise d6" data-widget-id="next-list" data-w="8">
+      <span class="widget-drag-handle" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+      </span>
+      <article class="card">
+        <h3>PACIENTES PENDIENTES HOY</h3>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead>
+              <tr><th>Paciente</th><th>Hora</th><th>Tipo de estudio</th><th>Estado</th><th>Médico</th><th>Acciones</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="pat"><span class="mini">MG</span>María González</span></td>
+                <td>10:30 AM</td><td>Endoscopia diagnóstica</td>
+                <td><span class="chip wait">En espera</span></td>
+                <td>Dr. Ricardo</td>
+                <td><button class="dots" aria-label="Más opciones">⋮</button></td>
+              </tr>
+              <tr>
+                <td><span class="pat"><span class="mini">JL</span>Jorge López</span></td>
+                <td>11:15 AM</td><td>Colonoscopia</td>
+                <td><span class="chip urgent">Urgente</span></td>
+                <td>Dr. Ricardo</td>
+                <td><button class="dots" aria-label="Más opciones">⋮</button></td>
+              </tr>
+              <tr>
+                <td><span class="pat"><span class="mini">AR</span>Ana Ramírez</span></td>
+                <td>12:00 PM</td><td>Endoscopia diagnóstica</td>
+                <td><span class="chip done">Completado</span></td>
+                <td>Dr. Ricardo</td>
+                <td><button class="dots" aria-label="Más opciones">⋮</button></td>
+              </tr>
+              <tr>
+                <td><span class="pat"><span class="mini">PT</span>Pedro Torres</span></td>
+                <td>12:45 PM</td><td>Gastroscopia</td>
+                <td><span class="chip wait">En espera</span></td>
+                <td>Dr. Ricardo</td>
+                <td><button class="dots" aria-label="Más opciones">⋮</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <a class="tbl-link" href="#">
+          Ver agenda completa
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      </article>
+      <span class="widget-resize-handle"></span>
+    </div>
+
+    {{-- Widget: Resumen del día --}}
+    <div class="widget rise d7" data-widget-id="agenda-summary" data-w="4">
+      <span class="widget-drag-handle" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+      </span>
+      <article class="card">
+        <h3>RESUMEN DE ESTUDIOS</h3>
+        <div class="donut-box">
+          <div class="donut">
+            <svg viewBox="0 0 120 120">
+              <circle class="track" cx="60" cy="60" r="50"/>
+              {{-- circunferencia = 314.16 | azul 8/12, verde 2/12, rojo 2/12 --}}
+              <circle cx="60" cy="60" r="50" stroke="#2E7BF6" stroke-dasharray="209.4 314.16" stroke-dashoffset="0"/>
+              <circle cx="60" cy="60" r="50" stroke="#3DDC97" stroke-dasharray="52.36 314.16" stroke-dashoffset="-209.4"/>
+              <circle cx="60" cy="60" r="50" stroke="#FF5A6E" stroke-dasharray="52.36 314.16" stroke-dashoffset="-261.8"/>
+            </svg>
+            <div class="donut-center">
+              <div>
+                <div class="n" id="numEstudios" data-target="12">0</div>
+                <div class="l">Total de<br>estudios</div>
+              </div>
+            </div>
+          </div>
+          <div class="legend">
+            <span class="b"><i></i>8 Pendientes</span>
+            <span class="g"><i></i>2 Completados</span>
+            <span class="r"><i></i>2 Cancelados</span>
+          </div>
+        </div>
+        <div class="next-list">
+          <h4>Próximos estudios</h4>
+          <div class="next-item"><span class="t">10:30 AM</span><span class="n">Ana Ramírez</span><span class="chip wait">En espera</span></div>
+          <div class="next-item"><span class="t">11:15 AM</span><span class="n">Luis Mendoza</span><span class="chip wait">En espera</span></div>
+          <div class="next-item"><span class="t">12:00 PM</span><span class="n">Carla Ortiz</span><span class="chip urgent">Urgente</span></div>
+        </div>
+      </article>
+      <span class="widget-resize-handle"></span>
+    </div>
+
+    {{-- Widget: IA Predictiva --}}
+    <div class="widget rise d8" data-widget-id="ia-risk" data-w="12">
+      <span class="widget-drag-handle" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+      </span>
+      <article class="card card-pred">
+        <div>
+          <div class="pred-head">
+            <div class="orb">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>
+            </div>
+            <div>
+              <h3>IA Predictiva</h3>
+              <p>Análisis inteligente basado en el historial clínico</p>
+            </div>
+          </div>
+          <div class="pred-note">
+            Tu próximo paciente presenta antecedentes de <b>gastritis crónica</b> y <b>riesgo moderado</b> de úlceras pépticas.
+          </div>
+        </div>
+        <div class="gauge-box">
+          <h4>Nivel de riesgo</h4>
+          <div class="gauge">
+            <svg viewBox="0 0 120 120">
+              <circle class="track" cx="60" cy="60" r="50"/>
+              <circle class="val" cx="60" cy="60" r="50" stroke-dasharray="314.16" stroke-dashoffset="314.16" data-pct="65"/>
+            </svg>
+            <div class="gauge-center">
+              <div>
+                <div class="lvl">Moderado</div>
+                <div class="pct"><span id="numRiesgo" data-target="65">0</span>%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="recs">
+          <h4>Recomendaciones IA</h4>
+          <ul>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Revisar historial de biopsias previas
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Considerar toma de muestra
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Monitorear signos vitales
+            </li>
+          </ul>
+        </div>
+        <div class="hist">
+          <h4>Historial relevante</h4>
+          <div class="hist-item">Gastritis crónica <span>2024</span></div>
+          <div class="hist-item">Reflujo gastroesofágico <span>2023</span></div>
+          <div class="hist-item">Colonoscopia normal <span>2022</span></div>
+          <a class="tbl-link" href="#">
+            Ver historial completo
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
+      </article>
+      <span class="widget-resize-handle"></span>
+    </div>
+
+  </div>{{-- /#widgetGrid --}}
+
 @endsection
+
+@push('scripts')
+<script>
+(function(){
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---- Gauge de riesgo ---- */
+  const gauge = document.querySelector('.gauge .val');
+  const drawGauge = () => {
+    const pct = parseFloat(gauge.dataset.pct) / 100;
+    const C = 314.16;
+    gauge.style.strokeDashoffset = C - (C * pct);
+  };
+
+  /* ---- Contadores ---- */
+  const counters = document.querySelectorAll('[data-target]');
+  if (reduced || typeof gsap === 'undefined') {
+    counters.forEach(c => { if (c.dataset.target) c.textContent = parseInt(c.dataset.target, 10).toLocaleString('es-MX'); });
+    if (gauge) { gauge.style.transition = 'none'; drawGauge(); }
+  } else {
+    counters.forEach((counter, i) => {
+      if (!counter.id) return;
+      const target = parseInt(counter.dataset.target, 10);
+      const obj = { v: 0 };
+      gsap.to(obj, { v: target, duration: 1.4, ease: 'expo.out', delay: 0.4 + i * 0.12,
+        onUpdate: () => { counter.textContent = Math.round(obj.v).toLocaleString('es-MX'); }
+      });
+    });
+    setTimeout(drawGauge, 550);
+  }
+
+  /* ============ WIDGET DRAG & REORDER ============ */
+  (function(){
+    const grid = document.getElementById('widgetGrid');
+    if (!grid) return;
+
+    let dragging = null, ghost = null, originNext = null;
+
+    function getWidgets() {
+      return Array.from(grid.querySelectorAll('.widget:not(.widget-ghost)'));
+    }
+
+    function createGhost(w) {
+      const g = document.createElement('div');
+      g.className = 'widget-ghost';
+      g.dataset.w = w.dataset.w;
+      g.style.gridColumn = 'span ' + w.dataset.w;
+      g.style.minHeight = w.offsetHeight + 'px';
+      return g;
+    }
+
+    function closest(x, y) {
+      const widgets = getWidgets();
+      let best = null, bestDist = Infinity;
+      widgets.forEach(w => {
+        if (w === dragging) return;
+        const r = w.getBoundingClientRect();
+        const cx = r.left + r.width / 2;
+        const cy = r.top + r.height / 2;
+        const dist = Math.hypot(x - cx, y - cy);
+        if (dist < bestDist) { bestDist = dist; best = w; }
+      });
+      return best;
+    }
+
+    grid.addEventListener('mousedown', e => {
+      const handle = e.target.closest('.widget-drag-handle');
+      if (!handle) return;
+      e.preventDefault();
+      dragging = handle.closest('.widget');
+      originNext = dragging.nextElementSibling;
+      ghost = createGhost(dragging);
+      dragging.classList.add('widget-dragging');
+      dragging.after(ghost);
+    });
+
+    document.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      const target = closest(e.clientX, e.clientY);
+      if (!target) return;
+      const r = target.getBoundingClientRect();
+      const before = e.clientX < r.left + r.width / 2;
+      grid.querySelectorAll('.widget-drop-target').forEach(el => el.classList.remove('widget-drop-target'));
+      target.classList.add('widget-drop-target');
+      ghost.remove();
+      if (before) target.before(ghost);
+      else target.after(ghost);
+    });
+
+    document.addEventListener('mouseup', e => {
+      if (!dragging) return;
+      dragging.classList.remove('widget-dragging');
+      grid.querySelectorAll('.widget-drop-target').forEach(el => el.classList.remove('widget-drop-target'));
+      ghost.replaceWith(dragging);
+      ghost = null; dragging = null;
+      saveOrder();
+    });
+
+    /* Touch support */
+    grid.addEventListener('touchstart', e => {
+      const handle = e.target.closest('.widget-drag-handle');
+      if (!handle) return;
+      dragging = handle.closest('.widget');
+      ghost = createGhost(dragging);
+      dragging.classList.add('widget-dragging');
+      dragging.after(ghost);
+    }, {passive:true});
+
+    document.addEventListener('touchmove', e => {
+      if (!dragging) return;
+      const t = e.touches[0];
+      const target = closest(t.clientX, t.clientY);
+      if (!target) return;
+      const r = target.getBoundingClientRect();
+      const before = t.clientX < r.left + r.width / 2;
+      ghost.remove();
+      if (before) target.before(ghost); else target.after(ghost);
+    }, {passive:true});
+
+    document.addEventListener('touchend', () => {
+      if (!dragging) return;
+      dragging.classList.remove('widget-dragging');
+      ghost.replaceWith(dragging);
+      ghost = null; dragging = null;
+      saveOrder();
+    });
+
+    /* ---- Resize (horizontal – cambia data-w) ---- */
+    let resizing = null, resizeStart = 0, resizeW0 = 0;
+    grid.addEventListener('mousedown', e => {
+      if (!e.target.closest('.widget-resize-handle')) return;
+      e.preventDefault(); e.stopPropagation();
+      resizing = e.target.closest('.widget');
+      resizeStart = e.clientX;
+      resizeW0 = parseInt(resizing.dataset.w, 10);
+    });
+    document.addEventListener('mousemove', e => {
+      if (!resizing) return;
+      const colW = grid.offsetWidth / 12;
+      const delta = Math.round((e.clientX - resizeStart) / colW);
+      const newW = Math.max(3, Math.min(12, resizeW0 + delta));
+      resizing.dataset.w = newW;
+      resizing.style.gridColumn = 'span ' + newW;
+    });
+    document.addEventListener('mouseup', () => {
+      if (resizing) { saveOrder(); resizing = null; }
+    });
+
+    /* ---- Persistencia orden + tamaño ---- */
+    function saveOrder() {
+      const order = getWidgets().map(w => ({ id: w.dataset.widgetId, w: w.dataset.w }));
+      try { localStorage.setItem('dbWidgetOrder', JSON.stringify(order)); } catch(e) {}
+    }
+
+    function restoreOrder() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('dbWidgetOrder') || 'null');
+        if (!saved) return;
+        saved.forEach(({ id, w }) => {
+          const el = grid.querySelector(`[data-widget-id="${id}"]`);
+          if (!el) return;
+          el.dataset.w = w;
+          el.style.gridColumn = 'span ' + w;
+          grid.appendChild(el);
+        });
+      } catch(e) {}
+    }
+
+    restoreOrder();
+
+    /* ---- Escuchar cambios del editor de widgets ---- */
+    window.addEventListener('dbWidgetsChanged', e => {
+      const prefs = e.detail;
+      getWidgets().forEach(w => {
+        const id = w.dataset.widgetId;
+        if (!id) return;
+        const visible = prefs[id] !== undefined ? prefs[id] : true;
+        if (visible) {
+          w.classList.remove('widget-hidden');
+          w.classList.add('widget-appear');
+          setTimeout(() => w.classList.remove('widget-appear'), 350);
+        } else {
+          w.classList.add('widget-disappear');
+          setTimeout(() => { w.classList.remove('widget-disappear'); w.classList.add('widget-hidden'); }, 230);
+        }
+      });
+    });
+
+    /* Aplicar estado inicial guardado */
+    (function applyInitial() {
+      try {
+        const prefs = JSON.parse(localStorage.getItem('dbWidgetPrefs') || '{}');
+        getWidgets().forEach(w => {
+          const id = w.dataset.widgetId;
+          if (!id) return;
+          if (prefs[id] === false) w.classList.add('widget-hidden');
+        });
+      } catch(e) {}
+    })();
+  })();
+
+})();
+</script>
+@endpush

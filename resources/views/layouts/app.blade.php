@@ -350,6 +350,57 @@ html[data-theme="light"] .side-brand .logo-light{display:block;}
 .pm-sep{height:1px;background:var(--stroke);margin:6px 4px}
 .pm-item.danger .pm-ico{color:var(--red);background:rgba(255,90,110,.1)}
 .pm-item.danger .t{color:var(--red)}
+.pm-item.edit-db .pm-ico{color:#B263FF;background:rgba(178,99,255,.1)}
+.pm-item.edit-db .t{color:#B263FF}
+
+/* Dashboard Editor Panel */
+.db-editor-overlay{position:fixed;inset:0;z-index:2100;background:rgba(0,11,30,.6);backdrop-filter:blur(3px);opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s}
+.db-editor-overlay.open{opacity:1;visibility:visible}
+.db-editor{position:fixed;top:0;right:-420px;width:400px;max-width:100vw;height:100%;z-index:2101;background:#020C1B;border-left:1.5px solid rgba(178,99,255,.4);box-shadow:-16px 0 48px rgba(0,0,0,.7);display:flex;flex-direction:column;transition:right .28s cubic-bezier(.4,0,.2,1);overflow:hidden}
+.db-editor.open{right:0}
+.db-editor-head{padding:18px 18px 14px;border-bottom:1px solid rgba(178,99,255,.2);display:flex;align-items:center;justify-content:space-between;flex:none}
+.db-editor-title{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;color:#EAF1FF}
+.db-editor-subtitle{font-size:11px;color:rgba(234,241,255,.45);margin-top:2px}
+.db-editor-close{width:30px;height:30px;border-radius:8px;border:none;background:transparent;color:#8FA3CF;cursor:pointer;display:grid;place-items:center;transition:all .15s}
+.db-editor-close:hover{background:rgba(178,99,255,.15);color:#EAF1FF}
+.db-editor-body{flex:1;overflow-y:auto;padding:16px 18px}
+.db-editor-body::-webkit-scrollbar{width:4px}
+.db-editor-body::-webkit-scrollbar-thumb{background:rgba(178,99,255,.3);border-radius:4px}
+.db-editor-section{margin-bottom:22px}
+.db-editor-section-title{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(234,241,255,.35);margin-bottom:10px}
+.db-widget-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;border:1px solid var(--stroke);background:var(--panel);margin-bottom:8px;cursor:grab;user-select:none;transition:border-color .15s,background .15s}
+.db-widget-item:hover{border-color:rgba(178,99,255,.4);background:rgba(178,99,255,.06)}
+.db-widget-item.dragging{opacity:.5;cursor:grabbing}
+.db-widget-dot{width:10px;height:10px;border-radius:50%;flex:none}
+.db-widget-dot.blue{background:#2E7BF6}
+.db-widget-dot.purple{background:#B263FF}
+.db-widget-dot.teal{background:#168BD9}
+.db-widget-dot.green{background:#3DDC97}
+.db-widget-dot.green2{background:#22C55E}
+.db-widget-dot.orange{background:#F59E2D}
+.db-widget-info{flex:1;min-width:0}
+.db-widget-name{font-size:13px;font-weight:600;color:#EAF1FF}
+.db-widget-desc{font-size:11px;color:rgba(234,241,255,.45);margin-top:1px}
+.db-widget-toggle{position:relative;width:36px;height:20px;flex:none}
+.db-widget-toggle input{opacity:0;width:0;height:0;position:absolute}
+.db-widget-slider{position:absolute;inset:0;border-radius:20px;background:rgba(110,160,255,.2);cursor:pointer;transition:background .2s}
+.db-widget-slider::before{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#8FA3CF;top:3px;left:3px;transition:transform .2s,background .2s}
+.db-widget-toggle input:checked + .db-widget-slider{background:rgba(178,99,255,.4)}
+.db-widget-toggle input:checked + .db-widget-slider::before{transform:translateX(16px);background:#B263FF}
+.db-editor-footer{padding:14px 18px;border-top:1px solid rgba(178,99,255,.2);display:flex;gap:10px;flex:none}
+.db-editor-btn{flex:1;padding:11px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .15s}
+.db-editor-btn.save{background:linear-gradient(135deg,#7B3FE4,#B263FF);color:#fff}
+.db-editor-btn.save:hover{opacity:.88}
+.db-editor-btn.reset{background:transparent;border:1px solid rgba(178,99,255,.3);color:rgba(234,241,255,.6)}
+.db-editor-btn.reset:hover{border-color:rgba(178,99,255,.6);color:#EAF1FF}
+html[data-theme="light"] .db-editor{background:#F6F8FE;border-left-color:rgba(120,60,220,.3)}
+html[data-theme="light"] .db-editor-title{color:#0E1530}
+html[data-theme="light"] .db-widget-item{background:#fff;border-color:rgba(20,50,120,.12)}
+html[data-theme="light"] .db-widget-item:hover{border-color:rgba(120,60,220,.35);background:rgba(120,60,220,.04)}
+html[data-theme="light"] .db-widget-name{color:#0E1530}
+html[data-theme="light"] .db-widget-desc{color:rgba(14,21,48,.45)}
+html[data-theme="light"] .db-widget-slider{background:rgba(20,50,120,.15)}
+html[data-theme="light"] .db-editor-close{color:#5B6A99}
 
 /* ================= COMPONENTES COMPARTIDOS ================= */
 .card{
@@ -559,7 +610,7 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
       Galería
     </a>
-    <a class="nav-item {{ $active === 'finanzas' ? 'active' : '' }}" href="{{ route('finanzas') }}">
+    <a class="nav-item {{ $active === 'finanzas' ? 'active' : '' }}" href="{{ url('/finanzas') }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>
       Finanzas
     </a>
@@ -632,6 +683,11 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
               <span class="pm-txt"><span class="t">Restablecer configuración</span><span class="d">Restaurar configuración predeterminada</span></span>
             </a>
             <div class="pm-sep"></div>
+            <button type="button" class="pm-item edit-db" id="editDashboardBtn" role="menuitem">
+              <span class="pm-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
+              <span class="pm-txt"><span class="t">Editar Dashboard</span><span class="d">Configura y organiza tus widgets</span></span>
+            </button>
+            <div class="pm-sep"></div>
             <form method="POST" action="{{ route('logout') }}">
               @csrf
               <button type="submit" class="pm-item danger" role="menuitem">
@@ -662,7 +718,7 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       Agenda
     </a>
-    <a class="mobile-nav-item {{ $active === 'finanzas' ? 'active' : '' }}" href="{{ route('finanzas') }}">
+    <a class="mobile-nav-item {{ $active === 'finanzas' ? 'active' : '' }}" href="{{ url('/finanzas') }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>
       Finanzas
     </a>
@@ -672,6 +728,25 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
     </a>
   </nav>
 
+</div>
+
+{{-- Dashboard Editor Panel --}}
+<div class="db-editor-overlay" id="dbEditorOverlay"></div>
+<div class="db-editor" id="dbEditorPanel" role="dialog" aria-label="Editar Dashboard">
+  <div class="db-editor-head">
+    <div>
+      <div class="db-editor-title">Editar Dashboard</div>
+      <div class="db-editor-subtitle">Activa o desactiva widgets por módulo</div>
+    </div>
+    <button class="db-editor-close" id="dbEditorClose" aria-label="Cerrar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="db-editor-body" id="dbEditorBody"></div>
+  <div class="db-editor-footer">
+    <button class="db-editor-btn reset" id="dbEditorReset">Restablecer</button>
+    <button class="db-editor-btn save" id="dbEditorSave">Guardar cambios</button>
+  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
@@ -699,6 +774,111 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
     });
     document.addEventListener('click', e => { if (!wrap.contains(e.target)) close(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+  })();
+
+  /* Dashboard Editor */
+  (function(){
+    const WIDGETS = [
+      {id:'next-patient',    name:'Próximo Paciente',   desc:'Paciente actual y hora',      group:'👨‍⚕️ Pacientes', color:'blue',   default:true},
+      {id:'next-list',       name:'Pacientes Pendientes', desc:'Lista de pacientes de hoy', group:'👨‍⚕️ Pacientes', color:'blue',   default:true},
+      {id:'ia-pending',      name:'Reporte IA',         desc:'Reportes pendientes de IA',   group:'🤖 IA',         color:'purple', default:true},
+      {id:'ia-risk',         name:'IA Predictiva',      desc:'Riesgo y recomendaciones',    group:'🤖 IA',         color:'purple', default:true},
+      {id:'ia-recs',         name:'Recomendaciones IA', desc:'Sugerencias clínicas',        group:'🤖 IA',         color:'purple', default:false},
+      {id:'agenda-today',    name:'Agenda del día',     desc:'Calendario y citas',          group:'📅 Agenda',     color:'teal',   default:true},
+      {id:'agenda-summary',  name:'Resumen de estudios', desc:'Dona y próximos estudios',   group:'📅 Agenda',     color:'teal',   default:true},
+      {id:'new-study',       name:'Acciones rápidas',   desc:'Nuevo estudio, WhatsApp…',    group:'🎥 Estudio',    color:'green',  default:true},
+      {id:'gallery-recent',  name:'Últimos Estudios',   desc:'Galería reciente',            group:'🖼 Galería',    color:'green2', default:false},
+      {id:'system-status',   name:'Estado General',     desc:'Cámara, IA, Nube',            group:'☁ Sistema',    color:'orange', default:false},
+      {id:'reminders',       name:'Recordatorios',      desc:'Avisos del sistema',          group:'☁ Sistema',    color:'orange', default:false},
+    ];
+
+    function loadPrefs() {
+      try { return JSON.parse(localStorage.getItem('dbWidgetPrefs') || '{}'); } catch(e) { return {}; }
+    }
+    function savePrefs(prefs) {
+      try { localStorage.setItem('dbWidgetPrefs', JSON.stringify(prefs)); } catch(e) {}
+    }
+
+    function openEditor() {
+      document.getElementById('profileMenu').classList.remove('open');
+      document.querySelector('.profile-wrap')?.classList.remove('open');
+
+      const overlay = document.getElementById('dbEditorOverlay');
+      const panel   = document.getElementById('dbEditorPanel');
+      if (!overlay || !panel) return;
+
+      const prefs = loadPrefs();
+      const body  = document.getElementById('dbEditorBody');
+      body.innerHTML = '';
+
+      const groupOrder = [];
+      const groups = {};
+      WIDGETS.forEach(w => {
+        const g = w.group;
+        if (!groups[g]) { groups[g] = []; groupOrder.push(g); }
+        groups[g].push(w);
+      });
+
+      groupOrder.forEach(group => {
+        const widgets = groups[group];
+        const sec = document.createElement('div');
+        sec.className = 'db-editor-section';
+        sec.innerHTML = `<div class="db-editor-section-title">${group}</div>`;
+        widgets.forEach(w => {
+          const enabled = prefs[w.id] !== undefined ? prefs[w.id] : w.default;
+          const item = document.createElement('div');
+          item.className = 'db-widget-item';
+          item.dataset.wid = w.id;
+          item.innerHTML = `
+            <span class="db-widget-dot ${w.color}"></span>
+            <div class="db-widget-info">
+              <div class="db-widget-name">${w.name}</div>
+              <div class="db-widget-desc">${w.desc}</div>
+            </div>
+            <label class="db-widget-toggle">
+              <input type="checkbox" ${enabled ? 'checked' : ''} data-wid="${w.id}">
+              <span class="db-widget-slider"></span>
+            </label>`;
+          sec.appendChild(item);
+        });
+        body.appendChild(sec);
+      });
+
+      overlay.classList.add('open');
+      panel.classList.add('open');
+    }
+
+    function closeEditor() {
+      document.getElementById('dbEditorOverlay')?.classList.remove('open');
+      document.getElementById('dbEditorPanel')?.classList.remove('open');
+    }
+
+    function saveEditor() {
+      const prefs = {};
+      document.querySelectorAll('#dbEditorBody input[data-wid]').forEach(cb => {
+        prefs[cb.dataset.wid] = cb.checked;
+      });
+      savePrefs(prefs);
+      closeEditor();
+      window.dispatchEvent(new CustomEvent('dbWidgetsChanged', {detail: prefs}));
+    }
+
+    function resetEditor() {
+      savePrefs({});
+      document.querySelectorAll('#dbEditorBody input[data-wid]').forEach(cb => {
+        const w = WIDGETS.find(x => x.id === cb.dataset.wid);
+        if (w) cb.checked = w.default;
+      });
+    }
+
+    document.getElementById('editDashboardBtn')?.addEventListener('click', openEditor);
+    document.getElementById('dbEditorClose')?.addEventListener('click', closeEditor);
+    document.getElementById('dbEditorSave')?.addEventListener('click', saveEditor);
+    document.getElementById('dbEditorReset')?.addEventListener('click', resetEditor);
+    document.getElementById('dbEditorOverlay')?.addEventListener('click', function(e) {
+      if (e.target === this) closeEditor();
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeEditor(); });
   })();
 </script>
 @stack('scripts')
