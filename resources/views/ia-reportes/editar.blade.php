@@ -141,7 +141,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       Vista Previa
     </button>
-    <button class="ed-btn primary" type="button">
+    <button class="ed-btn primary" type="button" id="btnGuardarInforme">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
       Guardar Informe
       <span class="div"></span>
@@ -492,6 +492,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
         setMeta('PACIENTE', stored.meta.paciente);
         setMeta('TIPO DE ESTUDIO', stored.meta.tipo_estudio);
         setMeta('FECHA DEL ESTUDIO', stored.meta.fecha);
+        window.__ESTUDIO_ID = stored.meta.estudio_id || null;
       }
     }
   } catch (e) { /* sin datos de IA: se usa el contenido de ejemplo */ }
@@ -751,6 +752,42 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   const greeting = 'Hola, soy ENCLAII. Puedo redactar secciones, sugerir diagnósticos, cambiar la plantilla o insertar variables. ¿Qué necesitas?';
   const greetEl = addMsg('', 'ai');
   setTimeout(() => typeInto(greetEl, greeting), 400);
+})();
+</script>
+
+<script>
+/* ===== Guardar Informe: persiste el reporte ligado al estudio ===== */
+(function(){
+  const btn = document.getElementById('btnGuardarInforme');
+  if (!btn) return;
+  const doc = document.querySelector('.ed-doc');
+  const SAVE_URL = @json(route('ia-reportes.guardar'));
+  const CSRF = @json(csrf_token());
+  let savedId = null;
+
+  btn.addEventListener('click', () => {
+    const estudioId = window.__ESTUDIO_ID || null;
+    if (!estudioId) {
+      alert('Este informe no está asociado a un estudio, así que no se puede guardar en el sistema. Genera el reporte desde un estudio.');
+      return;
+    }
+    const contenido = (doc ? doc.innerText : '').trim();
+    if (!contenido) { alert('El informe está vacío.'); return; }
+
+    btn.disabled = true;
+    fetch(SAVE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+      body: JSON.stringify({ estudio_id: estudioId, reporte_id: savedId, contenido_texto: contenido }),
+    })
+      .then(r => r.json())
+      .then(d => {
+        if (d && d.ok) { savedId = d.reporte_id; alert('Informe guardado correctamente.'); }
+        else { alert((d && d.message) || 'No se pudo guardar el informe.'); }
+      })
+      .catch(() => alert('No se pudo guardar el informe.'))
+      .finally(() => { btn.disabled = false; });
+  });
 })();
 </script>
 @endpush

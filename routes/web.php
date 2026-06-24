@@ -8,6 +8,7 @@ use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\NuevoEstudioController;
 use App\Models\Paciente;
+use App\Models\Reporte;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -30,19 +31,225 @@ Route::middleware('auth')->group(function () {
 
 
     Route::get('/ia-reportes', function () {
-        return view('ia-reportes.index');
+        $reportes = Reporte::with(['estudio.paciente', 'usuario'])
+            ->latest()
+            ->get();
+
+        // ===== KPIs con datos reales =====
+        $inicioMes = now()->startOfMonth();
+        $finMes = now()->endOfMonth();
+        $inicioMesPrev = now()->subMonthNoOverflow()->startOfMonth();
+        $finMesPrev = now()->subMonthNoOverflow()->endOfMonth();
+
+        // % de variación entre dos conteos
+        $pct = function (int $actual, int $previo): int {
+            if ($previo === 0) {
+                return $actual > 0 ? 100 : 0;
+            }
+
+            return (int) round((($actual - $previo) / $previo) * 100);
+        };
+
+        // 1. Reportes generados (este mes)
+        $repMes = Reporte::whereBetween('created_at', [$inicioMes, $finMes])->count();
+        $repPrev = Reporte::whereBetween('created_at', [$inicioMesPrev, $finMesPrev])->count();
+
+        // 2. Estudios sin reporte (pendientes reales)
+        $estudiosSinReporte = \App\Models\Estudio::whereDoesntHave('reportes')->count();
+
+        // 3. Evidencias (imágenes) capturadas este mes
+        $evMes = \App\Models\EstudioArchivo::where('tipo', 'imagen')
+            ->whereBetween('created_at', [$inicioMes, $finMes])->count();
+        $evPrev = \App\Models\EstudioArchivo::where('tipo', 'imagen')
+            ->whereBetween('created_at', [$inicioMesPrev, $finMesPrev])->count();
+
+        // 4. Estudios realizados este mes
+        $estMes = \App\Models\Estudio::whereBetween('created_at', [$inicioMes, $finMes])->count();
+        $estPrev = \App\Models\Estudio::whereBetween('created_at', [$inicioMesPrev, $finMesPrev])->count();
+
+        $kpis = [
+            'reportes' => ['valor' => $repMes, 'trend' => $pct($repMes, $repPrev)],
+            'sin_reporte' => ['valor' => $estudiosSinReporte],
+            'evidencias' => ['valor' => $evMes, 'trend' => $pct($evMes, $evPrev)],
+            'estudios' => ['valor' => $estMes, 'trend' => $pct($estMes, $estPrev)],
+        ];
+
+        return view('ia-reportes.index', compact('reportes', 'kpis'));
     })->name('ia-reportes');
 
     Route::get('/ia-reportes/generar', function () {
-        return view('ia-reportes.generar');
+        $estudioId = request()->query('estudio');
+        $pacienteId = request()->query('paciente');
+
+        $estudio = $estudioId
+            ? \App\Models\Estudio::with('paciente')->find($estudioId)
+            : null;
+
+        $paciente = $estudio?->paciente
+            ?? ($pacienteId ? Paciente::find($pacienteId) : null);
+
+        // Si llega paciente sin estudio, usar su estudio más reciente
+        if ($paciente && ! $estudio) {
+            $estudio = \App\Models\Estudio::where('paciente_id', $paciente->id)
+                ->latest()
+                ->first();
+        }
+
+        // Evidencia: fotos reales del estudio
+        $evidencias = collect();
+        if ($estudio) {
+            $evidencias = \App\Models\EstudioArchivo::where('estudio_id', $estudio->id)
+                ->where('tipo', 'imagen')
+                ->orderByDesc('capturado_en')
+                ->orderByDesc('id')
+                ->get()
+                ->map(fn ($a) => 'storage/'.$a->path)
+                ->values();
+        }
+
+        // Datos para precargar el formulario
+        $datos = [
+            'paciente' => $paciente?->nombre_completo ?? ($estudio?->paciente_nombre ?? ''),
+            'iniciales' => collect(explode(' ', $paciente?->nombre_completo ?? 'NA'))
+                ->filter()->take(2)->map(fn ($x) => mb_strtoupper(mb_substr($x, 0, 1)))->implode('') ?: 'NA',
+            'edad' => $paciente?->edad ? $paciente->edad.' años' : '',
+            'sexo' => $paciente && $paciente->sexo ? ucfirst($paciente->sexo) : '',
+            'folio' => $paciente?->folio ?? '',
+            'identificacion' => $paciente?->identificacion ?? '',
+            'medico' => $estudio?->medico ?? $paciente?->medico ?? '',
+            'nacimiento' => optional($paciente?->fecha_nacimiento)->format('d/m/Y') ?? '',
+            'tipo' => $estudio?->tipo ?? $paciente?->procedimiento ?? '',
+            'fecha' => optional($estudio?->fecha)->format('Y-m-d') ?? now()->format('Y-m-d'),
+            'observaciones' => $paciente?->diagnostico_preliminar ?? '',
+            'estudio_id' => $estudio?->id,
+        ];
+
+        // Lista de estudios para el selector: solo los que NO tienen reporte aún
+        // (incluye el estudio actual aunque ya tuviera, para que la opción seleccionada aparezca).
+        $estudiosLista = \App\Models\Estudio::with('paciente')
+            ->where(function ($q) use ($estudio) {
+                $q->whereDoesntHave('reportes');
+                if ($estudio) {
+                    $q->orWhere('id', $estudio->id);
+                }
+            })
+            ->latest()
+            ->limit(100)
+            ->get()
+            ->map(fn ($e) => [
+                'id' => $e->id,
+                'label' => trim(($e->paciente?->nombre_completo ?? $e->paciente_nombre ?? 'Paciente')
+                    .' · '.($e->tipo ?? 'Estudio')
+                    .' · '.(optional($e->fecha)->format('d/m/Y') ?? '')),
+            ])
+            ->values();
+
+        return view('ia-reportes.generar', [
+            'estudio' => $estudio,
+            'paciente' => $paciente,
+            'evidencias' => $evidencias,
+            'datos' => $datos,
+            'estudiosLista' => $estudiosLista,
+        ]);
     })->name('ia-reportes.generar');
 
     Route::get('/ia-reportes/redactar', function () {
-        return view('ia-reportes.redactar');
+        $pacienteId = request()->query('paciente');
+        $estudioId = request()->query('estudio');
+
+        $paciente = $pacienteId ? Paciente::find($pacienteId) : null;
+
+        $estudio = $estudioId
+            ? \App\Models\Estudio::with('paciente')->find($estudioId)
+            : null;
+
+        // Si no llegó paciente explícito, derivarlo del estudio
+        if (! $paciente && $estudio) {
+            $paciente = $estudio->paciente;
+        }
+
+        // Si hay paciente pero no estudio, usar su estudio más reciente
+        if ($paciente && ! $estudio) {
+            $estudio = \App\Models\Estudio::where('paciente_id', $paciente->id)
+                ->latest()
+                ->first();
+        }
+
+        $estudioImagenes = collect();
+        if ($paciente) {
+            $estudioImagenes = \App\Models\EstudioArchivo::where('paciente_id', $paciente->id)
+                ->where('tipo', 'imagen')
+                ->when($estudio, fn ($q) => $q->where('estudio_id', $estudio->id))
+                ->orderByDesc('capturado_en')
+                ->orderByDesc('id')
+                ->get()
+                ->map(fn ($a) => [
+                    'id' => $a->id,
+                    'url' => asset('storage/'.$a->path),
+                    'titulo' => $a->nombre_original,
+                ])
+                ->values();
+        }
+
+        // Datos del estudio/paciente para precargar el editor
+        $datosEstudio = [
+            'paciente' => $paciente?->nombre_completo ?? ($estudio?->paciente_nombre ?? ''),
+            'edad' => $paciente?->edad ? $paciente->edad.' años' : '',
+            'sexo' => $paciente && $paciente->sexo ? ucfirst($paciente->sexo) : '',
+            'nacimiento' => optional($paciente?->fecha_nacimiento)->format('d/m/Y') ?? '',
+            'fecha_estudio' => optional($estudio?->fecha)->format('d/m/Y') ?? now()->format('d/m/Y'),
+            'procedimiento' => $estudio?->tipo ?? $paciente?->procedimiento ?? '',
+            'tipo' => $estudio?->tipo ?? $paciente?->procedimiento ?? '',
+            'medico' => $estudio?->medico ?? $paciente?->medico ?? '',
+        ];
+
+        // Plantillas guardadas (configuración persistida por clave)
+        $plantillasDb = \App\Models\Plantilla::all()->mapWithKeys(fn ($p) => [
+            $p->clave => [
+                'configuracion' => $p->configuracion,
+                'columnas' => $p->columnas,
+                'num_imagenes' => $p->num_imagenes,
+            ],
+        ]);
+
+        // Selector de estudio: solo los que NO tienen reporte aún
+        // (incluye el estudio actual para que la opción seleccionada aparezca).
+        $estudiosLista = \App\Models\Estudio::with('paciente')
+            ->where(function ($q) use ($estudio) {
+                $q->whereDoesntHave('reportes');
+                if ($estudio) {
+                    $q->orWhere('id', $estudio->id);
+                }
+            })
+            ->latest()
+            ->limit(100)
+            ->get()
+            ->map(fn ($e) => [
+                'id' => $e->id,
+                'label' => trim(($e->paciente?->nombre_completo ?? $e->paciente_nombre ?? 'Paciente')
+                    .' · '.($e->tipo ?? 'Estudio')
+                    .' · '.(optional($e->fecha)->format('d/m/Y') ?? '')),
+            ])
+            ->values();
+
+        return view('ia-reportes.redactar', [
+            'paciente' => $paciente,
+            'estudio' => $estudio,
+            'estudioImagenes' => $estudioImagenes,
+            'datosEstudio' => $datosEstudio,
+            'plantillasDb' => $plantillasDb,
+            'estudiosLista' => $estudiosLista,
+        ]);
     })->name('ia-reportes.redactar');
 
     Route::post('/ia-reportes/generar', [IaReporteController::class, 'generar'])
         ->name('ia-reportes.generar.post');
+
+    Route::post('/ia-reportes/guardar', [IaReporteController::class, 'guardar'])
+        ->name('ia-reportes.guardar');
+
+    Route::post('/plantillas/{clave}', [\App\Http\Controllers\PlantillaController::class, 'update'])
+        ->name('plantillas.update');
 
     Route::post('/ia-reportes/chat', [IaReporteController::class, 'chat'])
         ->name('ia-reportes.chat.post');
@@ -52,7 +259,11 @@ Route::middleware('auth')->group(function () {
     })->name('ia-reportes.hallazgos');
 
     Route::get('/ia-reportes/reportes', function () {
-        return view('ia-reportes.reportes');
+        $reportes = Reporte::with(['estudio.paciente', 'usuario'])
+            ->latest()
+            ->get();
+
+        return view('ia-reportes.reportes', compact('reportes'));
     })->name('ia-reportes.todos');
 
     Route::get('/ia-reportes/editar', function () {
@@ -92,6 +303,7 @@ Route::middleware('auth')->group(function () {
 
         $galImagenes = collect();
         $galVideos = collect();
+        $reportes = collect();
 
         if ($paciente) {
             $archivos = \App\Models\EstudioArchivo::with('estudio')
@@ -102,12 +314,18 @@ Route::middleware('auth')->group(function () {
 
             $galImagenes = $archivos->where('tipo', 'imagen')->values();
             $galVideos = $archivos->where('tipo', 'video')->values();
+
+            $reportes = Reporte::with(['estudio', 'usuario'])
+                ->whereHas('estudio', fn ($q) => $q->where('paciente_id', $paciente->id))
+                ->latest()
+                ->get();
         }
 
         return view('estudios.crear', [
             'paciente' => $paciente,
             'galImagenes' => $galImagenes,
             'galVideos' => $galVideos,
+            'reportes' => $reportes,
         ]);
     })->name('nuevo-estudio');
 

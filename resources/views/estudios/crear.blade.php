@@ -772,6 +772,7 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
   $galSexo = $paciente?->sexo ?? 'Femenino';
   $galEdad = $paciente ? ($paciente->edad ? $paciente->edad.' años' : '—') : '38 años';
   $galCodigo = $paciente ? ($paciente->folio ?? $paciente->identificacion ?? '—') : '00012345';
+  $reportes = $reportes ?? collect();
 @endphp
 
 {{-- Pestañas --}}
@@ -1047,17 +1048,25 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
 {{-- Panel Reportes --}}
 <div class="np-tab-panel" id="tab-reportes">
 
+  @php($rptList = $reportes ?? collect())
+  @php($rpt = $rptList->first())
+  @php($rptNombre = $paciente?->nombre_completo ?? $rpt?->estudio?->paciente_nombre ?? '—')
+  @php($rptIni = collect(explode(' ', $rptNombre))->filter()->take(2)->map(fn($x)=>mb_strtoupper(mb_substr($x,0,1)))->implode('') ?: 'NA')
+  @php($rptIdent = $paciente?->identificacion ?? $paciente?->folio ?? '—')
+  @php($rptCritico = $rpt ? (bool) $rpt->contiene_hallazgos_criticos : false)
+
+  @if($rpt)
   {{-- Barra de acciones del reporte --}}
   <div class="rpt-toolbar rise d1">
     <div class="rpt-toolbar-left">
       <div class="rpt-pat-chip">
-        <div class="rpt-pat-av" id="rptPatAv">MG</div>
+        <div class="rpt-pat-av" id="rptPatAv">{{ $rptIni }}</div>
         <div>
-          <div class="rpt-pat-name" id="rptPatName">Maria Gonzalez</div>
-          <div class="rpt-pat-id" id="rptPatId">ID: 00012345</div>
+          <div class="rpt-pat-name" id="rptPatName">{{ $rptNombre }}</div>
+          <div class="rpt-pat-id" id="rptPatId">ID: {{ $rptIdent }}</div>
         </div>
       </div>
-      <span class="rpt-badge" id="rptBadge">Borrador</span>
+      <span class="rpt-badge" id="rptBadge">{{ $rptCritico ? 'Crítico' : 'Normal' }}</span>
     </div>
     <div class="rpt-toolbar-right">
       <button class="rpt-act-btn" onclick="window.print()">
@@ -1091,9 +1100,9 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
           </div>
         </div>
         <div class="rpt-doc-meta">
-          <div class="rpt-meta-row"><span>No. Reporte</span><strong id="rptNumero">RPT-2025-0034</strong></div>
-          <div class="rpt-meta-row"><span>Fecha</span><strong id="rptFechaDoc">15/07/2025</strong></div>
-          <div class="rpt-meta-row"><span>Estado</span><strong class="rpt-estado-txt" id="rptEstadoDoc">Borrador</strong></div>
+          <div class="rpt-meta-row"><span>No. Reporte</span><strong id="rptNumero">RPT-{{ $rpt->created_at?->format('Y') }}-{{ str_pad($rpt->id, 4, '0', STR_PAD_LEFT) }}</strong></div>
+          <div class="rpt-meta-row"><span>Fecha</span><strong id="rptFechaDoc">{{ $rpt->created_at?->format('d/m/Y') }}</strong></div>
+          <div class="rpt-meta-row"><span>Estado</span><strong class="rpt-estado-txt" id="rptEstadoDoc">{{ $rptCritico ? 'Crítico' : 'Normal' }}</strong></div>
         </div>
       </div>
 
@@ -1102,12 +1111,12 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
       {{-- Datos del paciente --}}
       <div class="rpt-section-title">Datos del Paciente</div>
       <div class="rpt-grid-2">
-        <div class="rpt-field-view"><span>Nombre completo</span><strong id="rptNombre">Maria Gonzalez</strong></div>
-        <div class="rpt-field-view"><span>Identificacion</span><strong id="rptId">00012345</strong></div>
-        <div class="rpt-field-view"><span>Edad</span><strong id="rptEdad">38 años</strong></div>
-        <div class="rpt-field-view"><span>Sexo</span><strong id="rptSexo">Femenino</strong></div>
-        <div class="rpt-field-view"><span>N.S.S.</span><strong id="rptNss">—</strong></div>
-        <div class="rpt-field-view"><span>Telefono</span><strong id="rptTelefono">—</strong></div>
+        <div class="rpt-field-view"><span>Nombre completo</span><strong id="rptNombre">{{ $rptNombre }}</strong></div>
+        <div class="rpt-field-view"><span>Identificacion</span><strong id="rptId">{{ $rptIdent }}</strong></div>
+        <div class="rpt-field-view"><span>Edad</span><strong id="rptEdad">{{ $paciente && $paciente->edad ? $paciente->edad.' años' : '—' }}</strong></div>
+        <div class="rpt-field-view"><span>Sexo</span><strong id="rptSexo">{{ $paciente && $paciente->sexo ? ucfirst($paciente->sexo) : '—' }}</strong></div>
+        <div class="rpt-field-view"><span>N.S.S.</span><strong id="rptNss">{{ $paciente?->identificacion ?? '—' }}</strong></div>
+        <div class="rpt-field-view"><span>Telefono</span><strong id="rptTelefono">{{ $paciente?->telefono ?? '—' }}</strong></div>
       </div>
 
       <div class="rpt-divider"></div>
@@ -1115,10 +1124,10 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
       {{-- Datos del estudio --}}
       <div class="rpt-section-title">Informacion del Estudio</div>
       <div class="rpt-grid-2">
-        <div class="rpt-field-view"><span>Procedimiento</span><strong id="rptProcedimiento">Colonoscopia</strong></div>
-        <div class="rpt-field-view"><span>Medico responsable</span><strong id="rptMedico">Dr. Victor</strong></div>
-        <div class="rpt-field-view"><span>Fecha del estudio</span><strong id="rptFechaEstudio">15/07/2025</strong></div>
-        <div class="rpt-field-view"><span>Total de estudios</span><strong id="rptTotalEstudios">15</strong></div>
+        <div class="rpt-field-view"><span>Procedimiento</span><strong id="rptProcedimiento">{{ $rpt->estudio?->tipo ?? $paciente?->procedimiento ?? '—' }}</strong></div>
+        <div class="rpt-field-view"><span>Medico responsable</span><strong id="rptMedico">{{ $rpt->usuario?->name ?? $rpt->estudio?->medico ?? '—' }}</strong></div>
+        <div class="rpt-field-view"><span>Fecha del estudio</span><strong id="rptFechaEstudio">{{ optional($rpt->estudio?->fecha)->format('d/m/Y') ?? $rpt->created_at?->format('d/m/Y') }}</strong></div>
+        <div class="rpt-field-view"><span>Total de reportes</span><strong id="rptTotalEstudios">{{ $rptList->count() }}</strong></div>
       </div>
 
       <div class="rpt-divider"></div>
@@ -1154,26 +1163,10 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
 
       <div class="rpt-divider"></div>
 
-      {{-- Hallazgos --}}
-      <div class="rpt-section-title">Hallazgos Clinicos</div>
+      {{-- Contenido del reporte --}}
+      <div class="rpt-section-title">Contenido del Reporte</div>
       <div class="rpt-text-block" id="rptHallazgos">
-        Se realizo colonoscopia total con preparacion adecuada. Se visualizo mucosa colonica de aspecto normal en todos los segmentos explorados. No se observaron lesiones polipoídeas, masas, ulceraciones ni signos de inflamacion activa. Valvula ileocecal de aspecto normal. Apendice visible sin alteraciones.
-      </div>
-
-      <div class="rpt-divider"></div>
-
-      {{-- Diagnóstico --}}
-      <div class="rpt-section-title">Diagnostico</div>
-      <div class="rpt-text-block" id="rptDiagnostico">
-        Colonoscopia sin hallazgos patologicos significativos. Estudio dentro de parametros normales para la edad y antecedentes del paciente.
-      </div>
-
-      <div class="rpt-divider"></div>
-
-      {{-- Observaciones --}}
-      <div class="rpt-section-title">Observaciones y Recomendaciones</div>
-      <div class="rpt-text-block" id="rptObservaciones">
-        Se recomienda control en 3 años si el paciente no presenta sintomatologia. Continuar con dieta balanceada y seguimiento clinico de rutina. Repetir estudio antes si aparecen sintomas como dolor abdominal persistente, sangrado o cambios en habito intestinal.
+        {!! nl2br(e($rpt->contenido_texto ?? 'Sin contenido registrado.')) !!}
       </div>
 
       <div class="rpt-divider"></div>
@@ -1182,7 +1175,7 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
       <div class="rpt-firma-row">
         <div class="rpt-firma-box">
           <div class="rpt-firma-line"></div>
-          <div class="rpt-firma-name" id="rptFirmaNombre">Dr. Victor</div>
+          <div class="rpt-firma-name" id="rptFirmaNombre">{{ $rpt->usuario?->name ?? $rpt->estudio?->medico ?? '—' }}</div>
           <div class="rpt-firma-cargo">Medico Endoscopista</div>
         </div>
         <div class="rpt-sello-box">
@@ -1195,6 +1188,22 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
 
     </div>
   </div>
+  @else
+  {{-- Estado vacío: el paciente no tiene reportes --}}
+  <div class="rpt-empty rise d2" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:60px 24px;border:1px dashed var(--stroke);border-radius:var(--r-lg);background:var(--panel)">
+    <div style="width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:rgba(46,123,246,.1);border:1px solid var(--stroke-strong);color:var(--blue)">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    </div>
+    <div>
+      <div style="font-size:16px;font-weight:700;color:var(--txt);margin-bottom:4px">Este paciente no tiene reportes</div>
+      <div style="font-size:13.5px;color:var(--txt-soft)">Genera un reporte clínico para este paciente.</div>
+    </div>
+    <a class="rpt-act-btn primary" href="{{ route('ia-reportes.redactar', ['paciente' => $paciente?->id]) }}" style="text-decoration:none">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Agregar reporte
+    </a>
+  </div>
+  @endif
 
 </div>
 
