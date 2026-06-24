@@ -35,7 +35,14 @@ Route::middleware('auth')->group(function () {
             ->orderBy('hora')
             ->first();
 
-        return view('dashboard', compact('estudiosSinReporte', 'proximaCita'));
+        // Pacientes pendientes HOY: citas de hoy que no estén completadas ni canceladas
+        $pendientesHoy = \App\Models\Cita::with('paciente')
+            ->whereDate('fecha', now()->toDateString())
+            ->whereNotIn('estado', ['completado', 'cancelado'])
+            ->orderBy('hora')
+            ->get();
+
+        return view('dashboard', compact('estudiosSinReporte', 'proximaCita', 'pendientesHoy'));
     })->name('dashboard');
     
 

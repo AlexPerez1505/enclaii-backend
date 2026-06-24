@@ -751,7 +751,28 @@ html[data-theme="light"] .rpt-doc{background:#fff;border-color:#e2e8f0;box-shado
 html[data-theme="light"] .rpt-text-block{background:#f8fafc;border-color:#e2e8f0;}
 html[data-theme="light"] .rpt-img-ph{background:#f1f5f9;border-color:#e2e8f0;}
 html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color:rgba(46,123,246,.2);}
-@media print{.rpt-toolbar{display:none!important;}.rpt-doc-wrap{padding:0;}.rpt-doc{box-shadow:none;border:none;border-radius:0;max-width:100%;}}
+/* ===== Documento estilo editor (mismo formato que el reporte real) ===== */
+.rptd-doc{background:var(--panel);border:1px solid var(--stroke);border-radius:16px;width:100%;max-width:820px;padding:34px 40px;box-shadow:0 8px 40px rgba(0,0,0,.18);line-height:1.55;color:var(--txt);}
+.rptd-header{display:flex;align-items:center;gap:16px;margin-bottom:20px;}
+.rptd-logo{width:92px;height:64px;flex:none;display:grid;place-items:center;border:1px dashed var(--stroke-strong);border-radius:8px;color:var(--txt-soft);font-size:10px;line-height:1.25;text-align:center;padding:4px;overflow:hidden;}
+.rptd-logo img{width:100%;height:100%;object-fit:contain;}
+.rptd-clinic{flex:1;background:#cfe6e4;border-radius:6px;text-align:center;padding:14px 10px;font-family:'Sora',sans-serif;font-weight:700;color:#143036;}
+.rptd-anat{width:56px;height:76px;flex:none;color:var(--txt-soft);display:grid;place-items:center;}
+.rptd-anat svg{width:100%;height:100%;object-fit:contain;}
+.rptd-meta{display:grid;grid-template-columns:150px 1fr;gap:5px 16px;font-size:13px;margin-bottom:18px;}
+.rptd-meta .k{color:var(--txt-soft);}
+.rptd-imgs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:14px 0 20px;}
+.rptd-imgs .cell{aspect-ratio:4/3;background:linear-gradient(160deg,#1c2435,#10151f);border:1px solid var(--stroke);border-radius:4px;overflow:hidden;}
+.rptd-imgs .cell img{width:100%;height:100%;object-fit:cover;}
+.rptd-h4{font-size:13px;font-weight:700;letter-spacing:.04em;margin:18px 0 8px;color:var(--cyan);}
+.rptd-body{font-size:13px;line-height:1.7;white-space:pre-wrap;color:var(--txt);}
+.rptd-sign{margin-top:38px;display:flex;}
+.rptd-sign[data-pos="left"]{justify-content:flex-start;}
+.rptd-sign[data-pos="center"]{justify-content:center;}
+.rptd-sign[data-pos="right"]{justify-content:flex-end;}
+.rptd-sign .sign-box{min-width:250px;text-align:center;padding-top:8px;border-top:1px solid var(--txt);font-size:13px;}
+html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shadow:0 8px 40px rgba(0,0,0,.08);}
+@media print{.rpt-toolbar{display:none!important;}.rpt-doc-wrap{padding:0;}.rpt-doc,.rptd-doc{box-shadow:none;border:none;border-radius:0;max-width:100%;}}
 </style>
 @endpush
 
@@ -1084,106 +1105,49 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
     </div>
   </div>
 
-  {{-- Documento del reporte --}}
+  {{-- Documento del reporte (mismo formato que el editor / reporte real) --}}
+  @php($rptImgs = ($galImagenes ?? collect())->where('estudio_id', $rpt->estudio_id)->take(8)->values())
+  @php($rptFirma = $rpt->usuario?->name ?? $rpt->estudio?->medico ?? $paciente?->medico ?? 'Dr. Nombre del médico')
+  @php($rptFechaEstudio = optional($rpt->estudio?->fecha)->format('d/m/Y') ?? $rpt->created_at?->format('d/m/Y') ?? '')
+  @php($rptNac = optional($paciente?->fecha_nacimiento)->format('d/m/Y') ?? '')
   <div class="rpt-doc-wrap rise d2">
-    <div class="rpt-doc" id="rptDoc">
+    <div class="rptd-doc" id="rptDoc">
 
-      {{-- Encabezado del documento --}}
-      <div class="rpt-doc-header">
-        <div class="rpt-doc-logo">
-          <div class="rpt-logo-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-          </div>
-          <div>
-            <div class="rpt-logo-name">Enclaii</div>
-            <div class="rpt-logo-sub">Sistema de Endoscopia Médica</div>
-          </div>
-        </div>
-        <div class="rpt-doc-meta">
-          <div class="rpt-meta-row"><span>No. Reporte</span><strong id="rptNumero">RPT-{{ $rpt->created_at?->format('Y') }}-{{ str_pad($rpt->id, 4, '0', STR_PAD_LEFT) }}</strong></div>
-          <div class="rpt-meta-row"><span>Fecha</span><strong id="rptFechaDoc">{{ $rpt->created_at?->format('d/m/Y') }}</strong></div>
-          <div class="rpt-meta-row"><span>Estado</span><strong class="rpt-estado-txt" id="rptEstadoDoc">{{ $rptCritico ? 'Crítico' : 'Normal' }}</strong></div>
+      {{-- Encabezado: logo + clínica + ilustración (igual que el editor) --}}
+      <div class="rptd-header">
+        <div class="rptd-logo">Logo de<br>la clínica</div>
+        <div class="rptd-clinic">Nombre de la clínica</div>
+        <div class="rptd-anat" aria-hidden="true">
+          <svg viewBox="0 0 80 110" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M30 8c-6 6-10 14-10 22 0 6 2 11 6 16 4 5 6 9 6 15 0 10-8 14-8 24 0 8 6 13 14 13s14-6 14-15c0-12-12-16-12-26 0-7 5-11 9-17 3-5 5-10 5-16C58 22 50 12 42 8"/><path d="M30 8c4-3 8-3 12 0"/></svg>
         </div>
       </div>
 
-      <div class="rpt-divider"></div>
-
-      {{-- Datos del paciente --}}
-      <div class="rpt-section-title">Datos del Paciente</div>
-      <div class="rpt-grid-2">
-        <div class="rpt-field-view"><span>Nombre completo</span><strong id="rptNombre">{{ $rptNombre }}</strong></div>
-        <div class="rpt-field-view"><span>Identificacion</span><strong id="rptId">{{ $rptIdent }}</strong></div>
-        <div class="rpt-field-view"><span>Edad</span><strong id="rptEdad">{{ $paciente && $paciente->edad ? $paciente->edad.' años' : '—' }}</strong></div>
-        <div class="rpt-field-view"><span>Sexo</span><strong id="rptSexo">{{ $paciente && $paciente->sexo ? ucfirst($paciente->sexo) : '—' }}</strong></div>
-        <div class="rpt-field-view"><span>N.S.S.</span><strong id="rptNss">{{ $paciente?->identificacion ?? '—' }}</strong></div>
-        <div class="rpt-field-view"><span>Telefono</span><strong id="rptTelefono">{{ $paciente?->telefono ?? '—' }}</strong></div>
+      {{-- Datos del paciente / estudio --}}
+      <div class="rptd-meta">
+        <span class="k">Paciente:</span><span>{{ $rptNombre }}</span>
+        <span class="k">Edad:</span><span>{{ $paciente && $paciente->edad ? $paciente->edad.' años' : '—' }}</span>
+        <span class="k">Sexo:</span><span>{{ $paciente && $paciente->sexo ? ucfirst($paciente->sexo) : '—' }}</span>
+        <span class="k">Fecha de Nac.:</span><span>{{ $rptNac ?: '—' }}</span>
+        <span class="k">Fecha del Estudio:</span><span>{{ $rptFechaEstudio ?: '—' }}</span>
+        <span class="k">Procedimiento:</span><span>{{ $rpt->estudio?->tipo ?? $paciente?->procedimiento ?? '—' }}</span>
       </div>
 
-      <div class="rpt-divider"></div>
-
-      {{-- Datos del estudio --}}
-      <div class="rpt-section-title">Informacion del Estudio</div>
-      <div class="rpt-grid-2">
-        <div class="rpt-field-view"><span>Procedimiento</span><strong id="rptProcedimiento">{{ $rpt->estudio?->tipo ?? $paciente?->procedimiento ?? '—' }}</strong></div>
-        <div class="rpt-field-view"><span>Medico responsable</span><strong id="rptMedico">{{ $rpt->usuario?->name ?? $rpt->estudio?->medico ?? '—' }}</strong></div>
-        <div class="rpt-field-view"><span>Fecha del estudio</span><strong id="rptFechaEstudio">{{ optional($rpt->estudio?->fecha)->format('d/m/Y') ?? $rpt->created_at?->format('d/m/Y') }}</strong></div>
-        <div class="rpt-field-view"><span>Total de reportes</span><strong id="rptTotalEstudios">{{ $rptList->count() }}</strong></div>
+      {{-- Imágenes reales del estudio --}}
+      @if($rptImgs->count())
+      <div class="rptd-imgs">
+        @foreach($rptImgs as $img)
+          <span class="cell"><img src="{{ asset('storage/'.$img->path) }}" alt="Imagen del estudio"></span>
+        @endforeach
       </div>
+      @endif
 
-      <div class="rpt-divider"></div>
+      {{-- Contenido del reporte (texto guardado, conservando su formato) --}}
+      <div class="rptd-h4">Contenido del Reporte</div>
+      <div class="rptd-body" id="rptHallazgos">{{ $rpt->contenido_texto ?: 'Sin contenido registrado.' }}</div>
 
-      {{-- Imagenes del estudio --}}
-      <div class="rpt-section-title">Imagenes del Estudio</div>
-      <div class="rpt-imgs-grid">
-        <div class="rpt-img-item">
-          <div class="rpt-img-ph">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          </div>
-          <div class="rpt-img-label">Fotograma 0:01:25</div>
-        </div>
-        <div class="rpt-img-item">
-          <div class="rpt-img-ph">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          </div>
-          <div class="rpt-img-label">Fotograma 0:02:15</div>
-        </div>
-        <div class="rpt-img-item">
-          <div class="rpt-img-ph">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          </div>
-          <div class="rpt-img-label">Fotograma 0:04:32</div>
-        </div>
-        <div class="rpt-img-item">
-          <div class="rpt-img-ph">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          </div>
-          <div class="rpt-img-label">Fotograma 0:06:18</div>
-        </div>
-      </div>
-
-      <div class="rpt-divider"></div>
-
-      {{-- Contenido del reporte --}}
-      <div class="rpt-section-title">Contenido del Reporte</div>
-      <div class="rpt-text-block" id="rptHallazgos">
-        {!! nl2br(e($rpt->contenido_texto ?? 'Sin contenido registrado.')) !!}
-      </div>
-
-      <div class="rpt-divider"></div>
-
-      {{-- Firma médica --}}
-      <div class="rpt-firma-row">
-        <div class="rpt-firma-box">
-          <div class="rpt-firma-line"></div>
-          <div class="rpt-firma-name" id="rptFirmaNombre">{{ $rpt->usuario?->name ?? $rpt->estudio?->medico ?? '—' }}</div>
-          <div class="rpt-firma-cargo">Medico Endoscopista</div>
-        </div>
-        <div class="rpt-sello-box">
-          <div class="rpt-sello">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            <div class="rpt-sello-txt">Enclaii<br><span>Verificado</span></div>
-          </div>
-        </div>
+      {{-- Firma --}}
+      <div class="rptd-sign" data-pos="center">
+        <div class="sign-box" id="rptFirmaNombre">{{ $rptFirma }}</div>
       </div>
 
     </div>
