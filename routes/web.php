@@ -137,3 +137,7 @@ Route::post('/agenda/citas', [AgendaController::class, 'store'])->name('agenda.c
 Route::put('/agenda/citas/{cita}', [AgendaController::class, 'update'])->name('agenda.citas.update');
 Route::patch('/agenda/citas/{cita}/estado', [AgendaController::class, 'cambiarEstado'])->name('agenda.citas.estado');
 Route::delete('/agenda/citas/{cita}', [AgendaController::class, 'destroy'])->name('agenda.citas.destroy');
+
+Route::get('/finanzas', function () {
+    return view('finanzas.index');
+})->name('finanzas');
