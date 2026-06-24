@@ -306,11 +306,11 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:540px}
       </span>
       <article class="card card-ia">
         <img class="brain-img" src="{{ asset('images/brain-ia.png') }}" alt="">
-        <h3>REPORTE IA</h3>
-        <div class="big-num" id="numReportes" data-target="2">0</div>
-        <div class="big-label">reportes pendientes<br><span class="muted">generados por IA</span></div>
-        <a class="btn-orange" href="{{ route('ia-reportes') }}">
-          Revisar reportes
+        <h3>ESTUDIOS SIN REPORTES</h3>
+        <div class="big-num" id="numReportes" data-target="{{ $estudiosSinReporte ?? 0 }}">0</div>
+        <div class="big-label">estudios sin reporte<br><span class="muted">pendientes de generar</span></div>
+        <a class="btn-orange" href="{{ route('ia-reportes.redactar') }}">
+          Generar reportes
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </a>
       </article>
