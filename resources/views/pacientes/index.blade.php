@@ -19,7 +19,7 @@
   margin-bottom:22px;
   flex-wrap:wrap;
 }
-.search-box{
+.search-box{      
   display:flex;
   align-items:center;
   gap:10px;
