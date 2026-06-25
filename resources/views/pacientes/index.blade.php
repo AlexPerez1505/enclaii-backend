@@ -289,6 +289,9 @@
   overflow:hidden;
   height:fit-content;
 }
+/* Mientras hay un menú abierto, no recortar para que el desplegable se vea completo */
+.patients-card.menu-open{overflow:visible}
+.content-with-panel.menu-open{overflow:visible}
 .table-header{
   display:grid;
   grid-template-columns:2fr 1fr 1fr 1.5fr 1fr 100px;
@@ -2216,20 +2219,7 @@ function rowHTML(patient, globalIndex) {
   const st = patient.status || 'completed';
   const stText = statusTexts[st] || st;
   const editUrl = routes.edit.replace(':id', patient.id);
-  const ageNum = String(patient.age || '').match(/\d+/) ? String(patient.age).match(/\d+/)[0] : '';
-  let dobIso = '';
-  if (patient.dob && patient.dob !== 'Sin fecha') {
-    const dp = String(patient.dob).split('/');
-    if (dp.length === 3) {
-      dobIso = `${dp[2]}-${dp[1].padStart(2,'0')}-${dp[0].padStart(2,'0')}`;
-    }
-  }
-  const nsp = new URLSearchParams();
-  nsp.set('name', patient.name);
-  if (ageNum) nsp.set('age', ageNum);
-  if (patient.gender && patient.gender !== 'No especificado') nsp.set('gender', patient.gender);
-  if (dobIso) nsp.set('dob', dobIso);
-  const nuevoEstudioUrl = `${routes.nuevoEstudio}?${nsp.toString()}`;
+  const nuevoEstudioUrl = `${routes.nuevoEstudio}?paciente=${encodeURIComponent(patient.id)}`;
 
   return `<div class="patient-row" onclick="openPanel(${globalIndex})" data-index="${globalIndex}" data-status="${st}">
     <div class="patient-info">
@@ -2364,6 +2354,26 @@ function renderPaginationControls(page, totalPages) {
 
 renderPage(1);
 
+/* ============ Selección de paciente vía ?paciente=ID (desde el dashboard) ============ */
+(function selectPatientFromQuery() {
+  const pid = new URLSearchParams(window.location.search).get('paciente');
+  if (!pid) return;
+
+  const idx = patientsData.findIndex(p => String(p.id) === String(pid));
+  if (idx < 0) return;
+
+  const page = Math.floor(idx / PAGE_SIZE) + 1;
+  renderPage(page);
+
+  requestAnimationFrame(() => {
+    const row = document.querySelector('[data-index="' + idx + '"]');
+    if (!row) return;
+    document.querySelectorAll('.patient-row').forEach(r => r.classList.remove('active'));
+    row.classList.add('active');
+    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+})();
+
 
 /* ============ PANEL FILTROS ============ */
 function openFilters() {
@@ -2405,6 +2415,14 @@ function clearFilters() {
 }
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closeFilters(); });
 
+// Quita el recorte de los contenedores mientras haya un menú abierto, para que
+// el desplegable no se corte cuando hay pocas filas en la tabla.
+function syncMenuOverflow() {
+  const anyOpen = document.querySelector('.actions-dropdown.active') !== null;
+  document.querySelector('.patients-card')?.classList.toggle('menu-open', anyOpen);
+  document.querySelector('.content-with-panel')?.classList.toggle('menu-open', anyOpen);
+}
+
 function toggleMenu(btn) {
   document.querySelectorAll('.actions-dropdown.active').forEach(menu => {
     if (menu !== btn.closest('.actions-wrapper').querySelector('.actions-dropdown')) {
@@ -2413,6 +2431,7 @@ function toggleMenu(btn) {
   });
   const dropdown = btn.closest('.actions-wrapper').querySelector('.actions-dropdown');
   dropdown.classList.toggle('active');
+  syncMenuOverflow();
 }
 
 function savePatientToCache(patient) {
@@ -2529,6 +2548,7 @@ document.addEventListener('click', function(e) {
     document.querySelectorAll('.actions-dropdown.active').forEach(menu => {
       menu.classList.remove('active');
     });
+    syncMenuOverflow();
   }
 
   // Cerrar filtro de estado al hacer clic fuera

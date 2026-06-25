@@ -84,8 +84,7 @@
       if (dateObj < hoy) return;
 
       evs.forEach(ev => {
-        const liveCls = typeof window.__recomputeClass === 'function' ? window.__recomputeClass(ev, key) : ev.cls;
-        if (liveCls !== 'ev-wait' && liveCls !== 'ev-soon') return;
+        if (ev.cls !== 'ev-wait' && ev.cls !== 'ev-soon') return;
 
         if (dateObj.toDateString() === hoy.toDateString()) {
           if (parseHour(ev.hora || ev.h) < nowMin - 30) return;
@@ -98,7 +97,6 @@
         items.push({
           dateObj,
           ev,
-          liveCls,
           name: nameRaw,
           displayName,
           proc,
@@ -119,18 +117,18 @@
     const extra = items.length - MAX_VISIBLE;
 
     visible.forEach(item => {
-      const inits = item.displayName.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+      const inits = item.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
       const fechaTxt = formatFechaTxt(item.dateObj);
       const horaTxt = formatHora(item.h);
-      const isCls = item.liveCls === 'ev-wait' ? 'prox-avatar wait' : 'prox-avatar soon';
-      const stateClass = item.liveCls === 'ev-wait' ? 'is-wait' : 'is-soon';
+      const isCls = item.ev.cls === 'ev-wait' ? 'prox-avatar wait' : 'prox-avatar soon';
+      const stateClass = item.ev.cls === 'ev-wait' ? 'is-wait' : 'is-soon';
 
       const div = document.createElement('div');
       div.className = `prox-item ${stateClass}`;
       div.innerHTML = `
         <div class="${isCls}">${inits}</div>
         <div class="prox-info">
-          <strong>${item.displayName}</strong>
+          <strong>${item.name}</strong>
           <span>${item.proc}</span>
           <span>${fechaTxt} · ${horaTxt}</span>
         </div>`;

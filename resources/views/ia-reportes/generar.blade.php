@@ -126,29 +126,35 @@
     {{-- Columna izquierda: entrada --}}
     <div class="gen-col-left">
 
-      {{-- Paso 1: Selección del paciente --}}
+      {{-- Paso 1: Selección del estudio --}}
       <div class="step rise d2">
         <div class="step-head">
           <span class="step-num">1</span>
-          <h4>Selección del paciente</h4>
+          <h4>Selección del estudio</h4>
           <svg class="step-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11.5 14.5 16 9.5"/></svg>
         </div>
-        <div class="gen-field gen-search">
-          <input class="gen-input" type="text" id="genSearch" placeholder="Buscar paciente...">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <div class="gen-field">
+          <label>Estudio</label>
+          <select class="gen-select" id="genEstudioSel"
+                  onchange="if(this.value){ window.location.href='{{ route('ia-reportes.generar') }}?estudio='+this.value }">
+            <option value="">Selecciona un estudio…</option>
+            @foreach ($estudiosLista as $e)
+              <option value="{{ $e['id'] }}" @selected(($datos['estudio_id'] ?? null) == $e['id'])>{{ $e['label'] }}</option>
+            @endforeach
+          </select>
         </div>
         <div class="gen-pat">
-          <span class="av" id="genAv">MG</span>
+          <span class="av" id="genAv">{{ $datos['iniciales'] ?? 'NA' }}</span>
           <div>
-            <div class="nm" id="genPat">María Gonzales</div>
-            <div class="mt" id="genMeta">Femenino · 45 años</div>
+            <div class="nm" id="genPat">{{ $datos['paciente'] ?: 'Sin paciente' }}</div>
+            <div class="mt" id="genMeta">{{ trim(($datos['sexo'] ?? '').' · '.($datos['edad'] ?? ''), ' ·') ?: '—' }}</div>
           </div>
         </div>
         <div class="gen-pat-grid">
-          <div><div class="k">Expediente</div><div class="v" id="genExp">EXP-2024-0001</div></div>
-          <div><div class="k">NSS</div><div class="v" id="genNss">1234 5678 9101 1122</div></div>
-          <div><div class="k">Médico responsable</div><div class="v" id="genMedico">Dr. Victor</div></div>
-          <div><div class="k">Fecha de nacimiento</div><div class="v" id="genDob">12/04/1979</div></div>
+          <div><div class="k">Expediente</div><div class="v" id="genExp">{{ $datos['folio'] ?: '—' }}</div></div>
+          <div><div class="k">Identificación</div><div class="v" id="genNss">{{ $datos['identificacion'] ?: '—' }}</div></div>
+          <div><div class="k">Médico responsable</div><div class="v" id="genMedico">{{ $datos['medico'] ?: '—' }}</div></div>
+          <div><div class="k">Fecha de nacimiento</div><div class="v" id="genDob">{{ $datos['nacimiento'] ?: '—' }}</div></div>
         </div>
       </div>
 
@@ -163,15 +169,14 @@
           <div class="gen-field">
             <label>Tipo de estudio</label>
             <select class="gen-select" id="genTipo">
-              <option>Colonoscopia</option>
-              <option>Gastroscopia</option>
-              <option>Duodenoscopia</option>
-              <option>Broncoscopia</option>
+              @foreach (['Colonoscopia','Gastroscopia','Duodenoscopia','Broncoscopia'] as $opt)
+                <option @selected(strtolower($datos['tipo'] ?? '') === strtolower($opt))>{{ $opt }}</option>
+              @endforeach
             </select>
           </div>
           <div class="gen-field">
             <label>Fecha del estudio</label>
-            <input class="gen-input" type="date" id="genFecha" value="2025-05-08">
+            <input class="gen-input" type="date" id="genFecha" value="{{ $datos['fecha'] ?? now()->format('Y-m-d') }}">
           </div>
         </div>
       </div>
@@ -183,17 +188,10 @@
           <h4>Observaciones clínicas</h4>
           <svg class="step-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11.5 14.5 16 9.5"/></svg>
         </div>
-        <textarea class="gen-textarea" id="genObs">· Inflamación moderada del antro gástrico
-· Presencia de erosiones superficiales
-· Reflujo gastroesofágico leve.</textarea>
+        <textarea class="gen-textarea" id="genObs" placeholder="Diagnóstico preliminar registrado al dar de alta al paciente...">{{ $datos['observaciones'] ?? '' }}</textarea>
       </div>
 
-      {{-- Paso 4: Cargar evidencia --}}
-      @php
-        $evidencias = collect(glob(public_path('images/Captura de pantalla*')))
-            ->map(fn ($p) => 'images/' . basename($p))
-            ->values();
-      @endphp
+      {{-- Paso 4: Cargar evidencia (fotos reales del estudio) --}}
       <div class="step rise d5">
         <div class="step-head">
           <span class="step-num">4</span>
@@ -211,13 +209,14 @@
           </div>
         </div>
         <div class="gen-thumbs" id="genThumbs">
-          @foreach ($evidencias as $i => $ev)
+          @forelse ($evidencias as $i => $ev)
             <div class="gen-thumb {{ $i === 0 ? 'sel' : '' }}">
               <img src="{{ asset($ev) }}" alt="Evidencia {{ $i + 1 }}" loading="lazy">
             </div>
-          @endforeach
+          @empty
+            <p style="grid-column:1/-1;color:var(--txt-soft);font-size:12.5px;margin:0">No hay imágenes asociadas a este estudio.</p>
+          @endforelse
         </div>
-        <div class="gen-dots"><i class="on"></i><i></i><i></i><i></i></div>
       </div>
 
       {{-- Paso 5: Configuración AI --}}
@@ -242,60 +241,20 @@
     {{-- Columna derecha: vista previa --}}
     <div class="gen-col-right">
 
-      <div class="prev-card rise d3">
-        <div class="prev-title">Vista previa del reporte generado por AI</div>
-        <div class="prev-top">
-          <div class="prev-diag">
-            <div class="prev-img" id="prevImg"></div>
-            <div class="dx">
-              <small>Diagnóstico preliminar</small>
-              <h3 id="prevDx">Gastritis crónica moderada</h3>
-              <div class="prev-conf">
-                <div class="lbl">Nivel de confianza de la AI</div>
-                <div class="prev-bar"><i id="prevBar" style="width:96%"></i></div>
-                <div class="pc" id="prevPct">96%</div>
-              </div>
-            </div>
-          </div>
-          <div class="prev-risk">
-            <div class="rt">Nivel de riesgo</div>
-            <div class="donut"></div>
-            <div class="lv" id="prevRisk">Moderado</div>
-            <small>Basado en hallazgos y antecedentes</small>
-          </div>
-        </div>
-      </div>
-
       <div class="prev-card rise d4">
         <div class="prev-2col">
           <div>
-            <h5>Hallazgos detectados por AI</h5>
+            <h5>Hallazgos detectados por IA</h5>
             <ul class="prev-list" id="prevFindings">
-              <li><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Gastritis crónica <span class="tag-conf hi">Alta confianza</span></li>
-              <li><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Inflamación antral <span class="tag-conf hi">Alta confianza</span></li>
-              <li><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Reflujo gastroesofágico leve <span class="tag-conf mid">Media confianza</span></li>
-              <li><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Erosiones superficiales <span class="tag-conf mid">Media confianza</span></li>
+              <li style="color:var(--txt-soft)">Genera el reporte para ver los hallazgos detectados por la IA.</li>
             </ul>
           </div>
           <div>
-            <h5>Recomendaciones sugeridas por AI</h5>
+            <h5>Recomendaciones sugeridas por IA</h5>
             <ul class="prev-list" id="prevRecs">
-              <li><svg class="rc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Tomar biopsia del antro gástrico</li>
-              <li><svg class="rc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Seguimiento en 3 meses</li>
-              <li><svg class="rc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Revisar antecedentes gástricos del paciente</li>
-              <li><svg class="rc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Considerar prueba para H. pylori</li>
-              <li><svg class="rc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Iniciar tratamiento con IBP por 8 semanas</li>
+              <li style="color:var(--txt-soft)">Genera el reporte para ver las recomendaciones de la IA.</li>
             </ul>
           </div>
-        </div>
-      </div>
-
-      <div class="prev-card prev-sum rise d5">
-        <div class="prev-title">Resumen generado por AI</div>
-        <p id="prevSummary">La evaluación endoscópica muestra signos compatibles con gastritis crónica moderada, con inflamación del antro gástrico y presencia de erosiones superficiales. Se recomienda confirmación histopatológica y prueba para Helicobacter pylori. Se sugiere seguimiento clínico y tratamiento con inhibidores de bomba de protones.</p>
-        <div class="prev-note">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-          Este reporte es una sugerencia generada por AI. La decisión final siempre debe ser del profesional de la salud.
         </div>
       </div>
 
@@ -303,14 +262,6 @@
         <button class="btn-primary" type="button" id="btnGenerar">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="M9 15l3 3 3-3"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>
           <span class="btn-label">Generar Reporte IA</span>
-        </button>
-        <button class="btn-out" type="button">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          Guardar borrador
-        </button>
-        <button class="btn-out" type="button">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Exportar PDF
         </button>
       </div>
 
@@ -321,40 +272,6 @@
 
 @push('scripts')
 <script>
-// Precarga de datos del paciente desde la URL (al venir de la sección Pacientes)
-(function(){
-  const q = new URLSearchParams(window.location.search);
-  if (![...q.keys()].length) return;
-  const setTx = (id, val) => { const el = document.getElementById(id); if (el && val) el.textContent = val; };
-
-  const name     = q.get('name');
-  const initials = q.get('initials');
-  const age      = q.get('age');
-  const gender   = q.get('gender');
-  const folio    = q.get('folio');
-  const dob      = q.get('dob');
-  const study    = q.get('study');
-
-  setTx('genPat', name);
-  setTx('genAv', initials);
-  setTx('genDob', dob);
-  if (folio) setTx('genExp', 'EXP-' + folio);
-  const meta = [gender, age].filter(Boolean).join(' · ');
-  if (meta) setTx('genMeta', meta);
-
-  const search = document.getElementById('genSearch');
-  if (search && name) search.value = name;
-
-  // Tipo de estudio: seleccionar la opción que coincida con la del paciente
-  if (study) {
-    const sel = document.getElementById('genTipo');
-    if (sel) {
-      const opt = [...sel.options].find(o => o.value.toLowerCase() === study.toLowerCase());
-      if (opt) sel.value = opt.value;
-    }
-  }
-})();
-
 (function(){
   const btn = document.getElementById('btnGenerar');
   if (!btn) return;
@@ -362,6 +279,7 @@
   const url = "{{ route('ia-reportes.generar.post') }}";
   const editarUrl = "{{ route('ia-reportes.editar', ['generating' => 1]) }}";
   const csrf = "{{ csrf_token() }}";
+  const ESTUDIO_ID = @json($datos['estudio_id'] ?? null);
 
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -397,18 +315,13 @@
   };
 
   function render(r){
-    document.getElementById('prevDx').textContent = r.diagnostico;
-    document.getElementById('prevBar').style.width = r.confianza + '%';
-    document.getElementById('prevPct').textContent = r.confianza + '%';
-    document.getElementById('prevRisk').textContent = r.nivel_riesgo;
-
-    document.getElementById('prevFindings').innerHTML = (r.hallazgos || []).map(h =>
+    const findings = document.getElementById('prevFindings');
+    if (findings) findings.innerHTML = (r.hallazgos || []).map(h =>
       `<li>${ckSvg} ${esc(h.texto)} ${confTag(h.confianza)}</li>`).join('') || '<li>Sin hallazgos</li>';
 
-    document.getElementById('prevRecs').innerHTML = (r.recomendaciones || []).map(t =>
+    const recs = document.getElementById('prevRecs');
+    if (recs) recs.innerHTML = (r.recomendaciones || []).map(t =>
       `<li>${rcSvg} ${esc(t)}</li>`).join('') || '<li>Sin recomendaciones</li>';
-
-    document.getElementById('prevSummary').textContent = r.resumen || '';
   }
 
   btn.addEventListener('click', async () => {
@@ -418,6 +331,7 @@
     });
 
     const payload = {
+      estudio_id: ESTUDIO_ID,
       paciente: (document.getElementById('genPat')?.textContent || '').trim(),
       tipo_estudio: document.getElementById('genTipo')?.value || '',
       fecha: document.getElementById('genFecha')?.value || '',
@@ -426,6 +340,10 @@
       imagenes: @json($evidencias),
     };
 
+    if (!ESTUDIO_ID) {
+      alert('Selecciona un estudio antes de generar el reporte.');
+      return;
+    }
     if (!payload.observaciones) {
       alert('Escribe las observaciones clínicas antes de generar el reporte.');
       return;
@@ -457,6 +375,7 @@
       sessionStorage.setItem('iaReporte', JSON.stringify({
         reporte: data.reporte,
         meta: {
+          estudio_id: ESTUDIO_ID,
           paciente: payload.paciente,
           tipo_estudio: payload.tipo_estudio,
           fecha: payload.fecha,
