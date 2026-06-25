@@ -6,7 +6,7 @@
   <article class="card card-ia">
     <div class="brain-img brain-lottie"></div>
     <h3>REPORTE IA</h3>
-    <div class="big-num" id="numReportes" data-target="2">0</div>
+    <div class="big-num" id="numReportes" data-target="{{ $estudiosSinReporte ?? 0 }}">0</div>
     <div class="big-label">reportes pendientes<br><span class="muted">generados por IA</span></div>
     <a class="btn-orange" href="{{ route('ia-reportes') }}">
       Revisar reportes

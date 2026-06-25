@@ -81,13 +81,13 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
       'ev-cancel':[{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
       'ev-soon':  [{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
     };
-    const STATUS_LABELS = {'ev-done':'Completado','ev-wait':'En espera','ev-cancel':'Cancelado','ev-soon':'Próximamente'};
+    const STATUS_LABELS = {'ev-done':'Completado','ev-wait':'En espera','ev-cancel':'Cancelado','ev-soon':'Próximos'};
     const STATUS_BADGE_CLS = {'ev-done':'done','ev-wait':'wait','ev-cancel':'cancel','ev-soon':'soon'};
 
     function parseEvent(el) {
       const text = el.textContent.trim();
       const timeMatch = text.match(/^(\d+:\d+)/);
-      const time = timeMatch ? timeMatch[1] : '00:00';
+      let time = el.dataset.time || (timeMatch ? timeMatch[1] : '00:00');
       const rest = text.replace(/^\d+:\d+\s*/, '');
       let fullName = el.dataset.name || '';
       let proc = el.dataset.proc || '';
@@ -101,7 +101,6 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
       const cls = el.dataset.cls || [...el.classList].find(c => c.startsWith('ev-')) || 'ev-done';
       return {
         id: el.dataset.citaId || el.dataset.id || '',
-        paciente_id: el.dataset.pacienteId || '',
         reprogramar_url: el.dataset.reprogramarUrl || '',
         fullName,
         displayName,
@@ -137,7 +136,6 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
     const PACIENTE_LABELS = ['Datos del paciente','Datos del Paciente'];
     const MENSAJE_LABELS = ['Enviar mensaje'];
     const INFORME_LABELS = ['Ver Informe'];
-    const INICIAR_LABELS = ['Iniciar Estudio'];
 
     function buildAgendarUrl(d, fechaTxt) {
       if (d.reprogramar_url) return d.reprogramar_url;
@@ -161,14 +159,15 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
       let d;
       const isDayEvent = el.classList.contains('day-event');
       if (isDayEvent && el.dataset.name) {
+        const displayName = (window.__displayName ? window.__displayName(el.dataset.name) : el.dataset.name);
         d = {
           fullName: el.dataset.name,
-          initials: el.dataset.inits || el.dataset.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),
+          displayName: displayName,
+          initials: el.dataset.inits || displayName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),
           proc:     el.dataset.proc || 'Procedimiento',
           time:     el.dataset.time || '00:00',
           cls:      el.dataset.evcls || 'ev-done',
           id:       el.dataset.citaId || el.dataset.id || '',
-          paciente_id: el.dataset.pacienteId || '',
           reprogramar_url: el.dataset.reprogramarUrl || '',
         };
       } else {
@@ -196,7 +195,7 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
         }
       }
       evPopAvatar.textContent = d.initials;
-      evPopName.textContent   = d.fullName;
+      evPopName.textContent   = d.displayName || d.fullName;
       evPopDate.innerHTML     = fechaTxt ? `<b>Fecha:</b> ${fechaTxt}` : '';
       evPopInfo.innerHTML =
         `<b>Motivo:</b> ${d.proc}<br>` +
@@ -240,42 +239,6 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
           btn.addEventListener('click', ev => {
             ev.stopPropagation();
             window.location.href = '{{ route('ia-reportes.ver') }}?paciente=' + encodeURIComponent(d.displayName || d.fullName) + '&procedimiento=' + encodeURIComponent(d.proc || 'Endoscopia');
-          });
-        }
-        if (INICIAR_LABELS.includes(b.label)) {
-          btn.addEventListener('click', async ev => {
-            ev.stopPropagation();
-            if (!d.paciente_id || !d.id) return;
-            btn.disabled = true;
-            btn.textContent = 'Iniciando...';
-            try {
-              const res = await fetch('{{ route('nuevo-estudio.store') }}', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                  'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                  paciente_id: d.paciente_id,
-                  cita_id: d.id,
-                  tipo: d.proc || 'Endoscopia'
-                })
-              });
-              const data = await res.json();
-              if (data.ok && data.redirect) {
-                window.location.href = data.redirect;
-              } else {
-                alert(data.message || 'No se pudo iniciar el estudio.');
-                btn.disabled = false;
-                btn.textContent = b.label;
-              }
-            } catch (err) {
-              console.error(err);
-              alert('Error al iniciar el estudio.');
-              btn.disabled = false;
-              btn.textContent = b.label;
-            }
           });
         }
         evPopBtns.appendChild(btn);
@@ -360,6 +323,50 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
     /* Cerrar popup con Escape */
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') { popupAnchoredEl = null; evPopup.classList.remove('visible'); }
+    });
+
+    /* ---- Arrastrar el popup ---- */
+    let isDragging = false;
+    let dragOffsetX = 0, dragOffsetY = 0;
+    let dragStartX = 0, dragStartY = 0;
+    let dragHasMoved = false;
+
+    evPopup.addEventListener('mousedown', e => {
+      if (e.target.closest('.ev-pop-btn') || e.target.closest('a')) return;
+      e.preventDefault();
+      e.stopPropagation();
+      isDragging = true;
+      dragHasMoved = false;
+      const rect = evPopup.getBoundingClientRect();
+      dragOffsetX = e.clientX - rect.left;
+      dragOffsetY = e.clientY - rect.top;
+      dragStartX = e.clientX;
+      dragStartY = e.clientY;
+      cancelHide();
+    });
+
+    document.addEventListener('mousemove', e => {
+      if (!isDragging) return;
+      dragHasMoved = true;
+      const x = e.clientX - dragOffsetX;
+      const y = e.clientY - dragOffsetY;
+      evPopup.style.left = x + 'px';
+      evPopup.style.top  = y + 'px';
+      evPopup.style.transform = 'none';
+      cancelHide();
+    });
+
+    document.addEventListener('mouseup', e => {
+      if (!isDragging) return;
+      isDragging = false;
+      const rect = evPopup.getBoundingClientRect();
+      const outside = e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom;
+      if (outside) {
+        popupAnchoredEl = null;
+        evPopup.classList.remove('visible');
+      } else {
+        scheduleHide();
+      }
     });
   };
 })();

@@ -11,34 +11,41 @@
           <tr><th>Paciente</th><th>Hora</th><th>Tipo de estudio</th><th>Estado</th><th>Médico</th><th>Acciones</th></tr>
         </thead>
         <tbody>
-          <tr>
-            <td><span class="pat"><span class="mini">MG</span>María González</span></td>
-            <td>10:30 AM</td><td>Endoscopia diagnóstica</td>
-            <td><span class="chip wait">En espera</span></td>
-            <td>Dr. Ricardo</td>
-            <td><button class="dots" aria-label="Más opciones">⋮</button></td>
-          </tr>
-          <tr>
-            <td><span class="pat"><span class="mini">JL</span>Jorge López</span></td>
-            <td>11:15 AM</td><td>Colonoscopia</td>
-            <td><span class="chip urgent">Urgente</span></td>
-            <td>Dr. Ricardo</td>
-            <td><button class="dots" aria-label="Más opciones">⋮</button></td>
-          </tr>
-          <tr>
-            <td><span class="pat"><span class="mini">AR</span>Ana Ramírez</span></td>
-            <td>12:00 PM</td><td>Endoscopia diagnóstica</td>
-            <td><span class="chip done">Completado</span></td>
-            <td>Dr. Ricardo</td>
-            <td><button class="dots" aria-label="Más opciones">⋮</button></td>
-          </tr>
-          <tr>
-            <td><span class="pat"><span class="mini">PT</span>Pedro Torres</span></td>
-            <td>12:45 PM</td><td>Gastroscopia</td>
-            <td><span class="chip wait">En espera</span></td>
-            <td>Dr. Ricardo</td>
-            <td><button class="dots" aria-label="Más opciones">⋮</button></td>
-          </tr>
+          @forelse (($pendientesHoy ?? []) as $cita)
+            @php
+              $nombreCita = $cita->paciente?->nombre_completo ?? $cita->paciente_nombre ?? 'Paciente';
+              $partes = preg_split('/\s+/', trim($nombreCita));
+              $mini = count($partes) >= 2
+                ? mb_strtoupper(mb_substr($partes[0],0,1).mb_substr($partes[1],0,1))
+                : mb_strtoupper(mb_substr($nombreCita,0,2));
+              $estado = $cita->estado ?? 'en_espera';
+              $chipCls = match($estado) {
+                'completado' => 'done',
+                'cancelado'  => 'cancel',
+                'urgente'    => 'urgent',
+                default      => 'wait',
+              };
+              $chipLabel = match($estado) {
+                'completado' => 'Completado',
+                'cancelado'  => 'Cancelado',
+                'urgente'    => 'Urgente',
+                default      => 'En espera',
+              };
+              $medico = $cita->paciente?->medico ?? '—';
+            @endphp
+            <tr>
+              <td><span class="pat"><span class="mini">{{ $mini }}</span>{{ $nombreCita }}</span></td>
+              <td>{{ $cita->hora ?? '—' }}</td>
+              <td>{{ $cita->procedimiento ?? 'Sin procedimiento' }}</td>
+              <td><span class="chip {{ $chipCls }}">{{ $chipLabel }}</span></td>
+              <td>{{ $medico }}</td>
+              <td><button class="dots" aria-label="Más opciones">⋮</button></td>
+            </tr>
+          @empty
+            <tr>
+              <td colspan="6" style="text-align:center;padding:24px;color:var(--txt-soft)">No hay pacientes pendientes para hoy.</td>
+            </tr>
+          @endforelse
         </tbody>
       </table>
     </div>
