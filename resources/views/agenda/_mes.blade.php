@@ -129,6 +129,7 @@ html[data-theme="light"] .cal-event.ev-soon{background:#F3ECFF;color:#4A1A8A;bor
           div.dataset.cls = liveCls;
           div.dataset.time = timeM ? timeM[1] : (ev.hora || (ev.h ? String(ev.h).padStart(2,'0') + ':00' : ''));
           div.dataset.citaId = ev.id || '';
+          div.dataset.pacienteId = ev.paciente_id || '';
           div.dataset.deleteUrl = ev.delete_url || '';
 
           div.innerHTML = `<div class="ce-line1">${displayName}</div><div class="ce-line2">${proc}</div>`;
