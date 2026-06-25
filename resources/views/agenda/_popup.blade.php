@@ -103,11 +103,15 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
         id: el.dataset.citaId || el.dataset.id || '',
         pacienteId: el.dataset.pacienteId || el.dataset.paciente_id || '',
         reprogramar_url: el.dataset.reprogramarUrl || '',
+        deleteUrl: el.dataset.deleteUrl || '',
+        estado: el.dataset.estado || '',
+        estadoUrl: el.dataset.estadoUrl || '',
         fullName,
         displayName,
         initials,
         proc,
         time,
+        duration: el.dataset.duration || '60',
         cls
       };
     }
@@ -168,9 +172,13 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
           initials: el.dataset.inits || displayName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),
           proc:     el.dataset.proc || 'Procedimiento',
           time:     el.dataset.time || '00:00',
+          duration: el.dataset.duration || '60',
           cls:      el.dataset.evcls || 'ev-done',
           id:       el.dataset.citaId || el.dataset.id || '',
           pacienteId: el.dataset.pacienteId || el.dataset.paciente_id || '',
+          deleteUrl: el.dataset.deleteUrl || '',
+          estado: el.dataset.estado || '',
+          estadoUrl: el.dataset.estadoUrl || '',
           reprogramar_url: el.dataset.reprogramarUrl || '',
         };
       } else {
@@ -197,12 +205,30 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
           }
         }
       }
+      function minutesTo12h(min) {
+        const h = Math.floor(min / 60);
+        const m = min % 60;
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const h12 = h % 12 === 0 ? 12 : h % 12;
+        return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+      }
+      function time24To12h(time24) {
+        const [h, m] = String(time24 || '00:00').split(':').map(Number);
+        return minutesTo12h((h || 0) * 60 + (m || 0));
+      }
+      const startMin = (() => {
+        const [h, m] = String(d.time || '00:00').split(':').map(Number);
+        return (h || 0) * 60 + (m || 0);
+      })();
+      const duration = parseInt(d.duration || '60', 10) || 60;
+      const endMin = startMin + duration;
+      const timeRange = `${time24To12h(d.time)} – ${minutesTo12h(endMin)}`;
       evPopAvatar.textContent = d.initials;
       evPopName.textContent   = d.displayName || d.fullName;
       evPopDate.innerHTML     = fechaTxt ? `<b>Fecha:</b> ${fechaTxt}` : '';
       evPopInfo.innerHTML =
         `<b>Motivo:</b> ${d.proc}<br>` +
-        `<b>Tiempo:</b> ${d.time} AM – ${parseInt(d.time)+1}:00 PM<br>` +
+        `<b>Tiempo:</b> ${timeRange}<br>` +
         `<b>Habitación:</b> Sala 3`;
       const badgeCls = STATUS_BADGE_CLS[d.cls] || 'done';
       evPopBadge.className = 'ev-pop-badge ' + badgeCls;
@@ -255,14 +281,16 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
       });
       const delBtn = document.createElement('button');
       delBtn.className = 'ev-pop-btn danger';
-      delBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>Borrar cita`;
+      const puedeEliminar = ['cancelado', 'completado'].includes(d.estado);
+      delBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>${puedeEliminar ? 'Eliminar cita' : 'Cancelar cita'}`;
       delBtn.addEventListener('click', e => {
         e.stopPropagation();
         const evEl = popupAnchoredEl;
-        const deleteUrl = evEl && evEl.dataset.deleteUrl;
+        if (!evEl) return;
+        const isEliminar = ['cancelado', 'completado'].includes(evEl.dataset.estado);
         hidePopup();
         if (window.showDelConfirmGlobal) {
-          window.showDelConfirmGlobal(evEl, deleteUrl);
+          window.showDelConfirmGlobal(evEl, isEliminar ? evEl.dataset.deleteUrl : evEl.dataset.estadoUrl);
         }
       });
       evPopBtns.appendChild(delBtn);

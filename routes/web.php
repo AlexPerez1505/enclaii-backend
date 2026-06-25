@@ -27,22 +27,37 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
         $estudiosSinReporte = \App\Models\Estudio::whereDoesntHave('reportes')->count();
 
-        // Próximo paciente: la cita pendiente más cercana
+        // Auto-cancelar citas próximas cuya fecha/hora ya pasó
+        \App\Models\Cita::query()
+            ->where('estado', 'proximo')
+            ->whereRaw("CONCAT(fecha, ' ', hora) <= ?", [now()->format('Y-m-d H:i:s')])
+            ->update(['estado' => 'cancelado']);
+
+        // Próximo paciente: la cita pendiente más cercana (solo futuras)
         $proximaCita = \App\Models\Cita::with('paciente')
             ->whereNotIn('estado', ['cancelado', 'completado'])
-            ->whereDate('fecha', '>=', now()->toDateString())
+            ->whereRaw("CONCAT(fecha, ' ', hora) >= ?", [now()->format('Y-m-d H:i:s')])
             ->orderBy('fecha')
             ->orderBy('hora')
             ->first();
 
-        // Pacientes pendientes HOY: citas de hoy que no estén completadas ni canceladas
+        // Pacientes pendientes HOY: citas de hoy futuras y no completadas/canceladas
         $pendientesHoy = \App\Models\Cita::with('paciente')
             ->whereDate('fecha', now()->toDateString())
             ->whereNotIn('estado', ['completado', 'cancelado'])
+            ->whereTime('hora', '>=', now()->format('H:i:s'))
             ->orderBy('hora')
             ->get();
 
-        return view('dashboard.index', compact('estudiosSinReporte', 'proximaCita', 'pendientesHoy'));
+        // Citas por estado para el donut del resumen
+        $citasProximas = \App\Models\Cita::where('estado', 'proximo')->count();
+        $citasCompletadas = \App\Models\Cita::where('estado', 'completado')->count();
+        $citasCanceladas = \App\Models\Cita::where('estado', 'cancelado')->count();
+
+        return view('dashboard.index', compact(
+            'estudiosSinReporte', 'proximaCita', 'pendientesHoy',
+            'citasProximas', 'citasCompletadas', 'citasCanceladas'
+        ));
     })->name('dashboard');
     
 

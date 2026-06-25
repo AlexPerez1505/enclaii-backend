@@ -193,9 +193,12 @@ html[data-theme="light"] .wk-modal-badge.soon{background:#F3ECFF;color:#4A1A8A;b
           div.dataset.proc = proc;
           div.dataset.cls = liveCls;
           div.dataset.time = timeM ? timeM[1] : (ev.h ? String(ev.h).padStart(2,'0') + ':00' : '');
+          div.dataset.duration = ev.duracion || '60';
           div.dataset.citaId = ev.id || '';
           div.dataset.pacienteId = ev.paciente_id || '';
           div.dataset.deleteUrl = ev.delete_url || '';
+          div.dataset.estado = ev.estado || '';
+          div.dataset.estadoUrl = ev.estado_url || '';
           td.appendChild(div);
         });
         if (cellEvents.length > MAX_VISIBLE) {
@@ -252,6 +255,10 @@ html[data-theme="light"] .wk-modal-badge.soon{background:#F3ECFF;color:#4A1A8A;b
       item.dataset.proc = proc;
       item.dataset.cls = cls;
       item.dataset.pacienteId = ev.paciente_id || '';
+      item.dataset.citaId = ev.id || '';
+      item.dataset.deleteUrl = ev.delete_url || '';
+      item.dataset.estado = ev.estado || '';
+      item.dataset.estadoUrl = ev.estado_url || '';
       item.innerHTML = `
         <div class="wk-modal-avatar">${inits}</div>
         <div class="wk-modal-info">

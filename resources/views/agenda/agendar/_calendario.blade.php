@@ -286,6 +286,15 @@ html[data-theme="light"] .reprogram-info{
     return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
   }
 
+  function formatTime12(minutes) {
+    let h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12;
+    if (h === 0) h = 12;
+    return `${h}:${String(m).padStart(2,'0')} ${ampm}`;
+  }
+
   function getSelectedMinutes() {
     let hh = parseInt(document.getElementById('timeHour').value, 10) || 8;
     let mm = parseInt(document.getElementById('timeMin').value, 10) || 0;
@@ -472,7 +481,7 @@ html[data-theme="light"] .reprogram-info{
     if (!selectedTime) {
       const horaInput = document.getElementById('citaHora');
       if (horaInput && horaInput.value) {
-        const m = parseTime24ToMinutes(horaInput.value);
+        const m = parseTime12ToMinutes(horaInput.value);
         if (m !== null) selectedTime = m;
       }
     }
@@ -484,13 +493,16 @@ html[data-theme="light"] .reprogram-info{
     syncTimeToForm();
   }
 
-  function parseTime24ToMinutes(text) {
-    const m = String(text || '').trim().match(/^(\d{1,2}):(\d{2})$/);
+  function parseTime12ToMinutes(text) {
+    const m = String(text || '').trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
     if (!m) return null;
     let h = parseInt(m[1], 10);
     const min = parseInt(m[2], 10);
-    if (h < 0 || h > 23 || min < 0 || min > 59) return null;
-    return h * 60 + min;
+    const ampm = m[3].toUpperCase();
+    if (h < 1 || h > 12 || min < 0 || min > 59) return null;
+    let h24 = h % 12;
+    if (ampm === 'PM') h24 += 12;
+    return h24 * 60 + min;
   }
 
   function onTimeChanged() {
@@ -508,7 +520,7 @@ html[data-theme="light"] .reprogram-info{
   }
 
   function syncTimeToForm() {
-    const label = formatTime24(selectedTime);
+    const label = formatTime12(selectedTime);
     if (window.__agOnSlotSelect) window.__agOnSlotSelect(label);
   }
 
@@ -538,7 +550,7 @@ html[data-theme="light"] .reprogram-info{
   document.getElementById('timeHour')?.addEventListener('blur', () => { clampTimeInputs(); onTimeChanged(); });
   document.getElementById('timeMin')?.addEventListener('blur', () => { clampTimeInputs(); onTimeChanged(); });
   document.getElementById('citaHora')?.addEventListener('input', () => {
-    const m = parseTime24ToMinutes(document.getElementById('citaHora')?.value);
+    const m = parseTime12ToMinutes(document.getElementById('citaHora')?.value);
     if (m !== null) {
       selectedTime = m;
       setSelectedMinutes(m);

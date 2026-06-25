@@ -11,6 +11,12 @@ class AgendaController extends Controller
 {
     public function index()
     {
+        // Auto-cancelar citas 'proximo' cuya fecha/hora ya pasó y no están completadas.
+        Cita::query()
+            ->where('estado', 'proximo')
+            ->whereRaw("CONCAT(fecha, ' ', hora) <= ?", [now()->format('Y-m-d H:i:s')])
+            ->update(['estado' => 'cancelado']);
+
         $citas = Cita::query()
             ->with('paciente')
             ->orderBy('fecha')

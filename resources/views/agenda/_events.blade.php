@@ -97,7 +97,12 @@
         }
         throw new Error(data.message || 'No se pudo eliminar la cita.');
       }
-      if (callbacks.onSuccess) callbacks.onSuccess(data);
+      // Si la respuesta incluye la cita actualizada, la guardamos en el evento para reflejar cancelación.
+      if (data.cita && callbacks.onUpdated) {
+        callbacks.onUpdated(data.cita);
+      } else if (callbacks.onSuccess) {
+        callbacks.onSuccess(data);
+      }
     } catch (err) {
       if (callbacks.onError) callbacks.onError(err.message || 'Error de red');
       else console.error(err);
