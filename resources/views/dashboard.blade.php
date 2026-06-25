@@ -277,16 +277,30 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:540px}
       </span>
       <article class="card card-next">
         <h3>PRÓXIMO PACIENTE</h3>
-        <div class="name">María<br>Gonzales</div>
-        <div class="meta">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          <b>10:30 AM</b>
-        </div>
-        <div class="meta"><b>Endoscopia diagnóstica</b></div>
-        <a class="btn-line" href="{{ route('pacientes.index') }}?folio=00045" style="margin-top:16px">
-          Abrir expediente
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-        </a>
+        @php
+          $pacCita = $proximaCita?->paciente;
+          $nombreCita = $pacCita?->nombre_completo ?? $proximaCita?->paciente_nombre ?? 'Sin citas próximas';
+          $partesNombre = preg_split('/\s+/', trim($nombreCita), 2);
+        @endphp
+        @if ($proximaCita)
+          <div class="name">{{ $partesNombre[0] }}@if(!empty($partesNombre[1]))<br>{{ $partesNombre[1] }}@endif</div>
+          <div class="meta">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <b>{{ \Illuminate\Support\Str::of($proximaCita->fecha?->format('d/m/Y').' · '.($proximaCita->hora ?? ''))->trim(' ·') }}</b>
+          </div>
+          <div class="meta"><b>{{ $proximaCita->procedimiento ?? 'Procedimiento por definir' }}</b></div>
+          <a class="btn-line" href="{{ $pacCita ? route('pacientes.index', ['paciente' => $pacCita->id]) : route('pacientes.index') }}" style="margin-top:16px">
+            Abrir expediente
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        @else
+          <div class="name">Sin citas<br>próximas</div>
+          <div class="meta"><b>No hay citas agendadas</b></div>
+          <a class="btn-line" href="{{ route('agendar') }}" style="margin-top:16px">
+            Agendar cita
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        @endif
         <div class="holo">
           <svg viewBox="0 0 60 100" fill="none" stroke="#38C7F4" stroke-width="1.6" stroke-linecap="round">
             <circle cx="30" cy="14" r="8"/>
@@ -306,11 +320,11 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:540px}
       </span>
       <article class="card card-ia">
         <img class="brain-img" src="{{ asset('images/brain-ia.png') }}" alt="">
-        <h3>REPORTE IA</h3>
-        <div class="big-num" id="numReportes" data-target="2">0</div>
-        <div class="big-label">reportes pendientes<br><span class="muted">generados por IA</span></div>
-        <a class="btn-orange" href="{{ route('ia-reportes') }}">
-          Revisar reportes
+        <h3>ESTUDIOS SIN REPORTES</h3>
+        <div class="big-num" id="numReportes" data-target="{{ $estudiosSinReporte ?? 0 }}">0</div>
+        <div class="big-label">estudios sin reporte<br><span class="muted">pendientes de generar</span></div>
+        <a class="btn-orange" href="{{ route('ia-reportes.redactar') }}">
+          Generar reportes
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </a>
       </article>
@@ -382,38 +396,35 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:540px}
               <tr><th>Paciente</th><th>Hora</th><th>Tipo de estudio</th><th>Estado</th><th>Médico</th><th>Acciones</th></tr>
             </thead>
             <tbody>
-              <tr>
-                <td><span class="pat"><span class="mini">MG</span>María González</span></td>
-                <td>10:30 AM</td><td>Endoscopia diagnóstica</td>
-                <td><span class="chip wait">En espera</span></td>
-                <td>Dr. Ricardo</td>
-                <td><button class="dots" aria-label="Más opciones">⋮</button></td>
-              </tr>
-              <tr>
-                <td><span class="pat"><span class="mini">JL</span>Jorge López</span></td>
-                <td>11:15 AM</td><td>Colonoscopia</td>
-                <td><span class="chip urgent">Urgente</span></td>
-                <td>Dr. Ricardo</td>
-                <td><button class="dots" aria-label="Más opciones">⋮</button></td>
-              </tr>
-              <tr>
-                <td><span class="pat"><span class="mini">AR</span>Ana Ramírez</span></td>
-                <td>12:00 PM</td><td>Endoscopia diagnóstica</td>
-                <td><span class="chip done">Completado</span></td>
-                <td>Dr. Ricardo</td>
-                <td><button class="dots" aria-label="Más opciones">⋮</button></td>
-              </tr>
-              <tr>
-                <td><span class="pat"><span class="mini">PT</span>Pedro Torres</span></td>
-                <td>12:45 PM</td><td>Gastroscopia</td>
-                <td><span class="chip wait">En espera</span></td>
-                <td>Dr. Ricardo</td>
-                <td><button class="dots" aria-label="Más opciones">⋮</button></td>
-              </tr>
+              @forelse (($pendientesHoy ?? []) as $cita)
+                @php
+                  $nombreCita = $cita->paciente?->nombre_completo ?? $cita->paciente_nombre ?? 'Paciente';
+                  $partes = preg_split('/\s+/', trim($nombreCita));
+                  $mini = count($partes) >= 2
+                    ? mb_strtoupper(mb_substr($partes[0], 0, 1).mb_substr($partes[1], 0, 1))
+                    : mb_strtoupper(mb_substr($nombreCita, 0, 2));
+                  $chip = $cita->estado === 'en_espera'
+                    ? ['wait', 'En espera']
+                    : ['wait', 'Próximo'];
+                  $medico = $cita->paciente?->medico ?: '—';
+                @endphp
+                <tr>
+                  <td><span class="pat"><span class="mini">{{ $mini }}</span>{{ $nombreCita }}</span></td>
+                  <td>{{ $cita->hora ?? '—' }}</td>
+                  <td>{{ $cita->procedimiento ?? 'Sin procedimiento' }}</td>
+                  <td><span class="chip {{ $chip[0] }}">{{ $chip[1] }}</span></td>
+                  <td>{{ $medico }}</td>
+                  <td><button class="dots" aria-label="Más opciones">⋮</button></td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="6" style="text-align:center;padding:24px;color:var(--txt-soft)">No hay pacientes pendientes para hoy.</td>
+                </tr>
+              @endforelse
             </tbody>
           </table>
         </div>
-        <a class="tbl-link" href="#">
+        <a class="tbl-link" href="{{ route('agenda') }}">
           Ver agenda completa
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </a>

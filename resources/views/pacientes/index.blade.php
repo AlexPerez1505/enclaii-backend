@@ -2354,6 +2354,26 @@ function renderPaginationControls(page, totalPages) {
 
 renderPage(1);
 
+/* ============ Selección de paciente vía ?paciente=ID (desde el dashboard) ============ */
+(function selectPatientFromQuery() {
+  const pid = new URLSearchParams(window.location.search).get('paciente');
+  if (!pid) return;
+
+  const idx = patientsData.findIndex(p => String(p.id) === String(pid));
+  if (idx < 0) return;
+
+  const page = Math.floor(idx / PAGE_SIZE) + 1;
+  renderPage(page);
+
+  requestAnimationFrame(() => {
+    const row = document.querySelector('[data-index="' + idx + '"]');
+    if (!row) return;
+    document.querySelectorAll('.patient-row').forEach(r => r.classList.remove('active'));
+    row.classList.add('active');
+    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+})();
+
 
 /* ============ PANEL FILTROS ============ */
 function openFilters() {
