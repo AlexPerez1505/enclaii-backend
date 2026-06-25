@@ -33,6 +33,7 @@
 
     EVENTS[cita.fecha_key].push({
       id: cita.id,
+      paciente_id: cita.paciente_id || null,
       t: `${horaLabel} ${paciente} · ${procedimiento}`,
       name: paciente,
       proc: procedimiento,
@@ -40,7 +41,6 @@
       h: parseInt(cita.hora_h ?? String(horaLabel).substring(0, 2), 10),
       duracion: cita.duracion_minutos ?? 60,
       hora: cita.hora,
-      paciente_id: cita.paciente_id,
       estado: cita.estado,
       estado_texto: cita.estado_texto,
       sala: cita.sala || 'Sala 3',
@@ -66,5 +66,42 @@
 
   window.__AGENDA_EVENTS = EVENTS;
   window.__displayName = _displayName;
+
+  window.__removeAgendaEventById = function(id) {
+    if (!id || !window.__AGENDA_EVENTS) return;
+    Object.keys(window.__AGENDA_EVENTS).forEach(key => {
+      window.__AGENDA_EVENTS[key] = window.__AGENDA_EVENTS[key].filter(ev => String(ev.id) !== String(id));
+      if (!window.__AGENDA_EVENTS[key].length) delete window.__AGENDA_EVENTS[key];
+    });
+  };
+
+  window.__deleteCita = async function(deleteUrl, callbacks = {}) {
+    if (!deleteUrl) {
+      if (callbacks.onError) callbacks.onError('No hay URL para eliminar la cita.');
+      return;
+    }
+    try {
+      const response = await fetch(deleteUrl, {
+        method: 'DELETE',
+        headers: {
+          'X-CSRF-TOKEN': "{{ csrf_token() }}",
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        }
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        if (response.status === 404) {
+          if (callbacks.onSuccess) callbacks.onSuccess({ already_deleted: true, message: data.message || 'La cita ya no existía.' });
+          return;
+        }
+        throw new Error(data.message || 'No se pudo eliminar la cita.');
+      }
+      if (callbacks.onSuccess) callbacks.onSuccess(data);
+    } catch (err) {
+      if (callbacks.onError) callbacks.onError(err.message || 'Error de red');
+      else console.error(err);
+    }
+  };
 })();
 </script>
