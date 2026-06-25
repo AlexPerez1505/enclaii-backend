@@ -58,16 +58,13 @@
 .time-picker-col{display:flex;flex-direction:column;gap:4px}
 .time-picker-col label{font-size:10px;color:var(--ag-soft);font-weight:600;letter-spacing:.02em}
 .time-picker-col input[type="text"]{
-  width:64px;min-width:64px;height:38px;border-radius:8px;border:1.5px solid rgba(255,255,255,.25);
+  width:56px;min-width:56px;height:38px;border-radius:8px;border:1.5px solid rgba(255,255,255,.25);
   background:rgba(0,0,0,.25);color:#fff;font-size:15px;font-weight:700;cursor:pointer;
   padding:0 10px;font-family:inherit;appearance:auto;text-align:center
 }
 .time-picker-col input[type="text"]:focus{outline:none;border-color:var(--ag-blue)}
 .time-picker-col input[type="text"]::selection{background:var(--ag-blue);color:#fff}
 .time-separator{font-size:18px;font-weight:800;color:#fff;align-self:flex-end;padding-bottom:6px}
-.time-ampm{display:flex;border-radius:8px;overflow:hidden;border:1.5px solid rgba(255,255,255,.25);background:rgba(0,0,0,.25);align-self:flex-end}
-.time-ampm button{height:36px;width:44px;border:none;background:transparent;color:#fff;font-size:13px;font-weight:700;cursor:pointer;transition:background 120ms}
-.time-ampm button.active{background:var(--ag-blue);color:#fff}
 
 /* Duración */
 .duration-picker-wrap{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
@@ -127,11 +124,8 @@ html[data-theme="light"] .time-picker-col input[type="text"]{background:#fff;bor
 html[data-theme="light"] .time-picker-col input[type="text"]::selection{background:#1668D9;color:#fff}
 html[data-theme="light"] .time-separator{color:#0E1530}
 html[data-theme="light"] .time-picker-col label{color:#5B6A99}
-html[data-theme="light"] .time-ampm{background:#fff;border-color:rgba(20,50,120,.25)}
 html[data-theme="light"] .duration-label{color:#5B6A99}
 html[data-theme="light"] .time-end{color:#5B6A99}
-html[data-theme="light"] .time-ampm button{color:#0E1530}
-html[data-theme="light"] .time-ampm button.active{background:#1668D9;color:#fff}
 html[data-theme="light"] .duration-input{background:#fff;border-color:rgba(20,50,120,.25);color:#0E1530}
 html[data-theme="light"] .duration-suffix{color:#5B6A99}
 html[data-theme="light"] .dur-btn{background:#fff;border-color:rgba(20,50,120,.25);color:#0E1530}
@@ -209,16 +203,12 @@ html[data-theme="light"] .reprogram-info{
     <div class="time-picker-wrap">
       <div class="time-picker-col">
         <label>Hora</label>
-        <input type="text" id="timeHour" inputmode="numeric" pattern="[0-9]{1,2}" maxlength="2" value="10">
+        <input type="text" id="timeHour" inputmode="numeric" pattern="[0-9]{1,2}" maxlength="2" value="08">
       </div>
       <div class="time-separator">:</div>
       <div class="time-picker-col">
         <label>Min</label>
         <input type="text" id="timeMin" inputmode="numeric" pattern="[0-9]{1,2}" maxlength="2" value="00">
-      </div>
-      <div class="time-ampm" id="timeAmPm">
-        <button type="button" data-val="AM">AM</button>
-        <button type="button" data-val="PM">PM</button>
       </div>
     </div>
 
@@ -290,31 +280,28 @@ html[data-theme="light"] .reprogram-info{
     return { start, end: start + duration, cls: ev.cls };
   }
 
-  function formatTime12(minutes) {
-    let h = Math.floor(minutes / 60);
+  function formatTime24(minutes) {
+    const h = Math.floor(minutes / 60);
     const m = minutes % 60;
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    h = h % 12; if (h === 0) h = 12;
-    return `${h}:${String(m).padStart(2,'0')} ${ampm}`;
+    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
   }
 
   function getSelectedMinutes() {
-    const hh = parseInt(document.getElementById('timeHour').value, 10) || 12;
-    const mm = parseInt(document.getElementById('timeMin').value, 10) || 0;
-    const ampm = document.querySelector('#timeAmPm button.active')?.dataset.val || 'AM';
-    let h24 = hh % 12;
-    if (ampm === 'PM') h24 += 12;
-    return h24 * 60 + mm;
+    let hh = parseInt(document.getElementById('timeHour').value, 10) || 8;
+    let mm = parseInt(document.getElementById('timeMin').value, 10) || 0;
+    // Forzar rango 08:00 - 23:59
+    hh = Math.max(8, Math.min(23, hh));
+    mm = Math.max(0, Math.min(59, mm));
+    return hh * 60 + mm;
   }
 
   function setSelectedMinutes(minutes) {
     let h24 = Math.floor(minutes / 60);
     const mm = minutes % 60;
-    const ampm = h24 >= 12 ? 'PM' : 'AM';
-    let h12 = h24 % 12; if (h12 === 0) h12 = 12;
-    document.getElementById('timeHour').value = h12;
+    // Forzar rango 08:00 - 23:59
+    h24 = Math.max(8, Math.min(23, h24));
+    document.getElementById('timeHour').value = String(h24).padStart(2, '0');
     document.getElementById('timeMin').value = String(mm).padStart(2, '0');
-    document.querySelectorAll('#timeAmPm button').forEach(b => b.classList.toggle('active', b.dataset.val === ampm));
   }
 
   function getDuration() {
@@ -363,7 +350,7 @@ html[data-theme="light"] .reprogram-info{
   function updateEndTime() {
     const start = getSelectedMinutes();
     const end = start + getDuration();
-    document.getElementById('timeEnd').textContent = formatTime12(end);
+    document.getElementById('timeEnd').textContent = formatTime24(end);
   }
 
   function updateTimelineCursor() {
@@ -411,7 +398,7 @@ html[data-theme="light"] .reprogram-info{
       const status = getSegmentStatus(mid, ranges);
       const seg = document.createElement('div');
       seg.className = 'timeline-segment ' + status;
-      seg.title = formatTime12(segStart) + ' – ' + formatTime12(segStart + segmentMinutes);
+      seg.title = formatTime24(segStart) + ' – ' + formatTime24(segStart + segmentMinutes);
       bar.insertBefore(seg, cursor);
     }
   }
@@ -485,7 +472,7 @@ html[data-theme="light"] .reprogram-info{
     if (!selectedTime) {
       const horaInput = document.getElementById('citaHora');
       if (horaInput && horaInput.value) {
-        const m = parseTime12ToMinutes(horaInput.value);
+        const m = parseTime24ToMinutes(horaInput.value);
         if (m !== null) selectedTime = m;
       }
     }
@@ -497,14 +484,12 @@ html[data-theme="light"] .reprogram-info{
     syncTimeToForm();
   }
 
-  function parseTime12ToMinutes(text) {
-    const m = String(text || '').trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  function parseTime24ToMinutes(text) {
+    const m = String(text || '').trim().match(/^(\d{1,2}):(\d{2})$/);
     if (!m) return null;
     let h = parseInt(m[1], 10);
     const min = parseInt(m[2], 10);
-    const ampm = m[3].toUpperCase();
-    if (h === 12) h = 0;
-    if (ampm === 'PM') h += 12;
+    if (h < 0 || h > 23 || min < 0 || min > 59) return null;
     return h * 60 + min;
   }
 
@@ -523,7 +508,7 @@ html[data-theme="light"] .reprogram-info{
   }
 
   function syncTimeToForm() {
-    const label = formatTime12(selectedTime);
+    const label = formatTime24(selectedTime);
     if (window.__agOnSlotSelect) window.__agOnSlotSelect(label);
   }
 
@@ -532,8 +517,8 @@ html[data-theme="light"] .reprogram-info{
     const mInput = document.getElementById('timeMin');
     if (hInput) {
       let h = parseInt(hInput.value, 10);
-      if (Number.isNaN(h)) h = 12;
-      hInput.value = Math.max(1, Math.min(12, h));
+      if (Number.isNaN(h)) h = 8;
+      hInput.value = String(Math.max(8, Math.min(23, h))).padStart(2, '0');
     }
     if (mInput) {
       let m = parseInt(mInput.value, 10);
@@ -552,15 +537,8 @@ html[data-theme="light"] .reprogram-info{
   document.getElementById('timeMin')?.addEventListener('input', onTimeChanged);
   document.getElementById('timeHour')?.addEventListener('blur', () => { clampTimeInputs(); onTimeChanged(); });
   document.getElementById('timeMin')?.addEventListener('blur', () => { clampTimeInputs(); onTimeChanged(); });
-  document.querySelectorAll('#timeAmPm button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#timeAmPm button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      onTimeChanged();
-    });
-  });
   document.getElementById('citaHora')?.addEventListener('input', () => {
-    const m = parseTime12ToMinutes(document.getElementById('citaHora')?.value);
+    const m = parseTime24ToMinutes(document.getElementById('citaHora')?.value);
     if (m !== null) {
       selectedTime = m;
       setSelectedMinutes(m);

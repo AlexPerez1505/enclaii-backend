@@ -33,6 +33,7 @@
 
     EVENTS[cita.fecha_key].push({
       id: cita.id,
+      paciente_id: cita.paciente_id || null,
       t: `${horaLabel} ${paciente} · ${procedimiento}`,
       name: paciente,
       proc: procedimiento,

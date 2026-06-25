@@ -101,6 +101,7 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
       const cls = el.dataset.cls || [...el.classList].find(c => c.startsWith('ev-')) || 'ev-done';
       return {
         id: el.dataset.citaId || el.dataset.id || '',
+        pacienteId: el.dataset.pacienteId || el.dataset.paciente_id || '',
         reprogramar_url: el.dataset.reprogramarUrl || '',
         fullName,
         displayName,
@@ -136,6 +137,7 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
     const PACIENTE_LABELS = ['Datos del paciente','Datos del Paciente'];
     const MENSAJE_LABELS = ['Enviar mensaje'];
     const INFORME_LABELS = ['Ver Informe'];
+    const INICIAR_LABELS = ['Iniciar Estudio','Iniciar estudio'];
 
     function buildAgendarUrl(d, fechaTxt) {
       if (d.reprogramar_url) return d.reprogramar_url;
@@ -168,6 +170,7 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
           time:     el.dataset.time || '00:00',
           cls:      el.dataset.evcls || 'ev-done',
           id:       el.dataset.citaId || el.dataset.id || '',
+          pacienteId: el.dataset.pacienteId || el.dataset.paciente_id || '',
           reprogramar_url: el.dataset.reprogramarUrl || '',
         };
       } else {
@@ -219,20 +222,27 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
         if (PACIENTE_LABELS.includes(b.label)) {
           btn.addEventListener('click', ev => {
             ev.stopPropagation();
-            try {
-              localStorage.setItem('lastPatient', JSON.stringify({
-                name: d.fullName,
-                source: 'agenda',
-                timestamp: Date.now()
-              }));
-            } catch(e) {}
-            window.location.href = '{{ url('/pacientes') }}?paciente=' + encodeURIComponent(d.fullName);
+            if (d.pacienteId) {
+              window.location.href = '{{ route('pacientes.index') }}?paciente_id=' + encodeURIComponent(d.pacienteId);
+            } else {
+              window.location.href = '{{ route('pacientes.index') }}?paciente=' + encodeURIComponent(d.fullName);
+            }
           });
         }
         if (MENSAJE_LABELS.includes(b.label)) {
           btn.addEventListener('click', ev => {
             ev.stopPropagation();
             window.location.href = '{{ route('mensajes') }}?paciente=' + encodeURIComponent(d.displayName || d.fullName);
+          });
+        }
+        if (INICIAR_LABELS.includes(b.label)) {
+          btn.addEventListener('click', ev => {
+            ev.stopPropagation();
+            if (d.pacienteId) {
+              window.location.href = '{{ route('nuevo-estudio') }}?paciente=' + encodeURIComponent(d.pacienteId);
+            } else {
+              window.location.href = '{{ route('nuevo-estudio') }}?paciente=' + encodeURIComponent(d.fullName);
+            }
           });
         }
         if (INFORME_LABELS.includes(b.label)) {
@@ -359,12 +369,10 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
     document.addEventListener('mouseup', e => {
       if (!isDragging) return;
       isDragging = false;
-      const rect = evPopup.getBoundingClientRect();
-      const outside = e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom;
-      if (outside) {
-        popupAnchoredEl = null;
-        evPopup.classList.remove('visible');
-      } else {
+      // Una vez soltado, el popup permanece en su nueva posición.
+      // Se cierra solo cuando el mouse abandona el popup (mouseleave)
+      // o cuando el usuario pasa a otro evento/sale del popup.
+      if (!e.target.closest('#evPopup')) {
         scheduleHide();
       }
     });

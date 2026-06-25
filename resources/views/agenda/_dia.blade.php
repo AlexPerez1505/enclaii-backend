@@ -677,6 +677,7 @@ html[data-theme="light"] .day-modal-overlay{
           card.dataset.inits = inits;
           card.dataset.fechatxt = `${dayNames[dow]} ${d} de ${MESES[m]}`;
           card.dataset.citaId = ev.id || '';
+          card.dataset.pacienteId = ev.paciente_id || '';
           card.dataset.deleteUrl = ev.delete_url || '';
           if (ev.cls === 'ev-block' && ev.blockId !== undefined) {
             card.dataset.blockid    = ev.blockId;
