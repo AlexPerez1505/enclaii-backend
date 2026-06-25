@@ -3,6 +3,13 @@
 @section('title', 'Nuevo Estudio/Grabando')
 @section('active', 'nuevo-estudio')
 
+@php
+  $studioUserName = auth()->check() ? trim(auth()->user()->name ?? 'Doctor') : 'Doctor';
+  $studioUserParts = preg_split('/\s+/', $studioUserName);
+  $studioUserInitials = collect($studioUserParts)->take(2)->map(fn($p) => mb_substr($p, 0, 1))->join('');
+  $studioUserInitials = mb_strtoupper($studioUserInitials ?: mb_substr($studioUserName, 0, 2));
+@endphp
+
 @push('styles')
 <style>
 /* ═══════════════════════════════════════════════
@@ -1287,9 +1294,9 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
         </div>
 
         <div class="studio-doctor">
-          <div class="studio-doc-avatar">DV</div>
+          <div class="studio-doc-avatar">{{ $studioUserInitials }}</div>
           <div class="studio-doc-info">
-            <div class="studio-doc-name">Dr. Víctor</div>
+            <div class="studio-doc-name">{{ $studioUserName }}</div>
             <div class="studio-doc-role">Endoscopista</div>
           </div>
         </div>
@@ -1447,9 +1454,9 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
         <span class="studio-notif-badge">3</span>
       </button>
       <div class="studio-final-profile">
-        <div class="studio-doc-avatar">DV</div>
+        <div class="studio-doc-avatar">{{ $studioUserInitials }}</div>
         <div class="studio-doc-info">
-          <div class="studio-doc-name">Dr. Víctor</div>
+          <div class="studio-doc-name">{{ $studioUserName }}</div>
           <div class="studio-doc-role">Endoscopista</div>
         </div>
       </div>
@@ -1569,7 +1576,7 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
             <div class="studio-resumen-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
             Médico
           </div>
-          <div class="studio-resumen-value">Dr. Víctor</div>
+          <div class="studio-resumen-value">{{ $studioUserName }}</div>
         </div>
 
         <div class="studio-resumen-item">
@@ -1627,9 +1634,9 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
         <span class="studio-notif-badge">3</span>
       </button>
       <div class="studio-final-profile">
-        <div class="studio-doc-avatar">DV</div>
+        <div class="studio-doc-avatar">{{ $studioUserInitials }}</div>
         <div class="studio-doc-info">
-          <div class="studio-doc-name">Dr. Víctor</div>
+          <div class="studio-doc-name">{{ $studioUserName }}</div>
           <div class="studio-doc-role">Endoscopista</div>
         </div>
       </div>
@@ -1754,7 +1761,7 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
             <div class="studio-resumen-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
             Médico
           </div>
-          <div class="studio-resumen-value">Dr. Víctor</div>
+          <div class="studio-resumen-value">{{ $studioUserName }}</div>
         </div>
 
         <div class="studio-resumen-item">

@@ -4,7 +4,8 @@
   const pacienteId = @json((string) ($pacienteId ?? request('paciente', 1)));
   let current = {{ $current }};
   const total  = caps.length;
-  const savedCopiesKey = `galeria:paciente:${pacienteId}:imagenes-editadas`;
+  const csrfToken = @json(csrf_token());
+  const imageSaveBaseUrl = @json(url('/galeria/imagen'));
 
   /* ── helpers ── */
   function goTo(idx){
@@ -195,14 +196,6 @@
   const printBtn = document.getElementById('viToolPrint');
   if(printBtn) printBtn.addEventListener('click', printCurrentImage);
 
-  function editedGalleryCopies(){
-    try {
-      return JSON.parse(localStorage.getItem(savedCopiesKey) || '[]');
-    } catch (error) {
-      return [];
-    }
-  }
-
   function currentImageFilter(){
     const mainImage = document.getElementById('viMainImage');
     return mainImage?.style.filter || 'none';
@@ -231,47 +224,110 @@
     return output.toDataURL('image/jpeg', 0.82);
   }
 
-  function saveEditedCopyToGallery(button){
+  function dataUrlToBlob(dataUrl){
+    const parts = dataUrl.split(',');
+    const mime = (parts[0].match(/:(.*?);/) || [])[1] || 'image/jpeg';
+    const binary = atob(parts[1]);
+    const bytes = new Uint8Array(binary.length);
+    for(let i = 0; i < binary.length; i++){
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return new Blob([bytes], { type: mime });
+  }
+
+  function selectedArchivoId(){
+    return caps[current]?.id;
+  }
+
+  function setButtonSaving(button, text){
     const original = button?.innerHTML || '';
+    if(button){
+      button.disabled = true;
+      button.textContent = text;
+    }
+    return original;
+  }
 
+  function restoreButton(button, original){
+    if(!button) return;
+    button.disabled = false;
+    button.innerHTML = original;
+    button.style.background = '';
+    button.style.borderColor = '';
+  }
+
+  function updateCurrentImageUrl(url){
+    const freshUrl = `${url}${url.includes('?') ? '&' : '?'}v=${Date.now()}`;
+    caps[current].src = freshUrl;
+
+    const mainImage = document.getElementById('viMainImage');
+    if(mainImage){
+      mainImage.src = freshUrl;
+    }
+
+    const stripImage = document.querySelector(`.vi-strip-item[data-idx="${current}"] img`);
+    if(stripImage){
+      stripImage.src = freshUrl;
+    }
+
+    loadImageInCanvas(freshUrl);
+  }
+
+  async function saveEditedImage(button, mode){
+    const original = setButtonSaving(button, mode === 'copy' ? 'Guardando copia...' : 'Guardando...');
     try {
-      const imageData = drawEditedImageCopy();
-      const now = new Date();
-      const copies = editedGalleryCopies();
-      const copyNumber = copies.length + 1;
-      const source = caps[annotationImageIndex] || caps[current] || {};
-      const timestamp = document.getElementById('viInfoTs')?.textContent || source.ts || '';
+      const id = selectedArchivoId();
+      if(!id){
+        throw new Error('No se encontró el archivo actual para guardar.');
+      }
 
-      copies.unshift({
-        id: `editada-${Date.now()}`,
-        title: `Copia editada ${copyNumber}`,
-        date: now.toLocaleDateString('es-MX'),
-        time: timestamp,
-        src: imageData,
-        createdAt: now.toISOString()
+      const blob = dataUrlToBlob(drawEditedImageCopy());
+      const form = new FormData();
+      form.append('image', blob, `${mode === 'copy' ? 'copia_editada' : 'imagen_editada'}_${id}.jpg`);
+
+      const response = await fetch(`${imageSaveBaseUrl}/${id}/${mode === 'copy' ? 'guardar-copia' : 'guardar'}`, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': csrfToken,
+          'Accept': 'application/json'
+        },
+        body: form
       });
 
-      localStorage.setItem(savedCopiesKey, JSON.stringify(copies.slice(0, 12)));
+      const data = await response.json().catch(() => ({}));
+      if(!response.ok || !data.ok){
+        throw new Error(data.message || 'No se pudo guardar la imagen editada.');
+      }
+
+      if(mode !== 'copy' && data.archivo?.url){
+        updateCurrentImageUrl(data.archivo.url);
+      }
 
       if(button){
-        button.innerHTML = 'Guardado en galería';
+        button.textContent = mode === 'copy' ? 'Copia guardada' : 'Guardado';
         button.style.background = 'var(--green)';
         button.style.borderColor = 'rgba(61,220,151,.55)';
         setTimeout(() => {
-          button.innerHTML = original;
-          button.style.background = '';
-          button.style.borderColor = '';
+          restoreButton(button, original);
         }, 1800);
       }
     } catch (error) {
-      alert(error.message || 'No se pudo guardar la copia editada en la galería.');
+      restoreButton(button, original);
+      alert(error.message || 'No se pudo guardar la imagen editada.');
     }
+  }
+
+  const saveEditedOriginalBtn = document.getElementById('viSaveEditedOriginal');
+  if(saveEditedOriginalBtn){
+    saveEditedOriginalBtn.addEventListener('click', function(){
+      saveEditedImage(this, 'original');
+    });
   }
 
   const saveEditedCopyBtn = document.getElementById('viSaveEditedCopy');
   if(saveEditedCopyBtn){
     saveEditedCopyBtn.addEventListener('click', function(){
-      saveEditedCopyToGallery(this);
+      saveEditedImage(this, 'copy');
     });
   }
 
@@ -299,6 +355,7 @@
   let measureImageIndex = current;
   const measureStates = {};
   let draggingItem = null;
+  let draggingMode = 'move';
   let dragOffset = { x: 0, y: 0 };
 
   function emptyMeasureState(){
@@ -407,12 +464,33 @@
     return false;
   }
 
+  function hitModeForItem(item, pos){
+    if(item.type === 'circle'){
+      var margin = Math.max(10, item.width * 2);
+      var dist = Math.hypot(pos.x - item.x, pos.y - item.y);
+      return Math.abs(dist - item.radius) <= margin ? 'resize' : 'move';
+    }
+    return 'move';
+  }
+
   function findItemAtPos(pos){
     var state = getMeasureState();
     for(var i = state.items.length - 1; i >= 0; i--){
       if(hitTestItem(state.items[i], pos)) return state.items[i];
     }
     return null;
+  }
+
+  function updateMeasureCursor(e){
+    if(!measuring || draggingItem || measureDrawing) return;
+    var hit = findItemAtPos(measurePointerPosition(e));
+    if(!hit){
+      measureCanvas.style.cursor = 'crosshair';
+      return;
+    }
+    measureCanvas.style.cursor = hitModeForItem(hit, measurePointerPosition(e)) === 'resize'
+      ? 'nwse-resize'
+      : 'grab';
   }
 
   function moveItem(item, dx, dy){
@@ -422,6 +500,12 @@
     } else {
       item.x1 += dx; item.y1 += dy;
       item.x2 += dx; item.y2 += dy;
+    }
+  }
+
+  function resizeItem(item, pos){
+    if(item.type === 'circle'){
+      item.radius = Math.max(6, Math.hypot(pos.x - item.x, pos.y - item.y));
     }
   }
 
@@ -490,8 +574,9 @@
     var hit = findItemAtPos(pos);
     if(hit){
       draggingItem = hit;
+      draggingMode = hitModeForItem(hit, pos);
       dragOffset = { x: pos.x, y: pos.y };
-      measureCanvas.style.cursor = 'grabbing';
+      measureCanvas.style.cursor = draggingMode === 'resize' ? 'nwse-resize' : 'grabbing';
       return;
     }
     measureDrawing = true;
@@ -505,7 +590,11 @@
       var pos = measurePointerPosition(e);
       var dx = pos.x - dragOffset.x;
       var dy = pos.y - dragOffset.y;
-      moveItem(draggingItem, dx, dy);
+      if(draggingMode === 'resize'){
+        resizeItem(draggingItem, pos);
+      } else {
+        moveItem(draggingItem, dx, dy);
+      }
       dragOffset = pos;
       renderMeasurements();
       return;
@@ -520,6 +609,7 @@
     if(draggingItem){
       e.preventDefault();
       draggingItem = null;
+      draggingMode = 'move';
       measureCanvas.style.cursor = '';
       renderMeasurements();
       return;
@@ -592,11 +682,12 @@
   measureSave.addEventListener('click', function(){
     if(!measuring) return;
     renderMeasurements();
-    saveEditedCopyToGallery(this);
+    saveEditedImage(this, 'original');
   });
 
   measureCanvas.addEventListener('mousedown', startMeasure);
   measureCanvas.addEventListener('mousemove', drawMeasure);
+  measureCanvas.addEventListener('mousemove', updateMeasureCursor);
   measureCanvas.addEventListener('mouseup', stopMeasure);
   measureCanvas.addEventListener('mouseleave', stopMeasure);
   measureCanvas.addEventListener('touchstart', startMeasure, { passive: false });
@@ -803,7 +894,7 @@
   });
   annoSave.addEventListener('click', function(){
     if(!annotating) return;
-    saveEditedCopyToGallery(this);
+    saveEditedImage(this, 'original');
   });
 
   annotationCanvas.addEventListener('mousedown', startAnnotation);
@@ -932,7 +1023,7 @@
       setTimeout(() => { this.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Aplicar filtros'; }, 2000);
       return;
     }
-    saveEditedCopyToGallery(this);
+    saveEditedImage(this, 'copy');
   });
 
   /* Botón restablecer */

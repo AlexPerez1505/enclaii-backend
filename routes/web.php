@@ -519,6 +519,72 @@ Route::middleware('auth')->group(function () {
         ]);
     })->name('galeria.imagen');
 
+    Route::post('/galeria/imagen/{id}/guardar', function ($id, \Illuminate\Http\Request $request) {
+        $archivo = \App\Models\EstudioArchivo::findOrFail($id);
+
+        $request->validate([
+            'image' => ['required', 'file', 'mimes:jpg,jpeg,png,webp', 'max:51200'],
+        ]);
+
+        $file = $request->file('image');
+        $oldPath = $archivo->path;
+        $path = $file->store("estudios/{$archivo->estudio_id}/archivos", 'public');
+
+        $archivo->update([
+            'path' => $path,
+            'mime_type' => $file->getMimeType(),
+            'size_bytes' => $file->getSize(),
+            'nombre_original' => $file->getClientOriginalName(),
+            'nombre' => pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
+        ]);
+
+        if ($oldPath && $oldPath !== $path && \Illuminate\Support\Facades\Storage::disk('public')->exists($oldPath)) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($oldPath);
+        }
+
+        return response()->json([
+            'ok' => true,
+            'archivo' => [
+                'id' => $archivo->id,
+                'url' => asset('storage/'.$archivo->path),
+                'path' => $archivo->path,
+            ],
+        ]);
+    })->name('galeria.imagen.guardar');
+
+    Route::post('/galeria/imagen/{id}/guardar-copia', function ($id, \Illuminate\Http\Request $request) {
+        $archivo = \App\Models\EstudioArchivo::findOrFail($id);
+
+        $request->validate([
+            'image' => ['required', 'file', 'mimes:jpg,jpeg,png,webp', 'max:51200'],
+        ]);
+
+        $file = $request->file('image');
+        $path = $file->store("estudios/{$archivo->estudio_id}/archivos", 'public');
+        $copy = \App\Models\EstudioArchivo::create([
+            'estudio_id' => $archivo->estudio_id,
+            'paciente_id' => $archivo->paciente_id,
+            'tipo' => 'imagen',
+            'categoria' => 'editada',
+            'nombre_original' => $file->getClientOriginalName(),
+            'nombre' => pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
+            'path' => $path,
+            'mime_type' => $file->getMimeType(),
+            'size_bytes' => $file->getSize(),
+            'descripcion' => 'Copia guardada por edicion',
+            'capturado_en' => now(),
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'archivo' => [
+                'id' => $copy->id,
+                'url' => asset('storage/'.$copy->path),
+                'path' => $copy->path,
+            ],
+        ]);
+    })->name('galeria.imagen.guardar-copia');
+
     /* ── Finanzas ── */
     Route::get('/finanzas', function () {
         return view('finanzas.index');
