@@ -1,11 +1,41 @@
 {{-- ============================================================
      AGENDAR / _paciente.blade.php
      Paso 1: Datos del paciente
+     Consulta pacientes reales desde la tabla `pacientes`
      ============================================================ --}}
+
+@php
+  $pacientesAgendarJs = ($pacientes ?? collect())->values()->map(function ($paciente) {
+      $nombre = trim($paciente->nombre_completo ?? 'Paciente sin nombre');
+      $partes = preg_split('/\s+/', $nombre);
+      $iniciales = '';
+
+      if (count($partes) >= 2) {
+          $iniciales = mb_substr($partes[0], 0, 1) . mb_substr($partes[1], 0, 1);
+      } else {
+          $iniciales = mb_substr($nombre, 0, 2);
+      }
+
+      return [
+          'id' => $paciente->id,
+          'nombre' => $nombre,
+          'folio' => $paciente->folio ?? '',
+          'edad' => $paciente->edad ?? '',
+          'genero' => $paciente->sexo ? ucfirst($paciente->sexo) : 'No especificado',
+          'nac' => $paciente->fecha_nacimiento ? $paciente->fecha_nacimiento->format('d/m/Y') : '',
+          'tel' => $paciente->telefono ?? '',
+          'email' => $paciente->email ?? '',
+          'dir' => $paciente->direccion ?? '',
+          'foto_url' => $paciente->foto ? asset('storage/' . $paciente->foto) : null,
+          'iniciales' => mb_strtoupper($iniciales),
+          'medico' => $paciente->medico ?? '',
+          'procedimiento' => $paciente->procedimiento ?? '',
+      ];
+  });
+@endphp
+
 <style>
 .pac-search-wrap{position:relative;margin-bottom:14px}
-.pac-search-btn{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--ag-soft);cursor:pointer;display:grid;place-items:center;padding:4px}
-.pac-search-btn:hover{color:var(--ag-txt)}
 .pac-result{background:#001A30;border:1.5px solid var(--ag-stroke);border-radius:10px;padding:14px;display:flex;align-items:center;gap:12px;margin-bottom:12px}
 .pac-avatar{width:46px;height:46px;border-radius:50%;flex:none;background:linear-gradient(135deg,#1668D9,#00C8C8);display:grid;place-items:center;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:#fff;border:2px solid rgba(22,139,217,.4);overflow:hidden}
 .pac-avatar img{width:100%;height:100%;object-fit:cover}
@@ -19,124 +49,64 @@
 .pac-fields{display:flex;flex-direction:column;gap:0}
 .pac-link{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ag-blue);background:none;border:none;cursor:pointer;padding:0;font-family:inherit;margin-top:4px}
 .pac-link:hover{opacity:.8}
-
-/* Filtro panel */
+.pac-suggestions{position:absolute;top:calc(100% + 6px);left:0;right:0;background:#001A30;border:1.5px solid var(--ag-stroke);border-radius:10px;max-height:220px;overflow-y:auto;z-index:1100;display:none;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.pac-suggestions.open{display:block}
+.pac-suggestion{padding:10px 14px;cursor:pointer;font-size:13px;color:var(--ag-txt);border-bottom:1px solid rgba(255,255,255,.06)}
+.pac-suggestion:last-child{border-bottom:none}
+.pac-suggestion:hover,.pac-suggestion.active{background:rgba(22,139,217,.18)}
+.pac-suggestion .sug-folio{font-size:11px;color:var(--ag-soft);margin-left:6px}
 .pac-filter-btn{position:absolute;right:40px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;display:grid;place-items:center;padding:4px;color:var(--ag-blue)}
 .pac-filter-btn:hover{opacity:.8}
-.pac-filter-panel{
-  position:fixed;top:0;right:-340px;width:320px;max-width:95vw;height:100%;z-index:1200;
-  background:#0A1628;border-left:1.5px solid rgba(22,139,217,.3);
-  box-shadow:-12px 0 40px rgba(0,0,0,.6);
-  display:flex;flex-direction:column;
-  transition:right 250ms cubic-bezier(.4,0,.2,1);
-  overflow-y:auto;
-}
+.pac-filter-panel{position:fixed;top:0;right:-340px;width:320px;max-width:95vw;height:100%;z-index:1200;background:#0A1628;border-left:1.5px solid rgba(22,139,217,.3);box-shadow:-12px 0 40px rgba(0,0,0,.6);display:flex;flex-direction:column;transition:right 250ms cubic-bezier(.4,0,.2,1);overflow-y:auto}
 .pac-filter-panel.open{right:0}
-.pac-filter-overlay{
-  position:fixed;inset:0;z-index:1199;
-  background:rgba(0,0,0,.45);backdrop-filter:blur(3px);
-  opacity:0;pointer-events:none;
-  transition:opacity 200ms ease;
-}
+.pac-filter-overlay{position:fixed;inset:0;z-index:1199;background:rgba(0,0,0,.45);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity 200ms ease}
 .pac-filter-overlay.open{opacity:1;pointer-events:all}
-.pac-filter-head{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:20px 20px 14px;
-  border-bottom:1px solid rgba(255,255,255,.07);
-}
+.pac-filter-head{display:flex;align-items:center;justify-content:space-between;padding:20px 20px 14px;border-bottom:1px solid rgba(255,255,255,.07)}
 .pac-filter-title{font-family:'Sora',sans-serif;font-size:18px;font-weight:700;color:#fff}
-.pac-filter-apply{
-  padding:8px 18px;border-radius:9px;
-  border:1.5px solid rgba(22,139,217,.5);
-  background:transparent;color:#EAF1FF;
-  font-family:'Sora',sans-serif;font-size:13px;font-weight:700;
-  cursor:pointer;transition:background 150ms;
-}
-.pac-filter-apply:hover{background:rgba(22,139,217,.15)}
 .pac-filter-body{padding:18px 20px;display:flex;flex-direction:column;gap:14px;flex:1}
 .pac-filter-lbl{font-size:12px;font-weight:700;color:rgba(255,255,255,.6);margin-bottom:5px}
-.pac-filter-input{
-  width:100%;padding:10px 38px 10px 14px;border-radius:10px;
-  border:1.5px solid rgba(22,139,217,.3);
-  background:rgba(255,255,255,.04);color:#EAF1FF;
-  font-family:inherit;font-size:13px;box-sizing:border-box;
-}
+.pac-filter-input,.pac-filter-select{width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid rgba(22,139,217,.3);background:rgba(255,255,255,.04);color:#EAF1FF;font-family:inherit;font-size:13px;box-sizing:border-box}
 .pac-filter-input::placeholder{color:rgba(234,241,255,.3)}
-.pac-filter-input:focus{outline:none;border-color:rgba(22,139,217,.7)}
-.pac-filter-select{
-  width:100%;padding:10px 14px;border-radius:10px;
-  border:1.5px solid rgba(22,139,217,.3);
-  background:rgba(255,255,255,.04);color:#EAF1FF;
-  font-family:inherit;font-size:13px;appearance:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238FA3CF' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 12px center;
-  box-sizing:border-box;
-}
-.pac-filter-select:focus{outline:none;border-color:rgba(22,139,217,.7)}
+.pac-filter-input:focus,.pac-filter-select:focus{outline:none;border-color:rgba(22,139,217,.7)}
 .pac-filter-search-wrap{position:relative}
 .pac-filter-search-icon{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:rgba(234,241,255,.3);pointer-events:none}
-.pac-filter-advanced{
-  margin:0 20px 8px;padding:11px;border-radius:10px;
-  border:1.5px solid rgba(22,139,217,.5);
-  background:rgba(22,139,217,.12);color:#EAF1FF;
-  font-family:inherit;font-size:13px;font-weight:700;
-  cursor:pointer;transition:background 150ms;
-}
+.pac-filter-advanced{margin:0 20px 8px;padding:11px;border-radius:10px;border:1.5px solid rgba(22,139,217,.5);background:rgba(22,139,217,.12);color:#EAF1FF;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:background 150ms}
 .pac-filter-advanced:hover{background:rgba(22,139,217,.2)}
-.pac-filter-advanced-body{
-  display:none;padding:0 20px 20px;
-  flex-direction:column;gap:14px;
-}
+.pac-filter-advanced-body{display:none;padding:0 20px 20px;flex-direction:column;gap:14px}
 .pac-filter-advanced-body.open{display:flex}
-.pac-filter-date-tabs{display:flex;gap:6px}
-.pac-filter-date-tab{
-  flex:1;padding:9px 6px;border-radius:9px;
-  border:1.5px solid rgba(22,139,217,.3);
-  background:transparent;color:rgba(234,241,255,.6);
-  font-family:inherit;font-size:12px;font-weight:700;
-  cursor:pointer;transition:background 150ms,color 150ms,border-color 150ms;
-}
-.pac-filter-date-tab.active{
-  background:rgba(22,139,217,.25);border-color:rgba(22,139,217,.8);color:#EAF1FF;
-}
 .pac-filter-range{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .pac-filter-range-item{display:flex;flex-direction:column;gap:4px}
 .pac-filter-range-lbl{font-size:11px;color:rgba(255,255,255,.4)}
-.pac-filter-range-input{
-  width:100%;padding:9px 12px;border-radius:9px;
-  border:1.5px solid rgba(22,139,217,.3);
-  background:rgba(255,255,255,.04);color:#EAF1FF;
-  font-family:inherit;font-size:13px;font-weight:700;
-  box-sizing:border-box;text-align:center;
-}
+.pac-filter-range-input{width:100%;padding:9px 12px;border-radius:9px;border:1.5px solid rgba(22,139,217,.3);background:rgba(255,255,255,.04);color:#EAF1FF;font-family:inherit;font-size:13px;font-weight:700;box-sizing:border-box;text-align:center}
 .pac-filter-range-input:focus{outline:none;border-color:rgba(22,139,217,.7)}
-html[data-theme="light"] .pac-filter-advanced{background:rgba(22,104,217,.08);border-color:rgba(20,50,120,.35);color:#0E1530}
-html[data-theme="light"] .pac-filter-date-tab{border-color:rgba(20,50,120,.2);color:rgba(14,21,48,.5)}
-html[data-theme="light"] .pac-filter-date-tab.active{background:rgba(22,104,217,.12);border-color:#1668D9;color:#0E1530}
-html[data-theme="light"] .pac-filter-range-lbl{color:rgba(14,21,48,.4)}
-html[data-theme="light"] .pac-filter-range-input{background:rgba(20,50,120,.04);border-color:rgba(20,50,120,.2);color:#0E1530}
-/* Tema claro */
+.pac-filter-results-panel{position:fixed;top:0;right:320px;width:300px;max-width:calc(95vw - 320px);height:100%;z-index:1210;background:#001A30;border-left:1.5px solid rgba(22,139,217,.3);border-right:1.5px solid var(--ag-stroke);box-shadow:-12px 0 40px rgba(0,0,0,.5);display:none;flex-direction:column;overflow:hidden}
+.pac-filter-results-panel.open{display:flex}
+.pac-filter-results-head{font-family:'Sora',sans-serif;font-size:18px;font-weight:700;color:#fff;padding:20px 20px 14px;border-bottom:1px solid rgba(255,255,255,.07);flex:none}
+.pac-filter-results-body{flex:1;overflow-y:auto;padding:8px 0}
+.pac-filter-result-item{display:flex;align-items:center;gap:12px;padding:10px 20px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.06);transition:background 150ms}
+.pac-filter-result-item:last-child{border-bottom:none}
+.pac-filter-result-item:hover,.pac-filter-result-item.active{background:rgba(22,139,217,.18)}
+.pac-filter-result-item .res-avatar{width:36px;height:36px;border-radius:50%;flex:none;background:linear-gradient(135deg,#1668D9,#00C8C8);display:grid;place-items:center;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;color:#fff;border:2px solid rgba(22,139,217,.4);overflow:hidden}
+.pac-filter-result-item .res-avatar img{width:100%;height:100%;object-fit:cover}
+.pac-filter-result-item .res-info{flex:1;min-width:0}
+.pac-filter-result-item .res-name{font-size:13px;font-weight:600;color:var(--ag-txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pac-filter-result-item .res-meta{font-size:11px;color:var(--ag-soft);margin-top:2px}
+.pac-filter-result-empty{padding:18px;font-size:12px;color:var(--ag-soft);text-align:center}
+html[data-theme="light"] .pac-result,html[data-theme="light"] .pac-suggestions{background:#F0F5FF;border-color:rgba(20,50,120,.15)}
+html[data-theme="light"] .pac-name,html[data-theme="light"] .pac-suggestion{color:#0E1530}
+html[data-theme="light"] .pac-folio,html[data-theme="light"] .pac-meta-item{color:#5B6A99}
 html[data-theme="light"] .pac-filter-panel{background:#F0F5FF;border-left-color:rgba(20,50,120,.2);box-shadow:-12px 0 40px rgba(20,50,120,.12)}
 html[data-theme="light"] .pac-filter-title{color:#0E1530}
-html[data-theme="light"] .pac-filter-apply{border-color:rgba(20,50,120,.35);color:#0E1530}
-html[data-theme="light"] .pac-filter-input{background:rgba(20,50,120,.04);border-color:rgba(20,50,120,.2);color:#0E1530}
-html[data-theme="light"] .pac-filter-input::placeholder{color:rgba(14,21,48,.3)}
-html[data-theme="light"] .pac-filter-select{background-color:rgba(20,50,120,.04);border-color:rgba(20,50,120,.2);color:#0E1530}
-html[data-theme="light"] .pac-filter-advanced{border-color:rgba(20,50,120,.3);color:#0E1530}
+html[data-theme="light"] .pac-filter-input,html[data-theme="light"] .pac-filter-select,html[data-theme="light"] .pac-filter-range-input{background:rgba(20,50,120,.04);border-color:rgba(20,50,120,.2);color:#0E1530}
 html[data-theme="light"] .pac-filter-lbl{color:rgba(14,21,48,.55)}
-html[data-theme="light"] .pac-filter-overlay{background:rgba(0,0,0,.25)}
-
-/* Tema claro - botones de búsqueda */
-html[data-theme="light"] .pac-filter-btn{color:#1668D9}
-html[data-theme="light"] .pac-filter-btn:hover{color:#0040A0}
-html[data-theme="light"] .pac-search-btn{color:#5B6A99}
-html[data-theme="light"] .pac-search-btn:hover{color:#0E1530}
-
-/* Tema claro */
-html[data-theme="light"] .pac-result{background:#F0F5FF;border-color:rgba(20,50,120,.15)}
-html[data-theme="light"] .pac-name{color:#0E1530}
-html[data-theme="light"] .pac-folio{color:#5B6A99}
-html[data-theme="light"] .pac-meta-item{color:#5B6A99}
+html[data-theme="light"] .pac-filter-results-panel{background:#F0F5FF;border-left-color:rgba(20,50,120,.2);border-right-color:rgba(20,50,120,.15);box-shadow:-12px 0 40px rgba(20,50,120,.12)}
+html[data-theme="light"] .pac-filter-results-head{color:#0E1530;border-bottom-color:rgba(20,50,120,.1)}
+html[data-theme="light"] .pac-filter-result-item{border-bottom-color:rgba(20,50,120,.08)}
+html[data-theme="light"] .pac-filter-result-item:hover,.html[data-theme="light"] .pac-filter-result-item.active{background:rgba(22,104,217,.12)}
+html[data-theme="light"] .pac-filter-result-item .res-name{color:#0E1530}
+html[data-theme="light"] .pac-filter-result-item .res-meta{color:#5B6A99}
+html[data-theme="light"] .pac-filter-result-empty{color:#5B6A99}
+#pacTel[readonly],#pacEmail[readonly],#pacDir[readonly]{cursor:default;opacity:.8}
 </style>
 
 <div class="ag-card" id="stepPaciente">
@@ -147,229 +117,415 @@ html[data-theme="light"] .pac-meta-item{color:#5B6A99}
 
   <label class="ag-label">Buscar paciente</label>
   <div class="pac-search-wrap">
-    <input class="ag-input" id="pacSearch" type="text" placeholder="Busca por nombre del paciente" style="padding-right:72px">
-    <button class="pac-filter-btn" id="pacFilterBtn" title="Filtros">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+    <input class="ag-input" id="pacSearch" type="text" placeholder="Busca por nombre, folio, teléfono o correo" style="padding-right:40px">
+    <button class="pac-filter-btn" id="pacFilterBtn" title="Filtros" type="button" style="right:10px">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
     </button>
-    <button class="pac-search-btn" id="pacSearchBtn">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    </button>
+    <div class="pac-suggestions" id="pacSuggestions"></div>
   </div>
 
-  {{-- Panel de filtros --}}
   <div class="pac-filter-overlay" id="pacFilterOverlay"></div>
   <div class="pac-filter-panel" id="pacFilterPanel">
     <div class="pac-filter-head">
       <span class="pac-filter-title">Filtros</span>
-      <button class="pac-filter-apply" id="pacFilterApply">Aplicar</button>
     </div>
     <div class="pac-filter-body">
       <div>
         <div class="pac-filter-lbl">Buscar</div>
         <div class="pac-filter-search-wrap">
-          <input class="pac-filter-input" id="pfBuscar" type="text" placeholder="Buscar Pacientes">
+          <input class="pac-filter-input" id="pfBuscar" type="text" placeholder="Buscar pacientes">
           <span class="pac-filter-search-icon">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </span>
         </div>
       </div>
       <div>
-        <div class="pac-filter-lbl">Numero de seguro social</div>
-        <input class="pac-filter-input" id="pfNSS" type="text" placeholder="Buscar Pacientes">
-      </div>
-      <div>
-        <div class="pac-filter-lbl">Numero de Folio</div>
-        <input class="pac-filter-input" id="pfFolio" type="text" placeholder="Buscar Pacientes">
-      </div>
-      <div>
-        <div class="pac-filter-lbl">Tipo de estudio</div>
-        <select class="pac-filter-select" id="pfEstudio">
-          <option value="">Todos los estudios</option>
-          <option>Endoscopia</option>
-          <option>Colonoscopia</option>
-          <option>Ultrasonido</option>
-          <option>Radiografía</option>
-        </select>
-      </div>
-      <div>
-        <div class="pac-filter-lbl">Medico</div>
-        <select class="pac-filter-select" id="pfMedico">
-          <option>Ricardo Martinez</option>
-          <option>Ana López</option>
-          <option>Carlos Ruiz</option>
-        </select>
-      </div>
-    </div>
-    <button class="pac-filter-advanced" id="pacFilterAdvanced">Filtros avanzados</button>
-    <div class="pac-filter-advanced-body" id="pacAdvBody">
-      <div>
-        <div class="pac-filter-lbl">Fecha</div>
-        <div class="pac-filter-date-tabs">
-          <button class="pac-filter-date-tab" data-range="hoy">Hoy</button>
-          <button class="pac-filter-date-tab active" data-range="semana">Semana</button>
-          <button class="pac-filter-date-tab" data-range="mes">Mes</button>
-        </div>
+        <div class="pac-filter-lbl">Número de folio</div>
+        <input class="pac-filter-input" id="pfFolio" type="text" placeholder="Buscar por folio">
       </div>
       <div>
         <div class="pac-filter-lbl">Sexo</div>
         <select class="pac-filter-select" id="pfSexo">
+          <option value="">Todos</option>
           <option>Masculino</option>
           <option>Femenino</option>
-          <option value="">Todos</option>
+          <option>Otro</option>
         </select>
       </div>
+    </div>
+
+    <button class="pac-filter-advanced" id="pacFilterAdvanced" type="button">Filtros avanzados</button>
+    <div class="pac-filter-advanced-body" id="pacAdvBody">
       <div>
         <div class="pac-filter-lbl">Rango de edad</div>
         <div class="pac-filter-range">
           <div class="pac-filter-range-item">
             <span class="pac-filter-range-lbl">Desde</span>
-            <input class="pac-filter-range-input" id="pfEdadDesde" type="number" min="0" max="120" value="19">
+            <input class="pac-filter-range-input" id="pfEdadDesde" type="number" min="0" max="120">
           </div>
           <div class="pac-filter-range-item">
             <span class="pac-filter-range-lbl">Hasta</span>
-            <input class="pac-filter-range-input" id="pfEdadHasta" type="number" min="0" max="120" value="45">
+            <input class="pac-filter-range-input" id="pfEdadHasta" type="number" min="0" max="120">
           </div>
         </div>
       </div>
     </div>
   </div>
 
+  <div class="pac-filter-results-panel" id="pacFilterResultsPanel">
+    <div class="pac-filter-results-head">Resultados</div>
+    <div class="pac-filter-results-body" id="pacFilterResultsBody"></div>
+  </div>
+
   <div class="pac-result" id="pacResult">
-    <div class="pac-avatar" id="pacAvatar">MG</div>
+    <div class="pac-avatar" id="pacAvatar">PX</div>
     <div class="pac-info">
-      <div class="pac-name" id="pacName">María Gómez</div>
-      <div class="pac-folio" id="pacFolio">Folio: 00045</div>
+      <div class="pac-name" id="pacName">Selecciona un paciente</div>
+      <div class="pac-folio" id="pacFolio">Folio: --</div>
       <div class="pac-meta">
         <div class="pac-meta-item">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          <span id="pacAge">45 años</span>
+          <span id="pacAge">Sin edad</span>
         </div>
         <div class="pac-meta-item">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <span id="pacGenero">Mujer</span>
+          <span id="pacGenero">No especificado</span>
         </div>
         <div class="pac-meta-item">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          <span id="pacNac">18/05/1998</span>
+          <span id="pacNac">Sin fecha</span>
         </div>
       </div>
     </div>
-    <button class="pac-chevron" id="pacChevron">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    <button class="pac-chevron" id="pacChevron" type="button">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
   </div>
 
   <div class="pac-fields" id="pacFields">
     <div class="ag-field">
       <label class="ag-label">Teléfono</label>
-      <input class="ag-input" id="pacTel" type="tel" placeholder="55 1234 5678" value="55 1234 5678">
+      <input class="ag-input" id="pacTel" type="tel" placeholder="Teléfono" readonly>
     </div>
     <div class="ag-field">
       <label class="ag-label">Correo</label>
-      <input class="ag-input" id="pacEmail" type="email" placeholder="correo@ejemplo.com" value="Sofia.lozanoQ@gmail.com">
+      <input class="ag-input" id="pacEmail" type="email" placeholder="correo@ejemplo.com" readonly>
     </div>
     <div class="ag-field">
       <label class="ag-label">Dirección</label>
-      <input class="ag-input" id="pacDir" type="text" placeholder="Calle, número, ciudad" value="Av. Insurgentes Sur 1234, CDMX">
+      <input class="ag-input" id="pacDir" type="text" placeholder="Dirección" readonly>
     </div>
-    <button class="pac-link">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-      Ver historial completo
-    </button>
+    <a class="pac-link" id="pacHistoryLink" href="{{ route('pacientes.index') }}">Ver historial completo</a>
   </div>
 </div>
 
 <script>
 (function(){
   const chevron = document.getElementById('pacChevron');
-  const fields  = document.getElementById('pacFields');
-  let expanded  = true;
+  const fields = document.getElementById('pacFields');
+  let expanded = true;
 
-  chevron.addEventListener('click', () => {
-    expanded = !expanded;
-    fields.style.display = expanded ? '' : 'none';
-    chevron.style.transform = expanded ? 'rotate(180deg)' : '';
-  });
+  if (chevron && fields) {
+    chevron.addEventListener('click', () => {
+      expanded = !expanded;
+      fields.style.display = expanded ? '' : 'none';
+      chevron.style.transform = expanded ? 'rotate(180deg)' : '';
+    });
+  }
 
-  /* Filtros */
-  const filterBtn     = document.getElementById('pacFilterBtn');
-  const filterPanel   = document.getElementById('pacFilterPanel');
+  const filterBtn = document.getElementById('pacFilterBtn');
+  const filterPanel = document.getElementById('pacFilterPanel');
   const filterOverlay = document.getElementById('pacFilterOverlay');
-  const filterApply   = document.getElementById('pacFilterApply');
-
-  function openFilter()  { filterPanel.classList.add('open'); filterOverlay.classList.add('open'); }
-  function closeFilter() { filterPanel.classList.remove('open'); filterOverlay.classList.remove('open'); }
-
-  filterBtn    .addEventListener('click', openFilter);
-  filterOverlay.addEventListener('click', closeFilter);
-  filterApply  .addEventListener('click', () => {
-    const q = document.getElementById('pfBuscar').value.trim();
-    if (q) document.getElementById('pacSearch').value = q;
-    closeFilter();
-  });
-
-  const advBtn  = document.getElementById('pacFilterAdvanced');
+  const advBtn = document.getElementById('pacFilterAdvanced');
   const advBody = document.getElementById('pacAdvBody');
-  let advOpen   = false;
-  advBtn.addEventListener('click', () => {
-    advOpen = !advOpen;
-    advBody.classList.toggle('open', advOpen);
-    advBtn.textContent = advOpen ? '▲ Ocultar avanzados' : 'Filtros avanzados';
-  });
 
-  document.querySelectorAll('.pac-filter-date-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.pac-filter-date-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
+  function openFilter() {
+    filterPanel.classList.add('open');
+    filterOverlay.classList.add('open');
+    closeSuggestions();
+    renderFilterResults(filterPatients());
+  }
+
+  function closeFilter() {
+    filterPanel.classList.remove('open');
+    filterOverlay.classList.remove('open');
+    closeFilterResultsPanel();
+  }
+
+  if (filterBtn) filterBtn.addEventListener('click', openFilter);
+  if (filterOverlay) filterOverlay.addEventListener('click', closeFilter);
+
+  const filterResultsPanel = document.getElementById('pacFilterResultsPanel');
+  const filterResultsBody = document.getElementById('pacFilterResultsBody');
+
+  function filterPatients() {
+    const q = normalize(document.getElementById('pfBuscar')?.value || '');
+    const folio = normalize(document.getElementById('pfFolio')?.value || '');
+    const sexo = normalize(document.getElementById('pfSexo')?.value || '');
+    const edadDesde = parseInt(document.getElementById('pfEdadDesde')?.value || '', 10);
+    const edadHasta = parseInt(document.getElementById('pfEdadHasta')?.value || '', 10);
+
+    return PACIENTES.filter(p => {
+      const matchQ = !q || normalize(p.nombre).includes(q)
+        || normalize(p.folio).includes(q)
+        || normalize(p.tel).includes(q)
+        || normalize(p.email).includes(q);
+      const matchFolio = !folio || normalize(p.folio).includes(folio);
+      const matchSexo = !sexo || normalize(p.genero) === sexo;
+      const edad = parseInt(p.edad, 10);
+      const matchEdad = (!Number.isFinite(edadDesde) || !Number.isFinite(edad) || edad >= edadDesde)
+        && (!Number.isFinite(edadHasta) || !Number.isFinite(edad) || edad <= edadHasta);
+      return matchQ && matchFolio && matchSexo && matchEdad;
+    });
+  }
+
+  function closeFilterResultsPanel() {
+    if (filterResultsPanel) filterResultsPanel.classList.remove('open');
+  }
+
+  function renderFilterResults(list) {
+    if (!filterResultsPanel || !filterResultsBody) return;
+    filterResultsBody.innerHTML = '';
+    if (!list.length) {
+      filterResultsBody.innerHTML = '<div class="pac-filter-result-empty">No se encontraron pacientes.</div>';
+      filterResultsPanel.classList.add('open');
+      return;
+    }
+    list.forEach(p => {
+      const initials = p.iniciales || String(p.nombre || 'PX').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+      const avatar = p.foto_url
+        ? `<img src="${p.foto_url}" alt="${p.nombre}">`
+        : initials;
+      const div = document.createElement('div');
+      div.className = 'pac-filter-result-item';
+      div.innerHTML = `
+        <div class="res-avatar">${avatar}</div>
+        <div class="res-info">
+          <div class="res-name">${p.nombre}</div>
+          <div class="res-meta">Folio ${p.folio || 'S/F'} · ${p.genero || 'Sin sexo'} · ${p.edad || 'Sin edad'} años</div>
+        </div>`;
+      div.addEventListener('click', () => {
+        selectPatient(p);
+        closeFilter();
+        closeFilterResultsPanel();
+      });
+      filterResultsBody.appendChild(div);
+    });
+    filterResultsPanel.classList.add('open');
+  }
+
+  ['pfBuscar', 'pfFolio', 'pfEdadDesde', 'pfEdadHasta'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', () => {
+      renderFilterResults(filterPatients());
     });
   });
+  document.getElementById('pfSexo')?.addEventListener('change', () => {
+    renderFilterResults(filterPatients());
+  });
 
-  /* ---- Banco de pacientes de ejemplo ---- */
-  const PACIENTES = [
-    { nombre:'Sofía Lozano',      folio:'00001', edad:28, genero:'Mujer',  nac:'12/03/1997', tel:'55 1234 5678', email:'sofia.lozano@gmail.com',     dir:'Av. Insurgentes Sur 1234, CDMX' },
-    { nombre:'Ricardo Martínez',  folio:'00012', edad:42, genero:'Hombre', nac:'05/08/1982', tel:'55 9876 5432', email:'r.martinez@hotmail.com',       dir:'Calle Reforma 456, Guadalajara' },
-    { nombre:'Grabiela Torres',   folio:'00018', edad:35, genero:'Mujer',  nac:'21/11/1989', tel:'55 5551 2233', email:'grabiela.torres@gmail.com',    dir:'Blvd. Díaz Ordaz 789, MTY' },
-    { nombre:'Habib Pérez',       folio:'00024', edad:51, genero:'Hombre', nac:'14/02/1973', tel:'55 6677 8899', email:'habib.perez@outlook.com',      dir:'Av. Constitución 321, Puebla' },
-    { nombre:'Dulce Martínez',    folio:'00031', edad:26, genero:'Mujer',  nac:'30/07/1998', tel:'55 3344 5566', email:'dulce.mtz@gmail.com',          dir:'Col. Roma Norte, CDMX' },
-    { nombre:'Luis Arellano',     folio:'00037', edad:38, genero:'Hombre', nac:'09/04/1986', tel:'55 7788 9900', email:'luis.arellano@empresa.mx',     dir:'Periférico Norte 567, CDMX' },
-    { nombre:'Yessica Torres',    folio:'00043', edad:30, genero:'Mujer',  nac:'17/09/1994', tel:'55 2233 4455', email:'yessica.torres@gmail.com',     dir:'Calle Juárez 890, Mérida' },
-    { nombre:'Paulina Gómez',     folio:'00045', edad:45, genero:'Mujer',  nac:'18/05/1979', tel:'55 4455 6677', email:'p.gomez@correo.com',           dir:'Av. Revolución 1011, CDMX' },
-    { nombre:'Erik Esquivel',     folio:'00051', edad:33, genero:'Hombre', nac:'22/01/1991', tel:'55 8899 0011', email:'erik.esquivel@gmail.com',      dir:'Sur 109, Col. Iztapalapa, CDMX' },
-    { nombre:'Perla Flores',      folio:'00057', edad:29, genero:'Mujer',  nac:'03/12/1995', tel:'55 1122 3344', email:'perla.flores@hotmail.com',     dir:'Calle Hidalgo 234, Toluca' },
-    { nombre:'Irvin Rocha',       folio:'00062', edad:47, genero:'Hombre', nac:'28/06/1977', tel:'55 9900 1122', email:'irvin.rocha@empresa.mx',       dir:'Lomas de Chapultepec, CDMX' },
-    { nombre:'Yukary Huerta',     folio:'00068', edad:22, genero:'Mujer',  nac:'11/10/2002', tel:'55 6600 7711', email:'yukary.h@gmail.com',           dir:'Col. Del Valle, CDMX' },
-    { nombre:'Paula Gómez',       folio:'00073', edad:54, genero:'Mujer',  nac:'25/03/1970', tel:'55 3311 2200', email:'paula.gomez@outlook.com',      dir:'Av. Universidad 321, CDMX' },
-    { nombre:'Pelet Gómez',       folio:'00079', edad:40, genero:'Hombre', nac:'07/07/1984', tel:'55 4400 5511', email:'pelet.gomez@correo.mx',        dir:'Eje Central 678, CDMX' },
-    { nombre:'María Gómez',       folio:'00045', edad:45, genero:'Mujer',  nac:'18/05/1979', tel:'55 4455 6677', email:'maria.gomez@correo.com',       dir:'Av. Revolución 1011, CDMX' },
-  ];
+  let advOpen = false;
+
+  if (advBtn && advBody) {
+    advBtn.addEventListener('click', () => {
+      advOpen = !advOpen;
+      advBody.classList.toggle('open', advOpen);
+      advBtn.textContent = advOpen ? '▲ Ocultar avanzados' : 'Filtros avanzados';
+    });
+  }
+
+  const PACIENTES = @json($pacientesAgendarJs);
+
+  const searchInput = document.getElementById('pacSearch');
+  const suggestions = document.getElementById('pacSuggestions');
+  let sugIndex = -1;
+
+  function normalize(value) {
+    return String(value || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  }
+
+  function findPatients(query) {
+    if (!query || query.trim().length < 1) return [];
+
+    const q = normalize(query.trim());
+
+    return PACIENTES.filter(p => {
+      const nombre = normalize(p.nombre);
+      const folio = normalize(p.folio);
+      const tel = normalize(p.tel);
+      const email = normalize(p.email);
+
+      return nombre.includes(q)
+        || folio.includes(q)
+        || tel.includes(q)
+        || email.includes(q);
+    });
+  }
 
   function findPatient(query) {
-    if (!query || query.trim().length < 2) return null;
-    const q = query.trim().toLowerCase();
-    return PACIENTES.find(p => p.nombre.toLowerCase().includes(q)) || null;
+    const list = findPatients(query);
+
+    return list[0] || null;
+  }
+
+  function updateCitaFromPatient(pac) {
+    const medico = String(pac?.medico ?? '').trim();
+    const procedimiento = String(pac?.procedimiento ?? '').trim();
+
+    const selEsp = document.getElementById('citaEspecialista');
+    const selProc = document.getElementById('citaProcedimiento');
+
+    function fillSelect(select, rawValue, fallbackLabel) {
+      if (!select) return;
+      select.innerHTML = '';
+      const values = rawValue
+        ? rawValue.split(/[,;]+/).map(v => v.trim()).filter(Boolean)
+        : [];
+      if (values.length === 0) {
+        const opt = document.createElement('option');
+        opt.textContent = fallbackLabel;
+        opt.value = '';
+        select.appendChild(opt);
+      } else {
+        values.forEach((val, i) => {
+          const opt = document.createElement('option');
+          opt.value = val;
+          opt.textContent = val;
+          if (i === 0) opt.selected = true;
+          select.appendChild(opt);
+        });
+      }
+      select.dispatchEvent(new Event('change'));
+    }
+
+    fillSelect(selEsp, medico, 'Sin médico asignado');
+    fillSelect(selProc, procedimiento, 'Sin procedimiento asignado');
   }
 
   function updatePacResult(pac) {
     if (!pac) return;
-    const inits = pac.nombre.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
-    document.getElementById('pacAvatar').textContent  = inits;
-    document.getElementById('pacName').textContent    = pac.nombre;
-    document.getElementById('pacFolio').textContent   = 'Folio: ' + pac.folio;
-    document.getElementById('pacAge').textContent     = pac.edad + ' años';
-    document.getElementById('pacGenero').textContent  = pac.genero;
-    document.getElementById('pacNac').textContent     = pac.nac;
-    const telEl   = document.getElementById('pacTel');
+
+    window.__selectedPacienteId = pac.id || null;
+
+    const avatar = document.getElementById('pacAvatar');
+    const inits = pac.iniciales || String(pac.nombre || 'PX').split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+
+    if (avatar) {
+      if (pac.foto_url) {
+        avatar.innerHTML = `<img src="${pac.foto_url}" alt="${pac.nombre}">`;
+      } else {
+        avatar.textContent = inits;
+      }
+    }
+
+    document.getElementById('pacName').textContent = pac.nombre || 'Paciente';
+    document.getElementById('pacFolio').textContent = 'Folio: ' + (pac.folio || 'Sin folio');
+    document.getElementById('pacAge').textContent = pac.edad ? pac.edad + ' años' : 'Sin edad';
+    document.getElementById('pacGenero').textContent = pac.genero || 'No especificado';
+    document.getElementById('pacNac').textContent = pac.nac || 'Sin fecha';
+
+    const telEl = document.getElementById('pacTel');
     const emailEl = document.getElementById('pacEmail');
-    if (telEl)   telEl.value   = pac.tel;
-    if (emailEl) emailEl.value = pac.email;
+    const dirEl = document.getElementById('pacDir');
+
+    if (telEl) telEl.value = pac.tel || '';
+    if (emailEl) emailEl.value = pac.email || '';
+    if (dirEl) dirEl.value = pac.dir || '';
+
+    const link = document.getElementById('pacHistoryLink');
+    if (link && pac.id) {
+      link.href = `{{ route('pacientes.index') }}?paciente_id=${pac.id}`;
+    }
+
+    updateCitaFromPatient(pac);
+  }
+
+  function renderSuggestions(list) {
+    suggestions.innerHTML = '';
+    sugIndex = -1;
+
+    if (!list.length) {
+      suggestions.classList.remove('open');
+      return;
+    }
+
+    list.forEach((p, i) => {
+      const div = document.createElement('div');
+      div.className = 'pac-suggestion';
+      div.dataset.index = i;
+      div.innerHTML = `<span>${p.nombre}</span><span class="sug-folio">Folio ${p.folio || 'S/F'}</span>`;
+      div.addEventListener('click', () => selectPatient(p));
+      suggestions.appendChild(div);
+    });
+
+    suggestions.classList.add('open');
+  }
+
+  function closeSuggestions() {
+    suggestions.classList.remove('open');
+    sugIndex = -1;
+  }
+
+  function selectPatient(pac) {
+    updatePacResult(pac);
+    searchInput.value = pac.nombre;
+    closeSuggestions();
+    closeFilterResultsPanel();
+
+    const cfmPaciente = document.getElementById('cfmPaciente');
+    if (cfmPaciente) cfmPaciente.textContent = pac.nombre;
+
+    try {
+      localStorage.setItem('lastPatient', JSON.stringify(pac));
+    } catch(e) {}
   }
 
   window.__updatePacResult = updatePacResult;
-  window.__findPatient     = findPatient;
+  window.__findPatient = findPatient;
+  window.__selectPatient = selectPatient;
 
-  document.getElementById('pacSearch').addEventListener('input', function() {
-    const pac = findPatient(this.value);
-    if (pac) updatePacResult(pac);
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      const list = findPatients(this.value);
+      renderSuggestions(list);
+      closeFilterResultsPanel();
+    });
+
+    searchInput.addEventListener('keydown', function(e) {
+      const items = suggestions.querySelectorAll('.pac-suggestion');
+
+      if (!items.length) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        sugIndex = Math.min(sugIndex + 1, items.length - 1);
+        items.forEach((it, i) => it.classList.toggle('active', i === sugIndex));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        sugIndex = Math.max(sugIndex - 1, 0);
+        items.forEach((it, i) => it.classList.toggle('active', i === sugIndex));
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+
+        if (sugIndex >= 0 && items[sugIndex]) {
+          items[sugIndex].click();
+        } else if (items.length === 1) {
+          items[0].click();
+        }
+      } else if (e.key === 'Escape') {
+        closeSuggestions();
+      }
+    });
+  }
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.pac-search-wrap')) {
+      closeSuggestions();
+      closeFilterResultsPanel();
+    }
   });
+
+  if (PACIENTES.length > 0) {
+    document.addEventListener('DOMContentLoaded', () => selectPatient(PACIENTES[0]));
+  }
 })();
 </script>

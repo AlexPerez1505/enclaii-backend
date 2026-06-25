@@ -159,8 +159,12 @@
                data-idx="{{ $i }}"
                data-ts="{{ $c['ts'] }}"
                data-bg="{{ $c['bg'] }}">
-            <div class="vi-strip-thumb" style="background:{{ $c['bg'] }}">
+            <div class="vi-strip-thumb" style="background:{{ $c['bg'] }};position:relative;overflow:hidden">
+              @if(!empty($c['src']))
+              <img src="{{ $c['src'] }}" alt="Captura {{ $c['n'] }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+              @else
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+              @endif
               <span class="vi-strip-num">{{ $c['n'] }}</span>
               <span class="vi-strip-del" title="Eliminar">×</span>
             </div>

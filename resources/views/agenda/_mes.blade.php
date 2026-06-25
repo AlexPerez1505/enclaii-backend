@@ -3,7 +3,6 @@
      Vista Mes: CSS + HTML + JS
      ============================================================ --}}
 
-{{-- ---- CSS ---- --}}
 <style>
 .cal-wrap{display:none;max-height:480px;overflow-y:auto;border-radius:8px;min-width:0}
 .cal-wrap.active{display:block;width:100%}
@@ -26,12 +25,12 @@
 .cal-event:hover{opacity:.8}
 .ce-line1{font-weight:700;line-height:1.2}
 .ce-line2{font-size:9px;opacity:.9;line-height:1.2;margin-top:1px}
-.cal-event.ev-done{background:linear-gradient(to bottom,#042226 20%,#4C9242 80%);color:#fff;border:1.38px solid #284D23;box-shadow:inset 0 0 0 1.38px rgba(0,0,0,.3)}
-.cal-event.ev-wait{background:linear-gradient(to bottom,#351909 29%,#9B491A 100%);color:#fff;border:1.24px solid #E75D01;box-shadow:inset 0 0 0 1.24px rgba(0,0,0,.3)}
-.cal-event.ev-cancel{background:linear-gradient(to bottom,#251117 38%,#D90000 100%);color:#fff;border:1.27px solid #D90000;box-shadow:inset 0 0 0 1.27px rgba(6,6,6,.20)}
-.cal-event.ev-soon{background:linear-gradient(to bottom,#0B1331 43%,#B263FF 100%);color:#fff;border:1.27px solid #B263FF;box-shadow:inset 0 0 0 1.27px rgba(6,6,6,.20)}
-
-/* Tema claro */
+.cal-event.ev-done{background:linear-gradient(to bottom,#042226 20%,#4C9242 80%);color:#fff;border:1.38px solid #284D23}
+.cal-event.ev-wait{background:linear-gradient(to bottom,#351909 29%,#9B491A 100%);color:#fff;border:1.24px solid #E75D01}
+.cal-event.ev-cancel{background:linear-gradient(to bottom,#251117 38%,#D90000 100%);color:#fff;border:1.27px solid #D90000}
+.cal-event.ev-soon{background:linear-gradient(to bottom,#0B1331 43%,#B263FF 100%);color:#fff;border:1.27px solid #B263FF}
+.cal-more-btn{display:block;width:100%;margin-top:2px;padding:3px 5px;font-size:9px;font-weight:600;color:#8FA3CF;background:transparent;border:1.5px dashed rgba(110,160,255,.4);border-radius:4px;cursor:pointer;transition:all 150ms ease;text-align:center}
+.cal-more-btn:hover{color:#EAF1FF;background:rgba(110,160,255,.15);border-color:rgba(110,160,255,.6)}
 html[data-theme="light"] .cal-grid th{background:linear-gradient(to bottom,#DDEAF8 30%,#B3D0F0 100%);color:#2E5CAA;border-bottom-color:rgba(20,50,120,.15)}
 html[data-theme="light"] .cal-grid td{border-color:rgba(20,50,120,.08)}
 html[data-theme="light"] .day-num{color:#5B6A99}
@@ -40,95 +39,104 @@ html[data-theme="light"] .cal-event.ev-done{background:#EBF7EA;color:#1B4518;bor
 html[data-theme="light"] .cal-event.ev-wait{background:#FEF3E7;color:#7A2F00;border:1.24px solid #E75D01;box-shadow:none}
 html[data-theme="light"] .cal-event.ev-cancel{background:#FDE8E8;color:#6B0000;border:1.27px solid #D90000;box-shadow:none}
 html[data-theme="light"] .cal-event.ev-soon{background:#F3ECFF;color:#4A1A8A;border:1.27px solid #B263FF;box-shadow:none}
-
-/* Botón +X más */
-.cal-more-btn{display:block;width:100%;margin-top:2px;padding:3px 5px;font-size:9px;font-weight:600;color:#8FA3CF;background:transparent;border:1.5px dashed rgba(110,160,255,.4);border-radius:4px;cursor:pointer;transition:all 150ms ease;text-align:center}
-.cal-more-btn:hover{color:#EAF1FF;background:rgba(110,160,255,.15);border-color:rgba(110,160,255,.6)}
-html[data-theme="light"] .cal-more-btn{color:#5B6A99;border-color:rgba(20,50,120,.25)}
-html[data-theme="light"] .cal-more-btn:hover{color:#0E1530;background:rgba(20,50,120,.1);border-color:rgba(20,50,120,.4)}
-
-/* ---- Responsive cal-event ---- */
 @media(max-width:720px){
   .cal-event{font-size:9.5px;padding:2px 5px}
   .day-num{font-size:11px;width:20px;height:20px}
   .ce-line2{font-size:8px}
 }
-@media(max-width:540px){
-  .cal-event{font-size:8.5px;padding:2px 4px}
-  .day-num{font-size:10px;width:18px;height:18px;margin-bottom:3px}
-  .cal-grid td{padding:4px 3px;min-height:70px}
-  .ce-line2{font-size:7.5px}
-}
-@media(max-width:420px){
-  .cal-event{font-size:8px;padding:1px 3px}
-  .cal-grid td{padding:3px 2px;min-height:60px}
-}
 </style>
 
-{{-- ---- HTML ---- --}}
 <div class="cal-wrap active" id="calWrap">
-<table class="cal-grid">
-  <thead>
-    <tr>
-      <th>Lun</th><th>Mar</th><th>Mié</th><th>Jue</th><th>Vie</th><th>Sáb</th><th>Dom</th>
-    </tr>
-  </thead>
-  <tbody id="calBody"></tbody>
-</table>
+  <table class="cal-grid">
+    <thead>
+      <tr>
+        <th>Lun</th><th>Mar</th><th>Mié</th><th>Jue</th><th>Vie</th><th>Sáb</th><th>Dom</th>
+      </tr>
+    </thead>
+    <tbody id="calBody"></tbody>
+  </table>
 </div>
 
-{{-- ---- JS ---- --}}
 <script>
 (function(){
+  function _recomputeClass(ev, dateKey) {
+    const now = new Date();
+    const [y, m, d] = dateKey.split('-').map(Number);
+    const timeStr = ev.hora || (ev.h ? String(ev.h).padStart(2, '0') + ':00' : '00:00');
+    const [h, min] = timeStr.split(':').map(Number);
+    const start = new Date(y, m - 1, d, h || 0, min || 0);
+    const waitStart = new Date(start.getTime() - 15 * 60000);
+    const cancelStart = new Date(start.getTime() + 5 * 60000);
+
+    if (ev.cls === 'ev-done' || ev.cls === 'ev-cancel' || ev.cls === 'ev-block') return ev.cls;
+    if (now >= cancelStart) return 'ev-cancel';
+    if (ev.cls === 'ev-wait') return 'ev-wait';
+    if (now >= waitStart) return 'ev-wait';
+    return 'ev-soon';
+  }
+
   window.__buildCal = function(date, EVENTS, MESES, updateSumCards, countEvents) {
     const y = date.getFullYear();
     const m = date.getMonth();
+
     document.getElementById('mesActual').textContent = MESES[m];
     document.getElementById('anioActual').textContent = y;
+
     const today = new Date();
     let startDow = new Date(y, m, 1).getDay();
     startDow = startDow === 0 ? 6 : startDow - 1;
+
     const tbody = document.getElementById('calBody');
     tbody.innerHTML = '';
+
     let day = 1 - startDow;
+
     for (let row = 0; row < 6; row++) {
       let hasContent = false;
       const tr = document.createElement('tr');
+
       for (let col = 0; col < 7; col++) {
         const td = document.createElement('td');
         const cellDate = new Date(y, m, day);
         const isCurMonth = cellDate.getMonth() === m;
         const isToday = cellDate.toDateString() === today.toDateString();
+
         if (!isCurMonth) td.classList.add('off-month');
         if (isToday) td.classList.add('today-cell');
+
         const dn = document.createElement('div');
         dn.className = 'day-num';
         dn.textContent = cellDate.getDate();
         td.appendChild(dn);
+
         const key = `${cellDate.getFullYear()}-${cellDate.getMonth()+1}-${cellDate.getDate()}`;
         const evs = EVENTS[key] || [];
         const MAX_VISIBLE = 2;
         const DIAS_MES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
         evs.slice(0, MAX_VISIBLE).forEach(ev => {
+          const liveCls = _recomputeClass(ev, key);
           const div = document.createElement('div');
-          div.className = 'cal-event ' + ev.cls;
-          let name = ev.name || '';
-          let proc = ev.proc || '';
-          if (!name && ev.t) {
-            const parts = ev.t.split('·').map(s => s.trim());
-            const timeAndName = parts[0] || '';
-            name = timeAndName.replace(/^\d+:\d+\s*/, '');
-            proc = parts[1] || '';
-          }
-          const displayName = (window.__displayName ? window.__displayName(name) : name);
+          div.className = 'cal-event ' + liveCls;
+
+          const name = ev.name || 'Paciente';
+          const proc = ev.proc || 'Procedimiento';
+          const displayName = window.__displayName ? window.__displayName(name) : name;
           const timeM = ev.t ? ev.t.match(/^(\d+:\d+)/) : null;
+
           div.dataset.name = name;
           div.dataset.proc = proc;
-          div.dataset.cls = ev.cls;
-          div.dataset.time = timeM ? timeM[1] : (ev.h ? String(ev.h).padStart(2,'0') + ':00' : '');
+          div.dataset.cls = liveCls;
+          div.dataset.time = timeM ? timeM[1] : (ev.hora || (ev.h ? String(ev.h).padStart(2,'0') + ':00' : ''));
+          div.dataset.citaId = ev.id || '';
+          div.dataset.pacienteId = ev.paciente_id || '';
+          div.dataset.deleteUrl = ev.delete_url || '';
+
           div.innerHTML = `<div class="ce-line1">${displayName}</div><div class="ce-line2">${proc}</div>`;
+
           td.appendChild(div);
         });
+
         if (evs.length > MAX_VISIBLE) {
           const moreBtn = document.createElement('button');
           moreBtn.className = 'cal-more-btn';
@@ -142,17 +150,30 @@ html[data-theme="light"] .cal-more-btn:hover{color:#0E1530;background:rgba(20,50
           });
           td.appendChild(moreBtn);
         }
+
         if (isCurMonth || evs.length) hasContent = true;
+
         tr.appendChild(td);
         day++;
       }
+
       tbody.appendChild(tr);
-      if (row >= 4 && !hasContent) { tbody.removeChild(tr); break; }
+
+      if (row >= 4 && !hasContent) {
+        tbody.removeChild(tr);
+        break;
+      }
     }
+
     const daysInMonth = new Date(y, m + 1, 0).getDate();
     const keys = [];
-    for (let d = 1; d <= daysInMonth; d++) keys.push(`${y}-${m+1}-${d}`);
+    for (let d = 1; d <= daysInMonth; d++) {
+      keys.push(`${y}-${m+1}-${d}`);
+    }
+
     updateSumCards(countEvents(keys));
   };
+
+  window.__recomputeClass = _recomputeClass;
 })();
 </script>

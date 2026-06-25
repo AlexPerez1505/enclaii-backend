@@ -873,20 +873,23 @@ textarea{
 @section('content')
 
   {{-- Link volver --}}
-  <a href="{{ route('pacientes') }}" class="back-link rise d1">
+  <a href="{{ route('pacientes.index') }}" class="back-link rise d1">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
     Volver a pacientes
   </a>
 
   {{-- Formulario --}}
-  <div class="form-card rise d2">
+  <form id="pacienteForm" class="form-card rise d2" action="{{ route('pacientes.update', $paciente) }}" method="POST" enctype="multipart/form-data">
+    @csrf
+    @method('PUT')
 
     {{-- Sección Información Personal --}}
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
       <h2 class="section-title" style="margin:0;">Información personal</h2>
       <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-md);font-size:13px;">
         <span style="color:var(--txt-soft);">Folio:</span>
-        <span style="font-weight:700;color:var(--cyan);">{{ $paciente->folio ?? 'P-001' }}</span>
+        <span id="folioVisual" style="font-weight:700;color:var(--cyan);">{{ old('folio', $paciente->folio ?: $paciente->identificacion) }}</span>
+        <input type="hidden" name="folio" id="folioInput" value="{{ old('folio', $paciente->folio ?: $paciente->identificacion) }}">
       </div>
     </div>
 
@@ -894,9 +897,15 @@ textarea{
       {{-- Foto --}}
       <div class="personal-photo-col">
         <div class="patient-photo-container" id="patientPhotoContainer">
-          <div class="patient-photo-placeholder" id="patientPhotoPlaceholder">👤</div>
-          <img id="patientPhoto" style="display:none;">
+          @if($paciente->foto)
+            <img id="patientPhoto" src="{{ asset('storage/' . $paciente->foto) }}" alt="Foto del paciente">
+            <div class="patient-photo-placeholder" id="patientPhotoPlaceholder" style="display:none;">👤</div>
+          @else
+            <div class="patient-photo-placeholder" id="patientPhotoPlaceholder">👤</div>
+            <img id="patientPhoto" style="display:none;" alt="Foto del paciente">
+          @endif
         </div>
+        <input type="file" name="foto" id="inputFileFoto" accept="image/*" style="display:none;">
         <button type="button" class="btn-photo" onclick="window.abrirModalFoto()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
           Modificar foto
@@ -906,16 +915,32 @@ textarea{
       <div class="form-grid personal" style="flex:1;">
       <div class="form-group span-2">
         <label>Nombre completo</label>
+<<<<<<< HEAD
         <input type="text" name="nombre_completo" value="{{ old('nombre_completo', $paciente->nombre_completo ?? '') }}" placeholder="Nombre completo del paciente" required>
+=======
+        <input type="text" name="nombre_completo" value="{{ old('nombre_completo', $paciente->nombre_completo) }}" required>
+      </div>
+      <div class="form-group">
+        <label>Identificación</label>
+        <input type="text" name="identificacion" id="identificacionInput" value="{{ old('identificacion', $paciente->identificacion) }}">
+>>>>>>> origin/main
       </div>
 
       <div class="form-group">
         <label>Fecha de nacimiento</label>
+<<<<<<< HEAD
         <input type="date" name="fecha_nacimiento" id="fechaNacimientoEdit" value="{{ old('fecha_nacimiento', optional($paciente->fecha_nacimiento)->format('Y-m-d') ?? '') }}" style="color-scheme:dark;">
       </div>
       <div class="form-group">
         <label>Edad</label>
         <input type="text" name="edad" id="edadCalculadaEdit" value="{{ old('edad', $paciente->edad ?? '') }}" readonly style="background:var(--panel-2);color:var(--txt-soft);cursor:default;">
+=======
+        <input type="date" name="fecha_nacimiento" id="fechaNacimientoEdit" value="{{ old('fecha_nacimiento', optional($paciente->fecha_nacimiento)->format('Y-m-d')) }}" style="color-scheme:dark;">
+      </div>
+      <div class="form-group">
+        <label>Edad</label>
+        <input type="number" name="edad" id="edadCalculadaEdit" value="{{ old('edad', $paciente->edad) }}" readonly style="background:var(--panel-2);color:var(--txt-soft);">
+>>>>>>> origin/main
       </div>
       <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -940,32 +965,54 @@ textarea{
       </script>
       <div class="form-group">
         <label>Peso</label>
+<<<<<<< HEAD
         <input type="text" name="peso" value="{{ old('peso', $paciente->peso ?? '') }}" placeholder="Peso en kg">
       </div>
       <div class="form-group">
         <label>Altura</label>
         <input type="text" name="altura" value="{{ old('altura', $paciente->altura ?? '') }}" placeholder="Altura en metros">
+=======
+        <input type="number" step="0.01" name="peso" value="{{ old('peso', $paciente->peso) }}">
+      </div>
+      <div class="form-group">
+        <label>Altura</label>
+        <input type="number" step="0.01" name="altura" value="{{ old('altura', $paciente->altura) }}">
+>>>>>>> origin/main
       </div>
 
       <div class="form-group">
         <label>Sexo</label>
-        <select>
-          <option value="femenino" selected>Femenino</option>
-          <option value="masculino">Masculino</option>
+        <select name="sexo">
+          <option value="">Selecciona sexo</option>
+          <option value="femenino" {{ old('sexo', $paciente->sexo) == 'femenino' ? 'selected' : '' }}>Femenino</option>
+          <option value="masculino" {{ old('sexo', $paciente->sexo) == 'masculino' ? 'selected' : '' }}>Masculino</option>
+          <option value="otro" {{ old('sexo', $paciente->sexo) == 'otro' ? 'selected' : '' }}>Otro</option>
         </select>
       </div>
       <div class="form-group span-2">
         <label>Dirección</label>
+<<<<<<< HEAD
         <input type="text" name="direccion" value="{{ old('direccion', $paciente->direccion ?? '') }}" placeholder="CALLE, CP">
+=======
+        <input type="text" name="direccion" value="{{ old('direccion', $paciente->direccion) }}">
+>>>>>>> origin/main
       </div>
 
       <div class="form-group">
         <label>Teléfono</label>
+<<<<<<< HEAD
         <input type="tel" name="telefono" value="{{ old('telefono', $paciente->telefono ?? '') }}" placeholder="722 162 0815">
       </div>
       <div class="form-group span-3">
         <label>e-mail</label>
         <input type="email" name="email" value="{{ old('email', $paciente->email ?? '') }}" placeholder="correo@ejemplo.com">
+=======
+        <input type="tel" name="telefono" value="{{ old('telefono', $paciente->telefono) }}">
+      </div>
+      <div class="form-group span-3">
+        <label>e-mail</label>
+        <input type="email" name="email" value="{{ old('email', $paciente->email) }}">
+>>>>>>> origin/main
       </div>
       </div>{{-- /form-grid personal --}}
     </div>{{-- /personal-layout --}}
@@ -981,7 +1028,7 @@ textarea{
         <div class="form-group" style="margin-bottom:18px;">
           <label>Médico</label>
           <div class="select-with-add">
-            <select id="medicoSelectMed">
+            <select id="medicoSelectMed" name="medico">
               <option value="dr-victor">Dr. Victor</option>
               <option value="dr-ricardo">Dr. Ricardo</option>
             </select>
@@ -993,7 +1040,7 @@ textarea{
         <div class="form-group" style="margin-bottom:18px;">
           <label>Procedimiento</label>
           <div class="select-with-add">
-          <select id="procedimientoSelect">
+          <select id="procedimientoSelect" name="procedimiento">
             <option value="colonoscopia">Colonoscopia</option>
             <option value="panendoscopia">Panendoscopia</option>
             <option value="endoscopia" selected>Endoscopia diagnóstica</option>
@@ -1007,7 +1054,7 @@ textarea{
         <div class="form-group" style="margin-bottom:18px;">
           <label>Anestesiólogo</label>
           <div class="select-with-add">
-            <select id="anestesiologoSelect">
+            <select id="anestesiologoSelect" name="anestesiologo">
               <option value="dr-victor">Dr. Victor</option>
               <option value="dr-ricardo">Dr. Ricardo</option>
             </select>
@@ -1019,7 +1066,7 @@ textarea{
         <div class="form-group" style="margin-bottom:18px;">
           <label>Referido por</label>
           <div class="select-with-add">
-            <select id="referidoSelectMed">
+            <select id="referidoSelectMed" name="referido_por">
               <option value="externo">Externo</option>
               <option value="dr-victor">Dr. Victor</option>
               <option value="dr-ricardo">Dr. Ricardo</option>
@@ -1032,7 +1079,7 @@ textarea{
         <div class="form-group">
           <label>Equipo utilizado</label>
           <div class="select-with-add">
-            <select id="equipoSelect">
+            <select id="equipoSelect" name="equipo_utilizado">
               <option value="endoscopio-olympus">Endoscopio Olympus</option>
               <option value="endoscopio-fujifilm">Endoscopio Fujifilm</option>
               <option value="endoscopio-pentax">Endoscopio Pentax</option>
@@ -1044,39 +1091,11 @@ textarea{
           </div>
         </div>
       </div>
-        <div class="form-group" style="margin-top:18px;">
-          <label>Alergias</label>
-          <input type="text" placeholder="Ej: Penicilina, látex, mariscos...">
-        </div>
-        <div class="form-group" style="margin-top:18px;">
-          <label>Tipo de sangre</label>
-          <select>
-            <option value="" disabled selected>Seleccionar</option>
-            <option>A+</option><option>A-</option>
-            <option>B+</option><option>B-</option>
-            <option>AB+</option><option>AB-</option>
-            <option>O+</option><option>O-</option>
-          </select>
-        </div>
-      </div>
-      {{-- Columna derecha --}}
-      <div style="flex:1;display:flex;flex-direction:column;gap:18px;">
-        <div class="form-group">
+      {{-- Columna derecha: Diagnóstico --}}
+      <div style="flex:1;display:flex;flex-direction:column;">
+        <div class="form-group" style="flex:1;">
           <label>Diagnóstico Preliminar</label>
-          <textarea placeholder="Define lo que podría tener" style="min-height:140px;width:100%;"></textarea>
-        </div>
-        <div class="form-group">
-          <label>Enfermedades / Antecedentes</label>
-          <textarea placeholder="Ej: Diabetes tipo 2, Hipertensión arterial..." style="min-height:100px;width:100%;resize:vertical;"></textarea>
-        </div>
-        <div class="form-group">
-          <label>Estudios previos y recetas</label>
-          <div id="archivosEstudiosListaEdit" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;"></div>
-          <label style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border:1.5px dashed var(--stroke-strong);border-radius:var(--r-md);cursor:pointer;font-size:13px;font-weight:600;color:var(--cyan);background:var(--panel-2);transition:border-color 150ms,background 150ms;" onmouseover="this.style.borderColor='var(--cyan)';this.style.background='rgba(56,199,244,.07)'" onmouseout="this.style.borderColor='var(--stroke-strong)';this.style.background='var(--panel-2)'">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Subir archivo (PDF, imagen, DOC)
-            <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none" onchange="agregarArchivosEstudiosEdit(this)">
-          </label>
+          <textarea name="diagnostico_preliminar" placeholder="Define lo que podría tener" style="min-height:220px;width:100%;">{{ old('diagnostico_preliminar', $paciente->diagnostico_preliminar) }}</textarea>
         </div>
       </div>
     </div>
@@ -1104,13 +1123,13 @@ textarea{
 
     {{-- Botón guardar --}}
     <div style="display:flex;justify-content:flex-end;margin-top:28px;">
-      <button class="btn-save" id="btnGuardarInfo" style="background:var(--green);color:#fff;border-color:var(--green);">
+      <button type="submit" class="btn-save" id="btnGuardarInfo" style="background:var(--green);color:#fff;border-color:var(--green);">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         Guardar cambios
       </button>
     </div>
 
-  </div>
+  </form>
 
 
   {{-- Toast cita guardada --}}
@@ -1174,7 +1193,7 @@ textarea{
       </div>
       <h2>¡Datos Guardados!</h2>
       <p>La información del paciente ha sido actualizada correctamente.</p>
-      <button class="btn-aceptar" onclick="window.location.href='{{ route('pacientes') }}'">
+      <button class="btn-aceptar" onclick="window.location.href='{{ route('pacientes.index') }}'">
         Aceptar
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </button>
@@ -1280,21 +1299,6 @@ textarea{
 
 @push('scripts')
 <script>
-function agregarArchivosEstudiosEdit(input){
-  var lista = document.getElementById('archivosEstudiosListaEdit');
-  Array.from(input.files).forEach(function(file){
-    var item = document.createElement('div');
-    item.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--panel-2);border:1px solid var(--stroke);border-radius:8px;font-size:13px;';
-    var ext = file.name.split('.').pop().toLowerCase();
-    var iconColor = ext === 'pdf' ? '#f87171' : (ext === 'doc' || ext === 'docx' ? '#60a5fa' : '#34d399');
-    item.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="'+iconColor+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
-      + '<span style="flex:1;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+file.name+'</span>'
-      + '<span style="color:var(--txt-soft);font-size:11px;">'+( file.size > 1024*1024 ? (file.size/1024/1024).toFixed(1)+' MB' : Math.round(file.size/1024)+' KB' )+'</span>'
-      + '<button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--txt-soft);padding:2px;line-height:1;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
-    lista.appendChild(item);
-  });
-  input.value = '';
-}
 document.addEventListener('DOMContentLoaded', function() {
 
   // ===== MINI MODAL AGREGAR OPCIÓN =====
@@ -1346,13 +1350,50 @@ document.addEventListener('DOMContentLoaded', function() {
   window.addReferidoMed       = function(){ window.abrirMiniModal('referidoSelectMed','Agregar referido','Nombre del referido'); };
   window.addEquipo            = function(){ window.abrirMiniModal('equipoSelect','Agregar equipo','Nombre del equipo'); };
 
-  // ===== GUARDAR INFORMACIÓN =====
+  // ===== GUARDAR INFORMACIÓN ASÍNCRONA =====
+  const pacienteForm = document.getElementById('pacienteForm');
   const btnGuardarInfo = document.getElementById('btnGuardarInfo');
   const modalSuccessEdit = document.getElementById('modalSuccessEdit');
-  if (btnGuardarInfo && modalSuccessEdit) {
-    btnGuardarInfo.addEventListener('click', (e) => {
+
+  if (pacienteForm) {
+    pacienteForm.addEventListener('submit', async function(e) {
       e.preventDefault();
-      modalSuccessEdit.classList.add('active');
+
+      if (btnGuardarInfo) {
+        btnGuardarInfo.disabled = true;
+        btnGuardarInfo.style.opacity = '.7';
+      }
+
+      try {
+        const response = await fetch(pacienteForm.action, {
+          method: 'POST',
+          body: new FormData(pacienteForm),
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+          }
+        });
+
+        if (!response.ok && response.status !== 302) {
+          const data = await response.json().catch(() => null);
+          const message = data?.message || 'No se pudieron guardar los cambios. Revisa los campos.';
+          alert(message);
+          return;
+        }
+
+        if (modalSuccessEdit) {
+          modalSuccessEdit.classList.add('active');
+        } else {
+          window.location.href = '{{ route('pacientes.index') }}';
+        }
+      } catch (error) {
+        alert('Ocurrió un error al actualizar el paciente.');
+      } finally {
+        if (btnGuardarInfo) {
+          btnGuardarInfo.disabled = false;
+          btnGuardarInfo.style.opacity = '1';
+        }
+      }
     });
   }
 
@@ -1366,12 +1407,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
   if (!modalFoto) return;
 
-  // Input file oculto
-  const inputFileFoto = document.createElement('input');
-  inputFileFoto.type = 'file';
-  inputFileFoto.accept = 'image/*';
-  inputFileFoto.style.display = 'none';
-  document.body.appendChild(inputFileFoto);
+  // Input file del formulario
+  const inputFileFoto = document.getElementById('inputFileFoto');
 
   let currentPhotoData = null;
 
@@ -1671,9 +1708,64 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('modalDetalleCita').classList.add('active');
   };
 
+  // ===== FOLIO AUTOMÁTICO DESDE IDENTIFICACIÓN =====
+  const identificacionInput = document.getElementById('identificacionInput');
+  const folioInput = document.getElementById('folioInput');
+  const folioVisual = document.getElementById('folioVisual');
+
+  function actualizarFolioDesdeIdentificacion() {
+    if (!identificacionInput || !folioInput || !folioVisual) return;
+
+    const identificacion = identificacionInput.value.trim();
+
+    folioInput.value = identificacion;
+    folioVisual.textContent = identificacion || 'Se llenará con la identificación';
+  }
+
+  if (identificacionInput) {
+    identificacionInput.addEventListener('input', actualizarFolioDesdeIdentificacion);
+    actualizarFolioDesdeIdentificacion();
+  }
+
+  // ===== EDAD AUTOMÁTICA DESDE FECHA DE NACIMIENTO =====
+  const fechaNacimientoInput = document.getElementById('fechaNacimientoEdit');
+  const edadInput = document.getElementById('edadCalculadaEdit');
+
+  function calcularEdad(fechaNacimiento) {
+    if (!fechaNacimiento) return '';
+
+    const nacimiento = new Date(fechaNacimiento + 'T00:00:00');
+    const hoy = new Date();
+
+    if (isNaN(nacimiento.getTime()) || nacimiento > hoy) return '';
+
+    let edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const mes = hoy.getMonth() - nacimiento.getMonth();
+
+    if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+      edad--;
+    }
+
+    return edad >= 0 ? edad : '';
+  }
+
+  function actualizarEdad() {
+    if (!fechaNacimientoInput || !edadInput) return;
+
+    edadInput.value = calcularEdad(fechaNacimientoInput.value);
+  }
+
+  if (fechaNacimientoInput) {
+    fechaNacimientoInput.addEventListener('change', actualizarEdad);
+    fechaNacimientoInput.addEventListener('input', actualizarEdad);
+    actualizarEdad();
+  }
+
+
 });
 
   // ===== CALCULAR EDAD AUTOMÁTICAMENTE =====
+<<<<<<< HEAD
   (function() {
     var fnInput = document.getElementById('fechaNacimientoEdit');
     var fnEdad  = document.getElementById('edadCalculadaEdit');
@@ -1695,6 +1787,38 @@ document.addEventListener('DOMContentLoaded', function() {
         fnEdad.value = meses + ' meses';
       } else {
         fnEdad.value = edad + ' años';
+=======
+  const fechaNacimientoEdit = document.getElementById('fechaNacimientoEdit');
+  const edadCalculadaEdit = document.getElementById('edadCalculadaEdit');
+  
+  if (fechaNacimientoEdit && edadCalculadaEdit) {
+    fechaNacimientoEdit.addEventListener('change', function() {
+      const fechaNac = new Date(this.value);
+      const hoy = new Date();
+      
+      if (isNaN(fechaNac.getTime())) {
+        edadCalculadaEdit.value = '';
+        edadCalculadaEdit.placeholder = '--';
+        return;
+      }
+      
+      let edad = hoy.getFullYear() - fechaNac.getFullYear();
+      const mes = hoy.getMonth() - fechaNac.getMonth();
+      
+      if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
+        edad--;
+      }
+      
+      if (edad < 0) {
+        edadCalculadaEdit.value = '';
+        edadCalculadaEdit.placeholder = '--';
+      } else if (edad === 0) {
+        // Calcular meses para bebés
+        const meses = (hoy.getMonth() + 12) - fechaNac.getMonth();
+        edadCalculadaEdit.value = 0;
+      } else {
+        edadCalculadaEdit.value = edad;
+>>>>>>> origin/main
       }
     }
 

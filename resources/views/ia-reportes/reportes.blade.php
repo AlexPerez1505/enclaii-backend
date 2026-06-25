@@ -60,48 +60,32 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
     <table class="tbl">
       <thead>
         <tr>
-          <th>Paciente</th><th>Estudio</th><th>Fecha</th><th>Estado</th><th>Confianza IA</th><th>Acciones</th>
+          <th>Paciente</th><th>Estudio</th><th>Fecha</th><th>Estado</th><th>Acciones</th>
         </tr>
       </thead>
       <tbody>
-        @php
-          $reportes = [
-            ['MG','María González','Colonoscopia','08/05/2024','10:30 AM','wait','Pendiente',92],
-            ['JL','Jorge López','Endoscopia','08/05/2024','09:15 AM','wait','Pendiente',88],
-            ['AR','Ana Ramírez','Gastroscopia','07/05/2024','16:40 PM','wait','Pendiente',95],
-            ['PT','Pedro Torres','Colonoscopia','07/05/2024','11:05 AM','done','Completado',99],
-            ['LM','Laura Méndez','Endoscopia','06/05/2024','13:20 PM','done','Completado',97],
-            ['CS','Carlos Sánchez','Gastroscopia','06/05/2024','08:45 AM','done','Completado',91],
-            ['RV','Rosa Vega','Colonoscopia','05/05/2024','15:10 PM','urgent','Urgente',86],
-            ['DM','Diego Morales','Endoscopia','05/05/2024','10:00 AM','done','Completado',94],
-            ['SG','Sofía Guzmán','Gastroscopia','04/05/2024','12:30 PM','wait','Pendiente',90],
-            ['HT','Héctor Trujillo','Colonoscopia','04/05/2024','09:50 AM','done','Completado',98],
-          ];
-        @endphp
-        @foreach($reportes as $r)
-          @php $dash = 113.1; $off = $dash - ($dash * $r[7] / 100); @endphp
+        @forelse($reportes as $r)
+          @php
+            $pacNombre = $r->estudio?->paciente?->nombre_completo ?? $r->estudio?->paciente_nombre ?? 'Sin paciente';
+            $pacIni = collect(explode(' ', $pacNombre))->filter()->take(2)->map(fn($x)=>mb_strtoupper(mb_substr($x,0,1)))->implode('') ?: 'NA';
+            $critico = (bool) $r->contiene_hallazgos_criticos;
+          @endphp
           <tr>
-            <td><span class="pat"><span class="mini">{{ $r[0] }}</span>{{ $r[1] }}</span></td>
-            <td>{{ $r[2] }}</td>
-            <td class="date">{{ $r[3] }} <small>{{ $r[4] }}</small></td>
-            <td><span class="chip {{ $r[5] }}">{{ $r[6] }}</span></td>
-            <td>
-              <span class="conf">
-                <span class="ring">
-                  <svg viewBox="0 0 44 44"><circle class="track" cx="22" cy="22" r="18"/><circle class="val" cx="22" cy="22" r="18" stroke-dasharray="113.1" stroke-dashoffset="{{ $off }}"/></svg>
-                  <span>{{ $r[7] }}%</span>
-                </span>
-              </span>
-            </td>
+            <td><span class="pat"><span class="mini">{{ $pacIni }}</span>{{ $pacNombre }}</span></td>
+            <td>{{ $r->estudio?->tipo ?? '—' }}</td>
+            <td class="date">{{ $r->created_at?->format('d/m/Y') }} <small>{{ $r->created_at?->format('h:i A') }}</small></td>
+            <td><span class="chip {{ $critico ? 'urgent' : 'done' }}">{{ $critico ? 'Crítico' : 'Normal' }}</span></td>
             <td>
               <div class="row-actions">
-                <a href="{{ route('ia-reportes.ver') }}" aria-label="Ver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a>
-                <button aria-label="Descargar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
-                <a href="{{ route('ia-reportes.editar') }}" aria-label="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></a>
+                <a href="{{ route('ia-reportes.ver', ['reporte' => $r->id]) }}" aria-label="Ver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a>
+                <a href="{{ route('ia-reportes.ver', ['reporte' => $r->id, 'download' => 1]) }}" target="_blank" aria-label="Descargar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a>
+                <a href="{{ route('ia-reportes.editar', ['reporte' => $r->id]) }}" aria-label="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0-2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></a>
               </div>
             </td>
           </tr>
-        @endforeach
+        @empty
+          <tr><td colspan="5" style="text-align:center;color:var(--txt-soft);padding:24px 12px">No hay reportes en la base de datos.</td></tr>
+        @endforelse
       </tbody>
     </table>
   </article>

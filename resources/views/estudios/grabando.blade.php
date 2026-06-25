@@ -3,6 +3,13 @@
 @section('title', 'Nuevo Estudio/Grabando')
 @section('active', 'nuevo-estudio')
 
+@php
+  $studioUserName = auth()->check() ? trim(auth()->user()->name ?? 'Doctor') : 'Doctor';
+  $studioUserParts = preg_split('/\s+/', $studioUserName);
+  $studioUserInitials = collect($studioUserParts)->take(2)->map(fn($p) => mb_substr($p, 0, 1))->join('');
+  $studioUserInitials = mb_strtoupper($studioUserInitials ?: mb_substr($studioUserName, 0, 2));
+@endphp
+
 @push('styles')
 <style>
 /* ═══════════════════════════════════════════════
@@ -1228,6 +1235,12 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
 @endpush
 
 @section('content')
+@php
+  $estudio = $estudio ?? null;
+  $capturas = $estudio ? $estudio->capturas()->latest()->get() : collect();
+  $numCapturas = $capturas->count();
+  $pacienteNombre = $estudio?->paciente?->nombre_completo ?? $estudio?->paciente_nombre ?? 'Sin paciente';
+@endphp
 <div class="studio-wrap">
 
   {{-- ══ TOPBAR ══ --}}
@@ -1240,7 +1253,7 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
             <span class="studio-rec-text">GRABANDO</span>
             <span class="studio-timer" id="recTimer">00:00:00</span>
           </div>
-          <div class="studio-study-name">Estudio: Endoscópico Digestiva Alta</div>
+          <div class="studio-study-name">Estudio: {{ $estudio?->tipo ?? 'Sin tipo' }} @if($estudio?->folio) · {{ $estudio->folio }} @endif</div>
         </div>
       </div>
     </div>
@@ -1281,9 +1294,9 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
         </div>
 
         <div class="studio-doctor">
-          <div class="studio-doc-avatar">DV</div>
+          <div class="studio-doc-avatar">{{ $studioUserInitials }}</div>
           <div class="studio-doc-info">
-            <div class="studio-doc-name">Dr. Víctor</div>
+            <div class="studio-doc-name">{{ $studioUserName }}</div>
             <div class="studio-doc-role">Endoscopista</div>
           </div>
         </div>
@@ -1300,8 +1313,10 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
       {{-- Video --}}
       <div class="studio-video-box">
         <div class="studio-video-screen" id="videoScreen">
-          {{-- Aquí va el video real --}}
+          <video id="studioWebcam" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;"></video>
+          <div id="webcamFallback" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;text-align:center;padding:24px;color:rgba(255,255,255,.7);font-size:14px;line-height:1.5;"></div>
         </div>
+        <canvas id="captureCanvas" style="display:none"></canvas>
         <div class="studio-hud">
           <span class="studio-hud-dot"></span>Rec<br>192 x 1080<br>60 FPS<br>Audio ON
         </div>
@@ -1310,20 +1325,22 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
         </button>
       </div>
 
-      {{-- Timeline --}}
+      {{-- Fotos capturadas --}}
       <div class="studio-timeline">
         <div class="studio-tl-header">
-          <span class="studio-tl-title">Línea de Tiempo</span>
+          <span class="studio-tl-title">Fotos capturadas</span>
         </div>
         <div class="studio-tl-scroll" id="recTimeline">
-          @for($i = 1; $i <= 8; $i++)
-          <div class="studio-thumb {{ $i === 1 ? 'active' : '' }}">
-            <div class="studio-thumb-inner">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/></svg>
+          @forelse($capturas as $cap)
+          <div class="studio-thumb" data-id="{{ $cap->id }}">
+            <div class="studio-thumb-inner" style="padding:0;overflow:hidden">
+              <img src="{{ asset('storage/'.$cap->path) }}" alt="captura" style="width:100%;height:100%;object-fit:cover;border-radius:8px">
             </div>
-            <span class="studio-thumb-time">{{ sprintf('%02d:%02d', 0, ($i-1)*8) }}</span>
+            <span class="studio-thumb-time">{{ optional($cap->capturado_en)->format('H:i:s') ?? '' }}</span>
           </div>
-          @endfor
+          @empty
+          <div id="recTimelineEmpty" style="display:flex;align-items:center;color:rgba(255,255,255,.4);font-size:13px;padding:8px 4px">Aún no hay fotos. Presiona “Capturar Foto”.</div>
+          @endforelse
         </div>
       </div>
 
@@ -1358,7 +1375,7 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
       <div class="studio-sidebar-title">Estudio Activo</div>
 
       <div class="studio-stats">
-        <div class="studio-stat-card studio-stat-card-hover" title="Paciente: Maria Gonzalez">
+        <div class="studio-stat-card studio-stat-card-hover" title="Paciente: {{ $pacienteNombre }}">
           <div class="studio-stat-header">
             <div class="studio-stat-icon">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -1368,7 +1385,7 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
           <div class="studio-stat-value red" id="recTimerSide">00:00:00</div>
           <div class="studio-stat-patient-hover">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            Maria Gonzalez
+            {{ $pacienteNombre }}
           </div>
         </div>
 
@@ -1380,7 +1397,7 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
               </div>
               <div class="studio-stat-label">Fotos Capturadas</div>
             </div>
-            <div class="studio-stat-value" id="recFotos">12</div>
+            <div class="studio-stat-value" id="recFotos">{{ $numCapturas }}</div>
           </div>
           <div class="studio-stat-card">
             <div class="studio-stat-header">
@@ -1437,9 +1454,9 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
         <span class="studio-notif-badge">3</span>
       </button>
       <div class="studio-final-profile">
-        <div class="studio-doc-avatar">DV</div>
+        <div class="studio-doc-avatar">{{ $studioUserInitials }}</div>
         <div class="studio-doc-info">
-          <div class="studio-doc-name">Dr. Víctor</div>
+          <div class="studio-doc-name">{{ $studioUserName }}</div>
           <div class="studio-doc-role">Endoscopista</div>
         </div>
       </div>
@@ -1460,7 +1477,8 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
       {{-- Video Player --}}
       <div class="sf-video-player" style="flex:1">
         <div class="sf-video-bg"></div>
-        <div class="sf-video-center">
+        <img id="sfMainImg" alt="Imagen capturada" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;z-index:2">
+        <div class="sf-video-center" id="sfVideoCenter">
           <button class="sf-play-big" id="sfPlayBigFinal">
             <svg class="play-icon" width="20" height="20" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             <svg class="pause-icon" width="20" height="20" viewBox="0 0 24 24" fill="white" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
@@ -1492,29 +1510,29 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
 
       {{-- Acciones tipo galeria --}}
       <div class="studio-final-actions">
+        <button class="studio-final-act-btn guardar" id="btnGuardarEstudio" style="background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.4);color:#22c55e"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Guardar fotos</button>
         <button class="studio-final-act-btn btn-simular-captura"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Capturar imagen</button>
         <a class="studio-final-act-btn wa" href="{{ route('mensajes') }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>Enviar mensaje</a>
-        <a class="studio-final-act-btn ia" href="{{ route('ia-reportes.generar') }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>Iniciar reporte con IA</a>
-        <a class="studio-final-act-btn fin" href="{{ route('ia-reportes.redactar') }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Finalizar estudio</a>
+        <a class="studio-final-act-btn" style="background:rgba(56,199,244,.14);border-color:rgba(56,199,244,.4);color:#38c7f4" href="{{ route('ia-reportes.generar', ['estudio' => $estudio?->id]) }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="M9 15l3 3 3-3"/></svg>Generar reporte IA</a>
+        <a class="studio-final-act-btn fin" href="{{ route('ia-reportes.redactar', ['paciente' => $estudio?->paciente_id, 'estudio' => $estudio?->id]) }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Finalizar estudio</a>
       </div>
 
       {{-- Miniaturas capturadas --}}
       <div>
         <div class="studio-final-caps-title">Imágenes capturadas del estudio</div>
-        <div class="studio-final-caps-strip">
-          @php
-          $caps=[['n'=>1,'ts'=>'0:01:25'],['n'=>2,'ts'=>'0:02:15'],['n'=>3,'ts'=>'0:04:32'],['n'=>4,'ts'=>'0:06:18'],['n'=>5,'ts'=>'0:08:47'],['n'=>6,'ts'=>'0:11:03']];
-          @endphp
-          @foreach($caps as $i => $c)
-          <div class="studio-final-cap-item {{ $i===1 ? 'sel' : '' }}" data-ts="{{ $c['ts'] }}">
+        <div class="studio-final-caps-strip" id="sfCapsStrip">
+          @forelse($capturas as $i => $cap)
+          <div class="studio-final-cap-item {{ $i===0 ? 'sel' : '' }}" data-id="{{ $cap->id }}">
             <div class="studio-final-cap-thumb">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-              <span class="studio-final-cap-num">{{ $c['n'] }}</span>
+              <img src="{{ asset('storage/'.$cap->path) }}" alt="captura" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+              <span class="studio-final-cap-num">{{ $i+1 }}</span>
               <span class="studio-final-cap-check"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
             </div>
-            <div class="studio-final-cap-ts">{{ $c['ts'] }}</div>
+            <div class="studio-final-cap-ts">{{ optional($cap->capturado_en)->format('H:i:s') ?? '' }}</div>
           </div>
-          @endforeach
+          @empty
+          <div id="sfCapsEmpty" style="color:rgba(255,255,255,.4);font-size:13px;padding:8px 4px">No se capturaron fotos en este estudio.</div>
+          @endforelse
         </div>
       </div>
 
@@ -1529,7 +1547,7 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
 
         <div class="studio-resumen-item">
           <div class="studio-resumen-label">
-            <div class="studio-resumen-icon studio-icon-paciente" data-paciente="María Gonzalez">
+            <div class="studio-resumen-icon studio-icon-paciente" data-paciente="{{ $pacienteNombre }}">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
             Estado
@@ -1558,7 +1576,7 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
             <div class="studio-resumen-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
             Médico
           </div>
-          <div class="studio-resumen-value">Dr. Víctor</div>
+          <div class="studio-resumen-value">{{ $studioUserName }}</div>
         </div>
 
         <div class="studio-resumen-item">
@@ -1616,9 +1634,9 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
         <span class="studio-notif-badge">3</span>
       </button>
       <div class="studio-final-profile">
-        <div class="studio-doc-avatar">DV</div>
+        <div class="studio-doc-avatar">{{ $studioUserInitials }}</div>
         <div class="studio-doc-info">
-          <div class="studio-doc-name">Dr. Víctor</div>
+          <div class="studio-doc-name">{{ $studioUserName }}</div>
           <div class="studio-doc-role">Endoscopista</div>
         </div>
       </div>
@@ -1673,8 +1691,8 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
       <div class="studio-final-actions">
         <button class="studio-final-act-btn btn-simular-captura"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Capturar imagen</button>
         <a class="studio-final-act-btn wa" href="{{ route('mensajes') }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>Enviar mensaje</a>
-        <a class="studio-final-act-btn ia" href="{{ route('ia-reportes.generar') }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>Iniciar reporte con IA</a>
-        <a class="studio-final-act-btn fin" href="{{ route('ia-reportes.redactar') }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Finalizar estudio</a>
+        <a class="studio-final-act-btn" style="background:rgba(56,199,244,.14);border-color:rgba(56,199,244,.4);color:#38c7f4" href="{{ route('ia-reportes.generar', ['estudio' => $estudio?->id]) }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="M9 15l3 3 3-3"/></svg>Generar reporte IA</a>
+        <a class="studio-final-act-btn fin" href="{{ route('ia-reportes.redactar', ['paciente' => $estudio?->paciente_id, 'estudio' => $estudio?->id]) }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Finalizar estudio</a>
       </div>
 
       {{-- Miniaturas capturadas --}}
@@ -1708,7 +1726,7 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
 
         <div class="studio-resumen-item">
           <div class="studio-resumen-label">
-            <div class="studio-resumen-icon studio-icon-paciente" data-paciente="María Gonzalez"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+            <div class="studio-resumen-icon studio-icon-paciente" data-paciente="{{ $pacienteNombre }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
             Estado
           </div>
           <div class="studio-resumen-value danger">Emergencia</div>
@@ -1743,7 +1761,7 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
             <div class="studio-resumen-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
             Médico
           </div>
-          <div class="studio-resumen-value">Dr. Víctor</div>
+          <div class="studio-resumen-value">{{ $studioUserName }}</div>
         </div>
 
         <div class="studio-resumen-item">
@@ -1780,7 +1798,13 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
 @push('scripts')
 <script>
 (function () {
-  let secs = 0, paused = false, fotos = 12, clips = 3;
+  const ESTUDIO_ID  = @json($estudio?->id);
+  const CSRF        = @json(csrf_token());
+  const CAPTURAS_URL = @json(route('nuevo-estudio.capturas.store'));
+  const FINALIZAR_URL = @json(route('nuevo-estudio.finalizar'));
+  const GALERIA_URL = @json($estudio?->paciente_id ? route('galeria.paciente', $estudio->paciente_id) : route('galeria'));
+
+  let secs = 0, paused = false, fotos = {{ $numCapturas }}, clips = 0;
 
   function pad(n) { return String(n).padStart(2,'0'); }
   function fmt(s) { return pad(Math.floor(s/3600))+':'+pad(Math.floor((s%3600)/60))+':'+pad(s%60); }
@@ -1840,17 +1864,173 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
     updatePauseButton();
   });
 
+  /* ── Cámara web en vivo ── */
+  const webcam = document.getElementById('studioWebcam');
+  const captureCanvas = document.getElementById('captureCanvas');
+  const webcamFallback = document.getElementById('webcamFallback');
+  let webcamStream = null;
+
+  async function initWebcam() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showWebcamError('Tu navegador no permite acceder a la cámara.');
+      return;
+    }
+    try {
+      webcamStream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 1920 }, height: { ideal: 1080 } },
+        audio: false
+      });
+      if (webcam) { webcam.srcObject = webcamStream; }
+      if (webcamFallback) webcamFallback.style.display = 'none';
+    } catch (e) {
+      showWebcamError('No se pudo acceder a la cámara: ' + (e && e.message ? e.message : e));
+    }
+  }
+  function showWebcamError(msg) {
+    if (webcam) webcam.style.display = 'none';
+    if (webcamFallback) { webcamFallback.style.display = 'flex'; webcamFallback.textContent = msg; }
+  }
+  function stopWebcam() {
+    if (webcamStream) { webcamStream.getTracks().forEach(t => t.stop()); webcamStream = null; }
+  }
+  initWebcam();
+
+  /* Quitar mensaje "aún no hay fotos" al agregar la primera */
+  function removeEmptyHint() {
+    const hint = document.getElementById('recTimelineEmpty');
+    if (hint) hint.remove();
+  }
+
+  /* Agrega una miniatura de foto a la galería en vivo */
+  function addPhotoThumb(url) {
+    if (!tl) return;
+    removeEmptyHint();
+    document.querySelectorAll('.studio-thumb.active').forEach(t => t.classList.remove('active'));
+    const el = document.createElement('div');
+    el.className = 'studio-thumb active';
+    el.innerHTML = `<div class="studio-thumb-inner" style="padding:0;overflow:hidden"><img src="${url}" alt="captura" style="width:100%;height:100%;object-fit:cover;border-radius:8px"></div><span class="studio-thumb-time">${fmt(secs)}</span>`;
+    el.addEventListener('click', () => { document.querySelectorAll('.studio-thumb').forEach(t => t.classList.remove('active')); el.classList.add('active'); });
+    tl.appendChild(el);
+    tl.scrollLeft = tl.scrollWidth;
+  }
+
+  /* Agrega la foto a la galería del estudio terminado */
+  function addFinalCap(url) {
+    const strip = document.getElementById('sfCapsStrip');
+    if (!strip) return;
+    const empty = document.getElementById('sfCapsEmpty');
+    if (empty) empty.remove();
+    const n = strip.querySelectorAll('.studio-final-cap-item').length + 1;
+    const item = document.createElement('div');
+    item.className = 'studio-final-cap-item';
+    item.innerHTML = `<div class="studio-final-cap-thumb"><img src="${url}" alt="captura" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"><span class="studio-final-cap-num">${n}</span><span class="studio-final-cap-check"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span></div><div class="studio-final-cap-ts">${fmt(secs)}</div>`;
+    item.addEventListener('click', () => { strip.querySelectorAll('.studio-final-cap-item').forEach(t => t.classList.remove('sel')); item.classList.add('sel'); });
+    strip.appendChild(item);
+  }
+
+  /* ── Galería del estudio terminado: ver imagen en grande ── */
+  const sfMainImg = document.getElementById('sfMainImg');
+  const sfVideoCenter = document.getElementById('sfVideoCenter');
+  const sfCapsStrip = document.getElementById('sfCapsStrip');
+
+  function showMainImage(url) {
+    if (!sfMainImg || !url) return;
+    sfMainImg.src = url;
+    sfMainImg.style.display = 'block';
+    if (sfVideoCenter) sfVideoCenter.style.display = 'none';
+    const sfPlayer = document.querySelector('.studio-finalizado-wrap .sf-video-player');
+    const sfControls = sfPlayer ? sfPlayer.querySelector('.sf-video-controls') : null;
+    if (sfControls) sfControls.style.display = 'none';
+  }
+
+  function selectCapItem(item) {
+    if (!item || !sfCapsStrip) return;
+    sfCapsStrip.querySelectorAll('.studio-final-cap-item').forEach(t => t.classList.remove('sel'));
+    item.classList.add('sel');
+    const img = item.querySelector('img');
+    if (img) showMainImage(img.src);
+  }
+
+  sfCapsStrip?.addEventListener('click', (e) => {
+    const item = e.target.closest('.studio-final-cap-item');
+    if (item) selectCapItem(item);
+  });
+
+  function showFirstCapture() {
+    if (!sfCapsStrip) return;
+    const sel = sfCapsStrip.querySelector('.studio-final-cap-item.sel') || sfCapsStrip.querySelector('.studio-final-cap-item');
+    if (sel) selectCapItem(sel);
+  }
+
+  /* ── Guardar fotos: finaliza el estudio y va a la galería del paciente ── */
+  const btnGuardarEstudio = document.getElementById('btnGuardarEstudio');
+  btnGuardarEstudio?.addEventListener('click', () => {
+    btnGuardarEstudio.disabled = true;
+    const original = btnGuardarEstudio.innerHTML;
+    btnGuardarEstudio.textContent = 'Guardando...';
+    const fd = new FormData();
+    if (ESTUDIO_ID) fd.append('estudio_id', ESTUDIO_ID);
+    fd.append('duracion_segundos', secs);
+    fetch(FINALIZAR_URL, {
+      method: 'POST',
+      headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+      body: fd
+    })
+    .then(r => r.json().catch(() => ({})))
+    .then(() => { window.location.href = GALERIA_URL; })
+    .catch(err => {
+      console.error('Error guardando el estudio', err);
+      btnGuardarEstudio.disabled = false;
+      btnGuardarEstudio.innerHTML = original;
+      window.location.href = GALERIA_URL;
+    });
+  });
+
+  /* Sube la captura al servidor y la guarda en la base de datos */
+  function uploadCapture(blob) {
+    const fd = new FormData();
+    fd.append('files[]', blob, 'captura_' + Date.now() + '.jpg');
+    if (ESTUDIO_ID) fd.append('estudio_id', ESTUDIO_ID);
+    fd.append('categoria', 'captura');
+    fetch(CAPTURAS_URL, {
+      method: 'POST',
+      headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+      body: fd
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data && data.ok && Array.isArray(data.archivos)) {
+        data.archivos.forEach(a => { addPhotoThumb(a.url); addFinalCap(a.url); });
+        fotos += data.archivos.length;
+        if (fotosEl) fotosEl.textContent = fotos;
+        const sfCount = document.getElementById('sfFotosCount');
+        if (sfCount) sfCount.textContent = fotos;
+      }
+    })
+    .catch(err => console.error('Error guardando captura', err));
+  }
+
   /* Capturar Foto */
   const btnCapturarFoto = document.getElementById('btnCapturarFoto');
   btnCapturarFoto?.addEventListener('click', () => {
     const videoScreen = document.getElementById('videoScreen');
-    if (!videoScreen) return;
-    const flash = document.createElement('div');
-    flash.style.cssText = 'position:absolute;inset:0;background:#fff;opacity:0.6;z-index:20;pointer-events:none;transition:opacity 300ms ease;';
-    videoScreen.style.position = 'relative';
-    videoScreen.appendChild(flash);
-    requestAnimationFrame(() => { flash.style.opacity = '0'; });
-    setTimeout(() => flash.remove(), 350);
+    if (videoScreen) {
+      const flash = document.createElement('div');
+      flash.style.cssText = 'position:absolute;inset:0;background:#fff;opacity:0.6;z-index:20;pointer-events:none;transition:opacity 300ms ease;';
+      videoScreen.style.position = 'relative';
+      videoScreen.appendChild(flash);
+      requestAnimationFrame(() => { flash.style.opacity = '0'; });
+      setTimeout(() => flash.remove(), 350);
+    }
+    if (!webcam || !webcam.videoWidth || !captureCanvas) {
+      console.warn('La cámara no está lista todavía.');
+      return;
+    }
+    const w = webcam.videoWidth, h = webcam.videoHeight;
+    captureCanvas.width = w;
+    captureCanvas.height = h;
+    captureCanvas.getContext('2d').drawImage(webcam, 0, 0, w, h);
+    captureCanvas.toBlob((blob) => { if (blob) uploadCapture(blob); }, 'image/jpeg', 0.92);
   });
 
   /* Detener grabación */
@@ -1859,6 +2039,7 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
     clearInterval(iv);
     paused = true;
     updatePauseButton();
+    stopWebcam();
     const recText = document.querySelector('.studio-rec-text');
     if (recText) recText.textContent = 'DETENIDO';
     const recDot = document.querySelector('.studio-rec-dot');
@@ -1877,6 +2058,8 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
     wrapFinalizado.classList.add('active');
     // Detener timer
     clearInterval(iv);
+    stopWebcam();
+    showFirstCapture();
   });
 
   /* ── Botón Emergencia ── */
@@ -2038,7 +2221,7 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
     });
   });
 
-  window.addEventListener('beforeunload', () => clearInterval(iv));
+  window.addEventListener('beforeunload', () => { clearInterval(iv); stopWebcam(); });
 })();
 </script>
 @endpush

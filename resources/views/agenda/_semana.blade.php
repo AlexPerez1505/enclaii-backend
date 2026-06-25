@@ -22,7 +22,7 @@
 .week-table .hr-label{font-size:9.5px;color:var(--txt-soft);text-align:right;padding:0 5px 0 0;width:38px;vertical-align:top;padding-top:3px;border-right:1px solid rgba(110,160,255,.1);white-space:nowrap}
 .week-table td.wk-cell{vertical-align:top;border:1px solid rgba(110,160,255,.06);padding:2px 3px;height:40px;position:relative}
 .week-table td.wk-cell.wk-today-col{background:rgba(22,139,217,.05)}
-.wk-event{border-radius:4px;padding:2px 5px;font-size:9.5px;font-weight:600;line-height:1.2;margin-bottom:1px;cursor:pointer;transition:opacity 150ms ease;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-height:40px}
+.wk-event{border-radius:4px;padding:2px 5px;font-size:9.5px;font-weight:600;line-height:1.2;margin-bottom:1px;cursor:pointer;transition:opacity 150ms ease;word-wrap:break-word;hyphens:auto}
 .wk-event:hover{opacity:.8}
 .wk-line1{font-weight:700;line-height:1.2}
 .wk-line2{font-size:8.5px;opacity:.9;line-height:1.2;margin-top:1px}
@@ -175,8 +175,9 @@ html[data-theme="light"] .wk-modal-badge.soon{background:#F3ECFF;color:#4A1A8A;b
         const cellEvents = (EVENTS[key] || []).filter(ev => ev.h === hr);
         const MAX_VISIBLE = 2;
         cellEvents.slice(0, MAX_VISIBLE).forEach(ev => {
+          const liveCls = typeof window.__recomputeClass === 'function' ? window.__recomputeClass(ev, key) : ev.cls;
           const div = document.createElement('div');
-          div.className = 'wk-event ' + ev.cls;
+          div.className = 'wk-event ' + liveCls;
           let name = ev.name || '';
           let proc = ev.proc || '';
           if (!name && ev.t) {
@@ -190,8 +191,11 @@ html[data-theme="light"] .wk-modal-badge.soon{background:#F3ECFF;color:#4A1A8A;b
           div.innerHTML = `<div class="wk-line1">${displayName}</div><div class="wk-line2">${proc}</div>`;
           div.dataset.name = name;
           div.dataset.proc = proc;
-          div.dataset.cls = ev.cls;
+          div.dataset.cls = liveCls;
           div.dataset.time = timeM ? timeM[1] : (ev.h ? String(ev.h).padStart(2,'0') + ':00' : '');
+          div.dataset.citaId = ev.id || '';
+          div.dataset.pacienteId = ev.paciente_id || '';
+          div.dataset.deleteUrl = ev.delete_url || '';
           td.appendChild(div);
         });
         if (cellEvents.length > MAX_VISIBLE) {
@@ -223,9 +227,11 @@ html[data-theme="light"] .wk-modal-badge.soon{background:#F3ECFF;color:#4A1A8A;b
 
   window.openWeekModal = function(events, date, hour, dayName) {
     const dStr = `${dayName} ${date.getDate()}`;
+    const key = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`;
     wkModalTitle.textContent = hour !== '' ? `${dStr} – ${hour}:00` : `${dStr} – Citas del día`;
     wkModalBody.innerHTML = '';
     events.forEach(ev => {
+      const liveCls = typeof window.__recomputeClass === 'function' ? window.__recomputeClass(ev, key) : ev.cls;
       let name = ev.name || '';
       let proc = ev.proc || '';
       if (!name && ev.t) {
@@ -236,7 +242,7 @@ html[data-theme="light"] .wk-modal-badge.soon{background:#F3ECFF;color:#4A1A8A;b
       }
       const displayName = (window.__displayName ? window.__displayName(name) : name);
       const inits = displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-      const cls = ev.cls;
+      const cls = liveCls;
       const statusKey = cls.replace('ev-', '');
       const statusLabel = STATUS_LABELS[cls] || statusKey;
 
@@ -245,6 +251,7 @@ html[data-theme="light"] .wk-modal-badge.soon{background:#F3ECFF;color:#4A1A8A;b
       item.dataset.name = name;
       item.dataset.proc = proc;
       item.dataset.cls = cls;
+      item.dataset.pacienteId = ev.paciente_id || '';
       item.innerHTML = `
         <div class="wk-modal-avatar">${inits}</div>
         <div class="wk-modal-info">

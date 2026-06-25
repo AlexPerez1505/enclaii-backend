@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Reporte;
 use App\Services\OpenAiReportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Throwable;
 
 class IaReporteController extends Controller
@@ -61,6 +63,39 @@ class IaReporteController extends Controller
             'ok' => true,
             'respuesta' => $resultado['respuesta'],
             'acciones' => $resultado['acciones'],
+        ]);
+    }
+
+    /**
+     * Guarda (o actualiza) un reporte clínico ligado a un estudio.
+     */
+    public function guardar(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'estudio_id' => ['required', 'exists:estudios,id'],
+            'reporte_id' => ['nullable', 'exists:reportes,id'],
+            'contenido_texto' => ['required', 'string'],
+            'contiene_hallazgos_criticos' => ['nullable', 'boolean'],
+        ]);
+
+        $data = [
+            'estudio_id' => $validated['estudio_id'],
+            'usuario_id' => Auth::id(),
+            'contenido_texto' => $validated['contenido_texto'],
+            'contiene_hallazgos_criticos' => $validated['contiene_hallazgos_criticos'] ?? false,
+        ];
+
+        if (! empty($validated['reporte_id'])) {
+            $reporte = Reporte::findOrFail($validated['reporte_id']);
+            $reporte->update($data);
+        } else {
+            $reporte = Reporte::create($data);
+        }
+
+        return response()->json([
+            'ok' => true,
+            'reporte_id' => $reporte->id,
+            'message' => 'Reporte guardado correctamente.',
         ]);
     }
 

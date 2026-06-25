@@ -971,26 +971,40 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
   .modal-photo{padding:16px}
   .camera-frame{height:160px}
 }
+
+.camera-frame video,
+.camera-frame canvas{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:none;
+}
+.camera-frame.camera-active video{display:block}
+.camera-frame.camera-active .avatar-preview{display:none}
+
 </style>
 @endpush
 
 @section('content')
 
   {{-- Link volver --}}
-  <a href="{{ route('pacientes') }}" class="back-link rise d1">
+  <a href="{{ route('pacientes.index') }}" class="back-link rise d1">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
     Volver a pacientes
   </a>
 
   {{-- Formulario --}}
-  <div class="form-card rise d2">
+  <form id="pacienteForm" class="form-card rise d2" action="{{ route('pacientes.store') }}" method="POST" enctype="multipart/form-data">
+    @csrf
     
     {{-- Sección Información Personal --}}
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
       <h2 class="section-title" style="margin:0;">Información personal</h2>
       <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-md);font-size:13px;">
         <span style="color:var(--txt-soft);">Folio:</span>
-        <span style="font-weight:700;color:var(--cyan);">P-001</span>
+        <span style="font-weight:700;color:var(--cyan);">{{ old('folio', $folio ?? 'P-001') }}</span>
+        <input type="hidden" name="folio" id="folioInput" value="{{ old('folio', $folio ?? 'P-001') }}">
+        <input type="hidden" name="identificacion" id="identificacionInput" value="{{ old('identificacion', old('folio', $folio ?? 'P-001')) }}">
       </div>
     </div>
 
@@ -999,9 +1013,10 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
       <div class="personal-photo-col">
         <div class="patient-photo-container" id="patientPhotoContainer">
           <div class="patient-photo-placeholder" id="patientPhotoPlaceholder">👤</div>
-          <img id="patientPhoto" style="display:none;">
-            </div>
-        <button class="btn-photo" id="btnAgregarFoto" style="width:100%;justify-content:center;">
+          <img id="patientPhoto" style="display:none;" alt="Foto del paciente">
+        </div>
+        <input type="file" name="foto" id="inputFileFoto" accept="image/*" style="display:none;">
+        <button type="button" class="btn-photo" id="btnAgregarFoto" style="width:100%;justify-content:center;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
           Agregar foto
         </button>
@@ -1010,16 +1025,25 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
       <div class="form-grid personal" style="flex:1;">
       <div class="form-group span-2">
         <label>Nombre completo</label>
-        <input type="text" placeholder="María Fernanda López Ruiz">
+        <input type="text" name="nombre_completo" value="{{ old('nombre_completo') }}" placeholder="Nombre completo del paciente" required>
       </div>
+
 
       <div class="form-group">
         <label>Fecha de nacimiento</label>
+<<<<<<< HEAD
         <input type="date" name="fecha_nacimiento" id="fechaNacimiento" value="{{ old('fecha_nacimiento') }}" style="color-scheme:dark;">
       </div>
       <div class="form-group">
         <label>Edad</label>
         <input type="text" name="edad" id="edadCalculada" value="{{ old('edad') }}" placeholder="--" readonly style="background:var(--panel-2);color:var(--txt-soft);cursor:default;">
+=======
+        <input type="date" name="fecha_nacimiento" id="fechaNacimiento" value="{{ old('fecha_nacimiento') }}" style="color-scheme:dark;" onclick="this.showPicker && this.showPicker()" onfocus="this.showPicker && this.showPicker()">
+      </div>
+      <div class="form-group">
+        <label>Edad</label>
+        <input type="number" name="edad" id="edadCalculada" value="{{ old('edad') }}" placeholder="--" readonly style="background:var(--panel-2);color:var(--txt-soft);">
+>>>>>>> origin/main
       </div>
       <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1044,32 +1068,34 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
       </script>
       <div class="form-group">
         <label>Peso</label>
-        <input type="text" placeholder="30 kg">
+        <input type="number" step="0.01" name="peso" value="{{ old('peso') }}" placeholder="Peso en kg">
       </div>
       <div class="form-group">
         <label>Altura</label>
-        <input type="text" placeholder="1.75 m">
+        <input type="number" step="0.01" name="altura" value="{{ old('altura') }}" placeholder="Altura en metros">
       </div>
 
       <div class="form-group">
         <label>Sexo</label>
-        <select>
-          <option value="femenino">Femenino</option>
-          <option value="masculino">Masculino</option>
+        <select name="sexo">
+          <option value="">Selecciona sexo</option>
+          <option value="femenino" {{ old('sexo') == 'femenino' ? 'selected' : '' }}>Femenino</option>
+          <option value="masculino" {{ old('sexo') == 'masculino' ? 'selected' : '' }}>Masculino</option>
+          <option value="otro" {{ old('sexo') == 'otro' ? 'selected' : '' }}>Otro</option>
         </select>
       </div>
       <div class="form-group span-2">
         <label>Dirección</label>
-        <input type="text" placeholder="CALLE, CP">
+        <input type="text" name="direccion" value="{{ old('direccion') }}" placeholder="CALLE, CP">
       </div>
 
       <div class="form-group">
         <label>Teléfono</label>
-        <input type="tel" placeholder="722 162 0815">
+        <input type="tel" name="telefono" value="{{ old('telefono') }}" placeholder="722 162 0815">
       </div>
       <div class="form-group span-3">
         <label>e-mail</label>
-        <input type="email" placeholder="@gmail.com">
+        <input type="email" name="email" value="{{ old('email') }}" placeholder="correo@ejemplo.com">
       </div>
       </div>{{-- /form-grid personal --}}
     </div>{{-- /personal-layout --}}
@@ -1080,12 +1106,12 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
     <h2 class="section-title">Información médica</h2>
 
     <div style="display:flex;gap:32px;align-items:flex-start;">
-      {{-- Columna izquierda --}}
+      {{-- Columna izquierda: Procedimiento + Fecha --}}
       <div style="flex:1;">
         <div class="form-group" style="margin-bottom:18px;">
           <label>Médico</label>
           <div class="select-with-add">
-            <select id="medicoSelectMed">
+            <select id="medicoSelectMed" name="medico">
               <option value="dr-victor">Dr. Victor</option>
               <option value="dr-ricardo">Dr. Ricardo</option>
             </select>
@@ -1097,7 +1123,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
         <div class="form-group" style="margin-bottom:18px;">
           <label>Procedimiento</label>
           <div class="select-with-add">
-          <select id="procedimientoSelect">
+          <select id="procedimientoSelect" name="procedimiento">
             <option value="colonoscopia">Colonoscopia</option>
             <option value="panendoscopia">Panendoscopia</option>
             <option value="endoscopia">Endoscopia diagnóstica</option>
@@ -1112,7 +1138,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
         <div class="form-group" style="margin-bottom:18px;">
           <label>Anestesiólogo</label>
           <div class="select-with-add">
-            <select id="anestesiologoSelect">
+            <select id="anestesiologoSelect" name="anestesiologo">
               <option value="dr-victor">Dr. Victor</option>
               <option value="dr-ricardo">Dr. Ricardo</option>
             </select>
@@ -1124,7 +1150,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
         <div class="form-group" style="margin-bottom:18px;">
           <label>Referido por</label>
           <div class="select-with-add">
-            <select id="referidoSelectMed">
+            <select id="referidoSelectMed" name="referido_por">
               <option value="externo">Externo</option>
               <option value="dr-victor">Dr. Victor</option>
               <option value="dr-ricardo">Dr. Ricardo</option>
@@ -1137,7 +1163,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
         <div class="form-group" style="margin-bottom:18px;">
           <label>Equipo utilizado</label>
           <div class="select-with-add">
-            <select id="equipoSelect">
+            <select id="equipoSelect" name="equipo_utilizado">
               <option value="endoscopio-olympus">Endoscopio Olympus</option>
               <option value="endoscopio-fujifilm">Endoscopio Fujifilm</option>
               <option value="endoscopio-pentax">Endoscopio Pentax</option>
@@ -1148,52 +1174,25 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
             </button>
           </div>
         </div>
-        <div class="form-group" style="margin-bottom:18px;">
-          <label>Alergias</label>
-          <input type="text" placeholder="Ej: Penicilina, látex, mariscos...">
-        </div>
-        <div class="form-group" style="margin-bottom:18px;">
-          <label>Tipo de sangre</label>
-          <select>
-            <option value="" disabled selected>Seleccionar</option>
-            <option>A+</option><option>A-</option>
-            <option>B+</option><option>B-</option>
-            <option>AB+</option><option>AB-</option>
-            <option>O+</option><option>O-</option>
-          </select>
-        </div>
       </div>
-      {{-- Columna derecha --}}
-      <div style="flex:1;display:flex;flex-direction:column;gap:18px;">
-        <div class="form-group">
+      {{-- Columna derecha: Diagnóstico --}}
+      <div style="flex:1;display:flex;flex-direction:column;">
+        <div class="form-group" style="flex:1;">
           <label>Diagnóstico Preliminar</label>
-          <textarea placeholder="Define lo que podría tener" style="min-height:140px;width:100%;"></textarea>
-        </div>
-        <div class="form-group">
-          <label>Enfermedades / Antecedentes</label>
-          <textarea placeholder="Ej: Diabetes tipo 2, Hipertensión arterial..." style="min-height:100px;width:100%;resize:vertical;"></textarea>
-        </div>
-        <div class="form-group">
-          <label>Estudios previos y recetas</label>
-          <div id="archivosEstudiosLista" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;"></div>
-          <label id="btnSubirEstudio" style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border:1.5px dashed var(--stroke-strong);border-radius:var(--r-md);cursor:pointer;font-size:13px;font-weight:600;color:var(--cyan);background:var(--panel-2);transition:border-color 150ms,background 150ms;" onmouseover="this.style.borderColor='var(--cyan)';this.style.background='rgba(56,199,244,.07)'" onmouseout="this.style.borderColor='var(--stroke-strong)';this.style.background='var(--panel-2)'">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Subir archivo (PDF, imagen, DOC)
-            <input type="file" id="inputEstudios" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none" onchange="agregarArchivosEstudios(this)">
-          </label>
+          <textarea name="diagnostico_preliminar" placeholder="Define lo que podría tener" style="min-height:220px;width:100%;">{{ old('diagnostico_preliminar') }}</textarea>
         </div>
       </div>
     </div>
 
     {{-- Botón guardar --}}
     <div style="display:flex;justify-content:flex-end;margin-top:28px;">
-      <button class="btn-save" id="btnGuardarPaciente">
+      <button type="submit" class="btn-save" id="btnGuardarPaciente">
         Guardar paciente
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </button>
     </div>
 
-  </div>
+  </form>
 
 
   {{-- Toast cita guardada --}}
@@ -1259,7 +1258,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
       </div>
       <h2>¡Paciente registrado!</h2>
       <p>El paciente ha sido registrado exitosamente en el sistema.</p>
-      <button class="btn-aceptar" onclick="window.location.href='{{ route('agenda') }}'">
+      <button class="btn-aceptar" onclick="window.location.href='{{ route('pacientes.index') }}'">
         Ir a agenda
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       </button>
@@ -1367,21 +1366,6 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
 
 @push('scripts')
 <script>
-function agregarArchivosEstudios(input){
-  var lista = document.getElementById('archivosEstudiosLista');
-  Array.from(input.files).forEach(function(file){
-    var item = document.createElement('div');
-    item.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--panel-2);border:1px solid var(--stroke);border-radius:8px;font-size:13px;';
-    var ext = file.name.split('.').pop().toLowerCase();
-    var iconColor = ext === 'pdf' ? '#f87171' : (ext === 'doc' || ext === 'docx' ? '#60a5fa' : '#34d399');
-    item.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="'+iconColor+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
-      + '<span style="flex:1;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+file.name+'</span>'
-      + '<span style="color:var(--txt-soft);font-size:11px;">'+( file.size > 1024*1024 ? (file.size/1024/1024).toFixed(1)+' MB' : Math.round(file.size/1024)+' KB' )+'</span>'
-      + '<button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--txt-soft);padding:2px;line-height:1;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
-    lista.appendChild(item);
-  });
-  input.value = '';
-}
 (function(){
 
   // ===== MINI MODAL AGREGAR OPCIÓN (se inyecta en body) =====
@@ -1433,139 +1417,22 @@ function agregarArchivosEstudios(input){
   window.addReferidoMed       = function(){ window.abrirMiniModal('referidoSelectMed','Agregar referido','Nombre del referido'); };
   window.addEquipo            = function(){ window.abrirMiniModal('equipoSelect','Agregar equipo','Nombre del equipo'); };
 
-  const btnAgregarFoto = document.getElementById('btnAgregarFoto');
-  const modalFoto = document.getElementById('modalFoto');
-  const btnCancelarFoto = document.getElementById('btnCancelarFoto');
+  const btnAgregarFotoOld = null; /* reemplazado por FOTO DEL PACIENTE */
+  const modalFotoOld = null; /* reemplazado por FOTO DEL PACIENTE */
+  const btnCancelarFotoOld = null; /* reemplazado por FOTO DEL PACIENTE */
 
-  // Input file oculto para subir imagen
-  const inputFileFoto = document.createElement('input');
-  inputFileFoto.type = 'file';
-  inputFileFoto.accept = 'image/*';
-  inputFileFoto.style.display = 'none';
-  document.body.appendChild(inputFileFoto);
+  // Input file del formulario
+  const inputFileFotoOld = null; /* reemplazado por FOTO DEL PACIENTE */
 
   // Referencias al recuadro de foto
   const patientPhotoContainer = document.getElementById('patientPhotoContainer');
-  const patientPhoto = document.getElementById('patientPhoto');
-  const patientPhotoPlaceholder = document.getElementById('patientPhotoPlaceholder');
-  const btnUsarFoto = document.getElementById('btnUsarFoto');
+  const patientPhotoOld = null; /* reemplazado por FOTO DEL PACIENTE */
+  const patientPhotoPlaceholderOld = null; /* reemplazado por FOTO DEL PACIENTE */
+  const btnUsarFotoOld = null; /* reemplazado por FOTO DEL PACIENTE */
 
   // Variable para almacenar la foto actual (base64)
-  let currentPhotoData = null;
-
-  btnAgregarFoto.addEventListener('click', () => {
-    modalFoto.classList.add('active');
-    // Resetear vista previa
-    avatarPreview.textContent = '👤';
-    avatarPreview.style.backgroundImage = '';
-    currentPhotoData = null;
-  });
-
-  btnCancelarFoto.addEventListener('click', () => {
-    modalFoto.classList.remove('active');
-  });
-
-  modalFoto.addEventListener('click', (e) => {
-    if (e.target === modalFoto) {
-      modalFoto.classList.remove('active');
-    }
-  });
-
-  // Toggle opciones de fuente
-  const sourceOptions = document.querySelectorAll('.source-option');
-  sourceOptions.forEach(opt => {
-    opt.addEventListener('click', () => {
-      sourceOptions.forEach(o => o.classList.remove('active'));
-      opt.classList.add('active');
-    });
-  });
-
-  // Toggle botones de cámara
-  const camBtns = document.querySelectorAll('.cam-btn');
-  camBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      camBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-    });
-  });
-
-  // Manejar selección de fuente (Cámara vs Galería)
-  const avatarPreview = document.querySelector('.avatar-preview');
-  
-  sourceOptions.forEach((opt, index) => {
-    opt.addEventListener('click', () => {
-      if (index === 1) { // Galería
-        inputFileFoto.click();
-      }
-    });
-  });
-
-  // Manejar selección de archivo
-  inputFileFoto.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        currentPhotoData = event.target.result;
-        avatarPreview.style.backgroundImage = `url(${currentPhotoData})`;
-        avatarPreview.style.backgroundSize = 'cover';
-        avatarPreview.style.backgroundPosition = 'center';
-        avatarPreview.textContent = '';
-      };
-      reader.readAsDataURL(file);
-    }
-  });
-
-  // Botón "Usar esta foto"
-  btnUsarFoto.addEventListener('click', () => {
-    if (currentPhotoData) {
-      // Mostrar foto en el recuadro superior derecho
-      patientPhoto.src = currentPhotoData;
-      patientPhoto.style.display = 'block';
-      patientPhotoPlaceholder.style.display = 'none';
-      
-      // Cerrar modal
-      modalFoto.classList.remove('active');
-      
-      // Opcional: Guardar en localStorage
-      localStorage.setItem('patientPhoto', currentPhotoData);
-    } else {
-      alert('Por favor capture o seleccione una foto primero');
-    }
-  });
-
-  // Botón "Guardar paciente" - redirige directamente a agenda
-  const btnGuardarPaciente = document.getElementById('btnGuardarPaciente');
-  const btnGuardarPacienteMobile = document.getElementById('btnGuardarPacienteMobile');
-  
-  function guardarYRedirigir() {
-    // Aquí puedes agregar lógica para guardar el paciente en backend
-    window.location.href = '{{ route('agenda') }}';
-  }
-  
-  if (btnGuardarPaciente) {
-    btnGuardarPaciente.addEventListener('click', (e) => {
-      e.preventDefault();
-      guardarYRedirigir();
-    });
-  }
-  
-  if (btnGuardarPacienteMobile) {
-    btnGuardarPacienteMobile.addEventListener('click', (e) => {
-      e.preventDefault();
-      guardarYRedirigir();
-    });
-  }
-
-  // Cargar foto guardada al iniciar (si existe)
-  const savedPhoto = localStorage.getItem('patientPhoto');
-  if (savedPhoto) {
-    patientPhoto.src = savedPhoto;
-    patientPhoto.style.display = 'block';
-    patientPhotoPlaceholder.style.display = 'none';
-  }
-
-  // Cargar procedimientos personalizados desde localStorage
+  let currentPhotoDataOld = null;
+// Cargar procedimientos personalizados desde localStorage
   function cargarProcedimientosPersonalizados() {
     const guardados = localStorage.getItem('procedimientosPersonalizados');
     if (guardados) {
@@ -1707,7 +1574,8 @@ function agregarArchivosEstudios(input){
     const guardados = localStorage.getItem('medicosPersonalizados');
     if (guardados) {
       const lista = JSON.parse(guardados);
-      const select = document.getElementById('medicoSelect');
+      const select = document.getElementById('medicoSelectMed');
+      if (!select) return;
       lista.forEach(med => {
         let existe = false;
         for (let i = 0; i < select.options.length; i++) {
@@ -1935,6 +1803,7 @@ function agregarArchivosEstudios(input){
 
 })();
 
+<<<<<<< HEAD
   // ===== CALCULAR EDAD AUTOMÁTICAMENTE =====
   (function() {
     var fnInput = document.getElementById('fechaNacimiento');
@@ -1964,5 +1833,285 @@ function agregarArchivosEstudios(input){
     fnInput.addEventListener('input', calcEdad);
     calcEdad();
   })();
+=======
+
+  // ===== FOLIO E IDENTIFICACIÓN AUTOMÁTICOS DESDE BACKEND =====
+  const folioInput = document.getElementById('folioInput');
+  const identificacionInput = document.getElementById('identificacionInput');
+
+  if (folioInput && identificacionInput) {
+    identificacionInput.value = folioInput.value;
+  }
+
+  // ===== EDAD EN TIEMPO REAL DESDE FECHA DE NACIMIENTO =====
+  const fechaNacimiento = document.getElementById('fechaNacimiento');
+  const edadCalculada = document.getElementById('edadCalculada');
+
+  function calcularEdad(fechaNacimientoValor) {
+    if (!fechaNacimientoValor) return '';
+
+    const nacimiento = new Date(fechaNacimientoValor + 'T00:00:00');
+    const hoy = new Date();
+
+    if (isNaN(nacimiento.getTime()) || nacimiento > hoy) return '';
+
+    let edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const mes = hoy.getMonth() - nacimiento.getMonth();
+
+    if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+      edad--;
+    }
+
+    return edad >= 0 ? edad : '';
+  }
+
+  function actualizarEdad() {
+    if (!fechaNacimiento || !edadCalculada) return;
+    edadCalculada.value = calcularEdad(fechaNacimiento.value);
+  }
+
+  if (fechaNacimiento) {
+    fechaNacimiento.addEventListener('input', actualizarEdad);
+    fechaNacimiento.addEventListener('change', actualizarEdad);
+    fechaNacimiento.addEventListener('keyup', actualizarEdad);
+    fechaNacimiento.addEventListener('click', function() {
+      if (typeof fechaNacimiento.showPicker === 'function') fechaNacimiento.showPicker();
+    });
+    fechaNacimiento.addEventListener('focus', function() {
+      if (typeof fechaNacimiento.showPicker === 'function') fechaNacimiento.showPicker();
+    });
+    actualizarEdad();
+  }
+
+
+
+  // ===== FOTO DEL PACIENTE: GALERÍA Y CÁMARA REAL =====
+  const btnAgregarFotoAuto = document.getElementById('btnAgregarFoto');
+  const modalFotoAuto = document.getElementById('modalFoto');
+  const btnCancelarFotoAuto = document.getElementById('btnCancelarFoto');
+  const btnUsarFotoAuto = document.getElementById('btnUsarFoto');
+  const inputFileFotoAuto = document.getElementById('inputFileFoto');
+  const patientPhotoAuto = document.getElementById('patientPhoto');
+  const patientPhotoPlaceholderAuto = document.getElementById('patientPhotoPlaceholder');
+  const cameraFrameAuto = document.querySelector('.camera-frame');
+  const avatarPreviewAuto = document.querySelector('.avatar-preview');
+
+  let cameraStreamAuto = null;
+  let currentPhotoDataAuto = null;
+
+  function prepararVideoCamara() {
+    if (!cameraFrameAuto) return null;
+
+    let video = document.getElementById('cameraVideoPaciente');
+    if (!video) {
+      video = document.createElement('video');
+      video.id = 'cameraVideoPaciente';
+      video.autoplay = true;
+      video.playsInline = true;
+      video.muted = true;
+      cameraFrameAuto.appendChild(video);
+    }
+
+    let canvas = document.getElementById('cameraCanvasPaciente');
+    if (!canvas) {
+      canvas = document.createElement('canvas');
+      canvas.id = 'cameraCanvasPaciente';
+      cameraFrameAuto.appendChild(canvas);
+    }
+
+    return { video, canvas };
+  }
+
+  async function iniciarCamaraPaciente() {
+    const media = prepararVideoCamara();
+    if (!media || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert('Tu navegador no permite abrir la cámara desde aquí. Usa la opción Subir imagen.');
+      return;
+    }
+
+    try {
+      detenerCamaraPaciente();
+      cameraStreamAuto = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user' },
+        audio: false
+      });
+
+      media.video.srcObject = cameraStreamAuto;
+      cameraFrameAuto.classList.add('camera-active');
+      currentPhotoDataAuto = null;
+    } catch (error) {
+      alert('No se pudo abrir la cámara. Revisa permisos del navegador o usa Subir imagen.');
+    }
+  }
+
+  function detenerCamaraPaciente() {
+    if (cameraStreamAuto) {
+      cameraStreamAuto.getTracks().forEach(track => track.stop());
+      cameraStreamAuto = null;
+    }
+
+    if (cameraFrameAuto) {
+      cameraFrameAuto.classList.remove('camera-active');
+    }
+  }
+
+  function asignarArchivoDesdeBlob(blob) {
+    if (!inputFileFotoAuto) return;
+
+    const file = new File([blob], 'foto-paciente.png', { type: 'image/png' });
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    inputFileFotoAuto.files = dataTransfer.files;
+  }
+
+  function mostrarFotoSeleccionada(dataUrl) {
+    if (patientPhotoAuto && patientPhotoPlaceholderAuto) {
+      patientPhotoAuto.src = dataUrl;
+      patientPhotoAuto.style.display = 'block';
+      patientPhotoPlaceholderAuto.style.display = 'none';
+    }
+
+    if (avatarPreviewAuto) {
+      avatarPreviewAuto.style.backgroundImage = `url(${dataUrl})`;
+      avatarPreviewAuto.style.backgroundSize = 'cover';
+      avatarPreviewAuto.style.backgroundPosition = 'center';
+      avatarPreviewAuto.textContent = '';
+    }
+  }
+
+  function capturarFotoDesdeCamara() {
+    const media = prepararVideoCamara();
+    if (!media || !cameraStreamAuto) return false;
+
+    const video = media.video;
+    const canvas = media.canvas;
+
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+
+    const context = canvas.getContext('2d');
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    currentPhotoDataAuto = canvas.toDataURL('image/png');
+
+    canvas.toBlob(function(blob) {
+      if (blob) asignarArchivoDesdeBlob(blob);
+    }, 'image/png');
+
+    mostrarFotoSeleccionada(currentPhotoDataAuto);
+    detenerCamaraPaciente();
+
+    return true;
+  }
+
+  if (btnAgregarFotoAuto && modalFotoAuto) {
+    btnAgregarFotoAuto.addEventListener('click', function() {
+      modalFotoAuto.classList.add('active');
+
+      if (avatarPreviewAuto && !currentPhotoDataAuto) {
+        avatarPreviewAuto.textContent = '👤';
+        avatarPreviewAuto.style.backgroundImage = '';
+      }
+    });
+  }
+
+  if (btnCancelarFotoAuto && modalFotoAuto) {
+    btnCancelarFotoAuto.addEventListener('click', function() {
+      detenerCamaraPaciente();
+      modalFotoAuto.classList.remove('active');
+    });
+  }
+
+  if (modalFotoAuto) {
+    modalFotoAuto.addEventListener('click', function(e) {
+      if (e.target === modalFotoAuto) {
+        detenerCamaraPaciente();
+        modalFotoAuto.classList.remove('active');
+      }
+    });
+  }
+
+  const sourceOptionsAuto = document.querySelectorAll('.source-option');
+  sourceOptionsAuto.forEach(function(option, index) {
+    option.addEventListener('click', function() {
+      sourceOptionsAuto.forEach(o => o.classList.remove('active'));
+      option.classList.add('active');
+
+      if (index === 0) {
+        iniciarCamaraPaciente();
+      }
+
+      if (index === 1 && inputFileFotoAuto) {
+        detenerCamaraPaciente();
+        inputFileFotoAuto.click();
+      }
+    });
+  });
+
+  const camBtnsAuto = document.querySelectorAll('.cam-btn');
+  camBtnsAuto.forEach(function(btn, index) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+
+      camBtnsAuto.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      if (index === 0 && inputFileFotoAuto) {
+        detenerCamaraPaciente();
+        inputFileFotoAuto.click();
+      }
+
+      if (index === 1) {
+        iniciarCamaraPaciente();
+      }
+
+      if (index === 2) {
+        iniciarCamaraPaciente();
+      }
+    });
+  });
+
+  if (inputFileFotoAuto) {
+    inputFileFotoAuto.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      detenerCamaraPaciente();
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        currentPhotoDataAuto = event.target.result;
+        mostrarFotoSeleccionada(currentPhotoDataAuto);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  if (btnUsarFotoAuto && modalFotoAuto) {
+    btnUsarFotoAuto.addEventListener('click', function() {
+      if (cameraStreamAuto) {
+        const capturada = capturarFotoDesdeCamara();
+        if (!capturada) {
+          alert('No se pudo capturar la foto.');
+          return;
+        }
+      }
+
+      if (!currentPhotoDataAuto && inputFileFotoAuto && inputFileFotoAuto.files.length > 0) {
+        modalFotoAuto.classList.remove('active');
+        return;
+      }
+
+      if (!currentPhotoDataAuto && (!inputFileFotoAuto || inputFileFotoAuto.files.length === 0)) {
+        alert('Selecciona una imagen o toma una foto primero.');
+        return;
+      }
+
+      detenerCamaraPaciente();
+      modalFotoAuto.classList.remove('active');
+    });
+  }
+
+>>>>>>> origin/main
 </script>
 @endpush

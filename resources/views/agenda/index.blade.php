@@ -4,7 +4,7 @@
 @section('active', 'agenda')
 @section('header-title', 'Buenos días, Dr. Victor')
 @section('header-sub')
-  Tiene <b>8</b> pacientes el día de hoy
+  Tiene <b>{{ $citasHoy ?? 0 }}</b> pacientes el día de hoy
 @endsection
 
 {{--
@@ -71,7 +71,6 @@
               <span class="year" id="anioActual">2024</span>
               <div class="picker-dropdown" id="anioPicker"><div class="picker-title">Año</div></div>
             </div>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
           <button aria-label="Mes siguiente">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
@@ -145,6 +144,9 @@
 
 @endsection
 
+{{-- Datos de eventos compartidos --}}
+@include('agenda._events')
+
 {{-- ===== SCRIPTS: JS de inicialización central ===== --}}
 @push('scripts')
 <script>
@@ -154,64 +156,8 @@
   const DIAS_CORTO = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
   const DIAS_ES    = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 
-  /* ---- Eventos de ejemplo centrados en HOY ---- */
-  const _today = new Date();
-  const _ty = _today.getFullYear();
-  const _tm = _today.getMonth() + 1;
-  function _k(offset) {
-    const d = new Date(_today);
-    d.setDate(_today.getDate() + offset);
-    return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
-  }
-  function _t(h, min, name, proc) {
-    const hh = String(h).padStart(2,'0');
-    const mm = String(min).padStart(2,'0');
-    return `${hh}:${mm} ${name} · ${proc}`;
-  }
-
-  const EVENTS = {
-    [_k(-6)]: [{t:_t(9,0,'Sofía Lozano','Colonoscopía'),      cls:'ev-done',  h:9}],
-    [_k(-5)]: [{t:_t(10,30,'Ricardo Martínez','Endoscopia'),  cls:'ev-done',  h:10},
-               {t:_t(15,0,'Habib Pérez','Gastroscopía'),       cls:'ev-cancel',h:15}],
-    [_k(-4)]: [{t:_t(8,0,'Grabiela Torres','Ultrasonido'),    cls:'ev-done',  h:8},
-               {t:_t(11,0,'Perla Flores','Endoscopia'),        cls:'ev-done',  h:11}],
-    [_k(-3)]: [{t:_t(9,30,'Dulce Martínez','Endoscopia'),     cls:'ev-done',  h:9},
-               {t:_t(14,0,'Luis Arellano','Colonoscopía'),     cls:'ev-cancel',h:14}],
-    [_k(-2)]: [{t:_t(11,0,'Yessica Torres','Gastroscopía'),   cls:'ev-done',  h:11},
-               {t:_t(16,0,'Irvin Rocha','Endoscopia'),         cls:'ev-done',  h:16}],
-    [_k(-1)]: [{t:_t(10,0,'Paula Gómez','Colonoscopía'),      cls:'ev-done',  h:10},
-               {t:_t(13,0,'Yukary Huerta','Ultrasonido'),      cls:'ev-done',  h:13}],
-    [_k(0)]:  [{t:_t(9,0,'Erik Esquivel','Endoscopia'),       cls:'ev-wait',  h:9},
-               {t:_t(11,30,'Grabiela Torres','Colonoscopía'),  cls:'ev-wait',  h:11},
-               {t:_t(14,0,'Paulina Gómez','Gastroscopía'),     cls:'ev-soon',  h:14},
-               {t:_t(16,30,'Ricardo Martínez','Endoscopia'),   cls:'ev-soon',  h:16}],
-    [_k(1)]:  [{t:_t(10,0,'Sofía Lozano','Ultrasonido'),      cls:'ev-soon',  h:10},
-               {t:_t(15,0,'Pelet Gómez','Endoscopia'),         cls:'ev-soon',  h:15}],
-    [_k(2)]:  [{t:_t(9,0,'Habib Pérez','Gastroscopía'),       cls:'ev-soon',  h:9},
-               {t:_t(12,0,'Dulce Martínez','Colonoscopía'),    cls:'ev-soon',  h:12}],
-    [_k(3)]:  [{t:_t(11,0,'Irvin Rocha','Ultrasonido'),       cls:'ev-soon',  h:11}],
-    [_k(5)]:  [{t:_t(10,0,'Luis Arellano','Endoscopia'),      cls:'ev-soon',  h:10}],
-    [_k(7)]:  [{t:_t(9,30,'Yessica Torres','Colonoscopía'),   cls:'ev-soon',  h:9}],
-    [_k(-10)]:[{t:_t(11,0,'Perla Flores','Endoscopia'),       cls:'ev-done',  h:11}],
-    [_k(-14)]:[{t:_t(8,30,'Paula Gómez','Gastroscopía'),      cls:'ev-cancel',h:8}],
-  };
-  window.__AGENDA_EVENTS = EVENTS;
-
   let cur = new Date();
   let curView = 'mes';
-
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const counters = document.querySelectorAll('[data-target]');
-  if (reduced || typeof gsap === 'undefined') {
-    counters.forEach(c => { c.textContent = parseInt(c.dataset.target, 10); });
-  } else {
-    counters.forEach((c, i) => {
-      const target = parseInt(c.dataset.target, 10);
-      const obj = { v: 0 };
-      gsap.to(obj, { v: target, duration: 1.2, ease: 'expo.out', delay: 0.3 + i * 0.1,
-        onUpdate: () => { c.textContent = Math.round(obj.v); } });
-    });
-  }
 
   function updateSumCards(counts) {
     const map = {
@@ -229,25 +175,46 @@
   }
   function countEvents(keys) {
     const counts = {'ev-done':0,'ev-wait':0,'ev-cancel':0,'ev-soon':0};
-    keys.forEach(k => { (EVENTS[k] || []).forEach(ev => { if (counts[ev.cls] !== undefined) counts[ev.cls]++; }); });
+    const recompute = window.__recomputeClass;
+    keys.forEach(k => {
+      (window.__AGENDA_EVENTS[k] || []).forEach(ev => {
+        const liveCls = typeof recompute === 'function' ? recompute(ev, k) : ev.cls;
+        if (counts[liveCls] !== undefined) counts[liveCls]++;
+      });
+    });
     return counts;
   }
 
   const filterMap = {'fi-done':'ev-done','fi-wait':'ev-wait','fi-cancel':'ev-cancel','fi-soon':'ev-soon'};
+  const reverseMap = {'ev-done':'fi-done','ev-wait':'fi-wait','ev-cancel':'fi-cancel','ev-soon':'fi-soon'};
+
+  function getFilterState(evClass) {
+    const sidebarChk = document.querySelector('.' + reverseMap[evClass] + ' input[type=checkbox]');
+    const toolbarChk = document.querySelector('.filter-row[data-filter="' + evClass + '"] input[type=checkbox]');
+    // Prefer sidebar value; fallback to toolbar
+    if (sidebarChk) return sidebarChk.checked;
+    if (toolbarChk) return toolbarChk.checked;
+    return true;
+  }
+
+  function setFilterState(evClass, checked) {
+    const sidebarChk = document.querySelector('.' + reverseMap[evClass] + ' input[type=checkbox]');
+    const toolbarChk = document.querySelector('.filter-row[data-filter="' + evClass + '"] input[type=checkbox]');
+    if (sidebarChk) sidebarChk.checked = checked;
+    if (toolbarChk) toolbarChk.checked = checked;
+    document.querySelectorAll('.' + evClass).forEach(el => { el.style.display = checked ? '' : 'none'; });
+  }
+
   function applyFilters() {
-    document.querySelectorAll('.filter-item input[type=checkbox]').forEach(chk => {
-      const label = chk.closest('.filter-item');
-      const fiClass = Object.keys(filterMap).find(k => label.classList.contains(k));
-      if (!fiClass) return;
-      const evClass = filterMap[fiClass];
-      document.querySelectorAll('.' + evClass).forEach(el => { el.style.display = chk.checked ? '' : 'none'; });
+    Object.values(filterMap).forEach(evClass => {
+      setFilterState(evClass, getFilterState(evClass));
     });
   }
 
-  window.__EVENTS_DIA = EVENTS;
-  function buildCal(date)  { window.__buildCal(date, EVENTS, MESES, updateSumCards, countEvents); }
-  function buildWeek(date) { window.__buildWeek(date, EVENTS, MESES, DIAS_CORTO, updateSumCards, countEvents); }
-  function buildDay(date)  { window.__buildDay(date, EVENTS, MESES, updateSumCards, countEvents); }
+  window.__EVENTS_DIA = window.__AGENDA_EVENTS;
+  function buildCal(date)  { window.__buildCal(date, window.__AGENDA_EVENTS, MESES, updateSumCards, countEvents); }
+  function buildWeek(date) { window.__buildWeek(date, window.__AGENDA_EVENTS, MESES, DIAS_CORTO, updateSumCards, countEvents); }
+  function buildDay(date)  { window.__buildDay(date, window.__AGENDA_EVENTS, MESES, updateSumCards, countEvents); }
 
   function setView(view) {
     curView = view;
@@ -267,6 +234,13 @@
   }
 
   setView('mes');
+
+  setInterval(() => {
+    if (curView === 'mes') buildCal(cur);
+    else if (curView === 'semana') buildWeek(cur);
+    else if (curView === 'dia') buildDayAndSync(cur);
+    if (typeof window.__rebuildProximas === 'function') window.__rebuildProximas();
+  }, 30000);
 
   document.querySelectorAll('.month-nav button').forEach((btn, i) => {
     btn.addEventListener('click', () => {
@@ -302,7 +276,18 @@
   });
 
   document.querySelectorAll('.filter-item input[type=checkbox]').forEach(chk => {
-    chk.addEventListener('change', applyFilters);
+    chk.addEventListener('change', () => {
+      const label = chk.closest('.filter-item');
+      const fiClass = Object.keys(filterMap).find(k => label.classList.contains(k));
+      if (fiClass) setFilterState(filterMap[fiClass], chk.checked);
+    });
+  });
+  document.querySelectorAll('.filter-row input[type=checkbox]').forEach(chk => {
+    chk.addEventListener('change', () => {
+      const label = chk.closest('.filter-row');
+      const evClass = label && label.dataset.filter;
+      if (evClass) setFilterState(evClass, chk.checked);
+    });
   });
 
   const mesPicker = document.getElementById('mesPicker');
@@ -345,28 +330,18 @@
     if (window.__syncDayPicker) window.__syncDayPicker(date);
   }
 
-  const cur_ref = { get y(){ return cur.getFullYear(); }, get m(){ return cur.getMonth(); } };
-  window.__initPopup(EVENTS, MESES, cur_ref, DIAS_ES);
-  window.__initDayPicker(function(date) { buildDayAndSync(date); });
-  window.__initBloqueos(EVENTS, MESES, DIAS_ES, buildDayAndSync);
+  window.__rebuildAgenda = function() {
+    if (curView === 'mes') buildCal(cur);
+    else if (curView === 'semana') buildWeek(cur);
+    else if (curView === 'dia') buildDayAndSync(cur);
+    applyFilters();
+    if (typeof window.__rebuildProximas === 'function') window.__rebuildProximas();
+  };
 
-  /* ---- Botón expandir sidebar ---- */
-  const agendaExpandBtn = document.getElementById('agendaExpandBtn');
-  const agLeft = document.querySelector('.agenda-left');
-  if (agendaExpandBtn && agLeft) {
-    agendaExpandBtn.addEventListener('click', () => {
-      agLeft.classList.toggle('expanded');
-      // Cerrar dropdown de filtros al colapsar
-      if (!agLeft.classList.contains('expanded')) {
-        toolbarFilterDropdown.classList.remove('open');
-      }
-      // Re-renderizar vista día si está activa para mostrar/ocultar botón +X citas
-      const dayView = document.getElementById('dayView');
-      if (dayView && dayView.classList.contains('active') && typeof buildDay === 'function') {
-        buildDay(cur);
-      }
-    });
-  }
+  const cur_ref = { get y(){ return cur.getFullYear(); }, get m(){ return cur.getMonth(); } };
+  window.__initPopup(window.__AGENDA_EVENTS, MESES, cur_ref, DIAS_ES);
+  window.__initDayPicker(function(date) { buildDayAndSync(date); });
+  window.__initBloqueos(window.__AGENDA_EVENTS, MESES, DIAS_ES, buildDayAndSync);
 
   /* ---- Botón y dropdown de filtros ---- */
   const toolbarFilterBtn = document.getElementById('toolbarFilterBtn');
@@ -382,6 +357,25 @@
     });
     toolbarFilterDropdown.addEventListener('click', (e) => {
       e.stopPropagation();
+    });
+  }
+
+  /* ---- Botón expandir sidebar ---- */
+  const agendaExpandBtn = document.getElementById('agendaExpandBtn');
+  const agLeft = document.querySelector('.agenda-left');
+  if (agendaExpandBtn && agLeft) {
+    agendaExpandBtn.addEventListener('click', () => {
+      agLeft.classList.toggle('expanded');
+      // Cerrar dropdown de filtros al colapsar
+      if (!agLeft.classList.contains('expanded') && toolbarFilterDropdown) {
+        toolbarFilterDropdown.classList.remove('open');
+      }
+      // Re-renderizar vista día si está activa para mostrar/ocultar botón +X citas
+      const dayView = document.getElementById('dayView');
+      if (dayView && dayView.classList.contains('active') && typeof buildDay === 'function') {
+        buildDay(cur);
+      }
+      applyFilters();
     });
   }
 

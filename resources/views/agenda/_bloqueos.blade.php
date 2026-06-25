@@ -38,6 +38,42 @@ html[data-theme="light"] .block-recur-btn:hover{background:#D8E8FF}
 html[data-theme="light"] .block-confirm-box{background:#F0F5FF;border-color:rgba(217,0,0,.3)}
 html[data-theme="light"] .block-confirm-box h3{color:#0E1530}
 html[data-theme="light"] .block-confirm-box p{color:rgba(14,21,48,.5)}
+
+/* ============================================================
+   FIX: confirmación eliminar bloqueo en tema claro
+   ============================================================ */
+html[data-theme="light"] .block-confirm{
+  background:rgba(15,23,42,.28) !important;
+  backdrop-filter:blur(5px) !important;
+}
+
+html[data-theme="light"] .block-confirm-box{
+  background:#FFFFFF !important;
+  border:1.5px solid rgba(220,38,38,.28) !important;
+  box-shadow:0 22px 55px rgba(15,23,42,.18) !important;
+}
+
+html[data-theme="light"] .block-confirm-box h3{
+  color:#0E1530 !important;
+}
+
+html[data-theme="light"] .block-confirm-box p{
+  color:#5B6A99 !important;
+}
+
+html[data-theme="light"] .block-confirm-footer .ev-pop-btn.secondary,
+html[data-theme="light"] #blockConfirmNo{
+  background:#F4F7FF !important;
+  border-color:rgba(20,50,120,.18) !important;
+  color:#33456F !important;
+}
+
+html[data-theme="light"] #blockConfirmYes{
+  background:linear-gradient(135deg,#B91C1C,#DC2626) !important;
+  color:#FFFFFF !important;
+  box-shadow:0 8px 20px rgba(220,38,38,.22) !important;
+}
+
 </style>
 
 {{-- ---- HTML ---- --}}
