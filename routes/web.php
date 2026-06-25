@@ -173,12 +173,23 @@ Route::middleware('auth')->group(function () {
     Route::get('/ia-reportes/redactar', function () {
         $pacienteId = request()->query('paciente');
         $estudioId = request()->query('estudio');
+        $reporteId = request()->query('reporte');
+
+        $reporte = $reporteId ? \App\Models\Reporte::with(['estudio.paciente', 'usuario'])->find($reporteId) : null;
 
         $paciente = $pacienteId ? Paciente::find($pacienteId) : null;
 
         $estudio = $estudioId
             ? \App\Models\Estudio::with('paciente')->find($estudioId)
             : null;
+
+        // Si viene reporte, derivar estudio y paciente de él
+        if ($reporte && ! $estudio) {
+            $estudio = $reporte->estudio;
+        }
+        if ($reporte && ! $paciente) {
+            $paciente = $reporte->estudio?->paciente;
+        }
 
         // Si no llegó paciente explícito, derivarlo del estudio
         if (! $paciente && $estudio) {
@@ -252,6 +263,7 @@ Route::middleware('auth')->group(function () {
         return view('ia-reportes.redactar', [
             'paciente' => $paciente,
             'estudio' => $estudio,
+            'reporte' => $reporte,
             'estudioImagenes' => $estudioImagenes,
             'datosEstudio' => $datosEstudio,
             'plantillasDb' => $plantillasDb,
@@ -288,11 +300,22 @@ Route::middleware('auth')->group(function () {
     })->name('ia-reportes.redactar');
 
     Route::get('/ia-reportes/editar', function () {
+        $reporteId = request()->query('reporte');
+        if ($reporteId) {
+            return redirect()->route('ia-reportes.redactar', [
+                'reporte' => $reporteId,
+                'estudio' => request()->query('estudio'),
+            ]);
+        }
         return view('ia-reportes.editar');
     })->name('ia-reportes.editar');
 
     Route::get('/ia-reportes/ver', function () {
-        return view('ia-reportes.ver');
+        $reporte = null;
+        if (request()->has('reporte')) {
+            $reporte = \App\Models\Reporte::with(['estudio.paciente', 'usuario'])->find(request()->query('reporte'));
+        }
+        return view('ia-reportes.ver', compact('reporte'));
     })->name('ia-reportes.ver');
 
     Route::get('/ia-reportes/analisis', function () {

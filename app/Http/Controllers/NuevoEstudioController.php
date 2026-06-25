@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cita;
 use App\Models\Estudio;
 use App\Models\EstudioArchivo;
 use App\Models\Paciente;
@@ -55,6 +56,7 @@ class NuevoEstudioController extends Controller
     {
         $validated = $request->validate([
             'paciente_id' => ['required', 'exists:pacientes,id'],
+            'cita_id' => ['nullable', 'exists:citas,id'],
             'tipo' => ['nullable', 'string', 'max:255'],
             'fecha' => ['nullable', 'date'],
             'medico' => ['nullable', 'string', 'max:255'],
@@ -74,7 +76,25 @@ class NuevoEstudioController extends Controller
         $validated['estado'] = $validated['estado'] ?? 'en_proceso';
         $validated['hora_inicio'] = now()->format('H:i:s');
 
+        // Vincular cita: explícita o la primera cita del paciente para la fecha del estudio.
+        if (empty($validated['cita_id'])) {
+            $cita = Cita::where('paciente_id', $paciente->id)
+                ->whereDate('fecha', $validated['fecha'])
+                ->whereNotIn('estado', ['completado', 'cancelado'])
+                ->orderBy('hora')
+                ->first();
+
+            if ($cita) {
+                $validated['cita_id'] = $cita->id;
+            }
+        }
+
         $estudio = Estudio::create($validated);
+
+        // La cita pasa a "en espera" mientras se realiza el estudio.
+        if ($estudio->cita_id && $estudio->cita?->estado !== 'completado') {
+            $estudio->cita->update(['estado' => 'en_espera']);
+        }
 
         session(['estudio_activo_id' => $estudio->id]);
 
@@ -237,6 +257,11 @@ class NuevoEstudioController extends Controller
             'video_path' => $videoPath,
         ]);
 
+        // Al finalizar el estudio, la cita vinculada se marca como completada.
+        if ($estudio->cita_id && $estudio->cita) {
+            $estudio->cita->update(['estado' => 'completado']);
+        }
+
         session()->forget('estudio_activo_id');
 
         if ($request->expectsJson() || $request->ajax()) {
@@ -357,6 +382,7 @@ class NuevoEstudioController extends Controller
             'id' => $estudio->id,
             'folio' => $estudio->folio,
             'paciente_id' => $estudio->paciente_id,
+            'cita_id' => $estudio->cita_id,
             'paciente_nombre' => $estudio->paciente?->nombre_completo ?? $estudio->paciente_nombre,
             'tipo' => $estudio->tipo,
             'fecha' => optional($estudio->fecha)->format('Y-m-d'),

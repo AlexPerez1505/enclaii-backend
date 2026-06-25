@@ -2,7 +2,10 @@
 
 @section('title', 'Dashboard')
 @section('active', 'dashboard')
-@section('header-title', 'Buenos dias, Dr. Victor 👋')
+@php
+  $nombreUsuario = auth()->check() ? preg_split('/\s+/', trim(auth()->user()->name ?? 'Doctor'), 2)[0] : 'Doctor';
+@endphp
+@section('header-title', 'Bienvenido, ' . $nombreUsuario . ' 👋')
 @section('header-sub')
   Resumen general de tu actividad clinica
 @endsection
@@ -283,7 +286,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:540px}
           $partesNombre = preg_split('/\s+/', trim($nombreCita), 2);
         @endphp
         @if ($proximaCita)
-          <div class="name">{{ $partesNombre[0] }}@if(!empty($partesNombre[1]))<br>{{ $partesNombre[1] }}@endif</div>
+          <div class="name">{{ $partesNombre[0] }}</div>
           <div class="meta">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             <b>{{ \Illuminate\Support\Str::of($proximaCita->fecha?->format('d/m/Y').' · '.($proximaCita->hora ?? ''))->trim(' ·') }}</b>

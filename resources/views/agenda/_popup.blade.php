@@ -101,6 +101,7 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
       const cls = el.dataset.cls || [...el.classList].find(c => c.startsWith('ev-')) || 'ev-done';
       return {
         id: el.dataset.citaId || el.dataset.id || '',
+        paciente_id: el.dataset.pacienteId || '',
         reprogramar_url: el.dataset.reprogramarUrl || '',
         fullName,
         displayName,
@@ -133,6 +134,10 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
     }
 
     const REPROG_LABELS = ['Reprogramar nueva cita','Reprogramar Paciente'];
+    const PACIENTE_LABELS = ['Datos del paciente','Datos del Paciente'];
+    const MENSAJE_LABELS = ['Enviar mensaje'];
+    const INFORME_LABELS = ['Ver Informe'];
+    const INICIAR_LABELS = ['Iniciar Estudio'];
 
     function buildAgendarUrl(d, fechaTxt) {
       if (d.reprogramar_url) return d.reprogramar_url;
@@ -163,6 +168,7 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
           time:     el.dataset.time || '00:00',
           cls:      el.dataset.evcls || 'ev-done',
           id:       el.dataset.citaId || el.dataset.id || '',
+          paciente_id: el.dataset.pacienteId || '',
           reprogramar_url: el.dataset.reprogramarUrl || '',
         };
       } else {
@@ -234,6 +240,42 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
           btn.addEventListener('click', ev => {
             ev.stopPropagation();
             window.location.href = '{{ route('ia-reportes.ver') }}?paciente=' + encodeURIComponent(d.displayName || d.fullName) + '&procedimiento=' + encodeURIComponent(d.proc || 'Endoscopia');
+          });
+        }
+        if (INICIAR_LABELS.includes(b.label)) {
+          btn.addEventListener('click', async ev => {
+            ev.stopPropagation();
+            if (!d.paciente_id || !d.id) return;
+            btn.disabled = true;
+            btn.textContent = 'Iniciando...';
+            try {
+              const res = await fetch('{{ route('nuevo-estudio.store') }}', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                  'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                  paciente_id: d.paciente_id,
+                  cita_id: d.id,
+                  tipo: d.proc || 'Endoscopia'
+                })
+              });
+              const data = await res.json();
+              if (data.ok && data.redirect) {
+                window.location.href = data.redirect;
+              } else {
+                alert(data.message || 'No se pudo iniciar el estudio.');
+                btn.disabled = false;
+                btn.textContent = b.label;
+              }
+            } catch (err) {
+              console.error(err);
+              alert('Error al iniciar el estudio.');
+              btn.disabled = false;
+              btn.textContent = b.label;
+            }
           });
         }
         evPopBtns.appendChild(btn);
