@@ -617,6 +617,7 @@ html[data-theme="light"] .day-modal-overlay{
           card.dataset.proc = proc;
           card.dataset.time = time;
           card.dataset.inits = inits;
+          card.dataset.pacienteId = ev.paciente_id || '';
           card.dataset.fechatxt = `${dayNames[dow]} ${d} de ${MESES[m]}`;
           if (ev.cls === 'ev-block' && ev.blockId !== undefined) {
             card.dataset.blockid    = ev.blockId;

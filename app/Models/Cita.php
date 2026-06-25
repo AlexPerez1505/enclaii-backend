@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Cita extends Model
@@ -35,6 +36,11 @@ class Cita extends Model
     public function prediccionPreEstudio(): HasOne
     {
         return $this->hasOne(PrediccionPreEstudio::class);
+    }
+
+    public function estudios(): HasMany
+    {
+        return $this->hasMany(Estudio::class);
     }
 
     public function getEstadoClaseAttribute(): string

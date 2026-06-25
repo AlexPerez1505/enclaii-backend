@@ -354,7 +354,8 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
           <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
         </div>
 
-        <div id="docSections"></div>
+        <div id="docSections">@if($reporte?->contenido_texto)<div contenteditable="true" style="min-height:120px;outline:none">{{ $reporte->contenido_texto }}</div>@endif</div>
+        <input type="hidden" id="existingReporteId" value="{{ $reporte?->id }}">
 
         {{-- Firma (su posición se cambia desde Configuración) --}}
         <div class="rep-sign" id="repSign" data-pos="center">
@@ -1355,7 +1356,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   const ESTUDIO_ID = @json($estudio?->id);
   const SAVE_URL   = @json(route('ia-reportes.guardar'));
   const CSRF       = @json(csrf_token());
-  let savedReporteId = null;
+  let savedReporteId = @json($reporte?->id);
 
   const collectData = () => ({
     tipo:   (document.getElementById('edTipo')?.value || ''),

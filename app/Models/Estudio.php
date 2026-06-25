@@ -13,6 +13,7 @@ class Estudio extends Model
 
     protected $fillable = [
         'paciente_id',
+        'cita_id',
         'paciente_nombre',
         'folio',
         'tipo',
@@ -47,6 +48,11 @@ class Estudio extends Model
     public function paciente(): BelongsTo
     {
         return $this->belongsTo(Paciente::class);
+    }
+
+    public function cita(): BelongsTo
+    {
+        return $this->belongsTo(Cita::class);
     }
 
     public function archivos(): HasMany

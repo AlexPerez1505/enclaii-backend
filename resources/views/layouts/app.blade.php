@@ -653,12 +653,17 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
           <span class="dot">3</span>
         </button>
+        @php
+          $userName = auth()->check() ? trim(auth()->user()->name ?? 'Doctor') : 'Doctor';
+          $userParts = preg_split('/\s+/', $userName);
+          $userInitials = collect($userParts)->take(2)->map(fn($p) => mb_substr($p, 0, 1))->join('');
+          $userInitials = mb_strtoupper($userInitials ?: mb_substr($userName, 0, 2));
+        @endphp
         <div class="profile-wrap">
           <button type="button" class="profile" id="profileBtn" aria-haspopup="true" aria-expanded="false">
-            <div class="avatar">DV</div>
+            <div class="avatar">{{ $userInitials }}</div>
             <div class="profile-meta">
-              <strong>Dr. Victor</strong>
-              <span>Endoscopista</span>
+              <strong>{{ $userName }}</strong>
             </div>
             <svg class="profile-caret" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
