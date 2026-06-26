@@ -366,6 +366,24 @@ html[data-theme="light"] .side-brand .logo-light{display:block;}
 .db-editor-body{flex:1;overflow-y:auto;padding:16px 18px}
 .db-editor-body::-webkit-scrollbar{width:4px}
 .db-editor-body::-webkit-scrollbar-thumb{background:rgba(178,99,255,.3);border-radius:4px}
+
+.db-editor-tabs{display:flex;gap:0;padding:0 18px;border-bottom:1px solid rgba(178,99,255,.2);background:rgba(178,99,255,.04)}
+.db-editor-tab{flex:1;padding:12px 0;border:none;background:transparent;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;color:rgba(234,241,255,.45);cursor:pointer;position:relative;transition:color .15s}
+.db-editor-tab:hover{color:rgba(234,241,255,.75)}
+.db-editor-tab.active{color:#EAF1FF}
+.db-editor-tab.active::after{content:'';position:absolute;bottom:0;left:12%;right:12%;height:2px;background:linear-gradient(90deg,#7B3FE4,#B263FF);border-radius:2px}
+
+.db-editor-panels{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.db-editor-panel{display:none;flex:1;flex-direction:column;overflow:hidden}
+.db-editor-panel.active{display:flex}
+
+.db-mode-switch-editor{display:flex;background:var(--panel-2);border:1px solid var(--stroke-strong);border-radius:var(--r-md);padding:3px;gap:3px}
+.db-mode-switch-editor button{flex:1;padding:10px 12px;border:none;border-radius:8px;background:transparent;font:inherit;font-size:13px;font-weight:600;color:var(--txt-soft);cursor:pointer;transition:background .15s,color .15s}
+.db-mode-switch-editor button:hover{color:var(--txt)}
+.db-mode-switch-editor button.active{background:linear-gradient(135deg,#7B3FE4,#B263FF);color:#fff}
+
+.db-editor-hint{font-size:11.5px;color:rgba(234,241,255,.45);margin-top:12px;line-height:1.45}
+
 .db-editor-section{margin-bottom:22px}
 .db-editor-section-title{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(234,241,255,.35);margin-bottom:10px}
 .db-widget-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;border:1px solid var(--stroke);background:var(--panel);margin-bottom:8px;cursor:grab;user-select:none;transition:border-color .15s,background .15s}
@@ -743,13 +761,36 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
   <div class="db-editor-head">
     <div>
       <div class="db-editor-title">Editar Dashboard</div>
-      <div class="db-editor-subtitle">Activa o desactiva widgets por módulo</div>
+      <div class="db-editor-subtitle">Personaliza widgets y vista</div>
     </div>
     <button class="db-editor-close" id="dbEditorClose" aria-label="Cerrar">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
   </div>
-  <div class="db-editor-body" id="dbEditorBody"></div>
+
+  <div class="db-editor-tabs">
+    <button type="button" class="db-editor-tab active" data-tab="widgets" id="dbEditorTabWidgets">Widgets</button>
+    <button type="button" class="db-editor-tab" data-tab="vista" id="dbEditorTabVista">Vista</button>
+  </div>
+
+  <div class="db-editor-panels">
+    <div class="db-editor-panel active" id="dbEditorPanelWidgets">
+      <div class="db-editor-body" id="dbEditorBody"></div>
+    </div>
+    <div class="db-editor-panel" id="dbEditorPanelVista">
+      <div class="db-editor-body">
+        <div class="db-editor-section">
+          <div class="db-editor-section-title">Modo de visualización</div>
+          <div class="db-mode-switch-editor" id="dbModeSwitchEditor" role="group" aria-label="Vista de dashboard">
+            <button type="button" id="dbModeEditorOriginal" class="active" aria-pressed="true">Original</button>
+            <button type="button" id="dbModeEditorMinimal" aria-pressed="false">Minimalista</button>
+          </div>
+          <p class="db-editor-hint">El modo Original muestra todos los widgets con su diseño completo. El modo Minimalista compacta la información en tarjetas reducidas.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="db-editor-footer">
     <button class="db-editor-btn reset" id="dbEditorReset">Restablecer</button>
     <button class="db-editor-btn save" id="dbEditorSave">Guardar cambios</button>
@@ -805,6 +846,48 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
     function savePrefs(prefs) {
       try { localStorage.setItem('dbWidgetPrefs', JSON.stringify(prefs)); } catch(e) {}
     }
+
+    /* Pestañas del editor */
+    (function(){
+      const tabs = document.querySelectorAll('.db-editor-tab');
+      const panels = document.querySelectorAll('.db-editor-panel');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const target = tab.dataset.tab;
+          tabs.forEach(t => t.classList.remove('active'));
+          panels.forEach(p => p.classList.remove('active'));
+          tab.classList.add('active');
+          document.getElementById('dbEditorPanel' + target.charAt(0).toUpperCase() + target.slice(1))?.classList.add('active');
+        });
+      });
+    })();
+
+    /* Modo de vista del dashboard */
+    (function(){
+      const grid = document.getElementById('widgetGrid');
+      const originalBtn = document.getElementById('dbModeEditorOriginal');
+      const minimalBtn = document.getElementById('dbModeEditorMinimal');
+      if (!grid || !originalBtn || !minimalBtn) return;
+
+      function applyMode(mode) {
+        const isMinimal = mode === 'minimal';
+        grid.querySelectorAll('.widget:not(.widget-minimal)').forEach(w => w.classList.toggle('mode-hidden', isMinimal));
+        grid.querySelectorAll('.widget-minimal').forEach(w => w.classList.toggle('mode-hidden', !isMinimal));
+        grid.classList.toggle('dashboard-mode-min', isMinimal);
+        originalBtn.classList.toggle('active', !isMinimal);
+        originalBtn.setAttribute('aria-pressed', String(!isMinimal));
+        minimalBtn.classList.toggle('active', isMinimal);
+        minimalBtn.setAttribute('aria-pressed', String(isMinimal));
+        try { localStorage.setItem('dbMode', mode); } catch(e) {}
+      }
+
+      originalBtn.addEventListener('click', () => applyMode('original'));
+      minimalBtn.addEventListener('click', () => applyMode('minimal'));
+
+      let savedMode = 'original';
+      try { savedMode = localStorage.getItem('dbMode') || 'original'; } catch(e) {}
+      applyMode(savedMode);
+    })();
 
     function openEditor() {
       document.getElementById('profileMenu').classList.remove('open');

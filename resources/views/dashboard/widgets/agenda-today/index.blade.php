@@ -37,8 +37,16 @@
                 $dayNum = $idx - $startDow + 1;
                 $isToday = $dayNum === $calD && $idx >= $startDow;
                 $isValid = $idx >= $startDow && $dayNum <= $daysInMonth;
+                $dayUrl = $isValid ? route('agendar', ['dia' => $dayNum, 'mes' => $calM, 'anio' => $calY]) : '#';
+                $isPast = $isValid && \Carbon\Carbon::create($calY, $calM, $dayNum)->isBefore(today());
               @endphp
-              <td class="{{ $isToday ? 'today' : '' }} {{ !$isValid ? 'off' : '' }}">{{ $isValid ? $dayNum : '' }}</td>
+              @if($isValid && !$isPast)
+                <td class="{{ $isToday ? 'today' : '' }}" onclick="event.stopPropagation(); window.location.href='{{ $dayUrl }}'">{{ $dayNum }}</td>
+              @elseif($isValid && $isPast)
+                <td class="past {{ $isToday ? 'today' : '' }}">{{ $dayNum }}</td>
+              @else
+                <td class="off">{{ $dayNum }}</td>
+              @endif
             @endfor
           </tr>
         @endfor

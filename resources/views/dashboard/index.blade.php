@@ -17,7 +17,7 @@
   grid-template-columns:repeat(13,1fr);
   grid-auto-rows:minmax(60px,auto);
   gap:18px;
-  align-items:start;
+  align-items:stretch;
 }
 
 /* Widget wrapper */
@@ -355,8 +355,21 @@ html[data-theme="light"] .btn-orange{border-color:#E75D01;color:#E75D01;backgrou
   color:#000000;
 }
 .widget[data-widget-id="agenda-today"] .cal td.off{
-  opacity:.55;
+  opacity:.35;
   color:#000000;
+  cursor:default;
+  pointer-events:none;
+}
+.widget[data-widget-id="agenda-today"] .cal td.past{
+  opacity:.45;
+  color:#000000;
+  cursor:not-allowed;
+  pointer-events:none;
+  text-decoration:line-through;
+}
+.widget[data-widget-id="agenda-today"] .cal td.past:hover,
+.widget[data-widget-id="agenda-today"] .cal td.off:hover{
+  background:transparent;
 }
 .widget[data-widget-id="agenda-today"] .cal td.today{
   background:#000000;
@@ -606,14 +619,6 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
 @endpush
 
 @section('content')
-
-  <div class="db-mode-bar">
-    <h2>Dashboard</h2>
-    <div class="db-mode-switch" id="dbModeSwitch" role="group" aria-label="Vista de dashboard">
-      <button type="button" id="dbModeOriginal" class="active" aria-pressed="true">Original</button>
-      <button type="button" id="dbModeMinimal" aria-pressed="false">Minimalista</button>
-    </div>
-  </div>
 
   <div id="widgetGrid">
 
@@ -919,7 +924,7 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
     /* ---- Escuchar cambios del editor de widgets ---- */
     window.addEventListener('dbWidgetsChanged', e => {
       const prefs = e.detail;
-      getWidgets().forEach(w => {
+      grid.querySelectorAll('.widget').forEach(w => {
         const id = w.dataset.widgetId;
         if (!id) return;
         const baseId = id.replace(/-min$/, '');
@@ -934,33 +939,6 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
         }
       });
     });
-
-    /* Dashboard mode switch */
-    (function(){
-      const grid = document.getElementById('widgetGrid');
-      const originalBtn = document.getElementById('dbModeOriginal');
-      const minimalBtn = document.getElementById('dbModeMinimal');
-      if (!grid || !originalBtn || !minimalBtn) return;
-
-      function applyMode(mode) {
-        const isMinimal = mode === 'minimal';
-        grid.querySelectorAll('.widget:not(.widget-minimal)').forEach(w => w.classList.toggle('mode-hidden', isMinimal));
-        grid.querySelectorAll('.widget-minimal').forEach(w => w.classList.toggle('mode-hidden', !isMinimal));
-        grid.classList.toggle('dashboard-mode-min', isMinimal);
-        originalBtn.classList.toggle('active', !isMinimal);
-        originalBtn.setAttribute('aria-pressed', String(!isMinimal));
-        minimalBtn.classList.toggle('active', isMinimal);
-        minimalBtn.setAttribute('aria-pressed', String(isMinimal));
-        try { localStorage.setItem('dbMode', mode); } catch(e) {}
-      }
-
-      originalBtn.addEventListener('click', () => applyMode('original'));
-      minimalBtn.addEventListener('click', () => applyMode('minimal'));
-
-      let savedMode = 'original';
-      try { savedMode = localStorage.getItem('dbMode') || 'original'; } catch(e) {}
-      applyMode(savedMode);
-    })();
 
     /* Aplicar estado inicial guardado */
     (function applyInitial() {
