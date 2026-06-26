@@ -14,20 +14,16 @@
       <div class="name">{{ $partesNombre[0] }}@if(!empty($partesNombre[1]))<br>{{ $partesNombre[1] }}@endif</div>
       <div class="meta">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <b>{{ \Illuminate\Support\Str::of($proximaCita->fecha?->format('d/m/Y').' · '.($proximaCita->hora ?? ''))->trim(' ·') }}</b>
+        <b>{{ $proximaCita->fecha?->format('d/m/Y') }} · {{ \Carbon\Carbon::parse($proximaCita->hora ?? '00:00')->format('g:i A') }}</b>
       </div>
       <div class="meta"><b>{{ $proximaCita->procedimiento ?? 'Procedimiento por definir' }}</b></div>
-      <a class="btn-line" href="{{ $pacCita ? route('pacientes.index', ['paciente' => $pacCita->id]) : route('pacientes.index') }}">
+      <a class="btn-line" href="{{ $pacCita ? route('pacientes.index', ['paciente_id' => $pacCita->id]) : route('pacientes.index') }}">
         Abrir expediente
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </a>
     @else
       <div class="name">Sin citas<br>próximas</div>
       <div class="meta"><b>No hay citas agendadas</b></div>
-      <a class="btn-line" href="{{ route('agendar') }}">
-        Agendar cita
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-      </a>
     @endif
     <div class="holo">
       <div class="lottie-brain"></div>

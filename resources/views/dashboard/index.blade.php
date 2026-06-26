@@ -658,10 +658,8 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
       autoplay: !reduced,
       path: '{{ asset('animations/brain.json') }}?v=1'
     });
-    brainNext.addEventListener('data_ready', () => console.log('Lottie brain next: data ready'));
-    brainNext.addEventListener('error', e => console.error('Lottie brain next error:', e));
   } else if (brainNextContainer) {
-    console.error('Lottie brain next: librería no cargada');
+    // Lottie no cargado
   }
 
   /* ---- Lottie medico2 en Reporte IA ---- */
@@ -674,10 +672,8 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
       autoplay: !reduced,
       path: '{{ asset('animations/robot.json') }}?v=1'
     });
-    brain.addEventListener('data_ready', () => console.log('Lottie robot: data ready'));
-    brain.addEventListener('error', e => console.error('Lottie robot error:', e));
   } else if (brainContainer) {
-    console.error('Lottie brain: librería no cargada');
+    // Lottie no cargado
   }
 
   /* ---- Gauge de riesgo ---- */

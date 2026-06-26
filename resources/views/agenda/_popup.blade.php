@@ -186,12 +186,15 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
       }
       const td = el.closest('td');
       let fechaTxt = el.dataset.fechatxt || '';
-      if (!fechaTxt && td) {
+      let dayNum = null;
+      if (fechaTxt) {
+        const m = fechaTxt.match(/(\d+)/);
+        if (m) dayNum = parseInt(m[1]);
+      }
+      if (dayNum === null && td) {
         const dn = td.querySelector('.day-num');
         if (dn) {
-          const dayNum = parseInt(dn.textContent);
-          const dateObj = new Date(cur_ref.y, cur_ref.m, dayNum);
-          fechaTxt = `${DIAS_ES[dateObj.getDay()]} ${dayNum} de ${MESES[dateObj.getMonth()]}`;
+          dayNum = parseInt(dn.textContent);
         } else if (td.classList.contains('wk-cell')) {
           const tr = td.closest('tr');
           const colIdx = Array.from(tr.children).indexOf(td) - 1;
@@ -199,12 +202,23 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
           if (ths[colIdx + 1]) {
             const txt = ths[colIdx + 1].textContent.trim();
             const parts = txt.split(' ');
-            const dayNum = parseInt(parts[1]);
-            const dateObj = new Date(cur_ref.y, cur_ref.m, dayNum);
-            fechaTxt = `${DIAS_ES[dateObj.getDay()]} ${dayNum} de ${MESES[dateObj.getMonth()]}`;
+            dayNum = parseInt(parts[1]);
           }
         }
       }
+      if (dayNum !== null && !fechaTxt) {
+        const dateObj = new Date(cur_ref.y, cur_ref.m, dayNum);
+        fechaTxt = `${DIAS_ES[dateObj.getDay()]} ${dayNum} de ${MESES[dateObj.getMonth()]}`;
+      }
+
+      let liveCls = d.cls;
+      const recompute = window.__recomputeClass;
+      if (typeof recompute === 'function' && dayNum !== null) {
+        const dateKey = `${cur_ref.y}-${cur_ref.m + 1}-${dayNum}`;
+        const [h] = String(d.time || '00:00').split(':').map(Number);
+        liveCls = recompute({ cls: d.cls, estado: d.estado, hora: d.time, h: h || 0 }, dateKey);
+      }
+
       function minutesTo12h(min) {
         const h = Math.floor(min / 60);
         const m = min % 60;
@@ -230,12 +244,12 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
         `<b>Motivo:</b> ${d.proc}<br>` +
         `<b>Tiempo:</b> ${timeRange}<br>` +
         `<b>Habitación:</b> Sala 3`;
-      const badgeCls = STATUS_BADGE_CLS[d.cls] || 'done';
+      const badgeCls = STATUS_BADGE_CLS[liveCls] || 'done';
       evPopBadge.className = 'ev-pop-badge ' + badgeCls;
-      evPopBadge.textContent = STATUS_LABELS[d.cls] || '';
+      evPopBadge.textContent = STATUS_LABELS[liveCls] || '';
       evPopBadge.style.display = 'inline-flex';
       evPopBtns.innerHTML = '';
-      (STATUS_BUTTONS[d.cls] || STATUS_BUTTONS['ev-wait']).forEach(b => {
+      (STATUS_BUTTONS[liveCls] || STATUS_BUTTONS['ev-wait']).forEach(b => {
         const btn = document.createElement('button');
         btn.className = 'ev-pop-btn ' + b.cls;
         btn.textContent = b.label;

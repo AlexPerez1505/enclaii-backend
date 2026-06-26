@@ -228,16 +228,30 @@ html[data-theme="light"] .wk-modal-badge.soon{background:#F3ECFF;color:#4A1A8A;b
 
   const STATUS_LABELS = {'ev-done':'Completado','ev-wait':'En espera','ev-cancel':'Cancelado','ev-soon':'Próximos'};
 
+  function minutesTo12h(min) {
+    const h = Math.floor(min / 60);
+    const m = min % 60;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
+  }
+  function time24To12h(time24) {
+    const [h, m] = String(time24 || '00:00').split(':').map(Number);
+    return minutesTo12h((h || 0) * 60 + (m || 0));
+  }
+
   window.openWeekModal = function(events, date, hour, dayName) {
     const dStr = `${dayName} ${date.getDate()}`;
     const key = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`;
-    wkModalTitle.textContent = hour !== '' ? `${dStr} – ${hour}:00` : `${dStr} – Citas del día`;
+    const hourLabel = hour !== '' ? time24To12h(String(hour).padStart(2, '0') + ':00') : '';
+    wkModalTitle.textContent = hourLabel ? `${dStr} – ${hourLabel}` : `${dStr} – Citas del día`;
     wkModalBody.innerHTML = '';
     events.forEach(ev => {
       const liveCls = typeof window.__recomputeClass === 'function' ? window.__recomputeClass(ev, key) : ev.cls;
-      let name = ev.name || '';
-      let proc = ev.proc || '';
-      if (!name && ev.t) {
+      const parsed = (typeof window.__parseEvData === 'function') ? window.__parseEvData(ev) : null;
+      let name = parsed ? parsed.name : (ev.name || '');
+      let proc = parsed ? parsed.proc : (ev.proc || '');
+      if (!name && ev.t && !parsed) {
         const parts = ev.t.split('·').map(s => s.trim());
         const timeAndName = parts[0] || '';
         name = timeAndName.replace(/^\d+:\d+\s*/, '');
@@ -268,7 +282,6 @@ html[data-theme="light"] .wk-modal-badge.soon{background:#F3ECFF;color:#4A1A8A;b
         <div class="wk-modal-badge ${statusKey}">${statusLabel}</div>
       `;
       item.addEventListener('click', () => {
-        console.log('wk-modal-item click', 'openDayModal:', !!window.openDayModal, 'ev:', ev);
         const DIAS_MODAL = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
         closeWkModal();
         setTimeout(() => {

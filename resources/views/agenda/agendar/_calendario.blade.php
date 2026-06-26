@@ -34,6 +34,8 @@
 .cal-ag-day.today{color:#5AB4F7;font-weight:700}
 .cal-ag-day.selected{background:linear-gradient(135deg,#1668D9,#0040A0);color:#fff;font-weight:700;box-shadow:0 4px 14px -4px rgba(22,104,217,.55)}
 .cal-ag-day.other-month{opacity:.35;color:#fff}
+.cal-ag-day.past{opacity:.45;cursor:not-allowed;color:#fff}
+.cal-ag-day.past:disabled{pointer-events:none;background:transparent}
 .cal-ag-day.has-events::after{content:'';display:block;width:4px;height:4px;border-radius:50%;background:var(--ag-blue);margin:1px auto 0;position:absolute;bottom:3px;left:50%;transform:translateX(-50%)}
 .cal-ag-day{position:relative}
 
@@ -413,11 +415,18 @@ html[data-theme="light"] .reprogram-info{
   }
 
   const __reprogramFecha = window.__CITA_EDITAR_FECHA || null;
-  const __reprogramDate = __reprogramFecha ? new Date(__reprogramFecha + 'T00:00:00') : new Date();
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlDia = parseInt(urlParams.get('dia'), 10);
+  const urlMes = parseInt(urlParams.get('mes'), 10);
+  const urlAnio = parseInt(urlParams.get('anio'), 10);
+  const hasUrlDate = urlDia && urlMes && urlAnio;
+  const __reprogramDate = __reprogramFecha
+    ? new Date(__reprogramFecha + 'T00:00:00')
+    : (hasUrlDate ? new Date(urlAnio, urlMes - 1, urlDia) : new Date());
 
   let agY = __reprogramDate.getFullYear();
   let agM = __reprogramDate.getMonth();
-  let agSelected = window.__CITA_EDITAR_FECHA
+  let agSelected = (window.__CITA_EDITAR_FECHA || hasUrlDate)
     ? { y: __reprogramDate.getFullYear(), m: __reprogramDate.getMonth(), d: __reprogramDate.getDate() }
     : null;
   let selectedTime = null;
@@ -449,8 +458,14 @@ html[data-theme="light"] .reprogram-info{
       const b = document.createElement('button');
       b.className = 'cal-ag-day';
       b.textContent = d;
-      if (today.getFullYear()===agY && today.getMonth()===agM && today.getDate()===d)
-        b.classList.add('today');
+      const isToday = today.getFullYear()===agY && today.getMonth()===agM && today.getDate()===d;
+      const isPast = new Date(agY, agM, d) < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      if (isToday) b.classList.add('today');
+      if (isPast) {
+        b.classList.add('past');
+        b.disabled = true;
+        b.title = 'No puedes agendar en días pasados';
+      }
       if (agSelected && agSelected.y===agY && agSelected.m===agM && agSelected.d===d)
         b.classList.add('selected');
       b.addEventListener('click', () => {
@@ -458,6 +473,12 @@ html[data-theme="light"] .reprogram-info{
         renderCalAg();
         renderTimeSection(d);
         if (window.__agOnDateSelect) window.__agOnDateSelect(new Date(agY, agM, d));
+        // Reflejar fecha seleccionada en la URL para conservarla al recargar
+        const url = new URL(window.location.href);
+        url.searchParams.set('dia', d);
+        url.searchParams.set('mes', agM + 1);
+        url.searchParams.set('anio', agY);
+        window.history.replaceState({}, '', url);
       });
       grid.appendChild(b);
     }
