@@ -42,7 +42,7 @@ Route::middleware('auth')->group(function () {
             ->orderBy('hora')
             ->get();
 
-        return view('dashboard', compact('estudiosSinReporte', 'proximaCita', 'pendientesHoy'));
+        return view('dashboard.index', compact('estudiosSinReporte', 'proximaCita', 'pendientesHoy'));
     })->name('dashboard');
     
 

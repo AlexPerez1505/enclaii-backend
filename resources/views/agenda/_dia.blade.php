@@ -366,7 +366,7 @@ html[data-theme="light"] .day-modal-overlay{
     'ev-soon':   `<svg viewBox="0 0 24 24" fill="none" stroke="#B263FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
   };
   const STATUS_LABEL_DAY = {
-    'ev-done':'Completado','ev-wait':'En espera','ev-cancel':'Cancelado','ev-soon':'Próximamente','ev-block':'',
+    'ev-done':'Completado','ev-wait':'En espera','ev-cancel':'Cancelado','ev-soon':'Próximos','ev-block':'',
   };
   const DAY_BUTTONS = {
     'ev-done':  [{label:'Datos del paciente',cls:'primary'},{label:'Reprogramar nueva cita',cls:'secondary'},{label:'Ver Informe',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
@@ -403,14 +403,32 @@ html[data-theme="light"] .day-modal-overlay{
     dayModalWrap.appendChild(panel);
     document.getElementById('delConfirmNo').addEventListener('click', () => panel.remove());
     document.getElementById('delConfirmYes').addEventListener('click', () => {
-      const { ev: e, y: ey, m: em, d: ed } = __currentDelEv;
-      const key = `${ey}-${String(em+1).padStart(2,'0')}-${String(ed).padStart(2,'0')}`;
-      if (window.__EVENTS_DIA && window.__EVENTS_DIA[key]) {
-        window.__EVENTS_DIA[key] = window.__EVENTS_DIA[key].filter(x => x !== e);
+      const current = __currentDelEv;
+      const url = current.ev && current.ev.delete_url;
+      const id = current.ev && current.ev.id;
+      const finish = () => {
+        panel.remove();
+        closeDayModal();
+        if (window.__rebuildAgenda) window.__rebuildAgenda();
+      };
+      if (url) {
+        window.__deleteCita(url, {
+          onSuccess: () => {
+            if (id) window.__removeAgendaEventById(id);
+            finish();
+          },
+          onError: (msg) => {
+            alert(msg);
+            panel.remove();
+          }
+        });
+      } else {
+        const key = `${current.y}-${String(current.m+1).padStart(2,'0')}-${String(current.d).padStart(2,'0')}`;
+        if (window.__EVENTS_DIA && window.__EVENTS_DIA[key]) {
+          window.__EVENTS_DIA[key] = window.__EVENTS_DIA[key].filter(x => x !== current.ev);
+        }
+        finish();
       }
-      panel.remove();
-      closeDayModal();
-      if (window.__buildDay) window.__buildDay(new Date(ey, em, ed), window.__EVENTS_DIA || {}, MESES_DIA, null, null);
     });
   }
 
@@ -425,16 +443,18 @@ html[data-theme="light"] .day-modal-overlay{
   const delGlobalYes     = document.getElementById('delGlobalYes');
   const delGlobalNo      = document.getElementById('delGlobalNo');
   let   __globalDelEl    = null;
+  let   __globalDelUrl   = null;
 
   function closeGlobalDel() {
     delGlobalOverlay.style.display = 'none';
     __globalDelEl = null;
+    __globalDelUrl = null;
   }
 
   delGlobalNo.addEventListener('click', closeGlobalDel);
   delGlobalOverlay.addEventListener('click', e => { if (e.target === delGlobalOverlay) closeGlobalDel(); });
 
-  delGlobalYes.addEventListener('click', () => {
+  function finishGlobalDelRemove() {
     const el = __globalDelEl;
     if (el) {
       el.style.transition = 'opacity 250ms ease, transform 250ms ease';
@@ -444,10 +464,32 @@ html[data-theme="light"] .day-modal-overlay{
     }
     closeGlobalDel();
     if (window.__rebuildProximas) window.__rebuildProximas();
+    if (window.__rebuildAgenda) window.__rebuildAgenda();
+  }
+
+  delGlobalYes.addEventListener('click', () => {
+    const el = __globalDelEl;
+    const url = __globalDelUrl || (el && el.dataset.deleteUrl) || '';
+    const id = el && el.dataset.citaId;
+    if (url) {
+      window.__deleteCita(url, {
+        onSuccess: () => {
+          if (id) window.__removeAgendaEventById(id);
+          finishGlobalDelRemove();
+        },
+        onError: (msg) => {
+          alert(msg);
+          closeGlobalDel();
+        }
+      });
+    } else {
+      finishGlobalDelRemove();
+    }
   });
 
-  window.showDelConfirmGlobal = function(evEl) {
+  window.showDelConfirmGlobal = function(evEl, url) {
     __globalDelEl = evEl;
+    __globalDelUrl = url || (evEl && evEl.dataset.deleteUrl) || '';
     delGlobalOverlay.style.display = 'flex';
   };
   dayModalClose.addEventListener('click', closeDayModal);
@@ -460,9 +502,12 @@ html[data-theme="light"] .day-modal-overlay{
 
   const MESES_DIA = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
-  const STATUS_LABELS_MODAL = {'ev-done':'Completado','ev-wait':'En espera','ev-cancel':'Cancelado','ev-soon':'Próximamente'};
+  const STATUS_LABELS_MODAL = {'ev-done':'Completado','ev-wait':'En espera','ev-cancel':'Cancelado','ev-soon':'Próximos'};
   const STATUS_BADGE_KEY   = {'ev-done':'done','ev-wait':'wait','ev-cancel':'cancel','ev-soon':'soon'};
   const REPROG_LABELS_DIA  = ['Reprogramar nueva cita','Reprogramar Paciente'];
+  const PACIENTE_LABELS_DIA = ['Datos del paciente','Datos del Paciente'];
+  const MENSAJE_LABELS_DIA = ['Enviar mensaje'];
+  const INFORME_LABELS_DIA = ['Ver Informe'];
 
   function buildAgendarUrlDia(name, proc, time, d, m, y) {
     const params = new URLSearchParams();
@@ -476,27 +521,34 @@ html[data-theme="light"] .day-modal-overlay{
   }
 
   window.openDayModal = function(ev, dayNames, dow, d, m, y) {
-    const text = ev.t.trim();
+    const key = `${y}-${m+1}-${d}`;
+    const liveCls = typeof window.__recomputeClass === 'function' ? window.__recomputeClass(ev, key) : (ev.cls || 'ev-done');
+    const text = ev.t ? ev.t.trim() : '';
     const timeM = text.match(/^(\d+:\d+)/);
-    const time = timeM ? timeM[1] : '';
-    const rest = text.replace(/^\d+:\d+\s*/,'');
-    const sepIdx = rest.indexOf('·');
-    const name = sepIdx !== -1 ? rest.substring(0, sepIdx).trim() : rest.trim() || 'Paciente';
-    const proc = sepIdx !== -1 ? rest.substring(sepIdx + 1).trim() : 'Procedimiento';
-    const inits = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const time = timeM ? timeM[1] : (ev.h ? String(ev.h).padStart(2,'0') + ':00' : '');
+    let name = ev.name || '';
+    let proc = ev.proc || '';
+    if (!name && text) {
+      const rest = text.replace(/^\d+:\d+\s*/,'');
+      const sepIdx = rest.indexOf('·');
+      name = sepIdx !== -1 ? rest.substring(0, sepIdx).trim() : rest.trim() || 'Paciente';
+      proc = sepIdx !== -1 ? rest.substring(sepIdx + 1).trim() : 'Procedimiento';
+    }
+    const displayName = (window.__displayName ? window.__displayName(name) : name);
+    const inits = displayName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     const endHr = parseInt(time) + 1;
-    const cls = ev.cls || 'ev-done';
+    const cls = liveCls;
     const badgeKey = STATUS_BADGE_KEY[cls] || 'done';
     const badgeLabel = STATUS_LABELS_MODAL[cls] || 'Completado';
 
-    dayModalTitle.textContent = `${time} – ${name}`;
+    dayModalTitle.textContent = `${time} – ${displayName}`;
     dayModalBody.innerHTML = '';
 
     const card = document.createElement('div');
     card.className = 'day-panel-card';
     const head = document.createElement('div');
     head.className = 'day-pc-head';
-    head.innerHTML = `<div class="day-pc-avatar">${inits}</div><div><div class="day-pc-name">${name}</div></div>`;
+    head.innerHTML = `<div class="day-pc-avatar">${inits}</div><div><div class="day-pc-name">${displayName}</div></div>`;
 
     const badge = document.createElement('div');
     badge.className = 'ev-pop-badge ' + badgeKey;
@@ -601,24 +653,32 @@ html[data-theme="light"] .day-modal-overlay{
       } else {
         // Mostrar eventos individualmente
         hourEvs.forEach(ev => {
-          const text = ev.t.trim();
+          const liveCls = typeof window.__recomputeClass === 'function' ? window.__recomputeClass(ev, key) : ev.cls;
+          const text = ev.t ? ev.t.trim() : '';
           const timeM = text.match(/^(\d+:\d+)/);
-          const time = timeM ? timeM[1] : '';
-          const rest = text.replace(/^\d+:\d+\s*/,'');
-          const parts = rest.split('·').map(s=>s.trim());
-          const name = parts[0] || 'Paciente';
-          const proc = parts[1] || 'Procedimiento';
-          const inits = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+          const time = timeM ? timeM[1] : (ev.h ? String(ev.h).padStart(2,'0') + ':00' : '');
+          let name = ev.name || '';
+          let proc = ev.proc || '';
+          if (!name && text) {
+            const rest = text.replace(/^\d+:\d+\s*/,'');
+            const parts = rest.split('·').map(s=>s.trim());
+            name = parts[0] || 'Paciente';
+            proc = parts[1] || 'Procedimiento';
+          }
+          const displayName = (window.__displayName ? window.__displayName(name) : name);
+          const inits = displayName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
 
           const card = document.createElement('div');
-          card.className = 'day-event ' + ev.cls;
-          card.dataset.evcls = ev.cls;
+          card.className = 'day-event ' + liveCls;
+          card.dataset.evcls = liveCls;
           card.dataset.name = name;
           card.dataset.proc = proc;
           card.dataset.time = time;
           card.dataset.inits = inits;
-          card.dataset.pacienteId = ev.paciente_id || '';
           card.dataset.fechatxt = `${dayNames[dow]} ${d} de ${MESES[m]}`;
+          card.dataset.citaId = ev.id || '';
+          card.dataset.pacienteId = ev.paciente_id || '';
+          card.dataset.deleteUrl = ev.delete_url || '';
           if (ev.cls === 'ev-block' && ev.blockId !== undefined) {
             card.dataset.blockid    = ev.blockId;
             card.dataset.blockkey   = key;
@@ -626,7 +686,7 @@ html[data-theme="light"] .day-modal-overlay{
           }
 
           const thumb = document.createElement('div');
-          thumb.className = 'day-event-thumb ' + ev.cls;
+          thumb.className = 'day-event-thumb ' + liveCls;
 
           if (ev.cls === 'ev-block') {
             thumb.innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#8FA3CF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
@@ -637,13 +697,13 @@ html[data-theme="light"] .day-modal-overlay{
           } else {
             const info = document.createElement('div');
             info.className = 'day-event-info';
-            info.innerHTML = `<strong>${name}</strong><span>${proc}</span>`;
+            info.innerHTML = `<strong>${displayName}</strong><span>${proc}</span>`;
             const status = document.createElement('div');
-            status.className = 'day-event-status ' + ev.cls;
-            status.textContent = STATUS_LABEL_DAY[ev.cls] || '';
+            status.className = 'day-event-status ' + liveCls;
+            status.textContent = STATUS_LABEL_DAY[liveCls] || '';
             const icon = document.createElement('div');
             icon.className = 'day-event-icon';
-            icon.innerHTML = STATUS_ICONS_SVG[ev.cls] || '';
+            icon.innerHTML = STATUS_ICONS_SVG[liveCls] || '';
             card.appendChild(thumb); card.appendChild(info);
             card.appendChild(status); card.appendChild(icon);
             // Click handler para modo expandido con 1 cita
@@ -673,21 +733,27 @@ html[data-theme="light"] .day-modal-overlay{
       panel.appendChild(empty);
     }
     realEvs.forEach(ev => {
-      const text = ev.t.trim();
+      const text = ev.t ? ev.t.trim() : '';
       const timeM = text.match(/^(\d+:\d+)/);
-      const time = timeM ? timeM[1] : '';
-      const rest = text.replace(/^\d+:\d+\s*/,'');
-      const parts = rest.split('·').map(s=>s.trim());
-      const name = parts[0] || 'Paciente';
-      const proc = parts[1] || 'Procedimiento';
-      const inits = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      const time = timeM ? timeM[1] : (ev.h ? String(ev.h).padStart(2,'0') + ':00' : '');
+      let name = ev.name || '';
+      let proc = ev.proc || '';
+      if (!name && text) {
+        const rest = text.replace(/^\d+:\d+\s*/,'');
+        const parts = rest.split('·').map(s=>s.trim());
+        name = parts[0] || 'Paciente';
+        proc = parts[1] || 'Procedimiento';
+      }
+      const displayName = (window.__displayName ? window.__displayName(name) : name);
+      const inits = displayName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
       const endHr = parseInt(time) + 1;
+      const liveCls = typeof window.__recomputeClass === 'function' ? window.__recomputeClass(ev, key) : ev.cls;
 
       const card = document.createElement('div');
       card.className = 'day-panel-card';
       const head = document.createElement('div');
       head.className = 'day-pc-head';
-      head.innerHTML = `<div class="day-pc-avatar">${inits}</div><div><div class="day-pc-name">${name}</div></div>`;
+      head.innerHTML = `<div class="day-pc-avatar">${inits}</div><div><div class="day-pc-name">${displayName}</div></div>`;
       const info = document.createElement('div');
       info.className = 'day-pc-info';
       info.innerHTML =
@@ -695,8 +761,8 @@ html[data-theme="light"] .day-modal-overlay{
         `<b>Fecha:</b> ${dayNames[dow]} ${d} de ${MESES[m]}<br>` +
         `<b>Tiempo:</b> ${time} AM – ${endHr}:00 PM<br>` +
         `<b>Habitación:</b> Sala 3`;
-      const panelBadgeKey = STATUS_BADGE_KEY[ev.cls] || 'done';
-      const panelBadgeLabel = STATUS_LABELS_MODAL[ev.cls] || 'Completado';
+      const panelBadgeKey = STATUS_BADGE_KEY[liveCls] || 'done';
+      const panelBadgeLabel = STATUS_LABELS_MODAL[liveCls] || 'Completado';
       const panelBadge = document.createElement('div');
       panelBadge.className = 'ev-pop-badge ' + panelBadgeKey;
       panelBadge.textContent = panelBadgeLabel;

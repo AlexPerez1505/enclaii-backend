@@ -693,11 +693,13 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
               <span class="pm-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.5 15a9 9 0 1 0 .5-8L1 10"/></svg></span>
               <span class="pm-txt"><span class="t">Restablecer configuración</span><span class="d">Restaurar configuración predeterminada</span></span>
             </a>
+            @if(request()->routeIs('dashboard'))
             <div class="pm-sep"></div>
             <button type="button" class="pm-item edit-db" id="editDashboardBtn" role="menuitem">
               <span class="pm-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
               <span class="pm-txt"><span class="t">Editar Dashboard</span><span class="d">Configura y organiza tus widgets</span></span>
             </button>
+            @endif
             <div class="pm-sep"></div>
             <form method="POST" action="{{ route('logout') }}">
               @csrf
@@ -822,9 +824,20 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
       const body  = document.getElementById('dbEditorBody');
       body.innerHTML = '';
 
+      /* Leer widgets reales del DOM en tiempo real (solo originales) */
+      const ids = Array.from(new Set(
+        Array.from(document.querySelectorAll('#widgetGrid .widget:not(.widget-minimal)'))
+          .map(w => w.dataset.widgetId)
+          .filter(Boolean)
+      ));
+      const presentWidgets = ids.map(id => {
+        const meta = WIDGETS.find(w => w.id === id);
+        return meta || {id, name: id, desc: '', group: 'Otros', color: 'blue', default: true};
+      });
+
       const groupOrder = [];
       const groups = {};
-      WIDGETS.forEach(w => {
+      presentWidgets.forEach(w => {
         const g = w.group;
         if (!groups[g]) { groups[g] = []; groupOrder.push(g); }
         groups[g].push(w);
@@ -855,6 +868,17 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
         body.appendChild(sec);
       });
 
+      /* Actualizar dashboard en tiempo real al togglear */
+      body.querySelectorAll('input[data-wid]').forEach(cb => {
+        cb.addEventListener('change', () => {
+          const livePrefs = {};
+          body.querySelectorAll('input[data-wid]').forEach(i => {
+            livePrefs[i.dataset.wid] = i.checked;
+          });
+          window.dispatchEvent(new CustomEvent('dbWidgetsChanged', {detail: livePrefs}));
+        });
+      });
+
       overlay.classList.add('open');
       panel.classList.add('open');
     }
@@ -876,10 +900,13 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
 
     function resetEditor() {
       savePrefs({});
+      const prefs = {};
       document.querySelectorAll('#dbEditorBody input[data-wid]').forEach(cb => {
         const w = WIDGETS.find(x => x.id === cb.dataset.wid);
         if (w) cb.checked = w.default;
+        prefs[cb.dataset.wid] = w ? w.default : true;
       });
+      window.dispatchEvent(new CustomEvent('dbWidgetsChanged', {detail: prefs}));
     }
 
     document.getElementById('editDashboardBtn')?.addEventListener('click', openEditor);

@@ -330,6 +330,14 @@
     if (window.__syncDayPicker) window.__syncDayPicker(date);
   }
 
+  window.__rebuildAgenda = function() {
+    if (curView === 'mes') buildCal(cur);
+    else if (curView === 'semana') buildWeek(cur);
+    else if (curView === 'dia') buildDayAndSync(cur);
+    applyFilters();
+    if (typeof window.__rebuildProximas === 'function') window.__rebuildProximas();
+  };
+
   const cur_ref = { get y(){ return cur.getFullYear(); }, get m(){ return cur.getMonth(); } };
   window.__initPopup(window.__AGENDA_EVENTS, MESES, cur_ref, DIAS_ES);
   window.__initDayPicker(function(date) { buildDayAndSync(date); });
