@@ -639,8 +639,10 @@ textarea{
   max-width:900px;
   max-height:90vh;
   overflow-y:auto;
+  overflow-x:hidden;
   padding:28px 32px;
   animation:modalIn 300ms var(--ease-out);
+  box-sizing:border-box;
 }
 @keyframes modalIn{
   from{opacity:0;transform:scale(.95) translateY(20px)}
@@ -690,6 +692,16 @@ textarea{
   align-items:center;
   justify-content:center;
 }
+
+.camera-frame video,
+.camera-frame canvas{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:none;
+}
+.camera-frame.camera-active video{display:block}
+.camera-frame.camera-active .avatar-preview{display:none}
 
 /* Esquinas del marco */
 .corner{
@@ -867,6 +879,20 @@ textarea{
   font-weight:600;
   cursor:pointer;
 }
+
+/* Hover de botones de galería y reportes */
+.btn-outline.btn-galeria:hover{
+  background:#f59e0b !important;
+  color:#fff !important;
+}
+.btn-outline.btn-reportes:hover{
+  background:var(--cyan) !important;
+  color:#fff !important;
+}
+.btn-outline.btn-disabled:hover{
+  background:transparent !important;
+  color:#777 !important;
+}
 </style>
 @endpush
 
@@ -915,32 +941,15 @@ textarea{
       <div class="form-grid personal" style="flex:1;">
       <div class="form-group span-2">
         <label>Nombre completo</label>
-<<<<<<< HEAD
-        <input type="text" name="nombre_completo" value="{{ old('nombre_completo', $paciente->nombre_completo ?? '') }}" placeholder="Nombre completo del paciente" required>
-=======
         <input type="text" name="nombre_completo" value="{{ old('nombre_completo', $paciente->nombre_completo) }}" required>
       </div>
       <div class="form-group">
-        <label>Identificación</label>
-        <input type="text" name="identificacion" id="identificacionInput" value="{{ old('identificacion', $paciente->identificacion) }}">
->>>>>>> origin/main
-      </div>
-
-      <div class="form-group">
         <label>Fecha de nacimiento</label>
-<<<<<<< HEAD
-        <input type="date" name="fecha_nacimiento" id="fechaNacimientoEdit" value="{{ old('fecha_nacimiento', optional($paciente->fecha_nacimiento)->format('Y-m-d') ?? '') }}" style="color-scheme:dark;">
-      </div>
-      <div class="form-group">
-        <label>Edad</label>
-        <input type="text" name="edad" id="edadCalculadaEdit" value="{{ old('edad', $paciente->edad ?? '') }}" readonly style="background:var(--panel-2);color:var(--txt-soft);cursor:default;">
-=======
         <input type="date" name="fecha_nacimiento" id="fechaNacimientoEdit" value="{{ old('fecha_nacimiento', optional($paciente->fecha_nacimiento)->format('Y-m-d')) }}" style="color-scheme:dark;">
       </div>
       <div class="form-group">
         <label>Edad</label>
         <input type="number" name="edad" id="edadCalculadaEdit" value="{{ old('edad', $paciente->edad) }}" readonly style="background:var(--panel-2);color:var(--txt-soft);">
->>>>>>> origin/main
       </div>
       <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -956,7 +965,7 @@ textarea{
             var e = h.getFullYear()-n.getFullYear();
             var m = h.getMonth()-n.getMonth();
             if (m<0||(m===0&&h.getDate()<n.getDate())) e--;
-            fe.value = e<0?'':(e===0?(((h.getFullYear()-n.getFullYear())*12+h.getMonth()-n.getMonth())+' meses'):(e+' años'));
+            fe.value = e < 0 ? '' : e;
           }
           fi.addEventListener('change', calcE);
           fi.addEventListener('input', calcE);
@@ -965,19 +974,11 @@ textarea{
       </script>
       <div class="form-group">
         <label>Peso</label>
-<<<<<<< HEAD
-        <input type="text" name="peso" value="{{ old('peso', $paciente->peso ?? '') }}" placeholder="Peso en kg">
-      </div>
-      <div class="form-group">
-        <label>Altura</label>
-        <input type="text" name="altura" value="{{ old('altura', $paciente->altura ?? '') }}" placeholder="Altura en metros">
-=======
         <input type="number" step="0.01" name="peso" value="{{ old('peso', $paciente->peso) }}">
       </div>
       <div class="form-group">
         <label>Altura</label>
         <input type="number" step="0.01" name="altura" value="{{ old('altura', $paciente->altura) }}">
->>>>>>> origin/main
       </div>
 
       <div class="form-group">
@@ -991,28 +992,16 @@ textarea{
       </div>
       <div class="form-group span-2">
         <label>Dirección</label>
-<<<<<<< HEAD
-        <input type="text" name="direccion" value="{{ old('direccion', $paciente->direccion ?? '') }}" placeholder="CALLE, CP">
-=======
         <input type="text" name="direccion" value="{{ old('direccion', $paciente->direccion) }}">
->>>>>>> origin/main
       </div>
 
       <div class="form-group">
         <label>Teléfono</label>
-<<<<<<< HEAD
-        <input type="tel" name="telefono" value="{{ old('telefono', $paciente->telefono ?? '') }}" placeholder="722 162 0815">
-      </div>
-      <div class="form-group span-3">
-        <label>e-mail</label>
-        <input type="email" name="email" value="{{ old('email', $paciente->email ?? '') }}" placeholder="correo@ejemplo.com">
-=======
         <input type="tel" name="telefono" value="{{ old('telefono', $paciente->telefono) }}">
       </div>
       <div class="form-group span-3">
         <label>e-mail</label>
         <input type="email" name="email" value="{{ old('email', $paciente->email) }}">
->>>>>>> origin/main
       </div>
       </div>{{-- /form-grid personal --}}
     </div>{{-- /personal-layout --}}
@@ -1110,14 +1099,28 @@ textarea{
       </div>
     </div>
 
+@php
+  $tieneEstudios = $paciente->estudios()->count() > 0;
+  $tieneArchivos = \App\Models\EstudioArchivo::where('paciente_id', $paciente->id)->count() > 0;
+  $tieneReportes = \App\Models\Reporte::whereHas('estudio', fn ($q) => $q->where('paciente_id', $paciente->id))->count() > 0;
+  $puedeVerGaleria = $tieneEstudios || $tieneArchivos;
+  $puedeVerReportes = $tieneEstudios || $tieneReportes;
+@endphp
+
     <div style="display:flex;gap:12px;margin-bottom:28px;flex-wrap:wrap;">
-      <a href="{{ route('galeria') }}" class="btn-outline" style="padding:12px 24px;font-size:14px;border:2px solid #f59e0b;color:#f59e0b;background:transparent;border-radius:var(--r-md);cursor:pointer;transition:all 150ms ease;display:inline-flex;align-items:center;text-decoration:none;" onmouseover="this.style.background='#f59e0b';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#f59e0b'">
+      <a href="{{ $puedeVerGaleria ? route('galeria.paciente', $paciente->id) : '#' }}"
+         class="btn-outline {{ $puedeVerGaleria ? 'btn-galeria' : 'btn-disabled' }}"
+         style="padding:12px 24px;font-size:14px;border:2px solid {{ $puedeVerGaleria ? '#f59e0b' : '#555' }};color:{{ $puedeVerGaleria ? '#f59e0b' : '#777' }};background:transparent;border-radius:var(--r-md);cursor:{{ $puedeVerGaleria ? 'pointer' : 'not-allowed' }};transition:all 150ms ease;display:inline-flex;align-items:center;text-decoration:none;"
+         {{ $puedeVerGaleria ? '' : 'onclick="return false;"' }}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;"><rect x="3" y="4" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="4" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="20"/><line x1="4" y1="12" x2="2" y2="12"/><line x1="22" y1="12" x2="20" y2="12"/></svg>
         Editar galería
       </a>
-      <a href="{{ route('nuevo-estudio') }}" class="btn-outline" style="padding:12px 24px;font-size:14px;border:1px solid var(--cyan);color:var(--cyan);background:transparent;border-radius:var(--r-md);cursor:pointer;transition:all 150ms ease;display:inline-flex;align-items:center;text-decoration:none;" onmouseover="this.style.background='var(--cyan)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--cyan)'">
+      <a href="{{ $puedeVerReportes ? route('nuevo-estudio', ['paciente' => $paciente->id]) : '#' }}"
+         class="btn-outline {{ $puedeVerReportes ? 'btn-reportes' : 'btn-disabled' }}"
+         style="padding:12px 24px;font-size:14px;border:1px solid {{ $puedeVerReportes ? 'var(--cyan)' : '#555' }};color:{{ $puedeVerReportes ? 'var(--cyan)' : '#777' }};background:transparent;border-radius:var(--r-md);cursor:{{ $puedeVerReportes ? 'pointer' : 'not-allowed' }};transition:all 150ms ease;display:inline-flex;align-items:center;text-decoration:none;"
+         {{ $puedeVerReportes ? '' : 'onclick="return false;"' }}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-        Editar estudios
+        Editar reportes
       </a>
     </div>
 
@@ -1397,85 +1400,231 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // ===== FOTO DEL PACIENTE =====
+  // ===== FOTO DEL PACIENTE: GALERÍA Y CÁMARA REAL =====
   const modalFoto = document.getElementById('modalFoto');
   const btnCancelarFoto = document.getElementById('btnCancelarFoto');
   const btnUsarFoto = document.getElementById('btnUsarFoto');
+  const inputFileFoto = document.getElementById('inputFileFoto');
   const patientPhoto = document.getElementById('patientPhoto');
   const patientPhotoPlaceholder = document.getElementById('patientPhotoPlaceholder');
+  const cameraFrame = document.querySelector('.camera-frame');
   const avatarPreview = document.querySelector('.avatar-preview');
 
-  if (!modalFoto) return;
-
-  // Input file del formulario
-  const inputFileFoto = document.getElementById('inputFileFoto');
-
+  let cameraStream = null;
   let currentPhotoData = null;
 
-  // Cargar foto guardada si existe
-  const savedPhoto = localStorage.getItem('patientPhoto');
-  if (savedPhoto && patientPhoto && patientPhotoPlaceholder) {
-    patientPhoto.src = savedPhoto;
-    patientPhoto.style.display = 'block';
-    patientPhotoPlaceholder.style.display = 'none';
+  function prepararVideoCamara() {
+    if (!cameraFrame) return null;
+
+    let video = document.getElementById('cameraVideoPaciente');
+    if (!video) {
+      video = document.createElement('video');
+      video.id = 'cameraVideoPaciente';
+      video.autoplay = true;
+      video.playsInline = true;
+      video.muted = true;
+      cameraFrame.appendChild(video);
+    }
+
+    let canvas = document.getElementById('cameraCanvasPaciente');
+    if (!canvas) {
+      canvas = document.createElement('canvas');
+      canvas.id = 'cameraCanvasPaciente';
+      cameraFrame.appendChild(canvas);
+    }
+
+    return { video, canvas };
+  }
+
+  async function iniciarCamaraPaciente() {
+    const media = prepararVideoCamara();
+    if (!media || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert('Tu navegador no permite abrir la cámara desde aquí. Usa la opción Subir imagen.');
+      return;
+    }
+
+    try {
+      detenerCamaraPaciente();
+      cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user' },
+        audio: false
+      });
+
+      media.video.srcObject = cameraStream;
+      cameraFrame.classList.add('camera-active');
+      currentPhotoData = null;
+    } catch (error) {
+      alert('No se pudo abrir la cámara. Revisa permisos del navegador o usa Subir imagen.');
+    }
+  }
+
+  function detenerCamaraPaciente() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      cameraStream = null;
+    }
+
+    if (cameraFrame) {
+      cameraFrame.classList.remove('camera-active');
+    }
+  }
+
+  function asignarArchivoDesdeBlob(blob) {
+    if (!inputFileFoto) return;
+
+    const file = new File([blob], 'foto-paciente.png', { type: 'image/png' });
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    inputFileFoto.files = dataTransfer.files;
+  }
+
+  function mostrarFotoSeleccionada(dataUrl) {
+    if (patientPhoto && patientPhotoPlaceholder) {
+      patientPhoto.src = dataUrl;
+      patientPhoto.style.display = 'block';
+      patientPhotoPlaceholder.style.display = 'none';
+    }
+
+    if (avatarPreview) {
+      avatarPreview.style.backgroundImage = `url(${dataUrl})`;
+      avatarPreview.style.backgroundSize = 'cover';
+      avatarPreview.style.backgroundPosition = 'center';
+      avatarPreview.textContent = '';
+    }
+  }
+
+  function capturarFotoDesdeCamara() {
+    const media = prepararVideoCamara();
+    if (!media || !cameraStream) return false;
+
+    const video = media.video;
+    const canvas = media.canvas;
+
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+
+    const context = canvas.getContext('2d');
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    currentPhotoData = canvas.toDataURL('image/png');
+
+    canvas.toBlob(function(blob) {
+      if (blob) asignarArchivoDesdeBlob(blob);
+    }, 'image/png');
+
+    mostrarFotoSeleccionada(currentPhotoData);
+    detenerCamaraPaciente();
+
+    return true;
   }
 
   // Función global para abrir modal desde botones inline
   window.abrirModalFoto = function() {
+    if (!modalFoto) return;
     modalFoto.classList.add('active');
-    if (avatarPreview) {
+
+    if (avatarPreview && !currentPhotoData) {
       avatarPreview.textContent = '👤';
       avatarPreview.style.backgroundImage = '';
     }
-    currentPhotoData = null;
   };
 
-  if (btnCancelarFoto) {
-    btnCancelarFoto.addEventListener('click', () => {
+  if (btnCancelarFoto && modalFoto) {
+    btnCancelarFoto.addEventListener('click', function() {
+      detenerCamaraPaciente();
       modalFoto.classList.remove('active');
     });
   }
 
-  modalFoto.addEventListener('click', (e) => {
-    if (e.target === modalFoto) modalFoto.classList.remove('active');
-  });
+  if (modalFoto) {
+    modalFoto.addEventListener('click', function(e) {
+      if (e.target === modalFoto) {
+        detenerCamaraPaciente();
+        modalFoto.classList.remove('active');
+      }
+    });
+  }
 
-  // Galería: abrir selector de archivos
   const sourceOptions = document.querySelectorAll('.source-option');
-  sourceOptions.forEach((opt, index) => {
-    opt.addEventListener('click', () => {
+  sourceOptions.forEach(function(option, index) {
+    option.addEventListener('click', function() {
       sourceOptions.forEach(o => o.classList.remove('active'));
-      opt.classList.add('active');
-      if (index === 1) inputFileFoto.click();
+      option.classList.add('active');
+
+      if (index === 0) {
+        iniciarCamaraPaciente();
+      }
+
+      if (index === 1 && inputFileFoto) {
+        detenerCamaraPaciente();
+        inputFileFoto.click();
+      }
     });
   });
 
-  inputFileFoto.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        currentPhotoData = event.target.result;
-        avatarPreview.style.backgroundImage = `url(${currentPhotoData})`;
-        avatarPreview.style.backgroundSize = 'cover';
-        avatarPreview.style.backgroundPosition = 'center';
-        avatarPreview.textContent = '';
-      };
-      reader.readAsDataURL(file);
-    }
+  const camBtns = document.querySelectorAll('.cam-btn');
+  camBtns.forEach(function(btn, index) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+
+      camBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      if (index === 0 && inputFileFoto) {
+        detenerCamaraPaciente();
+        inputFileFoto.click();
+      }
+
+      if (index === 1) {
+        iniciarCamaraPaciente();
+      }
+
+      if (index === 2) {
+        iniciarCamaraPaciente();
+      }
+    });
   });
 
-  btnUsarFoto.addEventListener('click', () => {
-    if (currentPhotoData) {
-      patientPhoto.src = currentPhotoData;
-      patientPhoto.style.display = 'block';
-      patientPhotoPlaceholder.style.display = 'none';
+  if (inputFileFoto) {
+    inputFileFoto.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      detenerCamaraPaciente();
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        currentPhotoData = event.target.result;
+        mostrarFotoSeleccionada(currentPhotoData);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  if (btnUsarFoto && modalFoto) {
+    btnUsarFoto.addEventListener('click', function() {
+      if (cameraStream) {
+        const capturada = capturarFotoDesdeCamara();
+        if (!capturada) {
+          alert('No se pudo capturar la foto.');
+          return;
+        }
+      }
+
+      if (!currentPhotoData && inputFileFoto && inputFileFoto.files.length > 0) {
+        modalFoto.classList.remove('active');
+        return;
+      }
+
+      if (!currentPhotoData && (!inputFileFoto || inputFileFoto.files.length === 0)) {
+        alert('Selecciona una imagen o toma una foto primero.');
+        return;
+      }
+
+      detenerCamaraPaciente();
       modalFoto.classList.remove('active');
-      localStorage.setItem('patientPhoto', currentPhotoData);
-    } else {
-      alert('Por favor capture o seleccione una foto primero');
-    }
-  });
+    });
+  }
 
   // ============ FUNCIONES PARA MÉDICO ============
   
@@ -1708,25 +1857,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('modalDetalleCita').classList.add('active');
   };
 
-  // ===== FOLIO AUTOMÁTICO DESDE IDENTIFICACIÓN =====
-  const identificacionInput = document.getElementById('identificacionInput');
-  const folioInput = document.getElementById('folioInput');
-  const folioVisual = document.getElementById('folioVisual');
-
-  function actualizarFolioDesdeIdentificacion() {
-    if (!identificacionInput || !folioInput || !folioVisual) return;
-
-    const identificacion = identificacionInput.value.trim();
-
-    folioInput.value = identificacion;
-    folioVisual.textContent = identificacion || 'Se llenará con la identificación';
-  }
-
-  if (identificacionInput) {
-    identificacionInput.addEventListener('input', actualizarFolioDesdeIdentificacion);
-    actualizarFolioDesdeIdentificacion();
-  }
-
   // ===== EDAD AUTOMÁTICA DESDE FECHA DE NACIMIENTO =====
   const fechaNacimientoInput = document.getElementById('fechaNacimientoEdit');
   const edadInput = document.getElementById('edadCalculadaEdit');
@@ -1760,72 +1890,7 @@ document.addEventListener('DOMContentLoaded', function() {
     fechaNacimientoInput.addEventListener('input', actualizarEdad);
     actualizarEdad();
   }
-
-
 });
-
-  // ===== CALCULAR EDAD AUTOMÁTICAMENTE =====
-<<<<<<< HEAD
-  (function() {
-    var fnInput = document.getElementById('fechaNacimientoEdit');
-    var fnEdad  = document.getElementById('edadCalculadaEdit');
-    if (!fnInput || !fnEdad) return;
-
-    function calcEdad() {
-      var val = fnInput.value;
-      if (!val) { fnEdad.value = ''; return; }
-      var parts = val.split('-');
-      var nac = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
-      var hoy = new Date();
-      if (isNaN(nac.getTime()) || nac > hoy) { fnEdad.value = ''; return; }
-      var edad = hoy.getFullYear() - nac.getFullYear();
-      var m = hoy.getMonth() - nac.getMonth();
-      if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--;
-      if (edad < 0) fnEdad.value = '';
-      else if (edad === 0) {
-        var meses = (hoy.getFullYear() - nac.getFullYear()) * 12 + hoy.getMonth() - nac.getMonth();
-        fnEdad.value = meses + ' meses';
-      } else {
-        fnEdad.value = edad + ' años';
-=======
-  const fechaNacimientoEdit = document.getElementById('fechaNacimientoEdit');
-  const edadCalculadaEdit = document.getElementById('edadCalculadaEdit');
-  
-  if (fechaNacimientoEdit && edadCalculadaEdit) {
-    fechaNacimientoEdit.addEventListener('change', function() {
-      const fechaNac = new Date(this.value);
-      const hoy = new Date();
-      
-      if (isNaN(fechaNac.getTime())) {
-        edadCalculadaEdit.value = '';
-        edadCalculadaEdit.placeholder = '--';
-        return;
-      }
-      
-      let edad = hoy.getFullYear() - fechaNac.getFullYear();
-      const mes = hoy.getMonth() - fechaNac.getMonth();
-      
-      if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
-        edad--;
-      }
-      
-      if (edad < 0) {
-        edadCalculadaEdit.value = '';
-        edadCalculadaEdit.placeholder = '--';
-      } else if (edad === 0) {
-        // Calcular meses para bebés
-        const meses = (hoy.getMonth() + 12) - fechaNac.getMonth();
-        edadCalculadaEdit.value = 0;
-      } else {
-        edadCalculadaEdit.value = edad;
->>>>>>> origin/main
-      }
-    }
-
-    fnInput.addEventListener('change', calcEdad);
-    fnInput.addEventListener('input', calcEdad);
-    calcEdad();
-  })();
 </script>
 @endpush
 

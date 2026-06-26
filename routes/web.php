@@ -45,23 +45,6 @@ Route::middleware('auth')->group(function () {
         return view('dashboard.index', compact('estudiosSinReporte', 'proximaCita', 'pendientesHoy'));
     })->name('dashboard');
     
-<<<<<<< HEAD
-    Route::get('/pacientes', function () {
-        $pacientes = \App\Models\Paciente::orderBy('created_at','desc')->get();
-        return view('pacientes.index', compact('pacientes'));
-    })->name('pacientes');
-
-    Route::get('/pacientes/nuevo', function () {
-        return view('pacientes.create');
-    })->name('pacientes.create');
-
-    Route::get('/pacientes/{id}/edit', function ($id) {
-        $paciente = \App\Models\Paciente::findOrFail($id);
-        return view('pacientes.edit', compact('paciente'));
-    })->name('pacientes.edit');
-=======
-
->>>>>>> origin/main
 
     Route::get('/ia-reportes', function () {
         $reportes = Reporte::with(['estudio.paciente', 'usuario'])
@@ -310,10 +293,6 @@ Route::middleware('auth')->group(function () {
 
         return view('ia-reportes.reportes', compact('reportes'));
     })->name('ia-reportes.todos');
-
-    Route::get('/ia-reportes/redactar', function () {
-        return view('ia-reportes.redactar');
-    })->name('ia-reportes.redactar');
 
     Route::get('/ia-reportes/editar', function () {
         $reporteId = request()->query('reporte');

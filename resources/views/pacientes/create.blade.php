@@ -91,6 +91,14 @@
 }
 .form-group input::placeholder{color:var(--off)}
 
+/* Forzar color oscuro en los inputs en modo oscuro */
+html[data-theme="dark"] .form-group input,
+html[data-theme="dark"] .form-group select,
+html[data-theme="dark"] .form-group textarea{
+  background:var(--panel-2);
+  color:var(--txt);
+}
+
 /* Spans de campos que ocupan más espacio */
 .form-group.span-2{grid-column:span 2}
 .form-group.span-3{grid-column:span 3}
@@ -358,7 +366,7 @@ textarea{
   width:340px;
   box-shadow:0 20px 60px rgba(0,0,0,.5);
 }
-.mini-modal h4{
+.mini-modal h4{ 
   margin:0 0 4px;
   font-size:15px;
   font-weight:700;
@@ -993,6 +1001,18 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
     Volver a pacientes
   </a>
 
+  {{-- Mensajes de sesión --}}
+  @if(session('error'))
+    <div style="margin-bottom:20px;padding:14px 18px;background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.4);border-radius:var(--r-md);color:#ff6b6b;font-size:14px;">
+      {{ session('error') }}
+    </div>
+  @endif
+  @if(session('success'))
+    <div style="margin-bottom:20px;padding:14px 18px;background:rgba(46,204,113,.15);border:1px solid rgba(46,204,113,.4);border-radius:var(--r-md);color:#2ecc71;font-size:14px;">
+      {{ session('success') }}
+    </div>
+  @endif
+
   {{-- Formulario --}}
   <form id="pacienteForm" class="form-card rise d2" action="{{ route('pacientes.store') }}" method="POST" enctype="multipart/form-data">
     @csrf
@@ -1031,19 +1051,11 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
 
       <div class="form-group">
         <label>Fecha de nacimiento</label>
-<<<<<<< HEAD
-        <input type="date" name="fecha_nacimiento" id="fechaNacimiento" value="{{ old('fecha_nacimiento') }}" style="color-scheme:dark;">
-      </div>
-      <div class="form-group">
-        <label>Edad</label>
-        <input type="text" name="edad" id="edadCalculada" value="{{ old('edad') }}" placeholder="--" readonly style="background:var(--panel-2);color:var(--txt-soft);cursor:default;">
-=======
         <input type="date" name="fecha_nacimiento" id="fechaNacimiento" value="{{ old('fecha_nacimiento') }}" style="color-scheme:dark;" onclick="this.showPicker && this.showPicker()" onfocus="this.showPicker && this.showPicker()">
       </div>
       <div class="form-group">
         <label>Edad</label>
-        <input type="number" name="edad" id="edadCalculada" value="{{ old('edad') }}" placeholder="--" readonly style="background:var(--panel-2);color:var(--txt-soft);">
->>>>>>> origin/main
+        <input type="number" name="edad" id="edadCalculada" value="{{ old('edad') }}" placeholder="--" readonly style="background:var(--panel-2);color:var(--txt-soft);cursor:default;">
       </div>
       <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1059,7 +1071,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
             var e = h.getFullYear()-n.getFullYear();
             var m = h.getMonth()-n.getMonth();
             if (m<0||(m===0&&h.getDate()<n.getDate())) e--;
-            fe.value = e<0?'':(e===0?(((h.getFullYear()-n.getFullYear())*12+h.getMonth()-n.getMonth())+' meses'):(e+' años'));
+            fe.value = e < 0 ? '' : e;
           }
           fi.addEventListener('change', calcE);
           fi.addEventListener('input', calcE);
@@ -1258,7 +1270,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
       </div>
       <h2>¡Paciente registrado!</h2>
       <p>El paciente ha sido registrado exitosamente en el sistema.</p>
-      <button class="btn-aceptar" onclick="window.location.href='{{ route('pacientes.index') }}'">
+      <button class="btn-aceptar" onclick="window.location.href='{{ route('agendar') }}'">
         Ir a agenda
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       </button>
@@ -1803,37 +1815,6 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
 
 })();
 
-<<<<<<< HEAD
-  // ===== CALCULAR EDAD AUTOMÁTICAMENTE =====
-  (function() {
-    var fnInput = document.getElementById('fechaNacimiento');
-    var fnEdad  = document.getElementById('edadCalculada');
-    if (!fnInput || !fnEdad) return;
-
-    function calcEdad() {
-      var val = fnInput.value;
-      if (!val) { fnEdad.value = ''; return; }
-      var parts = val.split('-');
-      var nac = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
-      var hoy = new Date();
-      if (isNaN(nac.getTime()) || nac > hoy) { fnEdad.value = ''; return; }
-      var edad = hoy.getFullYear() - nac.getFullYear();
-      var m = hoy.getMonth() - nac.getMonth();
-      if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--;
-      if (edad < 0) fnEdad.value = '';
-      else if (edad === 0) {
-        var meses = (hoy.getFullYear() - nac.getFullYear()) * 12 + hoy.getMonth() - nac.getMonth();
-        fnEdad.value = meses + ' meses';
-      } else {
-        fnEdad.value = edad + ' años';
-      }
-    }
-
-    fnInput.addEventListener('change', calcEdad);
-    fnInput.addEventListener('input', calcEdad);
-    calcEdad();
-  })();
-=======
 
   // ===== FOLIO E IDENTIFICACIÓN AUTOMÁTICOS DESDE BACKEND =====
   const folioInput = document.getElementById('folioInput');
@@ -2112,6 +2093,22 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
     });
   }
 
->>>>>>> origin/main
+  // ===== GUARDAR PACIENTE Y REDIRIGIR A AGENDA =====
+  const pacienteForm = document.getElementById('pacienteForm');
+  const btnGuardar = document.getElementById('btnGuardarPaciente');
+
+  if (pacienteForm && btnGuardar) {
+    pacienteForm.addEventListener('submit', function(e) {
+      if (!pacienteForm.checkValidity()) {
+        pacienteForm.reportValidity();
+        e.preventDefault();
+        return;
+      }
+
+      btnGuardar.disabled = true;
+      btnGuardar.innerHTML = 'Guardando...';
+    });
+  }
+
 </script>
 @endpush

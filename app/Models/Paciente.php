@@ -3,16 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Paciente extends Model
 {
     protected $fillable = [
-<<<<<<< HEAD
-        'folio', 'nombre_completo', 'identificacion', 'fecha_nacimiento',
-        'edad', 'peso', 'altura', 'sexo', 'direccion', 'telefono', 'email',
-        'medico', 'procedimiento', 'anestesiologo', 'referido_por',
-        'equipo_utilizado', 'diagnostico_preliminar', 'foto',
-=======
         'folio',
         'nombre_completo',
         'identificacion',
@@ -31,18 +26,17 @@ class Paciente extends Model
         'equipo_utilizado',
         'diagnostico_preliminar',
         'foto',
->>>>>>> origin/main
     ];
 
     protected $casts = [
         'fecha_nacimiento' => 'date',
-<<<<<<< HEAD
-    ];
-}
-=======
         'edad' => 'integer',
         'peso' => 'decimal:2',
         'altura' => 'decimal:2',
     ];
+
+    public function estudios(): HasMany
+    {
+        return $this->hasMany(Estudio::class);
+    }
 }
->>>>>>> origin/main
