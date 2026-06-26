@@ -356,6 +356,10 @@ Route::middleware('auth')->group(function () {
             ? Paciente::find($request->query('paciente'))
             : null;
 
+        $pacientes = Paciente::select('id', 'nombre_completo', 'folio', 'edad', 'sexo', 'telefono', 'email', 'foto')
+            ->orderBy('nombre_completo')
+            ->get();
+
         $galImagenes = collect();
         $galVideos = collect();
         $reportes = collect();
@@ -378,6 +382,7 @@ Route::middleware('auth')->group(function () {
 
         return view('estudios.crear', [
             'paciente' => $paciente,
+            'pacientes' => $pacientes,
             'galImagenes' => $galImagenes,
             'galVideos' => $galVideos,
             'reportes' => $reportes,
