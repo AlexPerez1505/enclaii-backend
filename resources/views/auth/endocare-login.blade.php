@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}?v=20260627-2">
 <title>Iniciar sesión — ENCLAII</title>
 <script>document.documentElement.lang = localStorage.getItem('enclaii-lang') || 'es';</script>
 <script defer src="{{ asset('js/i18n.js') }}"></script>

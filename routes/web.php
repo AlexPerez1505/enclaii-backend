@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\EndoCareAuthController;
 use App\Http\Controllers\IaReporteController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\WhatsAppController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\PacienteController;
@@ -13,6 +14,12 @@ use App\Models\Reporte;
 Route::get('/', function () {
     return redirect()->route('login');
 });
+
+Route::get('/webhooks/whatsapp', [WhatsAppController::class, 'verifyWebhook'])
+    ->name('webhooks.whatsapp.verify');
+Route::post('/webhooks/whatsapp', [WhatsAppController::class, 'webhook'])
+    ->middleware('throttle:120,1')
+    ->name('webhooks.whatsapp.receive');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [EndoCareAuthController::class, 'showLogin'])->name('login');
@@ -335,14 +342,17 @@ Route::middleware('auth')->group(function () {
     Route::patch('/configuracion/general', [SettingsController::class, 'update'])
         ->name('configuracion.general.update');
 
-    Route::get('/mensajes/correo', function () {
-        return view('mensajes.dashboard');
-    })->name('mensajes.correo');
+    Route::get('/mensajes/correo', [WhatsAppController::class, 'index'])
+        ->name('mensajes.correo');
 
 
-    Route::get('/mensajes', function () {
-        return view('mensajes.dashboard');
-    })->name('mensajes');
+    Route::get('/mensajes', [WhatsAppController::class, 'index'])
+        ->name('mensajes');
+    Route::get('/mensajes/whatsapp/{paciente}', [WhatsAppController::class, 'messages'])
+        ->name('mensajes.whatsapp.messages');
+    Route::post('/mensajes/whatsapp/enviar', [WhatsAppController::class, 'send'])
+        ->middleware('throttle:30,1')
+        ->name('mensajes.whatsapp.send');
 
     Route::get('/nuevo-estudio', function (\Illuminate\Http\Request $request) {
         $paciente = $request->filled('paciente')

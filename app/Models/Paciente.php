@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Paciente extends Model
 {
@@ -33,4 +34,9 @@ class Paciente extends Model
         'peso' => 'decimal:2',
         'altura' => 'decimal:2',
     ];
+
+    public function whatsappMessages(): HasMany
+    {
+        return $this->hasMany(WhatsAppMessage::class);
+    }
 }
