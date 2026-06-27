@@ -411,14 +411,31 @@ html[data-theme="light"] .side-brand .logo-light{display:block;}
 .db-editor-btn.save:hover{opacity:.88}
 .db-editor-btn.reset{background:transparent;border:1px solid rgba(178,99,255,.3);color:rgba(234,241,255,.6)}
 .db-editor-btn.reset:hover{border-color:rgba(178,99,255,.6);color:#EAF1FF}
+html[data-theme="light"] .db-editor-overlay{background:rgba(14,21,48,.25)}
 html[data-theme="light"] .db-editor{background:#F6F8FE;border-left-color:rgba(120,60,220,.3)}
+html[data-theme="light"] .db-editor-head{border-bottom-color:rgba(120,60,220,.2)}
 html[data-theme="light"] .db-editor-title{color:#0E1530}
+html[data-theme="light"] .db-editor-subtitle{color:rgba(14,21,48,.5)}
+html[data-theme="light"] .db-editor-tabs{background:rgba(120,60,220,.06);border-bottom-color:rgba(120,60,220,.2)}
+html[data-theme="light"] .db-editor-tab{color:rgba(14,21,48,.5)}
+html[data-theme="light"] .db-editor-tab:hover{color:rgba(14,21,48,.75)}
+html[data-theme="light"] .db-editor-tab.active{color:#0E1530}
+html[data-theme="light"] .db-editor-section-title{color:rgba(14,21,48,.45)}
+html[data-theme="light"] .db-editor-hint{color:rgba(14,21,48,.45)}
+html[data-theme="light"] .db-editor-footer{border-top-color:rgba(120,60,220,.2)}
+html[data-theme="light"] .db-editor-btn.reset{border-color:rgba(120,60,220,.3);color:rgba(14,21,48,.55)}
+html[data-theme="light"] .db-editor-btn.reset:hover{border-color:rgba(120,60,220,.55);color:#0E1530}
+html[data-theme="light"] .db-editor-close{color:#5B6A99}
+html[data-theme="light"] .db-editor-close:hover{background:rgba(120,60,220,.1);color:#0E1530}
 html[data-theme="light"] .db-widget-item{background:#fff;border-color:rgba(20,50,120,.12)}
 html[data-theme="light"] .db-widget-item:hover{border-color:rgba(120,60,220,.35);background:rgba(120,60,220,.04)}
 html[data-theme="light"] .db-widget-name{color:#0E1530}
 html[data-theme="light"] .db-widget-desc{color:rgba(14,21,48,.45)}
 html[data-theme="light"] .db-widget-slider{background:rgba(20,50,120,.15)}
-html[data-theme="light"] .db-editor-close{color:#5B6A99}
+html[data-theme="light"] .db-mode-switch-editor{background:#fff;border-color:rgba(20,50,120,.15)}
+html[data-theme="light"] .db-mode-switch-editor button{color:rgba(14,21,48,.6)}
+html[data-theme="light"] .db-mode-switch-editor button:hover{color:#0E1530}
+html[data-theme="light"] .db-editor-body::-webkit-scrollbar-thumb{background:rgba(120,60,220,.25)}
 
 /* ================= COMPONENTES COMPARTIDOS ================= */
 .card{
