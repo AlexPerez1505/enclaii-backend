@@ -61,7 +61,6 @@ Route::middleware('auth')->group(function () {
     })->name('dashboard');
     
 
-
     Route::get('/ia-reportes', function () {
         $reportes = Reporte::with(['estudio.paciente', 'usuario'])
             ->latest()
@@ -309,10 +308,6 @@ Route::middleware('auth')->group(function () {
 
         return view('ia-reportes.reportes', compact('reportes'));
     })->name('ia-reportes.todos');
-
-    Route::get('/ia-reportes/redactar', function () {
-        return view('ia-reportes.redactar');
-    })->name('ia-reportes.redactar');
 
     Route::get('/ia-reportes/editar', function () {
         $reporteId = request()->query('reporte');
