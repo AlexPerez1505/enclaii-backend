@@ -1417,7 +1417,11 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
     });
 
     async function startNewConversation(){
-      clearMessages();
+      selectedFiles = [];
+
+      if (typeof renderFilePreview === 'function') {
+        await renderFilePreview();
+      }
 
       try {
         const res = await fetch(AI_START, {
@@ -1432,8 +1436,22 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
 
         const data = await res.json();
         currentConversationId = data?.conversation?.id || null;
+
+        messages.innerHTML = '';
+
+        if (Array.isArray(data.messages) && data.messages.length) {
+          data.messages.forEach(m => renderSaved(m.role, m.content, m.attachments || []));
+          hideSuggestions();
+        } else {
+          messages.innerHTML = welcomeHTML;
+          showSuggestions();
+        }
+
+        messages.scrollTop = messages.scrollHeight;
       } catch (e) {
         currentConversationId = null;
+        messages.innerHTML = welcomeHTML;
+        showSuggestions();
       }
     }
 

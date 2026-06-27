@@ -20,6 +20,65 @@ class AiAssistantController extends Controller
     {
         $user = $request->user();
 
+        /*
+         | Reglas de continuidad:
+         | - Si el usuario abrió/usó un chat hace menos de 2 horas,
+         |   se reutiliza ese mismo chat.
+         | - Si ya pasaron 2 horas o más sin actividad,
+         |   se cierra el anterior y se crea uno nuevo.
+         */
+        $limit = now()->subHours(2);
+
+        $conversation = AiConversation::where('user_id', $user->id)
+            ->where(function ($query) use ($limit) {
+                $query->where('last_message_at', '>=', $limit)
+                    ->orWhere(function ($q) use ($limit) {
+                        $q->whereNull('last_message_at')
+                            ->where('created_at', '>=', $limit);
+                    });
+            })
+            ->orderByRaw('COALESCE(last_message_at, created_at) DESC')
+            ->first();
+
+        if ($conversation) {
+            AiConversation::where('user_id', $user->id)
+                ->where('status', 'active')
+                ->where('id', '!=', $conversation->id)
+                ->update([
+                    'status' => 'closed',
+                    'closed_at' => now(),
+                ]);
+
+            $conversation->update([
+                'status' => 'active',
+                'closed_at' => null,
+            ]);
+
+            $messages = $conversation->messages()
+                ->with('attachments')
+                ->get()
+                ->map(fn ($m) => [
+                    'role' => $m->role,
+                    'content' => $m->content,
+                    'attachments' => $m->attachments->map(fn ($a) => [
+                        'name' => $a->original_name,
+                        'mime_type' => $a->mime_type,
+                        'url' => Storage::disk('public')->url($a->path),
+                    ])->values(),
+                ]);
+
+            return response()->json([
+                'ok' => true,
+                'reused' => true,
+                'conversation' => [
+                    'id' => $conversation->id,
+                    'title' => $conversation->title,
+                    'status' => $conversation->status,
+                ],
+                'messages' => $messages,
+            ]);
+        }
+
         AiConversation::where('user_id', $user->id)
             ->where('status', 'active')
             ->update([
@@ -36,6 +95,7 @@ class AiAssistantController extends Controller
 
         return response()->json([
             'ok' => true,
+            'reused' => false,
             'conversation' => [
                 'id' => $conversation->id,
                 'title' => $conversation->title,
