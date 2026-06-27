@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Estudio extends Model
@@ -12,6 +13,7 @@ class Estudio extends Model
 
     protected $fillable = [
         'paciente_id',
+        'cita_id',
         'paciente_nombre',
         'folio',
         'tipo',
@@ -48,6 +50,11 @@ class Estudio extends Model
         return $this->belongsTo(Paciente::class);
     }
 
+    public function cita(): BelongsTo
+    {
+        return $this->belongsTo(Cita::class);
+    }
+
     public function archivos(): HasMany
     {
         return $this->hasMany(EstudioArchivo::class);
@@ -61,6 +68,23 @@ class Estudio extends Model
     public function videos(): HasMany
     {
         return $this->hasMany(EstudioArchivo::class)->where('tipo', 'video');
+    }
+
+    public function estudioHallazgos(): HasMany
+    {
+        return $this->hasMany(EstudioHallazgo::class);
+    }
+
+    public function hallazgos(): BelongsToMany
+    {
+        return $this->belongsToMany(Hallazgo::class, 'estudio_hallazgos')
+            ->withPivot('detectado_por')
+            ->withTimestamps();
+    }
+
+    public function reportes(): HasMany
+    {
+        return $this->hasMany(Reporte::class);
     }
 
     public function getEstadoTextoAttribute(): string

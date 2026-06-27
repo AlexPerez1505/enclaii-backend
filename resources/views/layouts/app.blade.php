@@ -167,7 +167,13 @@ html[data-reading="on"]::after{
   gap:6px;
   margin-bottom:26px;
 }
-.side-brand img{width:96px;height:auto;margin-bottom:-12px;filter:drop-shadow(0 0 18px rgba(56,199,244,.35))}
+.side-brand img{
+  width:76px;
+  height:76px;
+  object-fit:contain;
+  margin-bottom:2px;
+  filter:drop-shadow(0 0 18px rgba(56,199,244,.35));
+}
 .side-brand .logo-dark{display:block;}
 .side-brand .logo-light{display:none;}
 html[data-theme="light"] .side-brand .logo-dark{display:none;}
@@ -578,7 +584,7 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
   {{-- ============ SIDEBAR (compartido) ============ --}}
   <aside class="side">
     <div class="side-brand">
-      <img class="logo-dark" src="{{ asset('images/logo-2.png') }}" alt="Logotipo ENCLAII">
+      <img class="logo-dark" src="{{ asset('images/logo-dark.png') }}" alt="Logotipo ENCLAII">
       <img class="logo-light" src="{{ asset('images/logo.png') }}" alt="Logotipo ENCLAII">
       <div>
         <div class="side-brand-name">ENCLA<span>II</span></div>
@@ -653,12 +659,17 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
           <span class="dot">3</span>
         </button>
+        @php
+          $userName = auth()->check() ? trim(auth()->user()->name ?? 'Doctor') : 'Doctor';
+          $userParts = preg_split('/\s+/', $userName);
+          $userInitials = collect($userParts)->take(2)->map(fn($p) => mb_substr($p, 0, 1))->join('');
+          $userInitials = mb_strtoupper($userInitials ?: mb_substr($userName, 0, 2));
+        @endphp
         <div class="profile-wrap">
           <button type="button" class="profile" id="profileBtn" aria-haspopup="true" aria-expanded="false">
-            <div class="avatar">DV</div>
+            <div class="avatar">{{ $userInitials }}</div>
             <div class="profile-meta">
-              <strong>Dr. Victor</strong>
-              <span>Endoscopista</span>
+              <strong>{{ $userName }}</strong>
             </div>
             <svg class="profile-caret" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
@@ -682,11 +693,13 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
               <span class="pm-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.5 15a9 9 0 1 0 .5-8L1 10"/></svg></span>
               <span class="pm-txt"><span class="t">Restablecer configuración</span><span class="d">Restaurar configuración predeterminada</span></span>
             </a>
+            @if(request()->routeIs('dashboard'))
             <div class="pm-sep"></div>
             <button type="button" class="pm-item edit-db" id="editDashboardBtn" role="menuitem">
               <span class="pm-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
               <span class="pm-txt"><span class="t">Editar Dashboard</span><span class="d">Configura y organiza tus widgets</span></span>
             </button>
+            @endif
             <div class="pm-sep"></div>
             <form method="POST" action="{{ route('logout') }}">
               @csrf
@@ -811,9 +824,20 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
       const body  = document.getElementById('dbEditorBody');
       body.innerHTML = '';
 
+      /* Leer widgets reales del DOM en tiempo real (solo originales) */
+      const ids = Array.from(new Set(
+        Array.from(document.querySelectorAll('#widgetGrid .widget:not(.widget-minimal)'))
+          .map(w => w.dataset.widgetId)
+          .filter(Boolean)
+      ));
+      const presentWidgets = ids.map(id => {
+        const meta = WIDGETS.find(w => w.id === id);
+        return meta || {id, name: id, desc: '', group: 'Otros', color: 'blue', default: true};
+      });
+
       const groupOrder = [];
       const groups = {};
-      WIDGETS.forEach(w => {
+      presentWidgets.forEach(w => {
         const g = w.group;
         if (!groups[g]) { groups[g] = []; groupOrder.push(g); }
         groups[g].push(w);
@@ -844,6 +868,17 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
         body.appendChild(sec);
       });
 
+      /* Actualizar dashboard en tiempo real al togglear */
+      body.querySelectorAll('input[data-wid]').forEach(cb => {
+        cb.addEventListener('change', () => {
+          const livePrefs = {};
+          body.querySelectorAll('input[data-wid]').forEach(i => {
+            livePrefs[i.dataset.wid] = i.checked;
+          });
+          window.dispatchEvent(new CustomEvent('dbWidgetsChanged', {detail: livePrefs}));
+        });
+      });
+
       overlay.classList.add('open');
       panel.classList.add('open');
     }
@@ -865,10 +900,13 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
 
     function resetEditor() {
       savePrefs({});
+      const prefs = {};
       document.querySelectorAll('#dbEditorBody input[data-wid]').forEach(cb => {
         const w = WIDGETS.find(x => x.id === cb.dataset.wid);
         if (w) cb.checked = w.default;
+        prefs[cb.dataset.wid] = w ? w.default : true;
       });
+      window.dispatchEvent(new CustomEvent('dbWidgetsChanged', {detail: prefs}));
     }
 
     document.getElementById('editDashboardBtn')?.addEventListener('click', openEditor);

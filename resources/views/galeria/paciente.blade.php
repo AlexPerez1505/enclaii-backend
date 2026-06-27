@@ -2,10 +2,10 @@
 
 @section('title', 'Archivos del paciente')
 @section('active', 'galeria')
-@section('header-title', 'Galería de pacientes')
+@section('header-title', 'Galer&iacute;a de pacientes')
 @section('header-sub')
-  <a href="{{ route('galeria') }}" style="color:var(--txt-soft);text-decoration:none;font-size:13px">Galería de pacientes</a>
-  <span style="color:var(--txt-soft);font-size:13px;margin:0 4px">›</span>
+  <a href="{{ route('galeria') }}" style="color:var(--txt-soft);text-decoration:none;font-size:13px">Galer&iacute;a de pacientes</a>
+  <span style="color:var(--txt-soft);font-size:13px;margin:0 4px">&rsaquo;</span>
   <span style="font-size:13px;font-weight:600">{{ $paciente?->nombre_completo ?? 'Paciente' }}</span>
 @endsection
 
@@ -106,7 +106,7 @@ $totalFotos = $imagenes->count();
 $totalVideos = $videos->count();
 $totalEstudios = $imagenes->pluck('estudio_id')->merge($videos->pluck('estudio_id'))->filter()->unique()->count();
 $ultimoArchivo = $imagenes->first() ?? $videos->first();
-$ultimaFecha = optional($ultimoArchivo?->capturado_en)->format('d/m/Y') ?? '—';
+$ultimaFecha = optional($ultimoArchivo?->capturado_en)->format('d/m/Y') ?? '-';
 @endphp
 
 <div class="pa-topbar rise d2">
@@ -126,7 +126,7 @@ $ultimaFecha = optional($ultimoArchivo?->capturado_en)->format('d/m/Y') ?? '—'
       <div class="pa-avatar">{{ $iniciales }}</div>
       <div>
         <div class="pa-title">{{ $nombrePaciente }}</div>
-        <div class="pa-sub">ID: {{ $paciente?->folio ?? $paciente?->identificacion ?? '—' }} · {{ $paciente?->sexo ?? '—' }} · {{ $paciente?->edad ? $paciente->edad.' años' : '—' }} · Último estudio: {{ $ultimaFecha }}</div>
+        <div class="pa-sub">ID: {{ $paciente?->folio ?? $paciente?->identificacion ?? '-' }} &middot; {{ $paciente?->sexo ?? '-' }} &middot; {{ $paciente?->edad ? $paciente->edad.' a&ntilde;os' : '-' }} &middot; &Uacute;ltimo estudio: {{ $ultimaFecha }}</div>
       </div>
       <div class="pa-stats">
         <div class="pa-stat"><strong>{{ $totalEstudios }}</strong><span>Estudios</span></div>
@@ -154,7 +154,8 @@ $ultimaFecha = optional($ultimoArchivo?->capturado_en)->format('d/m/Y') ?? '—'
               <div class="pa-name">{{ $v->nombre_original ?? 'Video del estudio' }}</div>
               <div class="pa-meta">Estudio {{ $v->estudio?->folio }}<br>{{ optional($v->capturado_en)->format('d/m/Y H:i') }}</div>
               <div class="pa-actions">
-                <a class="pa-btn primary" href="{{ asset('storage/'.$v->path) }}" target="_blank">Ver</a>
+                <a class="pa-btn primary" href="{{ route('galeria.video', $v->id) }}">Ver</a>
+                <a class="pa-btn" href="{{ route('galeria.video.editar', $v->id) }}">Editar</a>
               </div>
             </div>
           </article>
@@ -166,10 +167,10 @@ $ultimaFecha = optional($ultimoArchivo?->capturado_en)->format('d/m/Y') ?? '—'
 
     <section class="pa-section">
       <div class="pa-section-head">
-        <h2 class="pa-section-title">Imágenes</h2>
-        <span class="pa-section-count">{{ count($imagenes) }} archivos</span>
+        <h2 class="pa-section-title">Im&aacute;genes</h2>
+        <span class="pa-section-count" id="paImagesCount">{{ count($imagenes) }} archivos</span>
       </div>
-      <div class="pa-grid">
+      <div class="pa-grid" id="paImagesGrid">
         @forelse($imagenes as $img)
           <article class="pa-card" data-kind="imagen" data-title="{{ strtolower($img->nombre_original ?? 'imagen') }}">
             <div class="pa-thumb">
@@ -186,7 +187,7 @@ $ultimaFecha = optional($ultimoArchivo?->capturado_en)->format('d/m/Y') ?? '—'
             </div>
           </article>
         @empty
-          <p style="color:var(--txt-soft);font-size:13px">No hay imágenes capturadas para este paciente.</p>
+          <p style="color:var(--txt-soft);font-size:13px">No hay im&aacute;genes capturadas para este paciente.</p>
         @endforelse
       </div>
     </section>
@@ -219,6 +220,8 @@ $ultimaFecha = optional($ultimoArchivo?->capturado_en)->format('d/m/Y') ?? '—'
       apply();
     }
   });
+
+  apply();
 })();
 </script>
 @endpush

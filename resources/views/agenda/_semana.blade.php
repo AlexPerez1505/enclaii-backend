@@ -193,6 +193,9 @@ html[data-theme="light"] .wk-modal-badge.soon{background:#F3ECFF;color:#4A1A8A;b
           div.dataset.proc = proc;
           div.dataset.cls = liveCls;
           div.dataset.time = timeM ? timeM[1] : (ev.h ? String(ev.h).padStart(2,'0') + ':00' : '');
+          div.dataset.citaId = ev.id || '';
+          div.dataset.pacienteId = ev.paciente_id || '';
+          div.dataset.deleteUrl = ev.delete_url || '';
           td.appendChild(div);
         });
         if (cellEvents.length > MAX_VISIBLE) {
@@ -248,6 +251,7 @@ html[data-theme="light"] .wk-modal-badge.soon{background:#F3ECFF;color:#4A1A8A;b
       item.dataset.name = name;
       item.dataset.proc = proc;
       item.dataset.cls = cls;
+      item.dataset.pacienteId = ev.paciente_id || '';
       item.innerHTML = `
         <div class="wk-modal-avatar">${inits}</div>
         <div class="wk-modal-info">

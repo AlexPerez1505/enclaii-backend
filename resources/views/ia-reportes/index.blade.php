@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'IA Reportes')
+@section('title', 'Reportes')
 @section('active', 'ia-reportes')
-@section('header-title', 'IA Reportes')
+@section('header-title', 'Reportes')
 @section('header-sub')
   Genera, analiza y revisa reportes inteligentes impulsados por IA
 @endsection
@@ -334,6 +334,11 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
 @section('content')
 
   {{-- ============ KPIs ============ --}}
+  @php
+    $t = $kpis['reportes']['trend'];
+    $te = $kpis['evidencias']['trend'];
+    $tes = $kpis['estudios']['trend'];
+  @endphp
   <section class="stats">
 
     <article class="card stat blue rise d2">
@@ -342,11 +347,11 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
       </div>
       <div class="stat-body">
         <h3>Reportes generados</h3>
-        <div class="num" id="kpiReportes" data-target="156">0</div>
+        <div class="num" id="kpiReportes" data-target="{{ $kpis['reportes']['valor'] }}">0</div>
         <div class="tag">Este mes</div>
-        <div class="trend up">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-          18% <span class="vs">vs mes anterior</span>
+        <div class="trend up" @if($t < 0) style="color:var(--red)" @endif>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">@if($t < 0)<polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/>@else<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>@endif</svg>
+          {{ abs($t) }}% <span class="vs">vs mes anterior</span>
         </div>
       </div>
     </article>
@@ -356,42 +361,42 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       </div>
       <div class="stat-body">
-        <h3>Pendientes de revisión</h3>
-        <div class="num" id="kpiPendientes" data-target="12">0</div>
-        <div class="tag">Este mes</div>
+        <h3>Estudios sin reporte</h3>
+        <div class="num" id="kpiPendientes" data-target="{{ $kpis['sin_reporte']['valor'] }}">0</div>
+        <div class="tag">Pendientes</div>
         <div class="trend up">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-          5% <span class="vs">vs mes anterior</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span class="vs">Sin reporte clínico</span>
         </div>
       </div>
     </article>
 
     <article class="card stat red rise d4">
       <div class="ico">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
       </div>
       <div class="stat-body">
-        <h3>Hallazgos críticos</h3>
-        <div class="num" id="kpiCriticos" data-target="8">0</div>
-        <div class="tag">Detectados</div>
-        <div class="trend up">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-          3% <span class="vs">vs ayer</span>
+        <h3>Evidencias capturadas</h3>
+        <div class="num" id="kpiCriticos" data-target="{{ $kpis['evidencias']['valor'] }}">0</div>
+        <div class="tag">Este mes</div>
+        <div class="trend up" @if($te < 0) style="color:var(--red)" @endif>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">@if($te < 0)<polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/>@else<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>@endif</svg>
+          {{ abs($te) }}% <span class="vs">vs mes anterior</span>
         </div>
       </div>
     </article>
 
     <article class="card stat green rise d5">
       <div class="ico">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       </div>
       <div class="stat-body">
-        <h3>Precisión IA</h3>
-        <div class="num"><span id="kpiPrecision" data-target="98">0</span>%</div>
+        <h3>Estudios realizados</h3>
+        <div class="num" id="kpiPrecision" data-target="{{ $kpis['estudios']['valor'] }}">0</div>
         <div class="tag">Este mes</div>
-        <div class="trend up">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-          18% <span class="vs">vs mes anterior</span>
+        <div class="trend up" @if($tes < 0) style="color:var(--red)" @endif>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">@if($tes < 0)<polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/>@else<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>@endif</svg>
+          {{ abs($tes) }}% <span class="vs">vs mes anterior</span>
         </div>
       </div>
     </article>
@@ -404,7 +409,7 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
     {{-- Tabla de reportes --}}
     <article class="card rep-tbl rise d5">
       <div class="card-head">
-        <h3>Reportes generados por IA</h3>
+        <h3>Reportes generados</h3>
         <div class="card-head-actions">
           <a class="btn-gen secondary" href="{{ url('/ia-reportes/redactar') }}">
             <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
@@ -421,115 +426,32 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
         <table class="tbl">
           <thead>
             <tr>
-              <th>Pacientes</th><th>Estudio</th><th>Fecha</th><th>Estado</th><th>Confianza IA</th><th>Acciones</th>
+              <th>Pacientes</th><th>Estudio</th><th>Fecha</th><th>Estado</th><th>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td><span class="pat"><span class="mini">MG</span>María González</span></td>
-              <td>Colonoscopia</td>
-              <td class="date">08/05/2024 <small>10:30 AM</small></td>
-              <td><span class="chip wait">Pendiente</span></td>
-              <td>
-                <span class="conf">
-                  <span class="ring">
-                    <svg viewBox="0 0 44 44"><circle class="track" cx="22" cy="22" r="18"/><circle class="val" cx="22" cy="22" r="18" stroke-dasharray="113.1" stroke-dashoffset="113.1" data-pct="92"/></svg>
-                    <span>92%</span>
-                  </span>
-                </span>
-              </td>
-              <td>
-                <div class="row-actions">
-                  <a href="{{ route('ia-reportes.ver') }}" aria-label="Ver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a>
-                  <button aria-label="Descargar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
-                  <a href="{{ route('ia-reportes.editar') }}" aria-label="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></a>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td><span class="pat"><span class="mini">JL</span>Jorge López</span></td>
-              <td>Endoscopia</td>
-              <td class="date">08/05/2024 <small>09:15 AM</small></td>
-              <td><span class="chip wait">Pendiente</span></td>
-              <td>
-                <span class="conf">
-                  <span class="ring">
-                    <svg viewBox="0 0 44 44"><circle class="track" cx="22" cy="22" r="18"/><circle class="val" cx="22" cy="22" r="18" stroke-dasharray="113.1" stroke-dashoffset="113.1" data-pct="88"/></svg>
-                    <span>88%</span>
-                  </span>
-                </span>
-              </td>
-              <td>
-                <div class="row-actions">
-                  <a href="{{ route('ia-reportes.ver') }}" aria-label="Ver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a>
-                  <button aria-label="Descargar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
-                  <a href="{{ route('ia-reportes.editar') }}" aria-label="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></a>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td><span class="pat"><span class="mini">AR</span>Ana Ramírez</span></td>
-              <td>Gastroscopia</td>
-              <td class="date">07/05/2024 <small>16:40 PM</small></td>
-              <td><span class="chip wait">Pendiente</span></td>
-              <td>
-                <span class="conf">
-                  <span class="ring">
-                    <svg viewBox="0 0 44 44"><circle class="track" cx="22" cy="22" r="18"/><circle class="val" cx="22" cy="22" r="18" stroke-dasharray="113.1" stroke-dashoffset="113.1" data-pct="95"/></svg>
-                    <span>95%</span>
-                  </span>
-                </span>
-              </td>
-              <td>
-                <div class="row-actions">
-                  <a href="{{ route('ia-reportes.ver') }}" aria-label="Ver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a>
-                  <button aria-label="Descargar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
-                  <a href="{{ route('ia-reportes.editar') }}" aria-label="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></a>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td><span class="pat"><span class="mini">PT</span>Pedro Torres</span></td>
-              <td>Colonoscopia</td>
-              <td class="date">07/05/2024 <small>11:05 AM</small></td>
-              <td><span class="chip done">Completado</span></td>
-              <td>
-                <span class="conf">
-                  <span class="ring">
-                    <svg viewBox="0 0 44 44"><circle class="track" cx="22" cy="22" r="18"/><circle class="val" cx="22" cy="22" r="18" stroke-dasharray="113.1" stroke-dashoffset="113.1" data-pct="99"/></svg>
-                    <span>99%</span>
-                  </span>
-                </span>
-              </td>
-              <td>
-                <div class="row-actions">
-                  <a href="{{ route('ia-reportes.ver') }}" aria-label="Ver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a>
-                  <button aria-label="Descargar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
-                  <a href="{{ route('ia-reportes.editar') }}" aria-label="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></a>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td><span class="pat"><span class="mini">LM</span>Laura Méndez</span></td>
-              <td>Endoscopia</td>
-              <td class="date">06/05/2024 <small>14:20 PM</small></td>
-              <td><span class="chip done">Completado</span></td>
-              <td>
-                <span class="conf">
-                  <span class="ring">
-                    <svg viewBox="0 0 44 44"><circle class="track" cx="22" cy="22" r="18"/><circle class="val" cx="22" cy="22" r="18" stroke-dasharray="113.1" stroke-dashoffset="113.1" data-pct="91"/></svg>
-                    <span>91%</span>
-                  </span>
-                </span>
-              </td>
-              <td>
-                <div class="row-actions">
-                  <a href="{{ route('ia-reportes.ver') }}" aria-label="Ver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a>
-                  <button aria-label="Descargar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
-                  <a href="{{ route('ia-reportes.editar') }}" aria-label="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></a>
-                </div>
-              </td>
-            </tr>
+            @forelse($reportes as $r)
+              @php
+                $pacNombre = $r->estudio?->paciente?->nombre_completo ?? $r->estudio?->paciente_nombre ?? 'Sin paciente';
+                $pacIni = collect(explode(' ', $pacNombre))->filter()->take(2)->map(fn($x)=>mb_strtoupper(mb_substr($x,0,1)))->implode('') ?: 'NA';
+                $critico = (bool) $r->contiene_hallazgos_criticos;
+              @endphp
+              <tr>
+                <td><span class="pat"><span class="mini">{{ $pacIni }}</span>{{ $pacNombre }}</span></td>
+                <td>{{ $r->estudio?->tipo ?? '—' }}</td>
+                <td class="date">{{ $r->created_at?->format('d/m/Y') }} <small>{{ $r->created_at?->format('h:i A') }}</small></td>
+                <td><span class="chip {{ $critico ? 'urgent' : 'done' }}">{{ $critico ? 'Crítico' : 'Normal' }}</span></td>
+                <td>
+                  <div class="row-actions">
+                    <a href="{{ route('ia-reportes.ver', ['reporte' => $r->id]) }}" aria-label="Ver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a>
+                    <a href="{{ route('ia-reportes.ver', ['reporte' => $r->id, 'download' => 1]) }}" target="_blank" aria-label="Descargar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a>
+                    <a href="{{ route('ia-reportes.editar', ['reporte' => $r->id]) }}" aria-label="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0-2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></a>
+                  </div>
+                </td>
+              </tr>
+            @empty
+              <tr><td colspan="5" style="text-align:center;color:var(--txt-soft);padding:24px 12px">No hay reportes en la base de datos.</td></tr>
+            @endforelse
           </tbody>
         </table>
       </div>

@@ -3,6 +3,13 @@
 @section('title', 'Nuevo Estudio/Grabando')
 @section('active', 'nuevo-estudio')
 
+@php
+  $studioUserName = auth()->check() ? trim(auth()->user()->name ?? 'Doctor') : 'Doctor';
+  $studioUserParts = preg_split('/\s+/', $studioUserName);
+  $studioUserInitials = collect($studioUserParts)->take(2)->map(fn($p) => mb_substr($p, 0, 1))->join('');
+  $studioUserInitials = mb_strtoupper($studioUserInitials ?: mb_substr($studioUserName, 0, 2));
+@endphp
+
 @push('styles')
 <style>
 /* ═══════════════════════════════════════════════
@@ -1287,9 +1294,9 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
         </div>
 
         <div class="studio-doctor">
-          <div class="studio-doc-avatar">DV</div>
+          <div class="studio-doc-avatar">{{ $studioUserInitials }}</div>
           <div class="studio-doc-info">
-            <div class="studio-doc-name">Dr. Víctor</div>
+            <div class="studio-doc-name">{{ $studioUserName }}</div>
             <div class="studio-doc-role">Endoscopista</div>
           </div>
         </div>
@@ -1447,9 +1454,9 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
         <span class="studio-notif-badge">3</span>
       </button>
       <div class="studio-final-profile">
-        <div class="studio-doc-avatar">DV</div>
+        <div class="studio-doc-avatar">{{ $studioUserInitials }}</div>
         <div class="studio-doc-info">
-          <div class="studio-doc-name">Dr. Víctor</div>
+          <div class="studio-doc-name">{{ $studioUserName }}</div>
           <div class="studio-doc-role">Endoscopista</div>
         </div>
       </div>
@@ -1506,7 +1513,8 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
         <button class="studio-final-act-btn guardar" id="btnGuardarEstudio" style="background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.4);color:#22c55e"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Guardar fotos</button>
         <button class="studio-final-act-btn btn-simular-captura"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Capturar imagen</button>
         <a class="studio-final-act-btn wa" href="{{ route('mensajes') }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>Enviar mensaje</a>
-        <a class="studio-final-act-btn fin" href="{{ route('ia-reportes.redactar') }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Finalizar estudio</a>
+        <a class="studio-final-act-btn" style="background:rgba(56,199,244,.14);border-color:rgba(56,199,244,.4);color:#38c7f4" href="{{ route('ia-reportes.generar', ['estudio' => $estudio?->id]) }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="M9 15l3 3 3-3"/></svg>Generar reporte IA</a>
+        <a class="studio-final-act-btn fin" href="{{ route('ia-reportes.redactar', ['paciente' => $estudio?->paciente_id, 'estudio' => $estudio?->id]) }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Finalizar estudio</a>
       </div>
 
       {{-- Miniaturas capturadas --}}
@@ -1568,7 +1576,7 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
             <div class="studio-resumen-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
             Médico
           </div>
-          <div class="studio-resumen-value">Dr. Víctor</div>
+          <div class="studio-resumen-value">{{ $studioUserName }}</div>
         </div>
 
         <div class="studio-resumen-item">
@@ -1626,9 +1634,9 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
         <span class="studio-notif-badge">3</span>
       </button>
       <div class="studio-final-profile">
-        <div class="studio-doc-avatar">DV</div>
+        <div class="studio-doc-avatar">{{ $studioUserInitials }}</div>
         <div class="studio-doc-info">
-          <div class="studio-doc-name">Dr. Víctor</div>
+          <div class="studio-doc-name">{{ $studioUserName }}</div>
           <div class="studio-doc-role">Endoscopista</div>
         </div>
       </div>
@@ -1683,7 +1691,8 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
       <div class="studio-final-actions">
         <button class="studio-final-act-btn btn-simular-captura"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Capturar imagen</button>
         <a class="studio-final-act-btn wa" href="{{ route('mensajes') }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>Enviar mensaje</a>
-        <a class="studio-final-act-btn fin" href="{{ route('ia-reportes.redactar') }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Finalizar estudio</a>
+        <a class="studio-final-act-btn" style="background:rgba(56,199,244,.14);border-color:rgba(56,199,244,.4);color:#38c7f4" href="{{ route('ia-reportes.generar', ['estudio' => $estudio?->id]) }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="M9 15l3 3 3-3"/></svg>Generar reporte IA</a>
+        <a class="studio-final-act-btn fin" href="{{ route('ia-reportes.redactar', ['paciente' => $estudio?->paciente_id, 'estudio' => $estudio?->id]) }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Finalizar estudio</a>
       </div>
 
       {{-- Miniaturas capturadas --}}
@@ -1752,7 +1761,7 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
             <div class="studio-resumen-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
             Médico
           </div>
-          <div class="studio-resumen-value">Dr. Víctor</div>
+          <div class="studio-resumen-value">{{ $studioUserName }}</div>
         </div>
 
         <div class="studio-resumen-item">

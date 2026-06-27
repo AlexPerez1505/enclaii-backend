@@ -62,7 +62,7 @@ class PacienteController extends Controller
 
     public function show(Paciente $paciente)
     {
-        return view('pacientes.show', compact('paciente'));
+        return redirect()->route('pacientes.edit', $paciente);
     }
 
     public function edit(Paciente $paciente)

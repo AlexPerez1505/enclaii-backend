@@ -265,6 +265,16 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   {{-- Meta --}}
   <div class="ed-meta">
     <div class="f grow">
+      <label>Estudio</label>
+      <select class="ed-ctrl" id="edEstudioSel"
+              onchange="if(this.value){ window.location.href='{{ route('ia-reportes.redactar') }}?estudio='+this.value }">
+        <option value="">Selecciona un estudio sin reporte…</option>
+        @foreach (($estudiosLista ?? []) as $e)
+          <option value="{{ $e['id'] }}" @selected(optional($estudio)->id == $e['id'])>{{ $e['label'] }}</option>
+        @endforeach
+      </select>
+    </div>
+    <div class="f grow">
       <label>Tipo de estudio</label>
       <select class="ed-ctrl" id="edTipo">
         <option>Colonoscopia</option>
@@ -277,7 +287,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
       <label>Fecha del reporte</label>
       <div class="ed-ctrl">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <span contenteditable="true" data-ph="dd/mm/aaaa"></span>
+        <span contenteditable="true" data-ph="dd/mm/aaaa">{{ now()->format('d/m/Y') }}</span>
       </div>
     </div>
     <div class="f">
@@ -330,12 +340,12 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
         </div>
 
         <div class="doc-meta">
-          <span class="k">Paciente:</span><span contenteditable="true" data-ph="Nombre del paciente"></span>
-          <span class="k">Edad:</span><span contenteditable="true" data-ph="—"></span>
-          <span class="k">Sexo:</span><span contenteditable="true" data-ph="—"></span>
-          <span class="k">Fecha de Nac.:</span><span contenteditable="true" data-ph="dd/mm/aaaa"></span>
-          <span class="k">Fecha del Estudio:</span><span contenteditable="true" data-ph="dd/mm/aaaa"></span>
-          <span class="k">Procedimiento:</span><span contenteditable="true" data-ph="Tipo de procedimiento"></span>
+          <span class="k">Paciente:</span><span contenteditable="true" data-ph="Nombre del paciente">{{ $datosEstudio['paciente'] ?? '' }}</span>
+          <span class="k">Edad:</span><span contenteditable="true" data-ph="—">{{ $datosEstudio['edad'] ?? '' }}</span>
+          <span class="k">Sexo:</span><span contenteditable="true" data-ph="—">{{ $datosEstudio['sexo'] ?? '' }}</span>
+          <span class="k">Fecha de Nac.:</span><span contenteditable="true" data-ph="dd/mm/aaaa">{{ $datosEstudio['nacimiento'] ?? '' }}</span>
+          <span class="k">Fecha del Estudio:</span><span contenteditable="true" data-ph="dd/mm/aaaa">{{ $datosEstudio['fecha_estudio'] ?? '' }}</span>
+          <span class="k">Procedimiento:</span><span contenteditable="true" data-ph="Tipo de procedimiento">{{ $datosEstudio['procedimiento'] ?? '' }}</span>
         </div>
 
         {{-- Imágenes del estudio --}}
@@ -344,12 +354,13 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
           <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
         </div>
 
-        <div id="docSections"></div>
+        <div id="docSections">@if($reporte?->contenido_texto)<div contenteditable="true" style="min-height:120px;outline:none">{{ $reporte->contenido_texto }}</div>@endif</div>
+        <input type="hidden" id="existingReporteId" value="{{ $reporte?->id }}">
 
         {{-- Firma (su posición se cambia desde Configuración) --}}
         <div class="rep-sign" id="repSign" data-pos="center">
           <div class="sign-box">
-            <span contenteditable="true" id="repSignName" data-ph="Dr. Nombre del médico">Dr. Nombre del médico</span>
+            <span contenteditable="true" id="repSignName" data-ph="Dr. Nombre del médico">{{ ($datosEstudio['medico'] ?? '') ?: 'Dr. Nombre del médico' }}</span>
           </div>
         </div>
       </article>
@@ -625,6 +636,35 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   const anatDefault = repAnat ? repAnat.innerHTML : '';
   const imgsDefault = repImgs ? repImgs.innerHTML : '';
 
+  // Imágenes reales del estudio inyectadas desde el backend
+  const STUDY_IMAGES = @json($estudioImagenes ?? []);
+
+  // Datos del estudio/paciente precargados desde el backend
+  const PRELOAD = @json($datosEstudio ?? []);
+  // Mapea el procedimiento del estudio a la clave de plantilla correspondiente
+  const tipoToKey = (t) => {
+    t = (t || '').toLowerCase();
+    if (t.includes('colono')) return 'colonoscopia';
+    if (t.includes('gastro')) return 'gastroscopia';
+    if (t.includes('duodeno')) return 'duodenoscopia';
+    if (t.includes('bronco')) return 'broncoscopia';
+    return null;
+  };
+
+  // Celda del grid: imagen real del estudio o recuadro vacío
+  const imgCell = (img) => img
+    ? '<span class="cell" style="background:none;overflow:hidden"><img src="' + img.url + '" alt="' + (img.titulo || '') + '" style="width:100%;height:100%;object-fit:cover;display:block"></span>'
+    : '<span class="cell"></span>';
+
+  // Rellena el grid de imágenes según la plantilla (columnas + nº de celdas)
+  const fillImgs = (cols, count) => {
+    if (!repImgs) return;
+    if (!cols || !count) { repImgs.style.display = 'none'; repImgs.innerHTML = ''; return; }
+    repImgs.style.display = 'grid';
+    repImgs.style.gridTemplateColumns = 'repeat(' + cols + ',1fr)';
+    repImgs.innerHTML = Array.from({ length: count }, (_, i) => imgCell(STUDY_IMAGES[i])).join('');
+  };
+
   const TEMPLATES = {
     colonoscopia: {
       titulo: 'INFORME DE COLONOSCOPIA', sub: 'COLONOSCOPIA', tipo: 'Colonoscopia',
@@ -700,8 +740,24 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     anat: { x: 672, y: 5,  w: 88,  h: 110 },
   });
 
-  // Cada plantilla guarda su propia configuración visual
-  Object.keys(TEMPLATES).forEach(k => { TEMPLATES[k].cfg = defaultCfg(); });
+  // Configuración persistida de cada plantilla (desde la base de datos)
+  const PLANTILLAS_DB = @json($plantillasDb ?? []);
+
+  // Cada plantilla parte de su configuración por defecto y, si existe en BD,
+  // se sobreescribe con la configuración / columnas guardadas.
+  Object.keys(TEMPLATES).forEach(k => {
+    TEMPLATES[k].cfg = defaultCfg();
+    const db = PLANTILLAS_DB[k];
+    if (db) {
+      if (db.configuracion && typeof db.configuracion === 'object') {
+        TEMPLATES[k].cfg = Object.assign(defaultCfg(), db.configuracion);
+      }
+      if (TEMPLATES[k].imgOnly) {
+        if (db.columnas !== null && db.columnas !== undefined) TEMPLATES[k].cols = db.columnas;
+        if (db.num_imagenes !== null && db.num_imagenes !== undefined) TEMPLATES[k].count = db.num_imagenes;
+      }
+    }
+  });
 
   let currentKey = null;
 
@@ -756,21 +812,12 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     if (tpl.imgOnly) {
       // Documento de solo imágenes (sin texto en el cuerpo)
       cont.innerHTML = '';
-      if (repImgs) {
-        if (!tpl.cols || !tpl.count) {
-          repImgs.style.display = 'none';
-        } else {
-          repImgs.style.display = 'grid';
-          repImgs.style.gridTemplateColumns = 'repeat(' + tpl.cols + ',1fr)';
-          repImgs.innerHTML = Array.from({ length: tpl.count }, () => '<span class="cell"></span>').join('');
-        }
-      }
+      // Carga las imágenes reales del estudio según las columnas/celdas de la plantilla
+      fillImgs(tpl.cols, tpl.count);
     } else {
-      if (repImgs) {
-        repImgs.style.display = 'grid';
-        repImgs.style.gridTemplateColumns = 'repeat(4,1fr)';
-        repImgs.innerHTML = imgsDefault;
-      }
+      // Plantilla de informe: rejilla de 4 columnas con las imágenes reales del estudio
+      // (si no hay imágenes, conserva la cuadrícula vacía por defecto)
+      fillImgs(4, STUDY_IMAGES.length || 8);
       cont.innerHTML = tpl.secciones.map(s => {
         const head = '<h4>' + s.h + '</h4>';
         if (s.tipo === 'ul') {
@@ -782,8 +829,13 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     applyConfig(tpl.cfg);
   };
 
-  // Plantilla inicial
-  render('colonoscopia');
+  // Plantilla inicial: la que corresponda al procedimiento del estudio
+  render(tipoToKey(PRELOAD.tipo) || 'colonoscopia');
+  // Si el procedimiento no coincide con una plantilla, reflejarlo igual en el selector
+  if (PRELOAD.tipo && tipoSel) {
+    const opt = Array.from(tipoSel.options).find(o => o.text.toLowerCase() === String(PRELOAD.tipo).toLowerCase());
+    if (opt) tipoSel.value = opt.value;
+  }
 
   /* ===== Modal de configuración: editor visual de la hoja (arrastrar + redimensionar) ===== */
   const modal    = document.getElementById('cfgModal');
@@ -957,8 +1009,27 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     if (currentKey === editingKey) {
       if (tpl.imgOnly) render(editingKey); else applyConfig(work);
     }
+    // Persistir los cambios de la plantilla en la base de datos
+    const payload = { configuracion: tpl.cfg };
+    if (tpl.imgOnly) { payload.columnas = tpl.cols; payload.num_imagenes = tpl.count; }
+    fetch('{{ url('/plantillas') }}/' + encodeURIComponent(editingKey), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': @json(csrf_token()), 'Accept': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+      .then(r => r.json())
+      .then(d => { if (d && d.ok) showTpltoast('Plantilla guardada'); })
+      .catch(() => {});
     closeConfig();
   });
+
+  // Aviso reutilizable (usa el toast de la página si existe)
+  const showTpltoast = (msg) => {
+    const t = document.getElementById('edToast');
+    if (!t) return;
+    t.textContent = msg; t.classList.remove('err'); t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  };
 
   if (list) {
     list.addEventListener('click', (e) => {
@@ -1281,21 +1352,62 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     if (e.key === 'Escape' && pvModal && pvModal.classList.contains('open')) closePreview();
   });
 
-  /* ---- Guardar reporte (borrador en el navegador) ---- */
+  /* ---- Guardar reporte (persistido en BD y ligado al estudio) ---- */
+  const ESTUDIO_ID = @json($estudio?->id);
+  const SAVE_URL   = @json(route('ia-reportes.guardar'));
+  const CSRF       = @json(csrf_token());
+  let savedReporteId = @json($reporte?->id);
+
   const collectData = () => ({
     tipo:   (document.getElementById('edTipo')?.value || ''),
     htmlDoc: doc ? doc.innerHTML : '',
     guardadoEn: new Date().toISOString(),
   });
 
+  // Texto del reporte: las secciones redactadas (o todo el documento como respaldo)
+  const collectContenido = () => {
+    const sec = document.getElementById('docSections');
+    let txt = (sec && sec.innerText ? sec.innerText : '').trim();
+    if (!txt && doc) txt = (doc.innerText || '').trim();
+    return txt;
+  };
+
   const saveReport = () => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(collectData()));
-      if (statusEl) statusEl.textContent = 'Reporte guardado';
-      showToast('Reporte guardado');
-    } catch (e) {
-      showToast('No se pudo guardar el reporte', true);
+    // Respaldo local del borrador
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(collectData())); } catch (e) {}
+
+    if (!ESTUDIO_ID) {
+      showToast('No hay un estudio asociado; el reporte no se guardó en el sistema', true);
+      return;
     }
+    const contenido = collectContenido();
+    if (!contenido) {
+      showToast('Escribe el contenido del reporte antes de guardar', true);
+      return;
+    }
+
+    if (btnSave) btnSave.disabled = true;
+    fetch(SAVE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+      body: JSON.stringify({
+        estudio_id: ESTUDIO_ID,
+        reporte_id: savedReporteId,
+        contenido_texto: contenido,
+      }),
+    })
+      .then(r => r.json())
+      .then(d => {
+        if (d && d.ok) {
+          savedReporteId = d.reporte_id;
+          if (statusEl) statusEl.textContent = 'Reporte guardado';
+          showToast('Reporte guardado');
+        } else {
+          showToast((d && d.message) || 'No se pudo guardar el reporte', true);
+        }
+      })
+      .catch(() => showToast('No se pudo guardar el reporte', true))
+      .finally(() => { if (btnSave) btnSave.disabled = false; });
   };
   if (btnSave) btnSave.addEventListener('click', saveReport);
 
