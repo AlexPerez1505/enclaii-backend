@@ -1350,7 +1350,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
           Sí, el dispositivo está conectado
         </label>
       </div>
-      <form method="POST" action="{{ route('nuevo-estudio.store') }}" style="width:100%">
+      <form method="POST" action="{{ route('nuevo-estudio.store') }}" id="formIniciarEstudio" style="width:100%">
         @csrf
         <input type="hidden" name="paciente_id" value="{{ $paciente?->id }}">
         <input type="hidden" name="tipo" value="{{ $paciente?->procedimiento }}">
@@ -1368,7 +1368,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
 @push('scripts')
 <script>
 (function () {
-
+  const CSRF = @json(csrf_token());
 
   /* Fecha por defecto */
   var now  = new Date();
@@ -1570,6 +1570,33 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   chkDispositivoConectado?.addEventListener('change', updateDispositivoStatus);
   selDispositivo?.addEventListener('change', function(){
     if (dispositivoNombre) dispositivoNombre.textContent = selDispositivo.value;
+  });
+
+  /* Enviar inicio de estudio y redirigir a la interfaz de grabando */
+  var formIniciarEstudio = document.getElementById('formIniciarEstudio');
+  formIniciarEstudio?.addEventListener('submit', function(e){
+    e.preventDefault();
+    var btn = document.getElementById('btnComenzarGrabar');
+    if (btn) { btn.disabled = true; btn.textContent = 'Iniciando...'; }
+    fetch(formIniciarEstudio.action, {
+      method: 'POST',
+      headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      body: new FormData(formIniciarEstudio)
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (data && data.ok && data.redirect) {
+        window.location.href = data.redirect;
+      } else if (data && data.redirect) {
+        window.location.href = data.redirect;
+      } else {
+        window.location.reload();
+      }
+    })
+    .catch(function(err){
+      console.error('Error iniciando estudio', err);
+      formIniciarEstudio.submit();
+    });
   });
 
 })();
