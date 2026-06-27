@@ -11,6 +11,11 @@ return new class extends Migration
         Schema::create('pacientes', function (Blueprint $table) {
             $table->id();
 
+            $table->foreignId('sala_id')
+                ->nullable()
+                ->constrained('salas')
+                ->nullOnDelete();
+
             $table->string('folio')->unique();
             $table->string('nombre_completo');
             $table->string('identificacion')->nullable();
