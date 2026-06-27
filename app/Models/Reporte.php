@@ -13,7 +13,9 @@ class Reporte extends Model
     protected $fillable = [
         'estudio_id',
         'usuario_id',
+        'plantilla_id',
         'contenido_texto',
+        'contenido_html',
         'contiene_hallazgos_criticos',
     ];
 
@@ -29,6 +31,11 @@ class Reporte extends Model
     public function usuario(): BelongsTo
     {
         return $this->belongsTo(User::class, 'usuario_id');
+    }
+
+    public function plantilla(): BelongsTo
+    {
+        return $this->belongsTo(Plantilla::class);
     }
 
     public function iaReportes(): HasMany

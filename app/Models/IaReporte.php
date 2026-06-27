@@ -23,4 +23,9 @@ class IaReporte extends Model
     {
         return $this->belongsTo(Reporte::class);
     }
+
+    public function plantilla(): BelongsTo
+    {
+        return $this->reporte->plantilla();
+    }
 }

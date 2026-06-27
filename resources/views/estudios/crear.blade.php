@@ -1,15 +1,53 @@
 ﻿@extends('layouts.app')
 
-@section('title', 'Nuevo Estudio')
+@section('title', request()->has('name') ? 'Estudios' : 'Nuevo Estudio')
 @section('active', 'nuevo-estudio')
-@section('header-title', 'Nuevo Estudio')
+@section('header-title', request()->has('name') ? 'Estudios' : 'Nuevo Estudio')
 @section('header-sub')
-  Datos nuevos
+  {{ request()->has('name') ? request()->query('name') : 'Datos nuevos' }}
 @endsection
 
 @push('styles')
 <style>
 /* ============ NUEVO PACIENTE ============ */
+
+/* Tabs de navegacion */
+.np-tabs {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(110,160,255,.1);
+  padding-bottom: 0;
+}
+.np-tab {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--txt-soft);
+  text-decoration: none;
+  padding-bottom: 10px;
+  border-bottom: 2px solid transparent;
+  transition: color 150ms, border-color 150ms;
+}
+.np-tab:hover { color: var(--txt); }
+.np-tab.active {
+  color: var(--txt);
+  border-bottom-color: var(--blue);
+}
+
+/* Boton volver a pacientes */
+.np-volver-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12.5px; font-weight: 600; color: var(--txt);
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(110,160,255,.2);
+  background: rgba(110,160,255,.06);
+  transition: background 150ms, border-color 150ms;
+  white-space: nowrap;
+}
+.np-volver-btn:hover { background: rgba(110,160,255,.12); border-color: rgba(110,160,255,.35); }
+.np-volver-btn svg { flex: none; }
 
 .np-back-link {
   display: inline-flex; align-items: center; gap: 6px;
@@ -19,27 +57,6 @@
 }
 .np-back-link:hover { color: var(--cyan); }
 .np-back-link svg { flex: none; }
-
-/* Pestañas superiores */
-.np-tabs {
-  display: flex; align-items: center; gap: 8px;
-  border-bottom: 1px solid var(--stroke-strong);
-  margin-bottom: 22px;
-  padding-top: 6px;
-}
-.np-tab {
-  padding: 12px 18px; cursor: pointer;
-  font-size: 14px; font-weight: 600; color: var(--txt-soft);
-  border-bottom: 2px solid transparent;
-  transition: color 150ms, border-color 150ms;
-  background: none; border: none; border-bottom: 2px solid transparent;
-  font: inherit; text-decoration: none; display: inline-flex; align-items: center;
-}
-.np-tab:hover { color: var(--txt); }
-.np-tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
-.np-tab.hidden { display: none; }
-.np-tab-panel { display: none; }
-.np-tab-panel.active { display: block; }
 
 /* Barra buscador + filtros */
 .np-searchbar {
@@ -78,7 +95,7 @@
   display: none; position: absolute; top: calc(100% + 8px); left: 0;
   background: var(--panel); border: 1px solid var(--stroke-strong);
   border-radius: var(--r-md); padding: 14px 16px; min-width: 240px;
-  z-index: 200; box-shadow: 0 12px 32px var(--shadow);
+  z-index: 200; box-shadow: 0 12px 32px rgba(0,0,0,.45);
 }
 .np-filter-drop.open { display: block; }
 .np-flt-title {
@@ -114,57 +131,47 @@
 
 /* Panel resultados */
 .np-results {
-  display: none;
-  background: var(--panel);
+  display: none; background: var(--panel);
   border: 1px solid var(--stroke-strong); border-radius: var(--r-md);
-  margin-bottom: 16px; overflow: hidden; box-shadow: 0 8px 24px var(--shadow);
+  margin-bottom: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,.3);
 }
 .np-results.open { display: block; }
 .np-results-head {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 18px; font-size: 11px; font-weight: 700; color: var(--txt-soft);
-  border-bottom: 1px solid var(--stroke); text-transform: uppercase; letter-spacing: .08em;
-}
-.np-results-head svg { width: 14px; height: 14px; color: var(--txt-soft); }
-.np-res-list {
-  display: flex; flex-direction: column;
+  padding: 9px 16px; font-size: 11px; font-weight: 700; color: var(--txt-soft);
+  border-bottom: 1px solid var(--stroke); text-transform: uppercase; letter-spacing: .05em;
 }
 .np-res-item {
-  display: flex; align-items: center; gap: 14px;
-  padding: 14px 18px; cursor: pointer;
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 16px; cursor: pointer;
   border-bottom: 1px solid var(--stroke); transition: background 120ms;
 }
 .np-res-item:last-child { border-bottom: none; }
-.np-res-item:hover { background: var(--hover-bg); }
-.np-res-item.active { background: var(--hover-bg-strong); }
-html[data-theme="light"] .np-res-item:hover { background: var(--hover-bg); }
-html[data-theme="light"] .np-res-item.active { background: var(--hover-bg-strong); }
+.np-res-item:hover { background: rgba(46,123,246,.07); }
 .np-res-av {
-  width: 44px; height: 44px; border-radius: 50%;
+  width: 34px; height: 34px; border-radius: 50%;
   background: linear-gradient(135deg,var(--blue),var(--cyan));
-  display: grid; place-items: center; font-weight: 700; font-size: 13px; flex: none;
-  color: #fff;
+  display: grid; place-items: center; font-weight: 700; font-size: 12px; flex: none;
 }
-.np-res-name { font-size: 14.5px; font-weight: 700; color: var(--txt); margin-bottom: 3px; }
-.np-res-meta { font-size: 12px; color: var(--txt-soft); }
-.np-res-empty { padding: 22px; text-align: center; font-size: 13px; color: var(--txt-soft); }
+.np-res-name { font-size: 13.5px; font-weight: 600; }
+.np-res-meta { font-size: 11.5px; color: var(--txt-soft); }
+.np-res-empty { padding: 18px; text-align: center; font-size: 13px; color: var(--txt-soft); }
 
 /* Card principal */
 .np-card {
-  background: var(--card-bg);
-  border: 1px solid var(--stroke);
+  background: #0d1433;
+  border: 1px solid rgba(110,160,255,.18);
   border-radius: 18px;
-  padding: 20px 24px;
+  padding: 30px 32px;
   margin-bottom: 20px;
 }
 
 /* Sección header */
 .np-sec-header {
-  font-size: 18px; font-weight: 700; color: var(--txt);
-  margin-bottom: 16px;
+  font-size: 20px; font-weight: 700; color: var(--txt);
+  margin-bottom: 24px;
 }
 
-/* Layout: foto + campos */
+/* Layout: foto + campos (legacy alias) */
 .np-personal-layout {
   display: grid;
   grid-template-columns: 190px 1fr;
@@ -195,53 +202,182 @@ html[data-theme="light"] .np-res-item.active { background: var(--hover-bg-strong
 .np-add-foto-btn {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 8px 16px; border-radius: 8px;
-  border: 1px solid var(--stroke-strong); background: var(--card-bg-2);
+  border: 1px solid rgba(110,160,255,.3); background: #161d3f;
   font: inherit; font-size: 12.5px; font-weight: 600; color: var(--txt);
   cursor: pointer; width: 100%; justify-content: center;
   transition: background 150ms, border-color 150ms;
 }
-.np-add-foto-btn:hover { background: var(--panel-2); border-color: var(--blue); }
+.np-add-foto-btn:hover { background: #1a2347; border-color: var(--blue); }
 .np-add-foto-btn svg { color: var(--cyan); }
 
-/* Grid de campos */
-.np-fields { display: grid; gap: 16px; }
-.np-row-3 { grid-template-columns: 2fr 1fr 1fr; }
+/* Sub-header dentro de card */
+.np-sub-header {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--cyan);
+  margin-bottom: 12px;
+}
+
+/* Layout info paciente: foto | personal | medica */
+.np-info-layout {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 24px;
+  align-items: start;
+}
+@media(max-width:900px) {
+  .np-info-layout { grid-template-columns: 1fr; }
+}
+
+/* Inline fields (label: valor) */
+.np-inline-fields { display: flex; flex-direction: column; gap: 6px; }
+.np-inline-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto 1fr;
+  gap: 4px 8px;
+  align-items: baseline;
+}
+.np-info-medica .np-inline-row {
+  grid-template-columns: auto 1fr;
+}
+.np-lbl {
+  font-size: 12px;
+  font-weight: 600;
+  color: #7a8fc0;
+  white-space: nowrap;
+}
+.np-val {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--txt);
+}
+
+/* Tabla historial */
+.np-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.np-table thead th {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: #7a8fc0;
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(110,160,255,.12);
+}
+.np-table tbody td {
+  padding: 12px;
+  color: var(--txt);
+  border-bottom: 1px solid rgba(110,160,255,.06);
+  vertical-align: middle;
+}
+.np-table tbody tr:hover { background: rgba(110,160,255,.04); }
+.np-archivos {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12.5px; color: var(--txt-soft);
+}
+.np-btn-ver {
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(110,160,255,.25);
+  background: rgba(110,160,255,.08);
+  font: inherit; font-size: 12px; font-weight: 600;
+  color: var(--txt);
+  cursor: pointer;
+  transition: background 150ms;
+}
+.np-btn-ver:hover { background: rgba(110,160,255,.15); }
+.np-btn-dots {
+  background: none; border: none;
+  font-size: 18px; color: var(--txt-soft);
+  cursor: pointer; padding: 2px 6px;
+  vertical-align: middle;
+}
+.np-btn-dots:hover { color: var(--txt); }
+
+/* Footer tabla + paginacion */
+.np-table-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0 0;
+  font-size: 12.5px;
+  color: var(--txt-soft);
+}
+.np-pagination { display: flex; gap: 4px; }
+.np-page-btn {
+  width: 30px; height: 30px;
+  border-radius: 6px;
+  border: 1px solid rgba(110,160,255,.15);
+  background: none;
+  color: var(--txt-soft);
+  font: inherit; font-size: 13px; font-weight: 600;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 150ms, color 150ms;
+}
+.np-page-btn:hover { background: rgba(110,160,255,.1); color: var(--txt); }
+.np-page-btn.active {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+
+/* Grid de campos (legacy) */
+.np-fields { display: grid; gap: 8px 16px; }
+.np-row-3 { grid-template-columns: 1fr 1fr 1fr; }
 .np-row-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
 .np-row-3b { grid-template-columns: 1fr 2fr 1fr; }
 .np-row-2 { grid-template-columns: 1fr 1fr; }
 .np-row-1 { grid-template-columns: 1fr; }
 
-.np-field { display: flex; flex-direction: column; gap: 7px; }
+.np-field { display: flex; flex-direction: column; gap: 2px; }
 .np-field label {
   font-size: 10.5px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .08em; color: var(--txt-soft);
+  letter-spacing: .08em; color: #7a8fc0;
 }
 .np-field input,
 .np-field select,
 .np-field textarea {
-  background: var(--input-bg);
-  border: 1px solid var(--stroke-strong);
+  background: #111830;
+  border: 1px solid rgba(110,160,255,.2);
   border-radius: 10px;
   padding: 12px 14px; font: inherit; font-size: 14px; color: var(--txt);
   outline: none; width: 100%; transition: border-color 150ms, box-shadow 150ms;
 }
 .np-field input::placeholder,
-.np-field textarea::placeholder { color: var(--off); }
+.np-field textarea::placeholder { color: #3d4a75; }
 .np-field input:focus,
 .np-field select:focus,
 .np-field textarea:focus {
   border-color: var(--blue);
   box-shadow: 0 0 0 3px rgba(46,123,246,.15);
 }
-.np-field select option { background: var(--card-bg); }
+.np-field select option { background: #0d1433; }
 .np-field textarea { resize: vertical; min-height: 130px; }
+
+/* Campos solo lectura */
+.np-readonly {
+  display: block;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit; font-size: 14px; font-weight: 600;
+  color: var(--txt);
+  line-height: 1.3;
+}
 
 /* Span full width */
 .np-full { grid-column: 1 / -1; }
 
 /* Separador */
 .np-divider {
-  border: none; border-top: 1px solid var(--stroke);
+  border: none; border-top: 1px solid rgba(110,160,255,.12);
   margin: 8px 0 24px;
 }
 
@@ -256,23 +392,23 @@ html[data-theme="light"] .np-res-item.active { background: var(--hover-bg-strong
   display: flex; flex-direction: column; gap: 14px;
 }
 .np-action-btns {
-  background: var(--card-bg);
-  border: 1px solid var(--stroke);
+  background: #0d1433;
+  border: 1px solid rgba(110,160,255,.18);
   border-radius: 18px; overflow: hidden;
 }
 .np-action-btn {
   display: flex; align-items: center; gap: 12px;
   width: 100%; padding: 14px 16px;
-  border: none; border-bottom: 1px solid var(--stroke);
+  border: none; border-bottom: 1px solid rgba(110,160,255,.12);
   background: none; font: inherit; font-size: 13px; font-weight: 600;
   color: var(--txt); cursor: pointer; text-align: left; text-decoration: none;
   transition: background 150ms;
 }
 .np-action-btn:last-child { border-bottom: none; }
-.np-action-btn:hover { background: var(--hover-bg); }
+.np-action-btn:hover { background: rgba(110,160,255,.06); }
 .np-ab-icon {
   width: 34px; height: 34px; border-radius: 9px;
-  border: 1px solid var(--stroke-strong);
+  border: 1px solid rgba(110,160,255,.3);
   display: grid; place-items: center; flex: none;
   color: var(--cyan); background: rgba(56,199,244,.08);
 }
@@ -287,36 +423,6 @@ html[data-theme="light"] .np-res-item.active { background: var(--hover-bg-strong
 .np-empty-state p { font-size: 16px; font-weight: 600; color: var(--txt-soft); }
 .np-empty-state span { font-size: 13px; color: var(--off); }
 
-/* Tema claro: campos de solo lectura */
-html[data-theme="light"] .np-field input:read-only,
-html[data-theme="light"] .np-field textarea:read-only,
-html[data-theme="light"] .np-field select:disabled {
-  background: var(--panel-2);
-  color: var(--txt);
-  border-color: var(--stroke-strong);
-  opacity: 1;
-}
-html[data-theme="light"] .np-field select:disabled {
-  color: var(--txt-soft);
-}
-
-/* Tema claro: dropdown de filtros */
-html[data-theme="light"] .np-filter-drop {
-  background: var(--panel);
-  border-color: var(--stroke-strong);
-  box-shadow: 0 16px 40px rgba(0,0,0,.12);
-}
-html[data-theme="light"] .np-filter-btn {
-  background: var(--panel-2);
-  border-color: var(--stroke-strong);
-  color: var(--txt);
-}
-html[data-theme="light"] .np-filter-btn:hover,
-html[data-theme="light"] .np-filter-btn.open {
-  background: var(--card);
-  border-color: var(--blue);
-}
-
 /* Boton Agendar cita */
 .np-agendar-btn {
   display: inline-flex; align-items: center; gap: 8px;
@@ -329,6 +435,7 @@ html[data-theme="light"] .np-filter-btn.open {
 .np-agendar-btn:hover { background: rgba(56,199,244,.1); }
 .np-agendar-btn:active { transform: scale(.97); }
 
+<<<<<<< HEAD
 /* Vista detalle del paciente */
 .np-detail-toolbar {
   display: flex; align-items: center; justify-content: space-between; gap: 14px;
@@ -362,7 +469,7 @@ html[data-theme="light"] .np-filter-btn.open {
 }
 .np-new-study-btn:hover { background: #2563eb; border-color: #2563eb; transform: translateY(-1px); }
 
-/* Modal Nuevo Estudio */
+
 .ns-modal-backdrop {
   position: fixed; inset: 0; z-index: 1000;
   display: flex; align-items: center; justify-content: center;
@@ -594,27 +701,16 @@ html[data-theme="light"] .ns-modal-backdrop {
 .pa-tag{padding:6px 10px;border-radius:999px;border:1px solid var(--stroke);background:var(--card);font-size:12px;font-weight:700}
 .pa-empty{display:none;padding:34px 0;text-align:center;color:var(--txt-soft)}
 
+=======
+>>>>>>> origin/Paulina-Pacientes
 @media (max-width:1100px) {
   .np-layout { grid-template-columns: 1fr; }
-  .np-personal-layout { grid-template-columns: 1fr; }
-  .np-row-4 { grid-template-columns: 1fr 1fr; }
-  .np-row-3, .np-row-3b { grid-template-columns: 1fr 1fr; }
-  .np-detail-card { grid-template-columns: auto 1fr; }
-  .np-detail-stats { grid-column: 1 / -1; justify-content: flex-start; }
-  .np-media-grid { grid-template-columns: repeat(2, 1fr); }
-  .pa-shell { grid-template-columns: 1fr; }
-  .pa-side { display: grid; grid-template-columns: 1fr 1fr; }
-  .pa-grid { grid-template-columns: repeat(2, 1fr); }
+  .np-info-layout { grid-template-columns: auto 1fr; }
+  .np-info-medica { grid-column: 1 / -1; margin-top: 16px; }
 }
 @media (max-width:640px) {
-  .np-row-2,.np-row-3,.np-row-3b,.np-row-4 { grid-template-columns: 1fr; }
-  .np-detail-card { grid-template-columns: 1fr; }
-  .np-detail-stats { grid-column: auto; }
-  .np-media-grid { grid-template-columns: 1fr; }
-  .pa-grid { grid-template-columns: 1fr; }
-  .pa-hero { align-items: flex-start; }
-  .pa-stats { width: 100%; margin-left: 0; justify-content: flex-start; }
-  .pa-side { display: flex; }
+  .np-info-layout { grid-template-columns: 1fr; }
+  .np-inline-row { grid-template-columns: auto 1fr; }
 }
 
 /* ================= TEMA CLARO (overrides especificos) ================= */
@@ -796,118 +892,368 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   $reportes = $reportes ?? collect();
 @endphp
 
-{{-- Pestañas --}}
-<div class="np-tabs rise d1">
-  <button class="np-tab active" data-tab="pacientes">Pacientes</button>
-  <button class="np-tab hidden np-tab-extra" data-tab="galeria">Galeria</button>
-  <button class="np-tab hidden np-tab-extra" data-tab="reportes">Reportes</button>
+{{-- Tabs de navegacion --}}
+<div class="np-tabs">
+  <a class="np-tab active" href="{{ route('nuevo-estudio') }}">Pacientes</a>
+  <a class="np-tab" href="{{ route('galeria') }}">Galeria</a>
+  <a class="np-tab" href="{{ route('ia-reportes') }}">Reportes</a>
 </div>
+
+@php
+  $npPacientes = ($pacientes ?? collect())->values()->map(function ($p) {
+    $nombre = trim($p->nombre_completo ?? 'Paciente sin nombre');
+    $partes = preg_split('/\s+/', $nombre);
+    $iniciales = '';
+    if (count($partes) >= 2) {
+      $iniciales = mb_strtoupper(mb_substr($partes[0], 0, 1) . mb_substr($partes[1], 0, 1));
+    } else {
+      $iniciales = mb_strtoupper(mb_substr($nombre, 0, 2));
+    }
+    return [
+      'id' => $p->id,
+      'nombre' => $nombre,
+      'folio' => $p->folio ?? '',
+      'edad' => $p->edad ?? '',
+      'sexo' => $p->sexo ? ucfirst($p->sexo) : '',
+      'telefono' => $p->telefono ?? '',
+      'email' => $p->email ?? '',
+      'foto' => $p->foto ? asset('storage/' . $p->foto) : null,
+      'iniciales' => $iniciales,
+    ];
+  });
+@endphp
+
+<script>window.__NP_PACIENTES = @json($npPacientes);</script>
 
 {{-- Panel Pacientes --}}
 <div class="np-tab-panel active" id="tab-pacientes">
 
-{{-- Buscador, lista de pacientes y estado vacio eliminados: se va directo al formulario --}}
+@if(!$paciente)
+{{-- Buscador de pacientes --}}
+<div class="np-searchbar rise d1" id="npSearchBar">
+  <div class="np-search-wrap">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" class="np-search" id="npSearch" placeholder="Buscar paciente por nombre, folio, teléfono o correo..." autocomplete="off">
+  </div>
+</div>
 
-{{-- Formulario / informacion del paciente --}}
+<div class="np-results rise d2" id="npResults">
+  <div class="np-results-head">
+    <span>Resultados</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+  </div>
+  <div class="np-res-list" id="npResList"></div>
+</div>
+@endif
+
+{{-- Layout: formulario + sidebar --}}
 <div class="np-layout" id="npFormLayout" style="display:none">
 
-  <form method="POST" action="#" id="formNuevoPaciente">
-    @csrf
+  {{-- Formulario --}}
+  <div id="formNuevoPaciente">
 
-    {{-- Card unificada de información del paciente --}}
+<<<<<<< HEAD
+{{-- ======================================================================= --}}
+{{-- COMPONENTE INTEGRAL DEL PACIENTE Y ESTUDIO (ESTÉTICA ENCLAII) --}}
+{{-- ======================================================================= --}}
+
+<!-- CARD 1: INFORMACIÓN INTEGRAL DEL PACIENTE (CON IMAGEN DE PERFIL AUTOMÁTICA) -->
+<div class="np-info-card" style="margin-top: 20px; margin-bottom: 20px;">
+    
+    {{-- CONTENEDOR DE CABECERA PRINCIPAL: FOTO + TÍTULO --}}
+    <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 28px; border-bottom: 1px solid var(--stroke); padding-bottom: 20px;">
+        
+        {{-- CONTENEDOR DEL CÍRCULO DE LA FOTO --}}
+        <div style="width: 70px; height: 70px; border-radius: 50%; background: rgba(255, 255, 255, 0.03); border: 2px solid var(--stroke); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+            @php
+                // Detectamos si existe una foto en formato objeto o array
+                $fotoPaciente = isset($paciente) ? (is_object($paciente) ? ($paciente->foto ?? $paciente->avatar ?? null) : ($paciente['foto'] ?? $paciente['avatar'] ?? null)) : null;
+            @endphp
+=======
+    {{-- Card informacion del paciente --}}
     <div class="np-card rise d2">
-      <div class="np-sec-header">Información del paciente</div>
+      <div class="np-sec-header" style="font-size:18px;font-weight:700;margin-bottom:20px">Informacion del paciente</div>
 
-      <div class="np-personal-layout">
+      <div class="np-info-layout">
+>>>>>>> origin/Paulina-Pacientes
 
-        {{-- Foto --}}
-        <div class="np-foto-col">
-          @php($pacFoto = $paciente && $paciente->foto ? asset('storage/'.$paciente->foto) : '')
-          <div class="np-foto-box" id="npFotoBox">
-            <img id="npFotoPreview" src="{{ $pacFoto }}" alt="{{ $paciente?->nombre_completo }}" @if($pacFoto) style="display:block;" @endif>
-            <div class="np-foto-ph" id="npFotoPh" @if($pacFoto) style="display:none;" @endif>
-              <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            @if($fotoPaciente)
+                {{-- Si el paciente tiene foto, se renderiza perfectamente adaptada al círculo --}}
+                <img src="{{ asset($fotoPaciente) }}" alt="Foto del Paciente" style="width: 100%; height: 100%; object-fit: cover;">
+            @else
+                {{-- Fallback: Icono SVG premium si no hay foto en la base de datos --}}
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--txt-soft)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.7;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            @endif
+        </div>
+
+        {{-- TEXTO DE LA CABECERA --}}
+        <div>
+            <div class="np-sec-header" style="margin-bottom: 4px; display: flex; align-items: center; gap: 8px; padding: 0;">
+                Información General del Paciente
             </div>
+<<<<<<< HEAD
+            <div style="font-size: 13px; color: var(--txt-soft);">Ficha clínica e historial unificado</div>
+=======
           </div>
           <input type="file" id="npFotoInput" accept="image/*" style="display:none">
           <input type="file" id="npFotoCamera" accept="image/*" capture="environment" style="display:none">
+          <div style="position:relative;width:100%">
+            <button class="np-add-foto-btn" type="button" id="npBtnFotoMenu">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              <span id="npBtnFotoTxt">Agregar foto</span>
+            </button>
+            <div id="npFotoMenu" style="display:none;position:absolute;bottom:calc(100% + 6px);left:0;right:0;background:var(--panel);border:1px solid var(--stroke-strong);border-radius:var(--r-md);overflow:hidden;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.4)">
+              <button type="button" id="npBtnGaleria" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;background:none;border:none;border-bottom:1px solid var(--stroke);font:inherit;font-size:13px;font-weight:600;color:var(--txt);cursor:pointer;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                Abrir galeria
+              </button>
+              <button type="button" id="npBtnCamara" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;background:none;border:none;font:inherit;font-size:13px;font-weight:600;color:var(--txt);cursor:pointer;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                Tomar foto
+              </button>
+            </div>
+          </div>
+>>>>>>> origin/Paulina-Pacientes
+        </div>
+    </div>
+    
+    {{-- REJILLA DE DATOS (CAMPOS EXTRAÍDOS DE LA IMAGEN) --}}
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px 32px;">
+        
+        {{-- 1. NOMBRE COMPLETO --}}
+        <div>
+            <div style="font-size: 11px; font-weight: 700; color: var(--txt-soft); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">
+                Nombre Completo
+            </div>
+            <div style="font-size: 14px; font-weight: 600; color: var(--txt);">
+                @if(isset($paciente))
+                    {{ is_object($paciente) ? ($paciente->nombre ?? '—') : ($paciente['nombre'] ?? '—') }}
+                @else
+                    —
+                @endif
+            </div>
         </div>
 
-        {{-- Datos del paciente en recuadros hacia la derecha --}}
-        <div class="np-info-grid">
-          <div class="np-info-box">
-            <label>Nombre completo</label>
-            <div class="np-field-value" id="nombre">{{ $paciente?->nombre_completo ?? '—' }}</div>
-          </div>
-          
-                    
-          <div class="np-info-box">
-            <label>Edad</label>
-            <div class="np-field-value" id="edad">{{ $paciente && $paciente->edad ? $paciente->edad.' años' : '—' }}</div>
-          </div>
-          
-          <div class="np-info-box">
-            <label>Sexo</label>
-            <div class="np-field-value" id="sexo">{{ $paciente && $paciente->sexo ? ucfirst($paciente->sexo) : '—' }}</div>
-          </div>
-          
-          <div class="np-info-box">
-            <label>Fecha nacimiento</label>
-            <div class="np-field-value" id="fecha_nac">{{ $paciente?->fecha_nacimiento?->format('Y-m-d') ?? '—' }}</div>
-          </div>
-          
-          <div class="np-info-box">
-            <label>Peso</label>
-            <div class="np-field-value" id="peso">{{ $paciente && $paciente->peso ? $paciente->peso.' kg' : '—' }}</div>
-          </div>
-          
-          <div class="np-info-box">
-            <label>Altura</label>
-            <div class="np-field-value" id="altura">{{ $paciente && $paciente->altura ? $paciente->altura.' m' : '—' }}</div>
-          </div>
-          
-          <div class="np-info-box">
-            <label>Número de Seguro Social</label>
-            <div class="np-field-value" id="nss">{{ $paciente?->identificacion ?? '—' }}</div>
-          </div>
-          
-          <div class="np-info-box">
-            <label>Teléfono</label>
-            <div class="np-field-value" id="telefono">{{ $paciente?->telefono ?? '—' }}</div>
-          </div>
-          
-          <div class="np-info-box">
-            <label>Correo electrónico</label>
-            <div class="np-field-value" id="email">{{ $paciente?->email ?? '—' }}</div>
-          </div>
-          
-          <div class="np-info-box">
-            <label>Procedimiento</label>
-            <div class="np-field-value">{{ $paciente?->procedimiento ?? '—' }}</div>
-          </div>
-          
-          <div class="np-info-box">
-            <label>Fecha de registro</label>
-            <div class="np-field-value" id="fecha_registro">{{ $paciente?->created_at?->format('Y-m-d') ?? '—' }}</div>
-          </div>
-          
-          <div class="np-info-box np-wide">
-            <label>Diagnóstico Preliminar</label>
-            <div class="np-field-value np-textarea-value" style="min-height:50px; line-height: 1.3;">Define lo que podria tener</div>
-          </div>
+<<<<<<< HEAD
+        {{-- 2. FECHA DE NACIMIENTO --}}
+        <div>
+            <div style="font-size: 11px; font-weight: 700; color: var(--txt-soft); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">
+                Fecha de Nacimiento
+            </div>
+            <div style="font-size: 14px; font-weight: 500; color: var(--txt);">
+                @php
+                    $fechaNac = isset($paciente) ? (is_object($paciente) ? ($paciente->fecha_nacimiento ?? null) : ($paciente['fecha_nacimiento'] ?? null)) : null;
+                @endphp
+                {{ $fechaNac ? \Carbon\Carbon::parse($fechaNac)->format('d/m/Y') : '—' }}
+            </div>
         </div>
 
+        {{-- 3. EDAD --}}
+        <div>
+            <div style="font-size: 11px; font-weight: 700; color: var(--txt-soft); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">
+                Edad
+            </div>
+            <div style="font-size: 14px; font-weight: 500; color: var(--txt);">
+                {{ $fechaNac ? \Carbon\Carbon::parse($fechaNac)->age . ' años' : '—' }}
+            </div>
+        </div>
+
+        {{-- 4. PESO --}}
+        <div>
+            <div style="font-size: 11px; font-weight: 700; color: var(--txt-soft); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">
+                Peso
+            </div>
+            <div style="font-size: 14px; font-weight: 500; color: var(--txt);">
+                @if(isset($paciente))
+                    {{ is_object($paciente) ? ($paciente->peso ?? '—') : ($paciente['peso'] ?? '—') }} kg
+                @else
+                    —
+                @endif
+            </div>
+        </div>
+
+        {{-- 5. ALTURA --}}
+        <div>
+            <div style="font-size: 11px; font-weight: 700; color: var(--txt-soft); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">
+                Altura
+            </div>
+            <div style="font-size: 14px; font-weight: 500; color: var(--txt);">
+                @if(isset($paciente))
+                    {{ is_object($paciente) ? ($paciente->altura ?? '—') : ($paciente['altura'] ?? '—') }} m
+                @else
+                    —
+                @endif
+            </div>
+        </div>
+
+        {{-- 6. SEXO --}}
+        <div>
+            <div style="font-size: 11px; font-weight: 700; color: var(--txt-soft); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">
+                Sexo
+            </div>
+            <div style="font-size: 14px; font-weight: 500; color: var(--txt);">
+                @if(isset($paciente))
+                    {{ is_object($paciente) ? ($paciente->sexo ?? '—') : ($paciente['sexo'] ?? '—') }}
+                @else
+                    —
+                @endif
+            </div>
+        </div>
+
+        {{-- 7. DIRECCIÓN --}}
+        <div style="grid-column: span 2;">
+            <div style="font-size: 11px; font-weight: 700; color: var(--txt-soft); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">
+                Dirección
+            </div>
+            <div style="font-size: 14px; font-weight: 500; color: var(--txt);">
+                @if(isset($paciente))
+                    {{ is_object($paciente) ? ($paciente->direccion ?? '—') : ($paciente['direccion'] ?? '—') }}
+                @else
+                    —
+                @endif
+            </div>
+        </div>
+
+        {{-- 8. TELÉFONO --}}
+        <div>
+            <div style="font-size: 11px; font-weight: 700; color: var(--txt-soft); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">
+                Teléfono
+            </div>
+            <div style="font-size: 14px; font-weight: 500; color: var(--txt);">
+                @if(isset($paciente))
+                    {{ is_object($paciente) ? ($paciente->telefono ?? '—') : ($paciente['telefono'] ?? '—') }}
+                @else
+                    —
+                @endif
+            </div>
+        </div>
+
+        {{-- 9. E-MAIL --}}
+        <div style="grid-column: span 2;">
+            <div style="font-size: 11px; font-weight: 700; color: var(--txt-soft); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">
+                E-mail
+            </div>
+            <div style="font-size: 14px; font-weight: 500; color: var(--txt);">
+                @if(isset($paciente))
+                    {{ is_object($paciente) ? ($paciente->email ?? '—') : ($paciente['email'] ?? '—') }}
+                @else
+                    —
+                @endif
+            </div>
+        </div>
+
+        {{-- 10. ALERGIAS --}}
+        <div>
+            <div style="font-size: 11px; font-weight: 700; color: #ff6b6b; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">
+                Alergias
+            </div>
+            <div style="font-size: 14px; font-weight: 500; color: var(--txt);">
+                @if(isset($paciente))
+                    {{ is_object($paciente) ? ($paciente->alergias ?? 'Ninguna registrada') : ($paciente['alergias'] ?? 'Ninguna registrada') }}
+                @else
+                    Ninguna registrada
+                @endif
+            </div>
+        </div>
+
+        {{-- 11. ANTECEDENTES MÉDICOS (ANCHO COMPLETO) --}}
+        <div style="grid-column: span 3; border-top: 1px solid var(--stroke); padding-top: 16px; margin-top: 8px;">
+            <div style="font-size: 11px; font-weight: 700; color: var(--txt-soft); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">
+                Antecedentes Médicos
+            </div>
+            <div style="font-size: 14px; font-weight: 500; color: var(--txt); line-height: 1.5;">
+                @if(isset($paciente))
+                    {{ is_object($paciente) ? ($paciente->antecedentes_medicos ?? 'Sin antecedentes médicos de relevancia reportados.') : ($paciente['antecedentes_medicos'] ?? 'Sin antecedentes médicos de relevancia reportados.') }}
+                @else
+                    Sin antecedentes médicos de relevancia reportados.
+                @endif
+            </div>
+        </div>
+
+    </div>
+</div>
+  </form>
+=======
+    {{-- Card historial de estudios --}}
+    <div class="np-card rise d3" style="margin-top:16px">
+      <div class="np-sec-header" style="font-size:16px;font-weight:700;margin-bottom:16px">Historial de estudios</div>
+
+      <table class="np-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Procedimiento</th>
+            <th>Diagnostico Preliminar</th>
+            <th>Medico</th>
+            <th>Archivos</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="npHistorialBody">
+          <tr>
+            <td>23/06/2026</td>
+            <td>Colonoscopia</td>
+            <td>Polipo intestinal</td>
+            <td>Dr. Victor</td>
+            <td><span class="np-archivos"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> 2 archivos</span></td>
+            <td><button type="button" class="np-btn-ver">Ver estudio</button> <button type="button" class="np-btn-dots">&#8942;</button></td>
+          </tr>
+          <tr>
+            <td>15/03/2026</td>
+            <td>Endoscopia digestiva alta</td>
+            <td>Gastritis erosiva</td>
+            <td>Dr. Victor</td>
+            <td><span class="np-archivos"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> 3 archivos</span></td>
+            <td><button type="button" class="np-btn-ver">Ver estudio</button> <button type="button" class="np-btn-dots">&#8942;</button></td>
+          </tr>
+          <tr>
+            <td>10/12/2025</td>
+            <td>Colonoscopia</td>
+            <td>Diverticulosis</td>
+            <td>Dr. Victor</td>
+            <td><span class="np-archivos"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> 4 archivos</span></td>
+            <td><button type="button" class="np-btn-ver">Ver estudio</button> <button type="button" class="np-btn-dots">&#8942;</button></td>
+          </tr>
+          <tr>
+            <td>22/08/2025</td>
+            <td>Endoscopia digestiva alta</td>
+            <td>Reflujo gastroesofagico</td>
+            <td>Dr. Victor</td>
+            <td><span class="np-archivos"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> 2 archivos</span></td>
+            <td><button type="button" class="np-btn-ver">Ver estudio</button> <button type="button" class="np-btn-dots">&#8942;</button></td>
+          </tr>
+          <tr>
+            <td>05/05/2025</td>
+            <td>Colonoscopia</td>
+            <td>Sin hallazgos relevantes</td>
+            <td>Dr. Victor</td>
+            <td><span class="np-archivos"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> 1 archivo</span></td>
+            <td><button type="button" class="np-btn-ver">Ver estudio</button> <button type="button" class="np-btn-dots">&#8942;</button></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="np-table-footer">
+        <span>Mostrando 1 a 5 de 12 estudios</span>
+        <div class="np-pagination">
+          <button type="button" class="np-page-btn">&lsaquo;</button>
+          <button type="button" class="np-page-btn active">1</button>
+          <button type="button" class="np-page-btn">2</button>
+          <button type="button" class="np-page-btn">3</button>
+          <button type="button" class="np-page-btn">&rsaquo;</button>
+        </div>
       </div>
     </div>
 
-  </form>
+  </div>
+>>>>>>> origin/Paulina-Pacientes
 
   {{-- Sidebar acciones --}}
   <div class="np-side rise d4">
     <div class="np-action-btns">
-      <button class="np-action-btn" type="button" id="btnIniciarGrabacion" onclick="window.openDispositivoModal()">
+      <a class="np-action-btn" href="{{ route('nuevo-estudio.grabando') }}">
         <span class="np-ab-icon" style="background:rgba(255,59,59,.12);border-color:rgba(255,90,110,.4)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff5a6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="#ff5a6e" stroke="none"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff5a6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="#ff5a6e" stroke="none"/></svg>
         </span>
         Iniciar estudio
       </button>
@@ -1247,7 +1593,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
           Sí, el dispositivo está conectado
         </label>
       </div>
-      <form method="POST" action="{{ route('nuevo-estudio.store') }}" style="width:100%">
+      <form method="POST" action="{{ route('nuevo-estudio.store') }}" id="formIniciarEstudio" style="width:100%">
         @csrf
         <input type="hidden" name="paciente_id" value="{{ $paciente?->id }}">
         <input type="hidden" name="tipo" value="{{ $paciente?->procedimiento }}">
@@ -1265,67 +1611,192 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
 @push('scripts')
 <script>
 (function () {
-
+<<<<<<< HEAD
+  const CSRF = @json(csrf_token());
+=======
+>>>>>>> origin/Paulina-Pacientes
 
   /* Fecha por defecto */
   var now  = new Date();
   var pad  = function(n){ return String(n).padStart(2,'0'); };
-  var fechaNac = document.getElementById('fecha_nac');
-  var fechaReg = document.getElementById('fecha_registro');
-  if (fechaNac && !fechaNac.value) fechaNac.value = '1998-12-25';
-  if (fechaReg) fechaReg.value = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate());
+  document.getElementById('fecha_registro').textContent = pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear();
 
-  /* Foto menu (formulario oculto, solo por seguridad) */
+  /* Auto-fill desde query params (cuando viene de Pacientes > Iniciar estudio) */
+  var urlParams = new URLSearchParams(window.location.search);
+  var qName   = urlParams.get('name')   || '';
+  var qAge    = urlParams.get('age')    || '';
+  var qGender = urlParams.get('gender') || '';
+  var qDob    = urlParams.get('dob')    || '';
+
+  if (qName) {
+    document.getElementById('nombre').textContent = qName;
+    document.getElementById('npSearch').value = qName;
+  }
+  if (qAge) {
+    document.getElementById('edad').textContent = qAge;
+  }
+  if (qGender) {
+    var sexVal = qGender.charAt(0).toUpperCase();
+    if (sexVal === 'F') {
+      document.getElementById('sexo').textContent = 'Femenino';
+    } else if (sexVal === 'M') {
+      document.getElementById('sexo').textContent = 'Masculino';
+    }
+  }
+  if (qDob) {
+    // qDob puede venir como dd/mm/yyyy o yyyy-mm-dd
+    if (qDob.includes('/')) {
+      document.getElementById('fecha_nac').textContent = qDob;
+    } else {
+      var parts = qDob.split('-');
+      document.getElementById('fecha_nac').textContent = parts[2]+'/'+parts[1]+'/'+parts[0];
+    }
+  }
+
+  // Si viene con datos de paciente, mostrar formulario directamente
+  if (qName) {
+    showForm();
+  }
+
+  /* Foto menu */
   var fotoMenu   = document.getElementById('npFotoMenu');
-  var btnFotoMenu= document.getElementById('npBtnFotoMenu');
   var btnFotoTxt = document.getElementById('npBtnFotoTxt');
-  var btnGaleria = document.getElementById('npBtnGaleria');
-  var btnCamara  = document.getElementById('npBtnCamara');
-  var fotoInput  = document.getElementById('npFotoInput');
-  var fotoCamera = document.getElementById('npFotoCamera');
 
-  if (btnFotoMenu && fotoMenu){
-    btnFotoMenu.addEventListener('click', function(e){
-      e.stopPropagation();
-      fotoMenu.style.display = fotoMenu.style.display === 'none' ? 'block' : 'none';
-    });
-    document.addEventListener('click', function(){ fotoMenu.style.display = 'none'; });
-  }
-  if (btnGaleria && fotoInput){
-    btnGaleria.addEventListener('click', function(){ fotoMenu.style.display = 'none'; fotoInput.click(); });
-  }
-  if (btnCamara && fotoCamera){
-    btnCamara.addEventListener('click', function(){ fotoMenu.style.display = 'none'; fotoCamera.click(); });
-  }
+  document.getElementById('npBtnFotoMenu').addEventListener('click', function(e){
+    e.stopPropagation();
+    fotoMenu.style.display = fotoMenu.style.display === 'none' ? 'block' : 'none';
+  });
+  document.addEventListener('click', function(){ fotoMenu.style.display = 'none'; });
+  document.getElementById('npBtnGaleria').addEventListener('click', function(){
+    fotoMenu.style.display = 'none';
+    document.getElementById('npFotoInput').click();
+  });
+  document.getElementById('npBtnCamara').addEventListener('click', function(){
+    fotoMenu.style.display = 'none';
+    document.getElementById('npFotoCamera').click();
+  });
 
   function applyPreview(file){
     if (!file) return;
-    var img = document.getElementById('npFotoPreview');
-    var ph  = document.getElementById('npFotoPh');
-    if (!img || !ph) return;
     var r = new FileReader();
     r.onload = function(e){
+      var img = document.getElementById('npFotoPreview');
+      var ph  = document.getElementById('npFotoPh');
       img.src = e.target.result;
       img.style.display = 'block';
       ph.style.display  = 'none';
-      if (btnFotoTxt) btnFotoTxt.textContent = 'Cambiar foto';
+      btnFotoTxt.textContent = 'Cambiar foto';
     };
     r.readAsDataURL(file);
   }
-  if (fotoInput) fotoInput.addEventListener('change', function(){ applyPreview(this.files[0]); });
-  if (fotoCamera) fotoCamera.addEventListener('change', function(){ applyPreview(this.files[0]); });
+  document.getElementById('npFotoInput').addEventListener('change',  function(){ applyPreview(this.files[0]); });
+  document.getElementById('npFotoCamera').addEventListener('change', function(){ applyPreview(this.files[0]); });
 
-  /* (Buscador y filtros de pacientes eliminados) */
+  /* Buscador de pacientes */
+  (function () {
+    const PACIENTES = window.__NP_PACIENTES || [];
+    const input = document.getElementById('npSearch');
+    const results = document.getElementById('npResults');
+    const list = document.getElementById('npResList');
+    const searchBar = document.getElementById('npSearchBar');
+
+    if (!input || !results || !list) return;
+
+    function normalize(str) {
+      return (str || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    }
+
+    function renderItems(items) {
+      list.innerHTML = '';
+      if (items.length === 0) {
+        list.innerHTML = '<div class="np-res-empty">No se encontraron pacientes.</div>';
+        return;
+      }
+      items.forEach((p, i) => {
+        const el = document.createElement('div');
+        el.className = 'np-res-item';
+        el.dataset.index = i;
+        const avatar = p.foto
+          ? `<img src="${p.foto}" alt="${p.nombre}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
+          : p.iniciales;
+        const meta = [p.folio ? 'Folio ' + p.folio : '', p.edad ? p.edad + ' años' : '', p.sexo, p.telefono].filter(Boolean).join(' · ');
+        el.innerHTML = `
+          <div class="np-res-av">${avatar}</div>
+          <div class="np-res-info">
+            <div class="np-res-name">${p.nombre}</div>
+            <div class="np-res-meta">${meta || 'Sin información adicional'}</div>
+          </div>
+        `;
+        el.addEventListener('click', () => {
+          window.location.href = `{{ route('nuevo-estudio') }}?paciente=${encodeURIComponent(p.id)}`;
+        });
+        list.appendChild(el);
+      });
+    }
+
+    function search(q) {
+      const term = normalize(q).trim();
+      if (!term) {
+        results.classList.remove('open');
+        return;
+      }
+      const filtered = PACIENTES.filter(p => {
+        return normalize(p.nombre).includes(term)
+          || normalize(p.folio).includes(term)
+          || normalize(p.telefono).includes(term)
+          || normalize(p.email).includes(term);
+      });
+      renderItems(filtered);
+      results.classList.add('open');
+    }
+
+    let debounce;
+    input.addEventListener('input', function () {
+      clearTimeout(debounce);
+      debounce = setTimeout(() => search(this.value), 150);
+    });
+
+    input.addEventListener('focus', function () {
+      if (this.value.trim()) search(this.value);
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('#npSearchBar') && !e.target.closest('#npResults')) {
+        results.classList.remove('open');
+      }
+    });
+
+    input.addEventListener('keydown', function (e) {
+      const items = list.querySelectorAll('.np-res-item');
+      let active = list.querySelector('.np-res-item.active');
+      let idx = active ? Array.from(items).indexOf(active) : -1;
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        idx = Math.min(idx + 1, items.length - 1);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        idx = Math.max(idx - 1, 0);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (items[idx]) {
+          items[idx].click();
+        } else if (items.length === 1) {
+          items[0].click();
+        }
+        return;
+      } else if (e.key === 'Escape') {
+        results.classList.remove('open');
+        return;
+      }
+      items.forEach(it => it.classList.remove('active'));
+      if (items[idx]) items[idx].classList.add('active');
+    });
+  })();
 
   function showForm(){
     var emptyState = document.getElementById('npEmptyState');
     if (emptyState) emptyState.style.display = 'none';
     document.getElementById('npFormLayout').style.display = 'grid';
-    document.querySelectorAll('.np-tab.hidden').forEach(function(t){ t.classList.remove('hidden'); });
-    const topBack = document.getElementById('npBackToPatientsTop');
-    const topNew = document.getElementById('npNewStudyBtn');
-    if (topBack) topBack.classList.add('visible');
-    if (topNew) topNew.classList.add('visible');
   }
 
 
@@ -1353,8 +1824,10 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   }
   setupMediaFilter('npGalSearch', '#tab-galeria');
 
-  /* Ir directo al formulario del paciente */
+  /* Mostrar formulario solo si hay paciente seleccionado */
+  @if($paciente)
   showForm();
+  @endif
 
   /* Modal Nuevo Estudio */
   const nsBackdrop = document.getElementById('nsModalBackdrop');
@@ -1467,6 +1940,33 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   chkDispositivoConectado?.addEventListener('change', updateDispositivoStatus);
   selDispositivo?.addEventListener('change', function(){
     if (dispositivoNombre) dispositivoNombre.textContent = selDispositivo.value;
+  });
+
+  /* Enviar inicio de estudio y redirigir a la interfaz de grabando */
+  var formIniciarEstudio = document.getElementById('formIniciarEstudio');
+  formIniciarEstudio?.addEventListener('submit', function(e){
+    e.preventDefault();
+    var btn = document.getElementById('btnComenzarGrabar');
+    if (btn) { btn.disabled = true; btn.textContent = 'Iniciando...'; }
+    fetch(formIniciarEstudio.action, {
+      method: 'POST',
+      headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      body: new FormData(formIniciarEstudio)
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (data && data.ok && data.redirect) {
+        window.location.href = data.redirect;
+      } else if (data && data.redirect) {
+        window.location.href = data.redirect;
+      } else {
+        window.location.reload();
+      }
+    })
+    .catch(function(err){
+      console.error('Error iniciando estudio', err);
+      formIniciarEstudio.submit();
+    });
   });
 
 })();

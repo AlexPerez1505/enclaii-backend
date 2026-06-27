@@ -32,6 +32,34 @@
           'procedimiento' => $paciente->procedimiento ?? '',
       ];
   });
+
+  $pacienteSeleccionadoJson = null;
+  if ($pacienteSeleccionado) {
+      $nombre = trim($pacienteSeleccionado->nombre_completo ?? 'Paciente sin nombre');
+      $partes = preg_split('/\s+/', $nombre);
+      $iniciales = '';
+      if (count($partes) >= 2) {
+          $iniciales = mb_strtoupper(mb_substr($partes[0], 0, 1) . mb_substr($partes[1], 0, 1));
+      } else {
+          $iniciales = mb_strtoupper(mb_substr($nombre, 0, 2));
+      }
+
+      $pacienteSeleccionadoJson = [
+          'id' => $pacienteSeleccionado->id,
+          'nombre' => $nombre,
+          'folio' => $pacienteSeleccionado->folio ?? '',
+          'edad' => $pacienteSeleccionado->edad ?? '',
+          'genero' => $pacienteSeleccionado->sexo ? ucfirst($pacienteSeleccionado->sexo) : 'No especificado',
+          'nac' => $pacienteSeleccionado->fecha_nacimiento ? $pacienteSeleccionado->fecha_nacimiento->format('d/m/Y') : '',
+          'tel' => $pacienteSeleccionado->telefono ?? '',
+          'email' => $pacienteSeleccionado->email ?? '',
+          'dir' => $pacienteSeleccionado->direccion ?? '',
+          'foto_url' => $pacienteSeleccionado->foto ? asset('storage/' . $pacienteSeleccionado->foto) : null,
+          'iniciales' => $iniciales,
+          'medico' => $pacienteSeleccionado->medico ?? '',
+          'procedimiento' => $pacienteSeleccionado->procedimiento ?? '',
+      ];
+  }
 @endphp
 
 <style>
@@ -331,6 +359,7 @@ html[data-theme="light"] .pac-filter-result-empty{color:#5B6A99}
   }
 
   const PACIENTES = @json($pacientesAgendarJs);
+  const PACIENTE_SELECCIONADO = @json($pacienteSeleccionadoJson);
 
   const searchInput = document.getElementById('pacSearch');
   const suggestions = document.getElementById('pacSuggestions');
@@ -525,7 +554,14 @@ html[data-theme="light"] .pac-filter-result-empty{color:#5B6A99}
   });
 
   if (PACIENTES.length > 0) {
-    document.addEventListener('DOMContentLoaded', () => selectPatient(PACIENTES[0]));
+    document.addEventListener('DOMContentLoaded', () => {
+      if (PACIENTE_SELECCIONADO) {
+        const fromList = PACIENTES.find(p => p.id === PACIENTE_SELECCIONADO.id);
+        selectPatient(fromList || PACIENTE_SELECCIONADO);
+      } else {
+        selectPatient(PACIENTES[0]);
+      }
+    });
   }
 })();
 </script>

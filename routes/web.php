@@ -27,25 +27,39 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
         $estudiosSinReporte = \App\Models\Estudio::whereDoesntHave('reportes')->count();
 
-        // Próximo paciente: la cita pendiente más cercana
+        // Auto-cancelar citas próximas cuya fecha/hora ya pasó
+        \App\Models\Cita::query()
+            ->where('estado', 'proximo')
+            ->whereRaw("CONCAT(fecha, ' ', hora) <= ?", [now()->format('Y-m-d H:i:s')])
+            ->update(['estado' => 'cancelado']);
+
+        // Próximo paciente: la cita pendiente más cercana (solo futuras)
         $proximaCita = \App\Models\Cita::with('paciente')
             ->whereNotIn('estado', ['cancelado', 'completado'])
-            ->whereDate('fecha', '>=', now()->toDateString())
+            ->whereRaw("CONCAT(fecha, ' ', hora) >= ?", [now()->format('Y-m-d H:i:s')])
             ->orderBy('fecha')
             ->orderBy('hora')
             ->first();
 
-        // Pacientes pendientes HOY: citas de hoy que no estén completadas ni canceladas
+        // Pacientes pendientes HOY: citas de hoy futuras y no completadas/canceladas
         $pendientesHoy = \App\Models\Cita::with('paciente')
             ->whereDate('fecha', now()->toDateString())
             ->whereNotIn('estado', ['completado', 'cancelado'])
+            ->whereTime('hora', '>=', now()->format('H:i:s'))
             ->orderBy('hora')
             ->get();
 
-        return view('dashboard.index', compact('estudiosSinReporte', 'proximaCita', 'pendientesHoy'));
+        // Citas por estado para el donut del resumen
+        $citasProximas = \App\Models\Cita::where('estado', 'proximo')->count();
+        $citasCompletadas = \App\Models\Cita::where('estado', 'completado')->count();
+        $citasCanceladas = \App\Models\Cita::where('estado', 'cancelado')->count();
+
+        return view('dashboard.index', compact(
+            'estudiosSinReporte', 'proximaCita', 'pendientesHoy',
+            'citasProximas', 'citasCompletadas', 'citasCanceladas'
+        ));
     })->name('dashboard');
     
-
 
     Route::get('/ia-reportes', function () {
         $reportes = Reporte::with(['estudio.paciente', 'usuario'])
@@ -91,7 +105,10 @@ Route::middleware('auth')->group(function () {
             'estudios' => ['valor' => $estMes, 'trend' => $pct($estMes, $estPrev)],
         ];
 
-        return view('ia-reportes.index', compact('reportes', 'kpis'));
+        $hallazgosData = app(\App\Http\Controllers\IaReporteController::class)->hallazgosData();
+        $hallazgos = collect($hallazgosData['hallazgos'])->take(5)->all();
+
+        return view('ia-reportes.index', compact('reportes', 'kpis', 'hallazgos'));
     })->name('ia-reportes');
 
     Route::get('/ia-reportes/generar', function () {
@@ -234,6 +251,9 @@ Route::middleware('auth')->group(function () {
         // Plantillas guardadas (configuración persistida por clave)
         $plantillasDb = \App\Models\Plantilla::all()->mapWithKeys(fn ($p) => [
             $p->clave => [
+                'id' => $p->id,
+                'titulo' => $p->titulo,
+                'subtitulo' => $p->subtitulo,
                 'configuracion' => $p->configuracion,
                 'columnas' => $p->columnas,
                 'num_imagenes' => $p->num_imagenes,
@@ -283,9 +303,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/ia-reportes/chat', [IaReporteController::class, 'chat'])
         ->name('ia-reportes.chat.post');
 
-    Route::get('/ia-reportes/hallazgos', function () {
-        return view('ia-reportes.hallazgos');
-    })->name('ia-reportes.hallazgos');
+    Route::get('/ia-reportes/hallazgos', [IaReporteController::class, 'hallazgos'])
+        ->name('ia-reportes.hallazgos');
 
     Route::get('/ia-reportes/reportes', function () {
         $reportes = Reporte::with(['estudio.paciente', 'usuario'])
@@ -294,10 +313,6 @@ Route::middleware('auth')->group(function () {
 
         return view('ia-reportes.reportes', compact('reportes'));
     })->name('ia-reportes.todos');
-
-    Route::get('/ia-reportes/redactar', function () {
-        return view('ia-reportes.redactar');
-    })->name('ia-reportes.redactar');
 
     Route::get('/ia-reportes/editar', function () {
         $reporteId = request()->query('reporte');
@@ -312,10 +327,26 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/ia-reportes/ver', function () {
         $reporte = null;
+        $estudioImagenes = collect();
         if (request()->has('reporte')) {
-            $reporte = \App\Models\Reporte::with(['estudio.paciente', 'usuario'])->find(request()->query('reporte'));
+            $reporte = \App\Models\Reporte::with(['estudio.paciente', 'estudio.archivos', 'usuario', 'plantilla'])->find(request()->query('reporte'));
+            if ($reporte && $reporte->estudio_id) {
+                $estudioImagenes = \App\Models\EstudioArchivo::where('estudio_id', $reporte->estudio_id)
+                    ->where('tipo', 'imagen')
+                    ->orderByDesc('capturado_en')
+                    ->get()
+                    ->map(fn ($a) => ['url' => asset('storage/' . $a->path), 'titulo' => $a->nombre_original]);
+            }
+            // Si el reporte no tiene plantilla asignada, cargar la que corresponda al tipo de estudio
+            if ($reporte && ! $reporte->plantilla && $reporte->estudio?->tipo) {
+                $tipoKey = \Illuminate\Support\Str::lower($reporte->estudio->tipo);
+                $default = \App\Models\Plantilla::where('clave', $tipoKey)->first();
+                if ($default) {
+                    $reporte->setRelation('plantilla', $default);
+                }
+            }
         }
-        return view('ia-reportes.ver', compact('reporte'));
+        return view('ia-reportes.ver', compact('reporte', 'estudioImagenes'));
     })->name('ia-reportes.ver');
 
     Route::get('/ia-reportes/analisis', function () {
@@ -328,9 +359,9 @@ Route::middleware('auth')->group(function () {
         ]);
     })->name('configuracion');
 
-    Route::get('/finanzas', function () {
-        return view('finanzas.index');
-    })->name('finanzas');
+    // Route::get('/finanzas', function () {
+    //     return view('finanzas.index');
+    // })->name('finanzas');
 
     Route::patch('/configuracion/general', [SettingsController::class, 'update'])
         ->name('configuracion.general.update');
@@ -348,6 +379,10 @@ Route::middleware('auth')->group(function () {
         $paciente = $request->filled('paciente')
             ? Paciente::find($request->query('paciente'))
             : null;
+
+        $pacientes = Paciente::select('id', 'nombre_completo', 'folio', 'edad', 'sexo', 'telefono', 'email', 'foto')
+            ->orderBy('nombre_completo')
+            ->get();
 
         $galImagenes = collect();
         $galVideos = collect();
@@ -371,6 +406,7 @@ Route::middleware('auth')->group(function () {
 
         return view('estudios.crear', [
             'paciente' => $paciente,
+            'pacientes' => $pacientes,
             'galImagenes' => $galImagenes,
             'galVideos' => $galVideos,
             'reportes' => $reportes,
@@ -419,12 +455,42 @@ Route::middleware('auth')->group(function () {
             'linear-gradient(135deg,#99f6e4,#6ee7b7)',
         ];
 
-        $pacientes = Paciente::orderBy('nombre_completo')->get()->values()->map(function ($p, $i) use ($colores) {
-            $base = \App\Models\EstudioArchivo::where('paciente_id', $p->id);
-            $fotos = (clone $base)->where('tipo', 'imagen')->count();
-            $videos = (clone $base)->where('tipo', 'video')->count();
-            $estudios = \App\Models\Estudio::where('paciente_id', $p->id)->count();
-            $ultimoTs = (clone $base)->max('capturado_en');
+        $medicos = \App\Models\Estudio::query()
+            ->whereNotNull('medico')
+            ->where('medico', '<>', '')
+            ->distinct()
+            ->orderBy('medico')
+            ->pluck('medico');
+
+        $procedimientos = \App\Models\Estudio::query()
+            ->whereNotNull('tipo')
+            ->where('tipo', '<>', '')
+            ->distinct()
+            ->orderBy('tipo')
+            ->pluck('tipo');
+
+        $hallazgos = \App\Models\Hallazgo::orderBy('nombre')->get(['id', 'nombre']);
+
+        $pacientesDb = Paciente::orderBy('nombre_completo')->get()->values();
+        $pacienteIds = $pacientesDb->pluck('id');
+        $estudiosPorPaciente = \App\Models\Estudio::with([
+                'archivos:id,estudio_id,tipo',
+                'estudioHallazgos:id,estudio_id,hallazgo_id,detectado_por',
+            ])
+            ->whereIn('paciente_id', $pacienteIds)
+            ->get()
+            ->groupBy('paciente_id');
+        $archivosPorPaciente = \App\Models\EstudioArchivo::whereIn('paciente_id', $pacienteIds)
+            ->get()
+            ->groupBy('paciente_id');
+
+        $pacientes = $pacientesDb->map(function ($p, $i) use ($colores, $estudiosPorPaciente, $archivosPorPaciente) {
+            $archivosPaciente = $archivosPorPaciente->get($p->id, collect());
+            $estudiosDetalle = $estudiosPorPaciente->get($p->id, collect());
+            $fotos = $archivosPaciente->where('tipo', 'imagen')->count();
+            $videos = $archivosPaciente->where('tipo', 'video')->count();
+            $estudios = $estudiosDetalle->count();
+            $ultimoTs = $archivosPaciente->max('capturado_en');
             $ultimo = $ultimoTs ? \Illuminate\Support\Carbon::parse($ultimoTs)->format('d/m/Y') : '—';
             $ini = collect(explode(' ', $p->nombre_completo ?? ''))
                 ->filter()->take(2)
@@ -434,6 +500,7 @@ Route::middleware('auth')->group(function () {
             return [
                 'id' => $p->id,
                 'nombre' => $p->nombre_completo ?? 'Paciente',
+                'telefono' => $p->telefono ?? '',
                 'codigo' => $p->folio ?? $p->identificacion ?? '—',
                 'sexo' => $p->sexo ?? '—',
                 'edad' => $p->edad ? $p->edad . ' años' : '—',
@@ -444,10 +511,27 @@ Route::middleware('auth')->group(function () {
                 'estado' => 'Activo',
                 'ini' => $ini,
                 'color' => $colores[$i % count($colores)],
+                'filtros' => $estudiosDetalle->map(function ($estudio) {
+                    $hallazgosEstudio = $estudio->estudioHallazgos;
+
+                    return [
+                        'medico' => $estudio->medico ?? '',
+                        'procedimiento' => $estudio->tipo ?? '',
+                        'fecha' => $estudio->fecha?->format('Y-m-d') ?? '',
+                        'estado' => $estudio->estado ?? '',
+                        'archivos' => $estudio->archivos->pluck('tipo')->unique()->values(),
+                        'hallazgos' => $hallazgosEstudio->pluck('hallazgo_id')
+                            ->map(fn ($id) => (string) $id)
+                            ->values(),
+                        'hallazgos_ia' => $hallazgosEstudio->contains(
+                            fn ($hallazgo) => mb_strtolower($hallazgo->detectado_por ?? '') === 'ia'
+                        ),
+                    ];
+                })->values(),
             ];
         });
 
-        return view('galeria.index', compact('pacientes'));
+        return view('galeria.index', compact('pacientes', 'medicos', 'procedimientos', 'hallazgos'));
     })->name('galeria');
 
     Route::get('/galeria/paciente/{id}', function ($id) {
@@ -519,6 +603,9 @@ Route::middleware('auth')->group(function () {
         ]);
     })->name('galeria.imagen');
 
+    Route::delete('/galeria/imagenes/{archivo}', [NuevoEstudioController::class, 'destroyImagenGaleria'])
+        ->name('galeria.imagen.destroy');
+
     Route::post('/galeria/imagen/{id}/guardar', function ($id, \Illuminate\Http\Request $request) {
         $archivo = \App\Models\EstudioArchivo::findOrFail($id);
 
@@ -586,9 +673,9 @@ Route::middleware('auth')->group(function () {
     })->name('galeria.imagen.guardar-copia');
 
     /* ── Finanzas ── */
-    Route::get('/finanzas', function () {
-        return view('finanzas.index');
-    })->name('finanzas');
+    // Route::get('/finanzas', function () {
+    //     return view('finanzas.index');
+    // })->name('finanzas');
 });
 
 

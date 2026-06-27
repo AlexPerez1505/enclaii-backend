@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Hallazgos detectados por IA')
+@section('title', 'Hallazgos')
 @section('active', 'ia-reportes')
-@section('header-title', 'Hallazgos detectados por IA')
+@section('header-title', 'Hallazgos')
 @section('header-sub')
-  Detalle completo de los hallazgos identificados por la IA en el estudio
+  Detalle completo de los hallazgos encontrados en los estudios
 @endsection
 
 @push('styles')
@@ -88,74 +88,48 @@
     {{-- Lista completa de hallazgos --}}
     <article class="card rise d2">
       <div class="hz-pat">
-        <span class="av">IA</span>
+        <span class="av">HZ</span>
         <div>
           <div class="nm">Hallazgos por síntoma</div>
           <div class="mt">Desglose de pacientes que presentan cada hallazgo</div>
         </div>
       </div>
 
-      <div class="find">
-        <div class="top"><span>Gastritis crónica</span><span class="tag-conf hi">Alta confianza</span><b>68%</b></div>
-        <div class="bar c1"><i data-w="68"></i></div>
-        <p class="desc">Inflamación difusa de la mucosa gástrica compatible con proceso crónico, predominante en antro.</p>
-        <div class="hz-people-lbl">PACIENTES CON ESTE HALLAZGO (4)</div>
-        <div class="hz-people">
-          <span class="hz-person"><span class="mini">MG</span>María González <small>92%</small></span>
-          <span class="hz-person"><span class="mini">JL</span>Jorge López <small>85%</small></span>
-          <span class="hz-person"><span class="mini">AR</span>Ana Ramírez <small>78%</small></span>
-          <span class="hz-person"><span class="mini">CS</span>Carlos Sánchez <small>71%</small></span>
+      @forelse($hallazgos as $i => $h)
+        @php
+          $colorClass = 'c' . (($i % 5) + 1);
+          $tagClass = $h['es_critico'] ? 'hi' : 'mid';
+          $tagText = $h['es_critico'] ? 'Crítico' : 'No crítico';
+        @endphp
+        <div class="find">
+          <div class="top">
+            <span>{{ $h['nombre'] }}</span>
+            <span class="tag-conf {{ $tagClass }}">{{ $tagText }}</span>
+            <b>{{ $h['cantidad'] }}</b>
+          </div>
+          <div class="bar {{ $colorClass }}"><i data-w="{{ $h['porcentaje'] }}"></i></div>
+          <div class="hz-people-lbl">PACIENTES CON ESTE HALLAZGO ({{ $h['pacientes']->count() }})</div>
+          <div class="hz-people">
+            @foreach($h['pacientes'] as $paciente)
+              @php
+                $iniciales = collect(explode(' ', $paciente->nombre_completo ?? 'N/A'))
+                  ->map(fn($p) => mb_substr($p, 0, 1))
+                  ->take(2)
+                  ->join('');
+              @endphp
+              <span class="hz-person">
+                <span class="mini">{{ $iniciales }}</span>
+                {{ $paciente->nombre_completo }}
+              </span>
+            @endforeach
+          </div>
         </div>
-      </div>
-      <div class="find">
-        <div class="top"><span>Reflujo gastroesofágico</span><span class="tag-conf mid">Media confianza</span><b>42%</b></div>
-        <div class="bar c2"><i data-w="42"></i></div>
-        <p class="desc">Signos de exposición ácida en la unión esofagogástrica con eritema distal.</p>
-        <div class="hz-people-lbl">PACIENTES CON ESTE HALLAZGO (3)</div>
-        <div class="hz-people">
-          <span class="hz-person"><span class="mini">MG</span>María González <small>64%</small></span>
-          <span class="hz-person"><span class="mini">PT</span>Pedro Torres <small>58%</small></span>
-          <span class="hz-person"><span class="mini">LM</span>Laura Méndez <small>49%</small></span>
+      @empty
+        <div class="find">
+          <div class="top"><span>Sin hallazgos registrados</span></div>
+          <p class="desc">No se han encontrado hallazgos en los estudios todavía.</p>
         </div>
-      </div>
-      <div class="find">
-        <div class="top"><span>Úlcera péptica</span><span class="tag-conf mid">Media confianza</span><b>18%</b></div>
-        <div class="bar c3"><i data-w="18"></i></div>
-        <p class="desc">Lesión focal sugerente; se recomienda confirmación y descartar sangrado activo.</p>
-        <div class="hz-people-lbl">PACIENTES CON ESTE HALLAZGO (2)</div>
-        <div class="hz-people">
-          <span class="hz-person"><span class="mini">JL</span>Jorge López <small>31%</small></span>
-          <span class="hz-person"><span class="mini">CS</span>Carlos Sánchez <small>22%</small></span>
-        </div>
-      </div>
-      <div class="find">
-        <div class="top"><span>Pólipos</span><span class="tag-conf low">Baja confianza</span><b>11%</b></div>
-        <div class="bar c4"><i data-w="11"></i></div>
-        <p class="desc">Imágenes elevadas no concluyentes; valorar en seguimiento endoscópico.</p>
-        <div class="hz-people-lbl">PACIENTES CON ESTE HALLAZGO (2)</div>
-        <div class="hz-people">
-          <span class="hz-person"><span class="mini">AR</span>Ana Ramírez <small>17%</small></span>
-          <span class="hz-person"><span class="mini">PT</span>Pedro Torres <small>13%</small></span>
-        </div>
-      </div>
-      <div class="find">
-        <div class="top"><span>Esofagitis</span><span class="tag-conf low">Baja confianza</span><b>9%</b></div>
-        <div class="bar c5"><i data-w="9"></i></div>
-        <p class="desc">Cambios mínimos en la mucosa esofágica distal sin erosiones evidentes.</p>
-        <div class="hz-people-lbl">PACIENTES CON ESTE HALLAZGO (1)</div>
-        <div class="hz-people">
-          <span class="hz-person"><span class="mini">LM</span>Laura Méndez <small>12%</small></span>
-        </div>
-      </div>
-      <div class="find">
-        <div class="top"><span>Metaplasia intestinal</span><span class="tag-conf low">Baja confianza</span><b>6%</b></div>
-        <div class="bar c2"><i data-w="6"></i></div>
-        <p class="desc">Probabilidad baja; relevante para vigilancia por riesgo de progresión.</p>
-        <div class="hz-people-lbl">PACIENTES CON ESTE HALLAZGO (1)</div>
-        <div class="hz-people">
-          <span class="hz-person"><span class="mini">CS</span>Carlos Sánchez <small>8%</small></span>
-        </div>
-      </div>
+      @endforelse
     </article>
 
     {{-- Columna derecha: resumen + gráfica --}}
@@ -163,15 +137,15 @@
 
       <article class="card hz-side rise d3">
         <h3>RESUMEN DE HALLAZGOS</h3>
-        <div class="hz-stat"><span>Total de hallazgos</span><b>6</b></div>
-        <div class="hz-stat"><span>Alta confianza</span><b class="ok">1</b></div>
-        <div class="hz-stat"><span>Media confianza</span><b class="warn">2</b></div>
-        <div class="hz-stat"><span>Baja confianza</span><b>3</b></div>
-        <div class="hz-stat"><span>Hallazgo principal</span><b class="warn" style="font-size:14px">Gastritis</b></div>
+        <div class="hz-stat"><span>Total de hallazgos</span><b>{{ $totalHallazgos }}</b></div>
+        <div class="hz-stat"><span>Total de estudios</span><b>{{ $totalEstudios }}</b></div>
+        <div class="hz-stat"><span>Hallazgos críticos</span><b class="crit">{{ $totalCriticos }}</b></div>
+        <div class="hz-stat"><span>Hallazgos no críticos</span><b class="ok">{{ $totalHallazgos - $totalCriticos }}</b></div>
+        <div class="hz-stat"><span>Hallazgo principal</span><b class="warn" style="font-size:14px">{{ $hallazgoPrincipal }}</b></div>
 
         <div class="hz-note">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-          Los hallazgos son sugerencias generadas por IA. La decisión final corresponde al profesional de la salud.
+          Los hallazgos mostrados provienen de los estudios registrados en el sistema.
         </div>
       </article>
 
@@ -179,12 +153,16 @@
       <article class="card hz-chart-card rise d4">
         <h3>HALLAZGOS DETECTADOS</h3>
         <div class="hz-bars">
-          <div class="hz-bar"><div class="col c1" data-v="68" data-max="68"></div><span class="val">68%</span><span class="lbl">Gastritis</span></div>
-          <div class="hz-bar"><div class="col c2" data-v="42" data-max="68"></div><span class="val">42%</span><span class="lbl">Reflujo</span></div>
-          <div class="hz-bar"><div class="col c3" data-v="18" data-max="68"></div><span class="val">18%</span><span class="lbl">Úlcera</span></div>
-          <div class="hz-bar"><div class="col c4" data-v="11" data-max="68"></div><span class="val">11%</span><span class="lbl">Pólipos</span></div>
-          <div class="hz-bar"><div class="col c5" data-v="9" data-max="68"></div><span class="val">9%</span><span class="lbl">Esofagitis</span></div>
-          <div class="hz-bar"><div class="col c2" data-v="6" data-max="68"></div><span class="val">6%</span><span class="lbl">Metaplasia</span></div>
+          @forelse($hallazgos as $i => $h)
+            @php $colorClass = 'c' . (($i % 5) + 1); @endphp
+            <div class="hz-bar">
+              <div class="col {{ $colorClass }}" data-v="{{ $h['cantidad'] }}" data-max="{{ collect($hallazgos)->max('cantidad') ?: 1 }}"></div>
+              <span class="val">{{ $h['cantidad'] }}</span>
+              <span class="lbl">{{ $h['nombre'] }}</span>
+            </div>
+          @empty
+            <div class="hz-bar"><span class="lbl">Sin datos</span></div>
+          @endforelse
         </div>
       </article>
 
