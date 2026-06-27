@@ -19,6 +19,6 @@
       <div class="min-value" style="font-size:clamp(0.85em,4.5cqi,1.35em);line-height:1.1">{{ $diaHoy }} {{ $mesHoy }}</div>
       <div class="min-meta" style="font-size:clamp(0.65em,3cqi,0.9em)">{{ $mesLargoHoy }}</div>
     </div>
+    <span class="widget-resize-handle"></span>
   </article>
-  <span class="widget-resize-handle"></span>
 </div>

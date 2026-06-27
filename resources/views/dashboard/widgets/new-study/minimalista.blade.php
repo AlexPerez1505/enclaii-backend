@@ -15,6 +15,6 @@
     <a class="min-btn" href="{{ route('pacientes.index') }}">
       Buscar paciente
     </a>
+    <span class="widget-resize-handle"></span>
   </article>
-  <span class="widget-resize-handle"></span>
 </div>

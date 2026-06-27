@@ -53,6 +53,8 @@
 .timeline-segment:last-child{border-right:none}
 .timeline-segment.free{background:#4C9242}
 .timeline-segment.busy{background:#D90000}
+.timeline-segment.past{background:rgba(120,120,120,.55);cursor:not-allowed}
+.timeline-segment.past::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 4px,rgba(255,255,255,.15) 4px,rgba(255,255,255,.15) 8px)}
 .timeline-cursor{position:absolute;top:50%;width:2px;height:140%;background:#fff;transform:translate(-50%,-50%);box-shadow:0 0 6px rgba(0,0,0,.5);z-index:2;pointer-events:none;transition:height 200ms ease}
 .timeline-selection{position:absolute;top:0;height:100%;background:linear-gradient(90deg,rgba(217,0,0,.45),rgba(217,0,0,.25));border-radius:6px;z-index:1;pointer-events:none;transition:left 150ms ease,width 150ms ease}
 /* Selector de hora */
@@ -122,6 +124,7 @@ html[data-theme="light"] .timeline-bar{background:rgba(20,50,120,.12)}
 html[data-theme="light"] .timeline-segment{border-right-color:rgba(20,50,120,.25)}
 html[data-theme="light"] .timeline-cursor{background:#0E1530;box-shadow:0 0 6px rgba(20,50,120,.25)}
 html[data-theme="light"] .timeline-selection{background:linear-gradient(90deg,rgba(217,0,0,.25),rgba(217,0,0,.12))}
+html[data-theme="light"] .timeline-segment.past{background:rgba(100,100,100,.35)}
 html[data-theme="light"] .time-picker-col input[type="text"]{background:#fff;border-color:rgba(20,50,120,.25);color:#0E1530}
 html[data-theme="light"] .time-picker-col input[type="text"]::selection{background:#1668D9;color:#fff}
 html[data-theme="light"] .time-separator{color:#0E1530}
@@ -303,14 +306,14 @@ html[data-theme="light"] .reprogram-info{
     // Forzar rango 08:00 - 23:59
     hh = Math.max(8, Math.min(23, hh));
     mm = Math.max(0, Math.min(59, mm));
-    return hh * 60 + mm;
+    return Math.max(hh * 60 + mm, getMinSelectableMinutes());
   }
 
   function setSelectedMinutes(minutes) {
-    let h24 = Math.floor(minutes / 60);
+    const min = getMinSelectableMinutes();
+    minutes = Math.max(min, Math.min(23 * 60 + 59, minutes));
+    const h24 = Math.floor(minutes / 60);
     const mm = minutes % 60;
-    // Forzar rango 08:00 - 23:59
-    h24 = Math.max(8, Math.min(23, h24));
     document.getElementById('timeHour').value = String(h24).padStart(2, '0');
     document.getElementById('timeMin').value = String(mm).padStart(2, '0');
   }
@@ -343,7 +346,15 @@ html[data-theme="light"] .reprogram-info{
 
     const statusEl = document.getElementById('timeStatus');
     const isBusy = overlaps(start, end, ranges);
+    const minStart = getMinSelectableMinutes();
 
+    if (start < minStart) {
+      statusEl.className = 'time-status bad';
+      statusEl.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        Horario pasado`;
+      return false;
+    }
     if (isBusy) {
       statusEl.className = 'time-status bad';
       statusEl.innerHTML = `
@@ -403,10 +414,12 @@ html[data-theme="light"] .reprogram-info{
     const ranges = getDayEvents(y, m, d).map(parseEventRange);
     const segmentMinutes = (DAY_END - DAY_START) * 60 / TIMELINE_SEGMENTS;
 
+    const minMinutes = getMinSelectableMinutes();
     for (let i = 0; i < TIMELINE_SEGMENTS; i++) {
       const segStart = (DAY_START * 60) + (i * segmentMinutes);
       const mid = segStart + segmentMinutes / 2;
-      const status = getSegmentStatus(mid, ranges);
+      let status = getSegmentStatus(mid, ranges);
+      if (segStart < minMinutes) status = 'past';
       const seg = document.createElement('div');
       seg.className = 'timeline-segment ' + status;
       seg.title = formatTime24(segStart) + ' – ' + formatTime24(segStart + segmentMinutes);
@@ -430,6 +443,25 @@ html[data-theme="light"] .reprogram-info{
     ? { y: __reprogramDate.getFullYear(), m: __reprogramDate.getMonth(), d: __reprogramDate.getDate() }
     : null;
   let selectedTime = null;
+
+  function getNowMinutes() {
+    const now = new Date();
+    return now.getHours() * 60 + now.getMinutes();
+  }
+
+  function isSelectedToday() {
+    const today = new Date();
+    return agSelected && agSelected.y === today.getFullYear() && agSelected.m === today.getMonth() && agSelected.d === today.getDate();
+  }
+
+  function getMinSelectableMinutes() {
+    const today = new Date();
+    const isToday = agSelected
+      ? agSelected.y === today.getFullYear() && agSelected.m === today.getMonth() && agSelected.d === today.getDate()
+      : true;
+    if (!isToday) return DAY_START * 60;
+    return Math.max(DAY_START * 60, getNowMinutes());
+  }
 
   function renderCalAg() {
     document.getElementById('calAgYear').textContent  = agY;
@@ -506,7 +538,9 @@ html[data-theme="light"] .reprogram-info{
         if (m !== null) selectedTime = m;
       }
     }
-    setSelectedMinutes(selectedTime || (10 * 60));
+    const defaultTime = Math.max(10 * 60, getMinSelectableMinutes());
+    setSelectedMinutes(selectedTime || defaultTime);
+    selectedTime = getSelectedMinutes();
     updateEndTime();
     updateTimelineCursor();
     updateTimelineSelection();
@@ -548,15 +582,20 @@ html[data-theme="light"] .reprogram-info{
   function clampTimeInputs() {
     const hInput = document.getElementById('timeHour');
     const mInput = document.getElementById('timeMin');
+    const minMinutes = getMinSelectableMinutes();
+    const minH = Math.floor(minMinutes / 60);
+    const minM = minMinutes % 60;
     if (hInput) {
       let h = parseInt(hInput.value, 10);
-      if (Number.isNaN(h)) h = 8;
-      hInput.value = String(Math.max(8, Math.min(23, h))).padStart(2, '0');
+      if (Number.isNaN(h)) h = minH;
+      hInput.value = String(Math.max(minH, Math.min(23, h))).padStart(2, '0');
     }
     if (mInput) {
       let m = parseInt(mInput.value, 10);
       if (Number.isNaN(m)) m = 0;
-      mInput.value = String(Math.max(0, Math.min(59, m))).padStart(2, '0');
+      const currentH = parseInt(hInput.value, 10) || minH;
+      const minMin = currentH === minH ? minM : 0;
+      mInput.value = String(Math.max(minMin, Math.min(59, m))).padStart(2, '0');
     }
   }
 
@@ -611,5 +650,22 @@ html[data-theme="light"] .reprogram-info{
   // Exponer funciones para sincronización externa (paciente -> calendario)
   window.__renderSlots = renderTimeSection;
   window.__renderCalAg = renderCalAg;
+
+  // Actualizar hora mínima cada minuto cuando la fecha seleccionada es hoy
+  setInterval(() => {
+    if (!isSelectedToday()) return;
+    const min = getMinSelectableMinutes();
+    const current = getSelectedMinutes();
+    if (current < min) {
+      selectedTime = min;
+      setSelectedMinutes(min);
+      updateEndTime();
+      updateTimelineCursor();
+      updateTimelineSelection();
+      validateTime();
+      syncTimeToForm();
+    }
+    renderTimeline(agY, agM, agSelected ? agSelected.d : new Date().getDate());
+  }, 60000);
 })();
 </script>

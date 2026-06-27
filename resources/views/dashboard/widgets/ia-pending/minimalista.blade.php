@@ -11,6 +11,6 @@
     <div class="min-text" style="flex:0 0 22%;display:flex;flex-direction:column;justify-content:center;gap:0.35em;text-align:center;min-height:0">
       <div class="min-value" style="font-size:clamp(0.85em,4.5cqi,1.35em);line-height:1.1">2 <span>pendientes</span></div>
     </div>
+    <span class="widget-resize-handle"></span>
   </article>
-  <span class="widget-resize-handle"></span>
 </div>

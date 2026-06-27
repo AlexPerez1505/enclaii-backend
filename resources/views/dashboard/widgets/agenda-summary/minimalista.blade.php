@@ -47,6 +47,6 @@
         <div class="summary-label" style="font-size:clamp(0.6em,2.5cqi,0.8em);color:var(--txt-soft)">Cancelados</div>
       </div>
     </div>
+    <span class="widget-resize-handle"></span>
   </article>
-  <span class="widget-resize-handle"></span>
 </div>

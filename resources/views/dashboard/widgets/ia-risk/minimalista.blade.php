@@ -26,6 +26,6 @@
         <div class="risk-rec" style="font-size:clamp(0.75em,3.5cqi,1em);font-weight:500;color:var(--txt-soft)">Revisar historial<br>de biopsias previas</div>
       </div>
     </div>
+    <span class="widget-resize-handle"></span>
   </article>
-  <span class="widget-resize-handle"></span>
 </div>

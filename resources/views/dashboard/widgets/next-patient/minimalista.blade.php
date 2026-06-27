@@ -27,6 +27,6 @@
         <div class="min-meta" style="font-size:clamp(0.65em,3cqi,0.9em)">No hay citas agendadas</div>
       @endif
     </div>
+    <span class="widget-resize-handle"></span>
   </div>
-  <span class="widget-resize-handle"></span>
 </div>

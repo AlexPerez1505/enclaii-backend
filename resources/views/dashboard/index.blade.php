@@ -543,6 +543,7 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
   justify-content:center;
   transition:transform .2s ease, box-shadow .2s ease;
   font-size: clamp(12px, min(calc(var(--widget-w-px, 300) * 0.055px), calc(var(--widget-h-px, 260) * 0.065px)), 22px);
+  position:relative;
 }
 .widget-minimal .card-minimal:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.15)}
 .widget-minimal .min-label{
@@ -996,6 +997,12 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
 
     /* Aplicar límites de tamaño al cargar */
     applySizeLimits();
+
+    /* Tooltips de handles */
+    (function setHandleTitles() {
+      grid.querySelectorAll('.widget-drag-handle').forEach(el => el.title = 'Arrastre para mover');
+      grid.querySelectorAll('.widget-resize-handle').forEach(el => el.title = 'Arrastrar para cambiar tamaño');
+    })();
 
     /* Escala del contenido según tamaño del widget */
     (function(){
