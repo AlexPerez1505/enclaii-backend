@@ -105,7 +105,10 @@ Route::middleware('auth')->group(function () {
             'estudios' => ['valor' => $estMes, 'trend' => $pct($estMes, $estPrev)],
         ];
 
-        return view('ia-reportes.index', compact('reportes', 'kpis'));
+        $hallazgosData = app(\App\Http\Controllers\IaReporteController::class)->hallazgosData();
+        $hallazgos = collect($hallazgosData['hallazgos'])->take(5)->all();
+
+        return view('ia-reportes.index', compact('reportes', 'kpis', 'hallazgos'));
     })->name('ia-reportes');
 
     Route::get('/ia-reportes/generar', function () {
@@ -248,6 +251,9 @@ Route::middleware('auth')->group(function () {
         // Plantillas guardadas (configuración persistida por clave)
         $plantillasDb = \App\Models\Plantilla::all()->mapWithKeys(fn ($p) => [
             $p->clave => [
+                'id' => $p->id,
+                'titulo' => $p->titulo,
+                'subtitulo' => $p->subtitulo,
                 'configuracion' => $p->configuracion,
                 'columnas' => $p->columnas,
                 'num_imagenes' => $p->num_imagenes,
@@ -297,9 +303,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/ia-reportes/chat', [IaReporteController::class, 'chat'])
         ->name('ia-reportes.chat.post');
 
-    Route::get('/ia-reportes/hallazgos', function () {
-        return view('ia-reportes.hallazgos');
-    })->name('ia-reportes.hallazgos');
+    Route::get('/ia-reportes/hallazgos', [IaReporteController::class, 'hallazgos'])
+        ->name('ia-reportes.hallazgos');
 
     Route::get('/ia-reportes/reportes', function () {
         $reportes = Reporte::with(['estudio.paciente', 'usuario'])
@@ -322,10 +327,26 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/ia-reportes/ver', function () {
         $reporte = null;
+        $estudioImagenes = collect();
         if (request()->has('reporte')) {
-            $reporte = \App\Models\Reporte::with(['estudio.paciente', 'usuario'])->find(request()->query('reporte'));
+            $reporte = \App\Models\Reporte::with(['estudio.paciente', 'estudio.archivos', 'usuario', 'plantilla'])->find(request()->query('reporte'));
+            if ($reporte && $reporte->estudio_id) {
+                $estudioImagenes = \App\Models\EstudioArchivo::where('estudio_id', $reporte->estudio_id)
+                    ->where('tipo', 'imagen')
+                    ->orderByDesc('capturado_en')
+                    ->get()
+                    ->map(fn ($a) => ['url' => asset('storage/' . $a->path), 'titulo' => $a->nombre_original]);
+            }
+            // Si el reporte no tiene plantilla asignada, cargar la que corresponda al tipo de estudio
+            if ($reporte && ! $reporte->plantilla && $reporte->estudio?->tipo) {
+                $tipoKey = \Illuminate\Support\Str::lower($reporte->estudio->tipo);
+                $default = \App\Models\Plantilla::where('clave', $tipoKey)->first();
+                if ($default) {
+                    $reporte->setRelation('plantilla', $default);
+                }
+            }
         }
-        return view('ia-reportes.ver', compact('reporte'));
+        return view('ia-reportes.ver', compact('reporte', 'estudioImagenes'));
     })->name('ia-reportes.ver');
 
     Route::get('/ia-reportes/analisis', function () {
@@ -338,9 +359,9 @@ Route::middleware('auth')->group(function () {
         ]);
     })->name('configuracion');
 
-    Route::get('/finanzas', function () {
-        return view('finanzas.index');
-    })->name('finanzas');
+    // Route::get('/finanzas', function () {
+    //     return view('finanzas.index');
+    // })->name('finanzas');
 
     Route::patch('/configuracion/general', [SettingsController::class, 'update'])
         ->name('configuracion.general.update');
@@ -652,9 +673,9 @@ Route::middleware('auth')->group(function () {
     })->name('galeria.imagen.guardar-copia');
 
     /* ── Finanzas ── */
-    Route::get('/finanzas', function () {
-        return view('finanzas.index');
-    })->name('finanzas');
+    // Route::get('/finanzas', function () {
+    //     return view('finanzas.index');
+    // })->name('finanzas');
 });
 
 

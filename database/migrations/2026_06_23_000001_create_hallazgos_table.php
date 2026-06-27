@@ -8,10 +8,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // 1. Catálogo de Hallazgos (El maestro)
         Schema::create('hallazgos', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre'); // Ej: 'Gastritis', 'Pólipo'
+            $table->string('nombre');
             $table->string('codigo_cie')->unique();
             $table->boolean('es_critico')->default(false);
             $table->timestamps();
