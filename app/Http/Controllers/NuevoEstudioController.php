@@ -292,6 +292,13 @@ class NuevoEstudioController extends Controller
         ]);
     }
 
+    public function destroyImagenGaleria(EstudioArchivo $archivo)
+    {
+        abort_unless($archivo->tipo === 'imagen', 404);
+
+        return $this->destroyArchivo($archivo);
+    }
+
     private function resolverEstudio(Request $request, bool $crearSiNoExiste = false): ?Estudio
     {
         $id = $request->input('estudio_id')

@@ -439,12 +439,42 @@ Route::middleware('auth')->group(function () {
             'linear-gradient(135deg,#99f6e4,#6ee7b7)',
         ];
 
-        $pacientes = Paciente::orderBy('nombre_completo')->get()->values()->map(function ($p, $i) use ($colores) {
-            $base = \App\Models\EstudioArchivo::where('paciente_id', $p->id);
-            $fotos = (clone $base)->where('tipo', 'imagen')->count();
-            $videos = (clone $base)->where('tipo', 'video')->count();
-            $estudios = \App\Models\Estudio::where('paciente_id', $p->id)->count();
-            $ultimoTs = (clone $base)->max('capturado_en');
+        $medicos = \App\Models\Estudio::query()
+            ->whereNotNull('medico')
+            ->where('medico', '<>', '')
+            ->distinct()
+            ->orderBy('medico')
+            ->pluck('medico');
+
+        $procedimientos = \App\Models\Estudio::query()
+            ->whereNotNull('tipo')
+            ->where('tipo', '<>', '')
+            ->distinct()
+            ->orderBy('tipo')
+            ->pluck('tipo');
+
+        $hallazgos = \App\Models\Hallazgo::orderBy('nombre')->get(['id', 'nombre']);
+
+        $pacientesDb = Paciente::orderBy('nombre_completo')->get()->values();
+        $pacienteIds = $pacientesDb->pluck('id');
+        $estudiosPorPaciente = \App\Models\Estudio::with([
+                'archivos:id,estudio_id,tipo',
+                'estudioHallazgos:id,estudio_id,hallazgo_id,detectado_por',
+            ])
+            ->whereIn('paciente_id', $pacienteIds)
+            ->get()
+            ->groupBy('paciente_id');
+        $archivosPorPaciente = \App\Models\EstudioArchivo::whereIn('paciente_id', $pacienteIds)
+            ->get()
+            ->groupBy('paciente_id');
+
+        $pacientes = $pacientesDb->map(function ($p, $i) use ($colores, $estudiosPorPaciente, $archivosPorPaciente) {
+            $archivosPaciente = $archivosPorPaciente->get($p->id, collect());
+            $estudiosDetalle = $estudiosPorPaciente->get($p->id, collect());
+            $fotos = $archivosPaciente->where('tipo', 'imagen')->count();
+            $videos = $archivosPaciente->where('tipo', 'video')->count();
+            $estudios = $estudiosDetalle->count();
+            $ultimoTs = $archivosPaciente->max('capturado_en');
             $ultimo = $ultimoTs ? \Illuminate\Support\Carbon::parse($ultimoTs)->format('d/m/Y') : '—';
             $ini = collect(explode(' ', $p->nombre_completo ?? ''))
                 ->filter()->take(2)
@@ -454,6 +484,7 @@ Route::middleware('auth')->group(function () {
             return [
                 'id' => $p->id,
                 'nombre' => $p->nombre_completo ?? 'Paciente',
+                'telefono' => $p->telefono ?? '',
                 'codigo' => $p->folio ?? $p->identificacion ?? '—',
                 'sexo' => $p->sexo ?? '—',
                 'edad' => $p->edad ? $p->edad . ' años' : '—',
@@ -464,10 +495,27 @@ Route::middleware('auth')->group(function () {
                 'estado' => 'Activo',
                 'ini' => $ini,
                 'color' => $colores[$i % count($colores)],
+                'filtros' => $estudiosDetalle->map(function ($estudio) {
+                    $hallazgosEstudio = $estudio->estudioHallazgos;
+
+                    return [
+                        'medico' => $estudio->medico ?? '',
+                        'procedimiento' => $estudio->tipo ?? '',
+                        'fecha' => $estudio->fecha?->format('Y-m-d') ?? '',
+                        'estado' => $estudio->estado ?? '',
+                        'archivos' => $estudio->archivos->pluck('tipo')->unique()->values(),
+                        'hallazgos' => $hallazgosEstudio->pluck('hallazgo_id')
+                            ->map(fn ($id) => (string) $id)
+                            ->values(),
+                        'hallazgos_ia' => $hallazgosEstudio->contains(
+                            fn ($hallazgo) => mb_strtolower($hallazgo->detectado_por ?? '') === 'ia'
+                        ),
+                    ];
+                })->values(),
             ];
         });
 
-        return view('galeria.index', compact('pacientes'));
+        return view('galeria.index', compact('pacientes', 'medicos', 'procedimientos', 'hallazgos'));
     })->name('galeria');
 
     Route::get('/galeria/paciente/{id}', function ($id) {
@@ -538,6 +586,9 @@ Route::middleware('auth')->group(function () {
             'current' => $current,
         ]);
     })->name('galeria.imagen');
+
+    Route::delete('/galeria/imagenes/{archivo}', [NuevoEstudioController::class, 'destroyImagenGaleria'])
+        ->name('galeria.imagen.destroy');
 
     Route::post('/galeria/imagen/{id}/guardar', function ($id, \Illuminate\Http\Request $request) {
         $archivo = \App\Models\EstudioArchivo::findOrFail($id);
