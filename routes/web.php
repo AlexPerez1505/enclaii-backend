@@ -9,6 +9,7 @@ use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\NuevoEstudioController;
 use App\Models\Paciente;
 use App\Models\Reporte;
+use App\Http\Controllers\AiAssistantController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -711,3 +712,18 @@ Route::post('/forgot-password', function (Request $request) {
         ? back()->with(['status' => __($status)])
         : back()->withErrors(['email' => __($status)]);
 })->middleware('guest')->name('password.email');
+
+Route::post('/ia/chat', [AiAssistantController::class, 'chat'])
+    ->name('ia.chat');
+
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::post('/ia/conversations/start', [AiAssistantController::class, 'start'])->name('ia.conversations.start');
+    Route::get('/ia/conversations', [AiAssistantController::class, 'conversations'])->name('ia.conversations');
+    Route::get('/ia/conversations/{conversation}', [AiAssistantController::class, 'show'])->name('ia.conversations.show');
+
+    Route::post('/ia/chat', [AiAssistantController::class, 'chat'])->name('ia.chat');
+    Route::get('/ia/history', [AiAssistantController::class, 'history'])->name('ia.history');
+    Route::post('/ia/reset', [AiAssistantController::class, 'reset'])->name('ia.reset');
+});
