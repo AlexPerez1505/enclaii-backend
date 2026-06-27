@@ -803,10 +803,52 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   <button class="np-tab hidden np-tab-extra" data-tab="reportes">Reportes</button>
 </div>
 
+@php
+  $npPacientes = ($pacientes ?? collect())->values()->map(function ($p) {
+    $nombre = trim($p->nombre_completo ?? 'Paciente sin nombre');
+    $partes = preg_split('/\s+/', $nombre);
+    $iniciales = '';
+    if (count($partes) >= 2) {
+      $iniciales = mb_strtoupper(mb_substr($partes[0], 0, 1) . mb_substr($partes[1], 0, 1));
+    } else {
+      $iniciales = mb_strtoupper(mb_substr($nombre, 0, 2));
+    }
+    return [
+      'id' => $p->id,
+      'nombre' => $nombre,
+      'folio' => $p->folio ?? '',
+      'edad' => $p->edad ?? '',
+      'sexo' => $p->sexo ? ucfirst($p->sexo) : '',
+      'telefono' => $p->telefono ?? '',
+      'email' => $p->email ?? '',
+      'foto' => $p->foto ? asset('storage/' . $p->foto) : null,
+      'iniciales' => $iniciales,
+    ];
+  });
+@endphp
+
+<script>window.__NP_PACIENTES = @json($npPacientes);</script>
+
 {{-- Panel Pacientes --}}
 <div class="np-tab-panel active" id="tab-pacientes">
 
-{{-- Buscador, lista de pacientes y estado vacio eliminados: se va directo al formulario --}}
+@if(!$paciente)
+{{-- Buscador de pacientes --}}
+<div class="np-searchbar rise d1" id="npSearchBar">
+  <div class="np-search-wrap">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" class="np-search" id="npSearch" placeholder="Buscar paciente por nombre, folio, teléfono o correo..." autocomplete="off">
+  </div>
+</div>
+
+<div class="np-results rise d2" id="npResults">
+  <div class="np-results-head">
+    <span>Resultados</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+  </div>
+  <div class="np-res-list" id="npResList"></div>
+</div>
+@endif
 
 {{-- Formulario / informacion del paciente --}}
 <div class="np-layout" id="npFormLayout" style="display:none">
@@ -1315,7 +1357,106 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   if (fotoInput) fotoInput.addEventListener('change', function(){ applyPreview(this.files[0]); });
   if (fotoCamera) fotoCamera.addEventListener('change', function(){ applyPreview(this.files[0]); });
 
-  /* (Buscador y filtros de pacientes eliminados) */
+  /* Buscador de pacientes */
+  (function () {
+    const PACIENTES = window.__NP_PACIENTES || [];
+    const input = document.getElementById('npSearch');
+    const results = document.getElementById('npResults');
+    const list = document.getElementById('npResList');
+    const searchBar = document.getElementById('npSearchBar');
+
+    if (!input || !results || !list) return;
+
+    function normalize(str) {
+      return (str || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    }
+
+    function renderItems(items) {
+      list.innerHTML = '';
+      if (items.length === 0) {
+        list.innerHTML = '<div class="np-res-empty">No se encontraron pacientes.</div>';
+        return;
+      }
+      items.forEach((p, i) => {
+        const el = document.createElement('div');
+        el.className = 'np-res-item';
+        el.dataset.index = i;
+        const avatar = p.foto
+          ? `<img src="${p.foto}" alt="${p.nombre}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
+          : p.iniciales;
+        const meta = [p.folio ? 'Folio ' + p.folio : '', p.edad ? p.edad + ' años' : '', p.sexo, p.telefono].filter(Boolean).join(' · ');
+        el.innerHTML = `
+          <div class="np-res-av">${avatar}</div>
+          <div class="np-res-info">
+            <div class="np-res-name">${p.nombre}</div>
+            <div class="np-res-meta">${meta || 'Sin información adicional'}</div>
+          </div>
+        `;
+        el.addEventListener('click', () => {
+          window.location.href = `{{ route('nuevo-estudio') }}?paciente=${encodeURIComponent(p.id)}`;
+        });
+        list.appendChild(el);
+      });
+    }
+
+    function search(q) {
+      const term = normalize(q).trim();
+      if (!term) {
+        results.classList.remove('open');
+        return;
+      }
+      const filtered = PACIENTES.filter(p => {
+        return normalize(p.nombre).includes(term)
+          || normalize(p.folio).includes(term)
+          || normalize(p.telefono).includes(term)
+          || normalize(p.email).includes(term);
+      });
+      renderItems(filtered);
+      results.classList.add('open');
+    }
+
+    let debounce;
+    input.addEventListener('input', function () {
+      clearTimeout(debounce);
+      debounce = setTimeout(() => search(this.value), 150);
+    });
+
+    input.addEventListener('focus', function () {
+      if (this.value.trim()) search(this.value);
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('#npSearchBar') && !e.target.closest('#npResults')) {
+        results.classList.remove('open');
+      }
+    });
+
+    input.addEventListener('keydown', function (e) {
+      const items = list.querySelectorAll('.np-res-item');
+      let active = list.querySelector('.np-res-item.active');
+      let idx = active ? Array.from(items).indexOf(active) : -1;
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        idx = Math.min(idx + 1, items.length - 1);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        idx = Math.max(idx - 1, 0);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (items[idx]) {
+          items[idx].click();
+        } else if (items.length === 1) {
+          items[0].click();
+        }
+        return;
+      } else if (e.key === 'Escape') {
+        results.classList.remove('open');
+        return;
+      }
+      items.forEach(it => it.classList.remove('active'));
+      if (items[idx]) items[idx].classList.add('active');
+    });
+  })();
 
   function showForm(){
     var emptyState = document.getElementById('npEmptyState');
@@ -1353,8 +1494,10 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   }
   setupMediaFilter('npGalSearch', '#tab-galeria');
 
-  /* Ir directo al formulario del paciente */
+  /* Mostrar formulario solo si hay paciente seleccionado */
+  @if($paciente)
   showForm();
+  @endif
 
   /* Modal Nuevo Estudio */
   const nsBackdrop = document.getElementById('nsModalBackdrop');

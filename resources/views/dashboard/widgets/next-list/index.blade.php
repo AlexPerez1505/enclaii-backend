@@ -22,20 +22,20 @@
               $chipCls = match($estado) {
                 'completado' => 'done',
                 'cancelado'  => 'cancel',
-                'urgente'    => 'urgent',
+                'proximo'    => 'wait',
                 default      => 'wait',
               };
               $chipLabel = match($estado) {
                 'completado' => 'Completado',
                 'cancelado'  => 'Cancelado',
-                'urgente'    => 'Urgente',
+                'proximo'    => 'Próxima',
                 default      => 'En espera',
               };
               $medico = $cita->paciente?->medico ?? '—';
             @endphp
             <tr>
               <td><span class="pat"><span class="mini">{{ $mini }}</span>{{ $nombreCita }}</span></td>
-              <td>{{ $cita->hora ?? '—' }}</td>
+              <td>{{ \Carbon\Carbon::parse($cita->hora ?? '00:00')->format('g:i A') }}</td>
               <td>{{ $cita->procedimiento ?? 'Sin procedimiento' }}</td>
               <td><span class="chip {{ $chipCls }}">{{ $chipLabel }}</span></td>
               <td>{{ $medico }}</td>
@@ -49,7 +49,7 @@
         </tbody>
       </table>
     </div>
-    <a class="tbl-link" href="#">
+    <a class="tbl-link" href="{{ route('agenda') }}">
       Ver agenda completa
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
     </a>
