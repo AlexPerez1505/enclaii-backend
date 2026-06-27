@@ -17,7 +17,7 @@
   grid-template-columns:repeat(13,1fr);
   grid-auto-rows:minmax(60px,auto);
   gap:18px;
-  align-items:stretch;
+  align-items:start;
 }
 
 /* Widget wrapper */
@@ -25,7 +25,11 @@
   position:relative;
   transition:opacity .25s ease, transform .28s cubic-bezier(.4,0,.2,1), box-shadow .2s ease;
   will-change:transform;
+  min-height:0;
+  z-index:1;
 }
+.widget:hover{z-index:5}
+.widget.widget-resizing{z-index:50}
 .widget.widget-hidden{
   display:none !important;
 }
@@ -95,23 +99,37 @@
 /* Resize handle (esquina inferior derecha) */
 .widget-resize-handle{
   position:absolute;
-  bottom:6px;right:6px;
-  width:16px;height:16px;
+  bottom:0;right:0;
+  width:44px;height:44px;
   cursor:se-resize;
   opacity:0;
   transition:opacity .15s;
   z-index:10;
+  display:grid;
+  place-items:end;
+  padding:0 8px 8px 0;
 }
 .widget:hover .widget-resize-handle{opacity:1}
 .widget-resize-handle::after{
   content:'';
-  position:absolute;
-  bottom:3px;right:3px;
-  width:8px;height:8px;
-  border-right:2px solid rgba(178,99,255,.5);
-  border-bottom:2px solid rgba(178,99,255,.5);
-  border-radius:1px;
+  display:block;
+  width:20px;height:20px;
+  background-color:rgba(178,99,255,.6);
+  -webkit-mask-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15L15 21"/><path d="M21 8L8 21"/></svg>');
+  mask-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15L15 21"/><path d="M21 8L8 21"/></svg>');
+  -webkit-mask-size:contain;
+  mask-size:contain;
+  -webkit-mask-repeat:no-repeat;
+  mask-repeat:no-repeat;
+  -webkit-mask-position:center;
+  mask-position:center;
+  transition:background-color .15s;
 }
+.widget-resize-handle:hover::after{
+  background-color:#B263FF;
+}
+.widget-resizing{user-select:none !important}
+.widget-resizing *{user-select:none !important}
 
 /* Span de columnas por widget */
 .widget[data-w="3"]{grid-column:span 3}
@@ -422,6 +440,8 @@ table.tbl{width:100%;border-collapse:collapse;font-size:0.9em;min-width:540px;he
   flex:1;
   min-height:0;
   width:100%;
+  overflow:hidden;
+  container-type:inline-size;
 }
 html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
   background:linear-gradient(180deg, #011026 0%, #041C3B 50%, #021939 75%, #021A3A 100%);
@@ -436,26 +456,26 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
 .pred-head{display:flex;align-items:flex-start;gap:0.85em;margin-bottom:0.85em}
 .pred-head .orb{width:2.75em;height:2.75em;flex:none;border-radius:12px;border:1px solid var(--stroke-strong);display:grid;place-items:center;color:var(--cyan);background:rgba(56,199,244,.08)}
 .pred-head .orb svg{width:1.4em;height:1.4em}
-.pred-head h3{margin-bottom:0.12em;font-size:1em}
-.pred-head p{font-size:0.78em;color:var(--txt-soft);line-height:1.4}
-.pred-note{border:1px solid var(--stroke-strong);border-radius:var(--r-md);background:rgba(46,123,246,.08);padding:0.9em 1em;font-size:0.85em;line-height:1.5}
+.pred-head h3{margin-bottom:0.12em;font-size:clamp(0.82em,2.6cqi,1.05em)}
+.pred-head p{font-size:clamp(0.68em,2cqi,0.82em);color:var(--txt-soft);line-height:1.4}
+.pred-note{border:1px solid var(--stroke-strong);border-radius:var(--r-md);background:rgba(46,123,246,.08);padding:0.9em 1em;font-size:clamp(0.72em,2.1cqi,0.88em);line-height:1.5}
 .pred-note b{color:var(--cyan)}
 .gauge-box{text-align:center}
-.gauge-box h4,.recs h4,.hist h4{font-family:'Sora',sans-serif;font-size:0.85em;font-weight:600;margin-bottom:0.85em}
-.gauge{position:relative;width:7.6em;height:7.6em;margin:0 auto}
+.gauge-box h4,.recs h4,.hist h4{font-family:'Sora',sans-serif;font-size:clamp(0.72em,2.1cqi,0.88em);font-weight:600;margin-bottom:0.85em}
+.gauge{position:relative;width:clamp(5.2em,18cqi,7.6em);height:clamp(5.2em,18cqi,7.6em);margin:0 auto}
 .gauge svg{width:100%;height:100%;transform:rotate(-90deg)}
 .gauge circle{fill:none;stroke-width:11;stroke-linecap:round}
 .gauge .track{stroke:rgba(110,160,255,.12)}
 .gauge .val{stroke:var(--orange);transition:stroke-dashoffset 1.2s var(--ease-out)}
 .gauge-center{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
-.gauge-center .lvl{font-size:0.75em;font-weight:700;color:var(--orange)}
-.gauge-center .pct{font-family:'Sora',sans-serif;font-size:1.55em;font-weight:800;line-height:1.05}
-.recs ul{list-style:none;flex:1;overflow:auto}
-.recs li{display:flex;align-items:flex-start;gap:0.6em;font-size:0.85em;line-height:1.4;padding:0.4em 0}
-.recs li svg{width:1.1em;height:1.1em;flex:none;color:var(--green);margin-top:0.06em}
+.gauge-center .lvl{font-size:clamp(0.62em,1.8cqi,0.78em);font-weight:700;color:var(--orange)}
+.gauge-center .pct{font-family:'Sora',sans-serif;font-size:clamp(1.05em,4.2cqi,1.55em);font-weight:800;line-height:1.05}
+.recs ul{list-style:none;flex:1;overflow:auto;min-height:0}
+.recs li{display:flex;align-items:flex-start;gap:0.6em;font-size:clamp(0.72em,2.1cqi,0.88em);line-height:1.4;padding:0.4em 0}
+.recs li svg{width:clamp(0.9em,2.8cqi,1.1em);height:clamp(0.9em,2.8cqi,1.1em);flex:none;color:var(--green);margin-top:0.06em}
 .hist h4{color:var(--green)}
-.hist-item{display:flex;align-items:center;justify-content:space-between;gap:0.75em;padding:0.55em 0;font-size:0.85em;border-bottom:1px solid rgba(110,160,255,.08)}
-.hist-item span{color:var(--txt-soft);font-size:0.8em}
+.hist-item{display:flex;align-items:center;justify-content:space-between;gap:0.75em;padding:0.55em 0;font-size:clamp(0.72em,2.1cqi,0.88em);border-bottom:1px solid rgba(110,160,255,.08)}
+.hist-item span{color:var(--txt-soft);font-size:0.85em}
 .hist .tbl-link{justify-content:flex-start;margin-top:auto}
 
 /* Ajustes para que ciertas listas llenen el alto */
@@ -463,6 +483,7 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
   display:flex;
   flex-direction:column;
   min-height:0;
+  overflow:auto;
 }
 .hist-item{
   flex:1;
@@ -861,30 +882,50 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
 
     /* ---- Resize (ancho + alto) ---- */
     let resizing = null, resizeStartX = 0, resizeStartY = 0, resizeW0 = 0, resizeH0 = 0;
-    grid.addEventListener('mousedown', e => {
-      if (!e.target.closest('.widget-resize-handle')) return;
+    function startResize(e, widget) {
       e.preventDefault(); e.stopPropagation();
-      resizing = e.target.closest('.widget');
-      resizeStartX = e.clientX;
-      resizeStartY = e.clientY;
+      resizing = widget;
+      resizing.classList.add('widget-resizing');
+      const point = e.touches ? e.touches[0] : e;
+      resizeStartX = point.clientX;
+      resizeStartY = point.clientY;
       resizeW0 = parseInt(resizing.dataset.w, 10);
       resizeH0 = resizing.offsetHeight;
-    });
-    document.addEventListener('mousemove', e => {
+    }
+    function moveResize(e) {
       if (!resizing) return;
+      const point = e.touches ? e.touches[0] : e;
       const colW = grid.offsetWidth / 13;
-      const deltaX = Math.round((e.clientX - resizeStartX) / colW);
-      const deltaY = e.clientY - resizeStartY;
+      const deltaX = Math.round((point.clientX - resizeStartX) / colW);
+      const deltaY = point.clientY - resizeStartY;
       const limits = getWidgetLimits(resizing);
       const newW = Math.max(limits.minW, Math.min(limits.maxW, resizeW0 + deltaX));
       const newH = Math.max(limits.minH, Math.min(limits.maxH, resizeH0 + deltaY));
       resizing.dataset.w = newW;
       resizing.style.gridColumn = 'span ' + newW;
       resizing.style.height = newH + 'px';
+    }
+    function endResize() {
+      if (resizing) {
+        resizing.classList.remove('widget-resizing');
+        saveOrder();
+        resizing = null;
+      }
+    }
+    grid.addEventListener('mousedown', e => {
+      const handle = e.target.closest('.widget-resize-handle');
+      if (!handle) return;
+      startResize(e, handle.closest('.widget'));
     });
-    document.addEventListener('mouseup', () => {
-      if (resizing) { saveOrder(); resizing = null; }
-    });
+    grid.addEventListener('touchstart', e => {
+      const handle = e.target.closest('.widget-resize-handle');
+      if (!handle) return;
+      startResize(e, handle.closest('.widget'));
+    }, { passive: false });
+    document.addEventListener('mousemove', moveResize);
+    document.addEventListener('touchmove', moveResize, { passive: false });
+    document.addEventListener('mouseup', endResize);
+    document.addEventListener('touchend', endResize);
 
     /* ---- Persistencia orden + tamaño ---- */
     function saveOrder() {

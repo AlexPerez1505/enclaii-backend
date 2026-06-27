@@ -3,13 +3,14 @@
   <span class="widget-drag-handle" aria-hidden="true">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="19" r="1"/></svg>
   </span>
-  <article class="card card-minimal card-minimal-ia">
-    <div class="min-label">Reportes IA</div>
-    <div class="min-value">2 <span>pendientes</span></div>
-    <a class="min-btn" href="{{ route('ia-reportes') }}">
-      Revisar reportes
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+  <article class="card card-minimal card-minimal-ia" style="overflow:hidden">
+    <div class="min-label" style="flex:0 0 auto">Reportes pendientes</div>
+    <a class="min-icon" href="{{ route('ia-reportes.redactar') }}" style="flex:1 1 60%;width:100%;min-height:0;display:grid;place-items:center;color:var(--orange);text-decoration:none;cursor:pointer">
+      <x-carbon-report style="width:100%;height:100%" />
     </a>
+    <div class="min-text" style="flex:0 0 22%;display:flex;flex-direction:column;justify-content:center;gap:0.35em;text-align:center;min-height:0">
+      <div class="min-value" style="font-size:clamp(0.85em,4.5cqi,1.35em);line-height:1.1">2 <span>pendientes</span></div>
+    </div>
   </article>
   <span class="widget-resize-handle"></span>
 </div>
