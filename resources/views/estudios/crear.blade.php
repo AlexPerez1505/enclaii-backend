@@ -362,7 +362,7 @@ html[data-theme="light"] .np-filter-btn.open {
 }
 .np-new-study-btn:hover { background: #2563eb; border-color: #2563eb; transform: translateY(-1px); }
 
-/* Modal Nuevo Estudio */
+
 .ns-modal-backdrop {
   position: fixed; inset: 0; z-index: 1000;
   display: flex; align-items: center; justify-content: center;
@@ -856,92 +856,195 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   <form method="POST" action="#" id="formNuevoPaciente">
     @csrf
 
-    {{-- Card unificada de información del paciente --}}
-    <div class="np-card rise d2">
-      <div class="np-sec-header">Información del paciente</div>
+{{-- ======================================================================= --}}
+{{-- COMPONENTE INTEGRAL DEL PACIENTE Y ESTUDIO (ESTÉTICA ENCLAII) --}}
+{{-- ======================================================================= --}}
 
-      <div class="np-personal-layout">
+<!-- CARD 1: INFORMACIÓN INTEGRAL DEL PACIENTE (CON IMAGEN DE PERFIL AUTOMÁTICA) -->
+<div class="np-info-card" style="margin-top: 20px; margin-bottom: 20px;">
+    
+    {{-- CONTENEDOR DE CABECERA PRINCIPAL: FOTO + TÍTULO --}}
+    <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 28px; border-bottom: 1px solid var(--stroke); padding-bottom: 20px;">
+        
+        {{-- CONTENEDOR DEL CÍRCULO DE LA FOTO --}}
+        <div style="width: 70px; height: 70px; border-radius: 50%; background: rgba(255, 255, 255, 0.03); border: 2px solid var(--stroke); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+            @php
+                // Detectamos si existe una foto en formato objeto o array
+                $fotoPaciente = isset($paciente) ? (is_object($paciente) ? ($paciente->foto ?? $paciente->avatar ?? null) : ($paciente['foto'] ?? $paciente['avatar'] ?? null)) : null;
+            @endphp
 
-        {{-- Foto --}}
-        <div class="np-foto-col">
-          @php($pacFoto = $paciente && $paciente->foto ? asset('storage/'.$paciente->foto) : '')
-          <div class="np-foto-box" id="npFotoBox">
-            <img id="npFotoPreview" src="{{ $pacFoto }}" alt="{{ $paciente?->nombre_completo }}" @if($pacFoto) style="display:block;" @endif>
-            <div class="np-foto-ph" id="npFotoPh" @if($pacFoto) style="display:none;" @endif>
-              <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            @if($fotoPaciente)
+                {{-- Si el paciente tiene foto, se renderiza perfectamente adaptada al círculo --}}
+                <img src="{{ asset($fotoPaciente) }}" alt="Foto del Paciente" style="width: 100%; height: 100%; object-fit: cover;">
+            @else
+                {{-- Fallback: Icono SVG premium si no hay foto en la base de datos --}}
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--txt-soft)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.7;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            @endif
+        </div>
+
+        {{-- TEXTO DE LA CABECERA --}}
+        <div>
+            <div class="np-sec-header" style="margin-bottom: 4px; display: flex; align-items: center; gap: 8px; padding: 0;">
+                Información General del Paciente
             </div>
-          </div>
-          <input type="file" id="npFotoInput" accept="image/*" style="display:none">
-          <input type="file" id="npFotoCamera" accept="image/*" capture="environment" style="display:none">
+            <div style="font-size: 13px; color: var(--txt-soft);">Ficha clínica e historial unificado</div>
         </div>
-
-        {{-- Datos del paciente en recuadros hacia la derecha --}}
-        <div class="np-info-grid">
-          <div class="np-info-box">
-            <label>Nombre completo</label>
-            <div class="np-field-value" id="nombre">{{ $paciente?->nombre_completo ?? '—' }}</div>
-          </div>
-          
-                    
-          <div class="np-info-box">
-            <label>Edad</label>
-            <div class="np-field-value" id="edad">{{ $paciente && $paciente->edad ? $paciente->edad.' años' : '—' }}</div>
-          </div>
-          
-          <div class="np-info-box">
-            <label>Sexo</label>
-            <div class="np-field-value" id="sexo">{{ $paciente && $paciente->sexo ? ucfirst($paciente->sexo) : '—' }}</div>
-          </div>
-          
-          <div class="np-info-box">
-            <label>Fecha nacimiento</label>
-            <div class="np-field-value" id="fecha_nac">{{ $paciente?->fecha_nacimiento?->format('Y-m-d') ?? '—' }}</div>
-          </div>
-          
-          <div class="np-info-box">
-            <label>Peso</label>
-            <div class="np-field-value" id="peso">{{ $paciente && $paciente->peso ? $paciente->peso.' kg' : '—' }}</div>
-          </div>
-          
-          <div class="np-info-box">
-            <label>Altura</label>
-            <div class="np-field-value" id="altura">{{ $paciente && $paciente->altura ? $paciente->altura.' m' : '—' }}</div>
-          </div>
-          
-          <div class="np-info-box">
-            <label>Número de Seguro Social</label>
-            <div class="np-field-value" id="nss">{{ $paciente?->identificacion ?? '—' }}</div>
-          </div>
-          
-          <div class="np-info-box">
-            <label>Teléfono</label>
-            <div class="np-field-value" id="telefono">{{ $paciente?->telefono ?? '—' }}</div>
-          </div>
-          
-          <div class="np-info-box">
-            <label>Correo electrónico</label>
-            <div class="np-field-value" id="email">{{ $paciente?->email ?? '—' }}</div>
-          </div>
-          
-          <div class="np-info-box">
-            <label>Procedimiento</label>
-            <div class="np-field-value">{{ $paciente?->procedimiento ?? '—' }}</div>
-          </div>
-          
-          <div class="np-info-box">
-            <label>Fecha de registro</label>
-            <div class="np-field-value" id="fecha_registro">{{ $paciente?->created_at?->format('Y-m-d') ?? '—' }}</div>
-          </div>
-          
-          <div class="np-info-box np-wide">
-            <label>Diagnóstico Preliminar</label>
-            <div class="np-field-value np-textarea-value" style="min-height:50px; line-height: 1.3;">Define lo que podria tener</div>
-          </div>
-        </div>
-
-      </div>
     </div>
+    
+    {{-- REJILLA DE DATOS (CAMPOS EXTRAÍDOS DE LA IMAGEN) --}}
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px 32px;">
+        
+        {{-- 1. NOMBRE COMPLETO --}}
+        <div>
+            <div style="font-size: 11px; font-weight: 700; color: var(--txt-soft); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">
+                Nombre Completo
+            </div>
+            <div style="font-size: 14px; font-weight: 600; color: var(--txt);">
+                @if(isset($paciente))
+                    {{ is_object($paciente) ? ($paciente->nombre ?? '—') : ($paciente['nombre'] ?? '—') }}
+                @else
+                    —
+                @endif
+            </div>
+        </div>
 
+        {{-- 2. FECHA DE NACIMIENTO --}}
+        <div>
+            <div style="font-size: 11px; font-weight: 700; color: var(--txt-soft); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">
+                Fecha de Nacimiento
+            </div>
+            <div style="font-size: 14px; font-weight: 500; color: var(--txt);">
+                @php
+                    $fechaNac = isset($paciente) ? (is_object($paciente) ? ($paciente->fecha_nacimiento ?? null) : ($paciente['fecha_nacimiento'] ?? null)) : null;
+                @endphp
+                {{ $fechaNac ? \Carbon\Carbon::parse($fechaNac)->format('d/m/Y') : '—' }}
+            </div>
+        </div>
+
+        {{-- 3. EDAD --}}
+        <div>
+            <div style="font-size: 11px; font-weight: 700; color: var(--txt-soft); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">
+                Edad
+            </div>
+            <div style="font-size: 14px; font-weight: 500; color: var(--txt);">
+                {{ $fechaNac ? \Carbon\Carbon::parse($fechaNac)->age . ' años' : '—' }}
+            </div>
+        </div>
+
+        {{-- 4. PESO --}}
+        <div>
+            <div style="font-size: 11px; font-weight: 700; color: var(--txt-soft); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">
+                Peso
+            </div>
+            <div style="font-size: 14px; font-weight: 500; color: var(--txt);">
+                @if(isset($paciente))
+                    {{ is_object($paciente) ? ($paciente->peso ?? '—') : ($paciente['peso'] ?? '—') }} kg
+                @else
+                    —
+                @endif
+            </div>
+        </div>
+
+        {{-- 5. ALTURA --}}
+        <div>
+            <div style="font-size: 11px; font-weight: 700; color: var(--txt-soft); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">
+                Altura
+            </div>
+            <div style="font-size: 14px; font-weight: 500; color: var(--txt);">
+                @if(isset($paciente))
+                    {{ is_object($paciente) ? ($paciente->altura ?? '—') : ($paciente['altura'] ?? '—') }} m
+                @else
+                    —
+                @endif
+            </div>
+        </div>
+
+        {{-- 6. SEXO --}}
+        <div>
+            <div style="font-size: 11px; font-weight: 700; color: var(--txt-soft); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">
+                Sexo
+            </div>
+            <div style="font-size: 14px; font-weight: 500; color: var(--txt);">
+                @if(isset($paciente))
+                    {{ is_object($paciente) ? ($paciente->sexo ?? '—') : ($paciente['sexo'] ?? '—') }}
+                @else
+                    —
+                @endif
+            </div>
+        </div>
+
+        {{-- 7. DIRECCIÓN --}}
+        <div style="grid-column: span 2;">
+            <div style="font-size: 11px; font-weight: 700; color: var(--txt-soft); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">
+                Dirección
+            </div>
+            <div style="font-size: 14px; font-weight: 500; color: var(--txt);">
+                @if(isset($paciente))
+                    {{ is_object($paciente) ? ($paciente->direccion ?? '—') : ($paciente['direccion'] ?? '—') }}
+                @else
+                    —
+                @endif
+            </div>
+        </div>
+
+        {{-- 8. TELÉFONO --}}
+        <div>
+            <div style="font-size: 11px; font-weight: 700; color: var(--txt-soft); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">
+                Teléfono
+            </div>
+            <div style="font-size: 14px; font-weight: 500; color: var(--txt);">
+                @if(isset($paciente))
+                    {{ is_object($paciente) ? ($paciente->telefono ?? '—') : ($paciente['telefono'] ?? '—') }}
+                @else
+                    —
+                @endif
+            </div>
+        </div>
+
+        {{-- 9. E-MAIL --}}
+        <div style="grid-column: span 2;">
+            <div style="font-size: 11px; font-weight: 700; color: var(--txt-soft); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">
+                E-mail
+            </div>
+            <div style="font-size: 14px; font-weight: 500; color: var(--txt);">
+                @if(isset($paciente))
+                    {{ is_object($paciente) ? ($paciente->email ?? '—') : ($paciente['email'] ?? '—') }}
+                @else
+                    —
+                @endif
+            </div>
+        </div>
+
+        {{-- 10. ALERGIAS --}}
+        <div>
+            <div style="font-size: 11px; font-weight: 700; color: #ff6b6b; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">
+                Alergias
+            </div>
+            <div style="font-size: 14px; font-weight: 500; color: var(--txt);">
+                @if(isset($paciente))
+                    {{ is_object($paciente) ? ($paciente->alergias ?? 'Ninguna registrada') : ($paciente['alergias'] ?? 'Ninguna registrada') }}
+                @else
+                    Ninguna registrada
+                @endif
+            </div>
+        </div>
+
+        {{-- 11. ANTECEDENTES MÉDICOS (ANCHO COMPLETO) --}}
+        <div style="grid-column: span 3; border-top: 1px solid var(--stroke); padding-top: 16px; margin-top: 8px;">
+            <div style="font-size: 11px; font-weight: 700; color: var(--txt-soft); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">
+                Antecedentes Médicos
+            </div>
+            <div style="font-size: 14px; font-weight: 500; color: var(--txt); line-height: 1.5;">
+                @if(isset($paciente))
+                    {{ is_object($paciente) ? ($paciente->antecedentes_medicos ?? 'Sin antecedentes médicos de relevancia reportados.') : ($paciente['antecedentes_medicos'] ?? 'Sin antecedentes médicos de relevancia reportados.') }}
+                @else
+                    Sin antecedentes médicos de relevancia reportados.
+                @endif
+            </div>
+        </div>
+
+    </div>
+</div>
   </form>
 
   {{-- Sidebar acciones --}}
@@ -1289,7 +1392,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
           Sí, el dispositivo está conectado
         </label>
       </div>
-      <form method="POST" action="{{ route('nuevo-estudio.store') }}" style="width:100%">
+      <form method="POST" action="{{ route('nuevo-estudio.store') }}" id="formIniciarEstudio" style="width:100%">
         @csrf
         <input type="hidden" name="paciente_id" value="{{ $paciente?->id }}">
         <input type="hidden" name="tipo" value="{{ $paciente?->procedimiento }}">
@@ -1307,7 +1410,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
 @push('scripts')
 <script>
 (function () {
-
+  const CSRF = @json(csrf_token());
 
   /* Fecha por defecto */
   var now  = new Date();
@@ -1610,6 +1713,33 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   chkDispositivoConectado?.addEventListener('change', updateDispositivoStatus);
   selDispositivo?.addEventListener('change', function(){
     if (dispositivoNombre) dispositivoNombre.textContent = selDispositivo.value;
+  });
+
+  /* Enviar inicio de estudio y redirigir a la interfaz de grabando */
+  var formIniciarEstudio = document.getElementById('formIniciarEstudio');
+  formIniciarEstudio?.addEventListener('submit', function(e){
+    e.preventDefault();
+    var btn = document.getElementById('btnComenzarGrabar');
+    if (btn) { btn.disabled = true; btn.textContent = 'Iniciando...'; }
+    fetch(formIniciarEstudio.action, {
+      method: 'POST',
+      headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      body: new FormData(formIniciarEstudio)
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (data && data.ok && data.redirect) {
+        window.location.href = data.redirect;
+      } else if (data && data.redirect) {
+        window.location.href = data.redirect;
+      } else {
+        window.location.reload();
+      }
+    })
+    .catch(function(err){
+      console.error('Error iniciando estudio', err);
+      formIniciarEstudio.submit();
+    });
   });
 
 })();
