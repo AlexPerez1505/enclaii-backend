@@ -11,6 +11,19 @@ class AgendaController extends Controller
 {
     public function index()
     {
+        // Auto-cancelar citas 'proximo' cuya fecha/hora ya pasó.
+        $now = now();
+        Cita::query()
+            ->where('estado', 'proximo')
+            ->where(function ($query) use ($now) {
+                $query->whereDate('fecha', '<', $now->toDateString())
+                      ->orWhere(function ($q) use ($now) {
+                          $q->whereDate('fecha', $now->toDateString())
+                            ->whereTime('hora', '<=', $now->format('H:i:s'));
+                      });
+            })
+            ->update(['estado' => 'cancelado']);
+
         $citas = Cita::query()
             ->with('paciente')
             ->orderBy('fecha')
@@ -72,7 +85,7 @@ class AgendaController extends Controller
             'paciente_id' => ['nullable', 'exists:pacientes,id'],
             'paciente_nombre' => ['nullable', 'string', 'max:255'],
             'procedimiento' => ['nullable', 'string', 'max:255'],
-            'fecha' => ['required', 'date'],
+            'fecha' => ['required', 'date', 'after_or_equal:today'],
             'hora' => ['required', 'date_format:H:i'],
             'duracion_minutos' => ['nullable', 'integer', 'min:1', 'max:1440'],
             'estado' => ['nullable', 'in:completado,en_espera,cancelado,proximo'],
@@ -103,7 +116,7 @@ class AgendaController extends Controller
             'paciente_id' => ['nullable', 'exists:pacientes,id'],
             'paciente_nombre' => ['nullable', 'string', 'max:255'],
             'procedimiento' => ['nullable', 'string', 'max:255'],
-            'fecha' => ['required', 'date'],
+            'fecha' => ['required', 'date', 'after_or_equal:today'],
             'hora' => ['required', 'date_format:H:i'],
             'duracion_minutos' => ['nullable', 'integer', 'min:1', 'max:1440'],
             'estado' => ['nullable', 'in:completado,en_espera,cancelado,proximo'],

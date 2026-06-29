@@ -354,7 +354,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
           <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
         </div>
 
-        <div id="docSections">@if($reporte?->contenido_texto)<div contenteditable="true" style="min-height:120px;outline:none">{{ $reporte->contenido_texto }}</div>@endif</div>
+        <div id="docSections">@if($reporte?->contenido_html){!! $reporte->contenido_html !!}@elseif($reporte?->contenido_texto)<div contenteditable="true" style="min-height:120px;outline:none">{{ $reporte->contenido_texto }}</div>@endif</div>
         <input type="hidden" id="existingReporteId" value="{{ $reporte?->id }}">
 
         {{-- Firma (su posición se cambia desde Configuración) --}}
@@ -641,6 +641,8 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 
   // Datos del estudio/paciente precargados desde el backend
   const PRELOAD = @json($datosEstudio ?? []);
+  // Reporte ya guardado (si existe) para restaurar su plantilla
+  const REPORTE_DB = @json($reporte ?? null);
   // Mapea el procedimiento del estudio a la clave de plantilla correspondiente
   const tipoToKey = (t) => {
     t = (t || '').toLowerCase();
@@ -657,12 +659,14 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     : '<span class="cell"></span>';
 
   // Rellena el grid de imágenes según la plantilla (columnas + nº de celdas)
+  // Solo muestra celdas con imágenes reales del estudio; no muestra celdas vacías
   const fillImgs = (cols, count) => {
     if (!repImgs) return;
-    if (!cols || !count) { repImgs.style.display = 'none'; repImgs.innerHTML = ''; return; }
+    const total = Math.min(count || STUDY_IMAGES.length || 0, STUDY_IMAGES.length);
+    if (!cols || !total) { repImgs.style.display = 'none'; repImgs.innerHTML = ''; return; }
     repImgs.style.display = 'grid';
-    repImgs.style.gridTemplateColumns = 'repeat(' + cols + ',1fr)';
-    repImgs.innerHTML = Array.from({ length: count }, (_, i) => imgCell(STUDY_IMAGES[i])).join('');
+    repImgs.style.gridTemplateColumns = 'repeat(' + Math.min(cols, total) + ',1fr)';
+    repImgs.innerHTML = Array.from({ length: total }, (_, i) => imgCell(STUDY_IMAGES[i])).join('');
   };
 
   const TEMPLATES = {
@@ -742,6 +746,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 
   // Configuración persistida de cada plantilla (desde la base de datos)
   const PLANTILLAS_DB = @json($plantillasDb ?? []);
+  window.PLANTILLAS_DB = PLANTILLAS_DB;
 
   // Cada plantilla parte de su configuración por defecto y, si existe en BD,
   // se sobreescribe con la configuración / columnas guardadas.
@@ -801,7 +806,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     if (currentKey) applyConfig(TEMPLATES[currentKey].cfg);
   });
 
-  const render = (key) => {
+  const render = (key, preserveContent) => {
     const tpl = TEMPLATES[key];
     if (!tpl) return;
     currentKey = key;
@@ -818,19 +823,28 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
       // Plantilla de informe: rejilla de 4 columnas con las imágenes reales del estudio
       // (si no hay imágenes, conserva la cuadrícula vacía por defecto)
       fillImgs(4, STUDY_IMAGES.length || 8);
-      cont.innerHTML = tpl.secciones.map(s => {
-        const head = '<h4>' + s.h + '</h4>';
-        if (s.tipo === 'ul') {
-          return head + '<ul><li contenteditable="true" data-ph="' + s.ph + '"></li></ul>';
-        }
-        return head + '<p contenteditable="true" data-ph="' + s.ph + '"></p>';
-      }).join('');
+      // Si viene de un reporte guardado, conservar el contenido editado
+      if (!preserveContent) {
+        cont.innerHTML = tpl.secciones.map(s => {
+          const head = '<h4>' + s.h + '</h4>';
+          if (s.tipo === 'ul') {
+            return head + '<ul><li contenteditable="true" data-ph="' + s.ph + '"></li></ul>';
+          }
+          return head + '<p contenteditable="true" data-ph="' + s.ph + '"></p>';
+        }).join('');
+      }
     }
     applyConfig(tpl.cfg);
   };
 
-  // Plantilla inicial: la que corresponda al procedimiento del estudio
-  render(tipoToKey(PRELOAD.tipo) || 'colonoscopia');
+  // Plantilla inicial: la del reporte guardado, o la que corresponda al procedimiento del estudio
+  let initialKey = tipoToKey(PRELOAD.tipo) || 'colonoscopia';
+  if (REPORTE_DB && REPORTE_DB.plantilla_id) {
+    const dbKey = Object.keys(PLANTILLAS_DB).find(k => PLANTILLAS_DB[k].id === REPORTE_DB.plantilla_id);
+    if (dbKey) initialKey = dbKey;
+  }
+  // Si el reporte ya tiene contenido, solo aplica la plantilla sin borrar lo escrito
+  render(initialKey, !!(REPORTE_DB && REPORTE_DB.contenido_html));
   // Si el procedimiento no coincide con una plantilla, reflejarlo igual en el selector
   if (PRELOAD.tipo && tipoSel) {
     const opt = Array.from(tipoSel.options).find(o => o.text.toLowerCase() === String(PRELOAD.tipo).toLowerCase());
@@ -1017,17 +1031,25 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
       headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': @json(csrf_token()), 'Accept': 'application/json' },
       body: JSON.stringify(payload),
     })
-      .then(r => r.json())
-      .then(d => { if (d && d.ok) showTpltoast('Plantilla guardada'); })
-      .catch(() => {});
+      .then(r => r.json().catch(() => ({})).then(d => ({ ok: r.ok && d.ok, d })))
+      .then(({ ok, d }) => {
+        if (ok) {
+          showTpltoast('Plantilla guardada');
+        } else {
+          showTpltoast('Error al guardar plantilla: ' + (d?.message || 'intenta de nuevo'), true);
+        }
+      })
+      .catch(() => { showTpltoast('Error de red al guardar plantilla', true); });
     closeConfig();
   });
 
   // Aviso reutilizable (usa el toast de la página si existe)
-  const showTpltoast = (msg) => {
+  const showTpltoast = (msg, err) => {
     const t = document.getElementById('edToast');
     if (!t) return;
-    t.textContent = msg; t.classList.remove('err'); t.classList.add('show');
+    t.textContent = msg;
+    if (err) t.classList.add('err'); else t.classList.remove('err');
+    t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 2200);
   };
 
@@ -1364,12 +1386,14 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     guardadoEn: new Date().toISOString(),
   });
 
-  // Texto del reporte: las secciones redactadas (o todo el documento como respaldo)
+  // Contenido del reporte: HTML para preservar formato y texto plano para búsquedas
   const collectContenido = () => {
     const sec = document.getElementById('docSections');
+    let html = (sec && sec.innerHTML ? sec.innerHTML : '').trim();
     let txt = (sec && sec.innerText ? sec.innerText : '').trim();
+    if (!html && doc) html = (doc.innerHTML || '').trim();
     if (!txt && doc) txt = (doc.innerText || '').trim();
-    return txt;
+    return { html, txt };
   };
 
   const saveReport = () => {
@@ -1381,10 +1405,14 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
       return;
     }
     const contenido = collectContenido();
-    if (!contenido) {
+    if (!contenido.txt) {
       showToast('Escribe el contenido del reporte antes de guardar', true);
       return;
     }
+
+    const tplKey = window.getCurrentTemplateKey ? window.getCurrentTemplateKey() : null;
+    const db = window.PLANTILLAS_DB || {};
+    const plantillaId = tplKey && db[tplKey] ? db[tplKey].id : null;
 
     if (btnSave) btnSave.disabled = true;
     fetch(SAVE_URL, {
@@ -1393,7 +1421,9 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
       body: JSON.stringify({
         estudio_id: ESTUDIO_ID,
         reporte_id: savedReporteId,
-        contenido_texto: contenido,
+        contenido_texto: contenido.txt,
+        contenido_html: contenido.html,
+        plantilla_id: plantillaId,
       }),
     })
       .then(r => r.json())

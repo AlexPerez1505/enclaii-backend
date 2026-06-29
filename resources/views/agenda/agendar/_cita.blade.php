@@ -51,7 +51,7 @@ html[data-theme="light"] .cita-icon-wrap svg{color:#5B6A99}
 
     <div>
       <label class="ag-label">Hora</label>
-      <input class="ag-input" id="citaHora" type="text" placeholder="10:00 AM" value="10:00 AM" readonly>
+      <input class="ag-input" id="citaHora" type="text" placeholder="08:00 AM" value="08:00 AM" readonly>
     </div>
   </div>
 
