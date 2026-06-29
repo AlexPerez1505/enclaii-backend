@@ -456,6 +456,7 @@
   font-weight:700;
   cursor:pointer;
   transition:all 150ms ease;
+  margin-left:8px;
 }
 .btn-more:hover{color:var(--txt)}
 
@@ -675,35 +676,41 @@
   margin-bottom:16px;
   color:var(--txt);
 }
-.info-grid{
+.info-list{
   display:flex;
   flex-direction:column;
-  gap:14px;
-  margin-bottom:20px;
+  gap:10px;
 }
-.info-row{
+.info-item{
   display:flex;
-  align-items:center;
-  justify-content:space-between;
+  flex-direction:column;
+  gap:6px;
+  padding:12px 14px;
+  background:var(--panel-2);
+  border:1px solid var(--stroke);
+  border-radius:var(--r-md);
 }
 .info-label{
   display:flex;
   align-items:center;
   gap:10px;
-  font-size:13px;
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.03em;
 }
 .info-label svg{
-  width:18px;
-  height:18px;
+  width:16px;
+  height:16px;
   color:var(--txt-soft);
 }
 .info-label span{
   color:var(--txt-soft);
 }
 .info-value{
-  font-size:13px;
+  font-size:14px;
   color:var(--txt);
-  text-align:right;
+  font-weight:500;
+  padding-left:26px;
 }
 
 /* Layout info */
@@ -1714,7 +1721,7 @@
   <section class="toolbar rise d2">
     <div class="search-box">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" placeholder="Busca por nombre del paciente">
+      <input type="text" id="searchInput" placeholder="Busca por nombre del paciente" oninput="filterPatients()">
     </div>
     <button class="btn-filter" id="btnFiltros" onclick="openFilters()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
@@ -1832,38 +1839,36 @@
     <div class="panel-tabs">
       <button class="tab-btn active" onclick="showTab('resumen')">Resumen</button>
       <button class="tab-btn" onclick="showTab('historial')">Historial</button>
-      <button class="tab-btn" onclick="showTab('estudios')">Estudios</button>
       <button class="tab-btn" onclick="showTab('reportes')">Reportes IA</button>
     </div>
 
     {{-- Contenido Tab Resumen --}}
     <div id="tab-resumen" class="tab-content active">
-    <div class="info-holo-container">
       <div class="info-section">
         <h4>Información general</h4>
-        <div class="info-grid">
-          <div class="info-row">
+        <div class="info-list">
+          <div class="info-item">
             <div class="info-label">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
               <span>Teléfono</span>
             </div>
             <div class="info-value" id="panelPhone">+52 722 162 0815</div>
           </div>
-          <div class="info-row">
+          <div class="info-item">
             <div class="info-label">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
               <span>Correo</span>
             </div>
             <div class="info-value" id="panelEmail">carlos@gmail.com</div>
           </div>
-          <div class="info-row">
+          <div class="info-item">
             <div class="info-label">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
               <span>Dirección</span>
             </div>
             <div class="info-value" id="panelAddress">Temaya, Francisco 01</div>
           </div>
-          <div class="info-row">
+          <div class="info-item">
             <div class="info-label">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               <span>Médico</span>
@@ -1873,216 +1878,30 @@
         </div>
       </div>
 
-    </div>
-
-    <div class="panel-cards">
-      <div class="mini-card">
-        <div class="mini-card-header">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          Próxima cita
+      <div class="panel-cards" id="panelCards" style="display:none;">
+        <div class="mini-card">
+          <div class="mini-card-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Próxima cita
+          </div>
+          <div class="mini-card-value" id="panelProximaCitaFecha">—</div>
+          <div class="mini-card-sub" id="panelProximaCitaHora">—</div>
         </div>
-        <div class="mini-card-value">22 Mayo 2024</div>
-        <div class="mini-card-sub">10:30 AM</div>
       </div>
-      <div class="mini-card">
-        <div class="mini-card-header">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-          Estado actual
-        </div>
-        <span class="status-badge">Estable</span>
-        <div class="mini-card-sub" style="margin-top:6px">Sin complicaciones reportadas</div>
-      </div>
-    </div>
-
-    <div class="notes-section">
-      <div class="notes-header">
-        <h4>Notas rápidas</h4>
-        <button>Editar</button>
-      </div>
-      <p class="notes-text">Paciente con antecedentes de gastritis crónica.</p>
-    </div>
     </div>
 
     {{-- Contenido Tab Historial --}}
     <div id="tab-historial" class="tab-content">
       <div class="historial-section">
-        <h4>Resumen de historial</h4>
-        <div class="historial-list">
-          <div class="historial-item">
-            <div class="historial-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-            </div>
-            <div class="historial-info">
-              <div class="historial-title">Endoscopia diagnóstica</div>
-              <div class="historial-doctor">Dr. Victor</div>
-            </div>
-            <div class="historial-right">
-              <div class="historial-date">20 Mayo 2026</div>
-            </div>
-          </div>
-          <div class="historial-item">
-            <div class="historial-icon orange">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            </div>
-            <div class="historial-info">
-              <div class="historial-title">Consulta médica</div>
-              <div class="historial-doctor">Dr. Victor</div>
-            </div>
-            <div class="historial-right">
-              <div class="historial-date">15 Feb 2026</div>
-            </div>
-          </div>
-          <div class="historial-item">
-            <div class="historial-icon green">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
-            </div>
-            <div class="historial-info">
-              <div class="historial-title">Consulta médica</div>
-              <div class="historial-doctor">Dr. Victor</div>
-            </div>
-            <div class="historial-right">
-              <div class="historial-date">28 Sep 2025</div>
-            </div>
-          </div>
-          <div class="historial-item">
-            <div class="historial-icon green">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-            </div>
-            <div class="historial-info">
-              <div class="historial-title">Endoscopia diagnóstica</div>
-              <div class="historial-doctor">Dr. Victor</div>
-            </div>
-            <div class="historial-right">
-              <div class="historial-date">10 Jul 2024</div>
-            </div>
-          </div>
-          <div class="historial-item">
-            <div class="historial-icon purple">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-            </div>
-            <div class="historial-info">
-              <div class="historial-title">Resultados de laboratorio</div>
-              <div class="historial-doctor">Dr. Victor</div>
-            </div>
-            <div class="historial-right">
-              <div class="historial-date">02 Jul 2024</div>
-            </div>
-          </div>
+        <h4>Historial de estudios</h4>
+        <div class="historial-list" id="historialList">
+          {{-- Se llena dinámicamente con JavaScript --}}
         </div>
-        <button class="btn-view-all">
-          Ver todo el resumen de historial
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-        </button>
-      </div>
-    </div>
-
-    {{-- Contenido Tab Estudios --}}
-    <div id="tab-estudios" class="tab-content">
-      <div class="estudios-section">
-        <h4>Resumen de informes</h4>
-
-        <div class="ultimo-estudio" style="margin-top:0;">
-          <h4>Estudios realizados</h4>
-
-          <div class="estudio-card">
-            <div class="estudio-img">
-              <img src="{{ asset('images/esdoscopia.png') }}" alt="Endoscopia">
-            </div>
-            <div class="estudio-info">
-              <div class="estudio-title">Endoscopia diagnóstica</div>
-              <div class="estudio-meta">22 Mayo 2026</div>
-              <div class="estudio-doctor">Dr. Victor</div>
-            </div>
-            <a href="#" class="btn-ver-detalles">Ver detalles</a>
-          </div>
-
-          <div class="estudio-card">
-            <div class="estudio-img">
-              <img src="{{ asset('images/esdoscopia.png') }}" alt="Colonoscopia">
-            </div>
-            <div class="estudio-info">
-              <div class="estudio-title">Colonoscopia</div>
-              <div class="estudio-meta">10 Abr 2026</div>
-              <div class="estudio-doctor">Dr. Ricardo</div>
-            </div>
-            <a href="#" class="btn-ver-detalles">Ver detalles</a>
-          </div>
-
-          <div class="estudio-card">
-            <div class="estudio-img">
-              <img src="{{ asset('images/esdoscopia.png') }}" alt="Panendoscopia">
-            </div>
-            <div class="estudio-info">
-              <div class="estudio-title">Panendoscopia</div>
-              <div class="estudio-meta">15 Ene 2026</div>
-              <div class="estudio-doctor">Dr. Victor</div>
-            </div>
-            <a href="#" class="btn-ver-detalles">Ver detalles</a>
-          </div>
-
-          <div class="estudio-card">
-            <div class="estudio-img">
-              <img src="{{ asset('images/esdoscopia.png') }}" alt="Gastroscopia">
-            </div>
-            <div class="estudio-info">
-              <div class="estudio-title">Gastroscopia</div>
-              <div class="estudio-meta">08 Nov 2025</div>
-              <div class="estudio-doctor">Dr. Ricardo</div>
-            </div>
-            <a href="#" class="btn-ver-detalles">Ver detalles</a>
-          </div>
-
-          <div class="estudio-card">
-            <div class="estudio-img">
-              <img src="{{ asset('images/esdoscopia.png') }}" alt="CPRE">
-            </div>
-            <div class="estudio-info">
-              <div class="estudio-title">CPRE</div>
-              <div class="estudio-meta">20 Sep 2025</div>
-              <div class="estudio-doctor">Dr. Victor</div>
-            </div>
-            <a href="#" class="btn-ver-detalles">Ver detalles</a>
-          </div>
-
-          <div class="estudio-card">
-            <div class="estudio-img">
-              <img src="{{ asset('images/esdoscopia.png') }}" alt="Endoscopia alta">
-            </div>
-            <div class="estudio-info">
-              <div class="estudio-title">Endoscopia alta</div>
-              <div class="estudio-meta">18 Jun 2025</div>
-              <div class="estudio-doctor">Dr. Ricardo</div>
-            </div>
-            <a href="#" class="btn-ver-detalles">Ver detalles</a>
-          </div>
-
-          <div class="estudio-card">
-            <div class="estudio-img">
-              <img src="{{ asset('images/esdoscopia.png') }}" alt="Cápsula endoscópica">
-            </div>
-            <div class="estudio-info">
-              <div class="estudio-title">Cápsula endoscópica</div>
-              <div class="estudio-meta">02 May 2025</div>
-              <div class="estudio-doctor">Dr. Victor</div>
-            </div>
-            <a href="#" class="btn-ver-detalles">Ver detalles</a>
-          </div>
-
-          <div class="estudio-card">
-            <div class="estudio-img">
-              <img src="{{ asset('images/esdoscopia.png') }}" alt="Colonoscopia diagnóstica">
-            </div>
-            <div class="estudio-info">
-              <div class="estudio-title">Colonoscopia diagnóstica</div>
-              <div class="estudio-meta">09 Nov 2024</div>
-              <div class="estudio-doctor">Dr. Ricardo</div>
-            </div>
-            <a href="#" class="btn-ver-detalles">Ver detalles</a>
-          </div>
+        <div class="historial-empty" id="historialEmpty" style="display:none;">
+          <p style="color:var(--txt-soft);font-size:13px;text-align:center;padding:24px 0;">Este paciente aún no tiene estudios registrados.</p>
         </div>
-
-        <a href="#" class="btn-view-all">
-          Ver todos los informes
+        <a href="#" id="btnVerTodoHistorial" class="btn-view-all">
+          Ver todo el historial de estudios
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </a>
       </div>
@@ -2164,6 +1983,28 @@
   </div>
 </div>
 
+{{-- Modal Opciones de Contacto --}}
+<div id="modalContacto" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;">
+  <div style="background:var(--card,#1a2035);border:1px solid var(--stroke-strong,#2e3a55);border-radius:16px;padding:32px 28px;max-width:400px;width:90%;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.5);">
+    <div style="width:60px;height:60px;border-radius:50%;background:rgba(56,199,244,.12);border:1px solid rgba(56,199,244,.3);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#38c7f4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    </div>
+    <h3 style="font-size:17px;font-weight:700;color:var(--txt,#e2e8f0);margin:0 0 8px;">Enviar mensaje</h3>
+    <p style="font-size:13px;color:var(--txt-soft,#8896ae);margin:0 0 24px;line-height:1.6;">Selecciona cómo deseas contactar a <strong id="modalContactoNombre" style="color:var(--txt,#e2e8f0);"></strong></p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button onclick="enviarWhatsApp()" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 0;border-radius:10px;border:none;background:#25D366;color:#fff;font-size:14px;font-weight:600;cursor:pointer;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.292-.995-.69-2.058-.997a4.88 4.88 0 0 0-.82-.166c-.197.233-.486.652-.675.99-.785 1.4-2.055 1.412-2.839 0-.189-.338-.478-.757-.675-.99a4.88 4.88 0 0 0-.82.166c-1.063.307-1.761.705-2.058.997-.09.092-.09.242 0 .333.297.298.995.705 2.058 1.012.82.236 1.638.178 2.189-.089.12-.055.235-.117.345-.185.11.068.225.13.345.185.55.267 1.369.325 2.189.089 1.063-.307-1.761-.714 2.058-1.012.09-.091.09-.241 0-.333zM12 2C6.486 2 2 6.486 2 12s4.486 10 10 10c1.468 0 2.861-.332 4.113-.912 1.29-.596 2.4-1.476 3.245-2.563a9.95 9.95 0 0 0 1.542-4.06A9.95 9.95 0 0 0 22 12c0-5.514-4.486-10-10-10zm0 18c-4.411 0-8-3.589-8-8 0-1.473.403-2.85 1.105-4.033a2 2 0 0 1 2.034-.967c.96.13 1.846.516 2.555 1.098a5.96 5.96 0 0 1 2.612 0c.709-.582 1.595-.968 2.555-1.098a2 2 0 0 1 2.034.967A7.963 7.963 0 0 1 20 12c0 4.411-3.589 8-8 8z"/></svg>
+        WhatsApp
+      </button>
+      <button onclick="enviarCorreo()" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 0;border-radius:10px;border:none;background:#38c7f4;color:#fff;font-size:14px;font-weight:600;cursor:pointer;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        Correo electrónico
+      </button>
+      <button onclick="cerrarModalContacto()" style="padding:10px 0;border-radius:10px;border:1px solid var(--stroke,#2e3a55);background:transparent;color:var(--txt,#e2e8f0);font-size:14px;font-weight:600;cursor:pointer;">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -2180,11 +2021,37 @@
           $iniciales = mb_substr($nombre, 0, 2);
       }
 
+      $estudios = \App\Models\Estudio::where('paciente_id', $paciente->id)->get();
+      $tieneEstudios = $estudios->count() > 0;
+      $ultimoEstudio = $estudios->sortByDesc('fecha')->first();
+
+      $proximaCita = \App\Models\Cita::where('paciente_id', $paciente->id)
+          ->whereDate('fecha', '>=', today())
+          ->where('estado', '!=', 'cancelado')
+          ->orderBy('fecha')
+          ->orderBy('hora')
+          ->first();
+
+      $estudiosLista = $estudios->map(function($est) {
+          return [
+              'id' => $est->id,
+              'tipo' => $est->tipo ?? 'Sin tipo',
+              'fecha' => $est->fecha ? $est->fecha->format('d/m/Y') : 'Sin fecha',
+              'reporte_path' => $est->reporte_path,
+              'video_path' => $est->video_path,
+          ];
+      })->toArray();
+
+      $edad = $paciente->edad;
+      if (!$edad && $paciente->fecha_nacimiento) {
+          $edad = $paciente->fecha_nacimiento->age;
+      }
+
       return [
           'id' => $paciente->id,
           'name' => $nombre,
           'initials' => mb_strtoupper($iniciales),
-          'age' => $paciente->edad ? $paciente->edad . ' años' : 'Sin edad',
+          'age' => $edad ? $edad . ' años' : 'Sin edad',
           'gender' => $paciente->sexo ? ucfirst($paciente->sexo) : 'No especificado',
           'folio' => $paciente->folio ?? 'Sin folio',
           'dob' => $paciente->fecha_nacimiento ? $paciente->fecha_nacimiento->format('d/m/Y') : 'Sin fecha',
@@ -2192,10 +2059,24 @@
           'email' => $paciente->email ?? 'Sin correo',
           'address' => $paciente->direccion ?? 'Sin dirección',
           'medico' => $paciente->medico ?? 'Sin médico',
-          'study_date' => $paciente->updated_at ? $paciente->updated_at->format('d M Y') : '',
-          'study_type' => $paciente->procedimiento ?? 'Sin procedimiento',
-          'status' => 'completed',
+          'study_date' => $ultimoEstudio && $ultimoEstudio->fecha ? $ultimoEstudio->fecha->format('d M Y') : '',
+          'study_type' => $ultimoEstudio ? ($ultimoEstudio->tipo ?? 'Sin estudio') : '',
+          'status' => $ultimoEstudio ? ($ultimoEstudio->estado ?? 'completed') : '',
+          'tiene_estudios' => $tieneEstudios,
+          'estudios' => $estudiosLista,
           'foto_url' => $paciente->foto ? asset('storage/' . $paciente->foto) : null,
+          'proxima_cita' => $proximaCita ? [
+              'fecha' => $proximaCita->fecha->format('d M Y'),
+              'hora' => $proximaCita->hora
+                  ? (function ($hora) {
+                      try {
+                          return \Illuminate\Support\Carbon::parse($hora)->format('g:i A');
+                      } catch (\Exception $e) {
+                          return $hora;
+                      }
+                  })($proximaCita->hora)
+                  : '',
+          ] : null,
       ];
   });
 @endphp
@@ -2205,10 +2086,15 @@
 const routes = {
   edit: "{{ route('pacientes.edit', ':id') }}",
   destroy: "{{ route('pacientes.destroy', ':id') }}",
-  nuevoEstudio: "{{ route('nuevo-estudio') }}"
+  nuevoEstudio: "{{ route('nuevo-estudio') }}",
+  agendar: "{{ route('agendar') }}",
+  iaReportes: "{{ route('ia-reportes.generar') }}",
+  iaReportesTodos: "{{ route('ia-reportes.todos') }}",
+  iaReportesRedactar: "{{ route('ia-reportes.redactar') }}"
 };
 
 const patientsData = @json($pacientesJs);
+let patientsDataFiltered = [...patientsData];
 const statusTexts = {completed:'Completado',waiting:'En espera',cancelled:'Cancelado'};
 
 // ============ PAGINACIÓN ============
@@ -2216,12 +2102,24 @@ const PAGE_SIZE = 15;
 let currentPage = 1;
 
 function rowHTML(patient, globalIndex) {
-  const st = patient.status || 'completed';
-  const stText = statusTexts[st] || st;
+  const estadosMap = {
+    'en_proceso': 'waiting',
+    'completado': 'completed',
+    'cancelado': 'cancelled',
+    'archivado': 'completed'
+  };
+  const st = patient.status ? (estadosMap[patient.status] || patient.status) : '';
+  const stText = st ? (statusTexts[st] || st) : '';
   const editUrl = routes.edit.replace(':id', patient.id);
   const nuevoEstudioUrl = `${routes.nuevoEstudio}?paciente=${encodeURIComponent(patient.id)}`;
+  const agendarUrl = `${routes.agendar}?paciente_id=${encodeURIComponent(patient.id)}`;
+  const primerEstudio = patient.estudios && patient.estudios.length > 0 ? patient.estudios[0] : null;
+  const iaReportesUrl = primerEstudio
+    ? `${routes.iaReportes}?paciente=${encodeURIComponent(patient.name)}&folio=${encodeURIComponent(patient.folio || '')}&estudio=${encodeURIComponent(primerEstudio.id)}`
+    : `${routes.iaReportes}?paciente=${encodeURIComponent(patient.name)}&folio=${encodeURIComponent(patient.folio || '')}`;
+  const iaReportesTodosUrl = `${routes.iaReportesTodos}?paciente=${encodeURIComponent(patient.name)}&folio=${encodeURIComponent(patient.folio || '')}`;
 
-  return `<div class="patient-row" onclick="openPanel(${globalIndex})" data-index="${globalIndex}" data-status="${st}">
+  return `<div class="patient-row" onclick="openPanel(${globalIndex})" data-index="${globalIndex}" data-status="${st || 'none'}">
     <div class="patient-info">
       <div class="patient-avatar">${patient.foto_url ? `<img src="${patient.foto_url}" alt="${patient.name || 'Paciente'}">` : (patient.initials || 'PX')}</div>
       <div>
@@ -2232,25 +2130,22 @@ function rowHTML(patient, globalIndex) {
     <div class="cell">${patient.folio || 'Sin folio'}</div>
     <div class="cell cell-fecha cell-muted">${patient.dob || 'Sin fecha'}</div>
     <div class="cell-study">
-      <span class="date study-date">${patient.study_date || ''}</span>
-      <span class="type">${patient.study_type || 'Sin procedimiento'}</span>
+      ${patient.study_date ? `<span class="date study-date">${patient.study_date}</span>` : ''}
+      ${patient.study_type ? `<span class="type">${patient.study_type}</span>` : ''}
     </div>
-    <div class="col-status"><span class="status ${st}">${stText}</span></div>
+    <div class="col-status">${st ? `<span class="status ${st}">${stText}</span>` : ''}</div>
     <div class="actions-wrapper">
       <div class="actions">
-        <button type="button" class="btn-action" aria-label="Ver paciente" onclick="event.stopPropagation(); openPanel(${globalIndex});">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        </button>
         <button class="btn-more" aria-label="Más opciones" onclick="event.stopPropagation();toggleMenu(this)">⋮</button>
       </div>
       <div class="actions-dropdown" onclick="event.stopPropagation()">
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Crear informe</a>
+        <a href="#" onclick="event.stopPropagation(); crearInforme(${globalIndex}); return false;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Crear informe</a>
         <a href="${editUrl}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Editar información</a>
         <a href="${nuevoEstudioUrl}" onclick="event.stopPropagation(); window.location.href=this.href; return false;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/><line x1="12" y1="17" x2="12" y2="22"/></svg>Iniciar estudio</a>
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><path d="M9 22h6"/><circle cx="12" cy="11" r="1" fill="currentColor"/></svg>Generar reporte IA</a>
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Programar cita</a>
-        <a href="#"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.292-.995-.69-2.058-.997a4.88 4.88 0 0 0-.82-.166c-.197.233-.486.652-.675.99-.785 1.4-2.055 1.412-2.839 0-.189-.338-.478-.757-.675-.99a4.88 4.88 0 0 0-.82.166c-1.063.307-1.761.705-2.058.997-.09.092-.09.242 0 .333.297.298.995.705 2.058 1.012.82.236 1.638.178 2.189-.089.12-.055.235-.117.345-.185.11.068.225.13.345.185.55.267 1.369.325 2.189.089 1.063-.307 1.761-.714 2.058-1.012.09-.091.09-.241 0-.333zM12 2C6.486 2 2 6.486 2 12s4.486 10 10 10c1.468 0 2.861-.332 4.113-.912 1.29-.596 2.4-1.476 3.245-2.563a9.95 9.95 0 0 0 1.542-4.06A9.95 9.95 0 0 0 22 12c0-5.514-4.486-10-10-10zm0 18c-4.411 0-8-3.589-8-8 0-1.473.403-2.85 1.105-4.033a2 2 0 0 1 2.034-.967c.96.13 1.846.516 2.555 1.098a5.96 5.96 0 0 1 2.612 0c.709-.582 1.595-.968 2.555-1.098a2 2 0 0 1 2.034.967A7.963 7.963 0 0 1 20 12c0 4.411-3.589 8-8 8z"/></svg>Enviar WhatsApp/correo</a>
-        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Descargar expediente PDF</a>
+        <a href="#" onclick="event.stopPropagation(); generarReporteIA(${globalIndex}); return false;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><path d="M9 22h6"/><circle cx="12" cy="11" r="1" fill="currentColor"/></svg>Generar reporte IA</a>
+        <a href="${agendarUrl}" onclick="event.stopPropagation(); window.location.href=this.href; return false;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Programar cita</a>
+        <a href="#" onclick="event.stopPropagation(); mostrarOpcionesContacto(${globalIndex}); return false;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.292-.995-.69-2.058-.997a4.88 4.88 0 0 0-.82-.166c-.197.233-.486.652-.675.99-.785 1.4-2.055 1.412-2.839 0-.189-.338-.478-.757-.675-.99a4.88 4.88 0 0 0-.82.166c-1.063.307-1.761.705-2.058.997-.09.092-.09.242 0 .333.297.298.995.705 2.058 1.012.82.236 1.638.178 2.189-.089.12-.055.235-.117.345-.185.11.068.225.13.345.185.55.267 1.369.325 2.189.089 1.063-.307 1.761-.714 2.058-1.012.09-.091.09-.241 0-.333zM12 2C6.486 2 2 6.486 2 12s4.486 10 10 10c1.468 0 2.861-.332 4.113-.912 1.29-.596 2.4-1.476 3.245-2.563a9.95 9.95 0 0 0 1.542-4.06A9.95 9.95 0 0 0 22 12c0-5.514-4.486-10-10-10zm0 18c-4.411 0-8-3.589-8-8 0-1.473.403-2.85 1.105-4.033a2 2 0 0 1 2.034-.967c.96.13 1.846.516 2.555 1.098a5.96 5.96 0 0 1 2.612 0c.709-.582 1.595-.968 2.555-1.098a2 2 0 0 1 2.034.967A7.963 7.963 0 0 1 20 12c0 4.411-3.589 8-8 8z"/></svg>Enviar WhatsApp/correo</a>
+        <a href="#" onclick="event.stopPropagation(); mostrarExpediente(${globalIndex}); return false;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Descargar expediente PDF</a>
         <a href="#" class="danger" onclick="deletePatient(${globalIndex})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Eliminar paciente</a>
       </div>
     </div>
@@ -2258,6 +2153,8 @@ function rowHTML(patient, globalIndex) {
 }
 
 let _deleteIndex = null;
+let _contactoIndex = null;
+
 function deletePatient(index) {
   const patient = patientsData[index];
   if (!patient) return;
@@ -2265,9 +2162,105 @@ function deletePatient(index) {
   document.getElementById('modalEliminarNombre').textContent = patient.name;
   document.getElementById('modalEliminar').style.display = 'flex';
 }
+
 function cancelarEliminar() {
   _deleteIndex = null;
   document.getElementById('modalEliminar').style.display = 'none';
+}
+
+function mostrarOpcionesContacto(index) {
+  const patient = patientsData[index];
+  if (!patient) return;
+  _contactoIndex = index;
+  document.getElementById('modalContactoNombre').textContent = patient.name;
+  document.getElementById('modalContacto').style.display = 'flex';
+}
+
+function cerrarModalContacto() {
+  _contactoIndex = null;
+  document.getElementById('modalContacto').style.display = 'none';
+}
+
+function enviarWhatsApp() {
+  if (_contactoIndex === null) return;
+  const patient = patientsData[_contactoIndex];
+  if (!patient) return;
+
+  let telefono = patient.phone || patient.telefono || '';
+  if (!telefono) {
+    alert('El paciente no tiene número de teléfono registrado');
+    return;
+  }
+
+  telefono = telefono.replace(/\D/g, '');
+  const mensaje = `Hola ${patient.name}, te contacto de EndoCare para confirmar tu cita.`;
+  const url = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
+  window.open(url, '_blank');
+  cerrarModalContacto();
+}
+
+function enviarCorreo() {
+  if (_contactoIndex === null) return;
+  const patient = patientsData[_contactoIndex];
+  if (!patient) return;
+
+  const email = patient.email || '';
+  if (!email) {
+    alert('El paciente no tiene correo electrónico registrado');
+    return;
+  }
+
+  const asunto = 'Confirmación de cita - EndoCare';
+  const cuerpo = `Hola ${patient.name},\n\nTe contactamos de EndoCare para confirmar tu cita.\n\nSaludos.`;
+  const url = `mailto:${email}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+  window.location.href = url;
+  cerrarModalContacto();
+}
+
+function mostrarExpediente(index) {
+  const patient = patientsData[index];
+  if (!patient) return;
+
+  if (!patient.tiene_estudios || !patient.estudios || patient.estudios.length === 0) {
+    alert(`El paciente ${patient.name} no tiene expediente disponible.`);
+    return;
+  }
+
+  const estudioConReporte = patient.estudios.find(est => est.reporte_path && est.reporte_path.length > 0);
+  
+  if (estudioConReporte) {
+    window.location.href = `/storage/${estudioConReporte.reporte_path}`;
+  } else {
+    alert(`El paciente ${patient.name} tiene estudios pero no hay reporte disponible para descargar.`);
+  }
+}
+
+function crearInforme(index) {
+  const patient = patientsData[index];
+  if (!patient) return;
+
+  if (!patient.tiene_estudios || !patient.estudios || patient.estudios.length === 0) {
+    alert(`El paciente ${patient.name} no tiene estudios. Para crear un informe primero debe registrar un estudio.`);
+    return;
+  }
+
+  const estudio = patient.estudios[0];
+  const url = `${routes.iaReportesRedactar}?paciente=${encodeURIComponent(patient.id)}&estudio=${encodeURIComponent(estudio.id)}`;
+  window.location.href = url;
+}
+
+function generarReporteIA(index) {
+  const patient = patientsData[index];
+  if (!patient) return;
+
+  if (!patient.tiene_estudios || !patient.estudios || patient.estudios.length === 0) {
+    alert(`El paciente ${patient.name} no tiene estudios. Para generar un reporte IA primero debe registrar un estudio.`);
+    return;
+  }
+
+  const estudio = patient.estudios[0];
+  const url = `${routes.iaReportes}?paciente=${encodeURIComponent(patient.name)}&folio=${encodeURIComponent(patient.folio || '')}&estudio=${encodeURIComponent(estudio.id)}`;
+  window.location.href = url;
 }
 async function confirmarEliminar() {
   if (_deleteIndex === null) return;
@@ -2285,8 +2278,10 @@ async function confirmarEliminar() {
       body: new URLSearchParams({'_method':'DELETE'})
     });
 
-    if (!response.ok && response.status !== 302) {
-      alert('No se pudo eliminar el paciente.');
+    const data = await response.json();
+
+    if (!data.success) {
+      alert('Error: ' + data.message);
       return;
     }
 
@@ -2299,22 +2294,22 @@ async function confirmarEliminar() {
     if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
     renderPage(currentPage || 1);
   } catch (error) {
-    alert('Ocurrió un error al eliminar el paciente.');
+    alert('Ocurrió un error al eliminar el paciente: ' + error.message);
   }
 }
 
 function renderPage(page) {
   currentPage = page;
-  const total = patientsData.length;
+  const total = patientsDataFiltered.length;
   const totalPages = Math.max(Math.ceil(total / PAGE_SIZE), 1);
   const start = (page-1)*PAGE_SIZE;
   const end = Math.min(start+PAGE_SIZE, total);
-  const pageData = patientsData.slice(start, end);
+  const pageData = patientsDataFiltered.slice(start, end);
 
   const body = document.getElementById('patientsTableBody');
   if(body) {
     if (pageData.length === 0) {
-      body.innerHTML = `<div style="padding:32px 20px;text-align:center;color:var(--txt-soft);">No hay pacientes registrados.</div>`;
+      body.innerHTML = `<div style="padding:32px 20px;text-align:center;color:var(--txt-soft);">No se encontraron pacientes.</div>`;
     } else {
       body.innerHTML = pageData.map((p,i) => rowHTML(p, start+i)).join('');
     }
@@ -2403,6 +2398,25 @@ function setDateFilter(btn, val) {
 function applyFilters() {
   closeFilters();
 }
+
+function filterPatients() {
+  const searchInput = document.getElementById('searchInput');
+  const searchTerm = searchInput.value.toLowerCase().trim();
+
+  if (searchTerm === '') {
+    patientsDataFiltered = [...patientsData];
+  } else {
+    patientsDataFiltered = patientsData.filter(patient =>
+      patient.name.toLowerCase().includes(searchTerm) ||
+      patient.folio.toLowerCase().includes(searchTerm) ||
+      (patient.phone && patient.phone.toLowerCase().includes(searchTerm)) ||
+      (patient.email && patient.email.toLowerCase().includes(searchTerm))
+    );
+  }
+
+  currentPage = 1;
+  renderPage(1);
+}
 function clearFilters() {
   ['fBuscar','fSeguro','fFolio','fBuscarAdv','fSeguroAdv','fFolioAdv'].forEach(id => {
     const el = document.getElementById(id); if(el) el.value = '';
@@ -2462,6 +2476,57 @@ function openPanel(index) {
   document.getElementById('panelAddress').textContent = patient.address;
   const panelMedicoInfo = document.getElementById('panelMedicoInfo');
   if (panelMedicoInfo) panelMedicoInfo.textContent = patient.medico || 'Sin médico';
+
+  const panelCards = document.getElementById('panelCards');
+  const panelProximaCitaFecha = document.getElementById('panelProximaCitaFecha');
+  const panelProximaCitaHora = document.getElementById('panelProximaCitaHora');
+  if (panelCards && panelProximaCitaFecha && panelProximaCitaHora) {
+    if (patient.proxima_cita) {
+      panelProximaCitaFecha.textContent = patient.proxima_cita.fecha || '—';
+      panelProximaCitaHora.textContent = patient.proxima_cita.hora || '—';
+      panelCards.style.display = 'block';
+    } else {
+      panelCards.style.display = 'none';
+    }
+  }
+
+  const historialList = document.getElementById('historialList');
+  const historialEmpty = document.getElementById('historialEmpty');
+  const btnVerTodoHistorial = document.getElementById('btnVerTodoHistorial');
+  if (historialList && historialEmpty) {
+    historialList.innerHTML = '';
+    const estudios = patient.estudios || [];
+    if (estudios.length > 0) {
+      historialEmpty.style.display = 'none';
+      const sorted = [...estudios].sort((a, b) => {
+        const da = a.fecha ? a.fecha.split('/').reverse().join('-') : '';
+        const db = b.fecha ? b.fecha.split('/').reverse().join('-') : '';
+        return db.localeCompare(da);
+      });
+      sorted.slice(0, 5).forEach(est => {
+        const item = document.createElement('div');
+        item.className = 'historial-item';
+        item.innerHTML = `
+          <div class="historial-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          </div>
+          <div class="historial-info">
+            <div class="historial-title">${est.tipo || 'Estudio'}</div>
+            <div class="historial-doctor">${patient.medico || 'Sin médico'}</div>
+          </div>
+          <div class="historial-right">
+            <div class="historial-date">${est.fecha || 'Sin fecha'}</div>
+          </div>
+        `;
+        historialList.appendChild(item);
+      });
+    } else {
+      historialEmpty.style.display = 'block';
+    }
+  }
+  if (btnVerTodoHistorial) {
+    btnVerTodoHistorial.href = `${routes.nuevoEstudio}?paciente=${encodeURIComponent(patient.id)}`;
+  }
 
   document.getElementById('contentWrapper').classList.add('panel-open');
   

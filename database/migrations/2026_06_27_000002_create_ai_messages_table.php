@@ -8,17 +8,17 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('hallazgos', function (Blueprint $table) {
+        Schema::create('ai_messages', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre');
-            $table->string('codigo_cie')->unique();
-            $table->boolean('es_critico')->default(false);
+            $table->foreignId('ai_conversation_id')->constrained()->cascadeOnDelete();
+            $table->string('role'); // user | assistant
+            $table->longText('content');
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('hallazgos');
+        Schema::dropIfExists('ai_messages');
     }
 };

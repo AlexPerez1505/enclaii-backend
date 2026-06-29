@@ -110,13 +110,17 @@ class PlantillaSeeder extends Seeder
 
         $orden = 1;
         foreach ($informe as $tpl) {
+            $tplCfg = $cfg;
+            if ($tpl['tipo_estudio'] && file_exists(public_path('images/' . $tpl['tipo_estudio'] . '.png'))) {
+                $tplCfg['anatImg'] = '/images/' . $tpl['tipo_estudio'] . '.png';
+            }
             Plantilla::updateOrCreate(
                 ['clave' => $tpl['clave']],
                 array_merge($tpl, [
                     'tipo_plantilla' => 'informe',
                     'columnas' => null,
                     'num_imagenes' => null,
-                    'configuracion' => $cfg,
+                    'configuracion' => $tplCfg,
                     'solo_imagenes' => false,
                     'es_predeterminada' => true,
                     'orden' => $orden++,

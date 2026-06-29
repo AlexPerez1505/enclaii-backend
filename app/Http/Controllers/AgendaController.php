@@ -60,6 +60,7 @@ class AgendaController extends Controller
             ->count();
 
         $citaEditar = null;
+        $pacienteSeleccionado = null;
 
         if ($request->filled('cita_id')) {
             $cita = Cita::query()
@@ -71,7 +72,11 @@ class AgendaController extends Controller
             }
         }
 
-        return view('agenda.agendar.index', compact('pacientes', 'citasAgenda', 'citasHoy', 'citaEditar'));
+        if ($request->filled('paciente_id')) {
+            $pacienteSeleccionado = Paciente::find($request->query('paciente_id'));
+        }
+
+        return view('agenda.agendar.index', compact('pacientes', 'citasAgenda', 'citasHoy', 'citaEditar', 'pacienteSeleccionado'));
     }
 
     public function store(Request $request)

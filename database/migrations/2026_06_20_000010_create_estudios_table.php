@@ -14,11 +14,15 @@ return new class extends Migration
             $table->foreignId('paciente_id')
                 ->nullable()
                 ->constrained('pacientes')
-                ->nullOnDelete();
+                ->cascadeOnDelete();
+
+            $table->foreignId('cita_id')
+                ->nullable()
+                ->constrained('citas')
+                ->cascadeOnDelete();
 
             $table->string('paciente_nombre')->nullable();
             $table->string('folio')->unique();
-
             $table->string('tipo')->nullable();
             $table->date('fecha')->nullable();
 

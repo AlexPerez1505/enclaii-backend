@@ -1,8 +1,11 @@
 ﻿<script>
 (function(){
   const caps = @json($caps);
+  const pacienteId = @json((string) ($pacienteId ?? request('paciente', 1)));
   let current = {{ $current }};
   const total  = caps.length;
+  const csrfToken = @json(csrf_token());
+  const imageSaveBaseUrl = @json(url('/galeria/imagen'));
 
   /* ── helpers ── */
   function goTo(idx){
@@ -193,6 +196,141 @@
   const printBtn = document.getElementById('viToolPrint');
   if(printBtn) printBtn.addEventListener('click', printCurrentImage);
 
+  function currentImageFilter(){
+    const mainImage = document.getElementById('viMainImage');
+    return mainImage?.style.filter || 'none';
+  }
+
+  function drawEditedImageCopy(){
+    const mainImage = document.getElementById('viMainImage');
+    if(!mainImage || !mainImage.currentSrc){
+      throw new Error('No hay imagen cargada para guardar.');
+    }
+
+    const output = document.createElement('canvas');
+    output.width = 1280;
+    output.height = 720;
+    const out = output.getContext('2d');
+
+    out.fillStyle = '#050505';
+    out.fillRect(0, 0, output.width, output.height);
+    out.filter = currentImageFilter();
+    out.drawImage(mainImage, 0, 0, output.width, output.height);
+    out.filter = 'none';
+
+    out.drawImage(annotationCanvas, 0, 0, output.width, output.height);
+    out.drawImage(measureCanvas, 0, 0, output.width, output.height);
+
+    return output.toDataURL('image/jpeg', 0.82);
+  }
+
+  function dataUrlToBlob(dataUrl){
+    const parts = dataUrl.split(',');
+    const mime = (parts[0].match(/:(.*?);/) || [])[1] || 'image/jpeg';
+    const binary = atob(parts[1]);
+    const bytes = new Uint8Array(binary.length);
+    for(let i = 0; i < binary.length; i++){
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return new Blob([bytes], { type: mime });
+  }
+
+  function selectedArchivoId(){
+    return caps[current]?.id;
+  }
+
+  function setButtonSaving(button, text){
+    const original = button?.innerHTML || '';
+    if(button){
+      button.disabled = true;
+      button.textContent = text;
+    }
+    return original;
+  }
+
+  function restoreButton(button, original){
+    if(!button) return;
+    button.disabled = false;
+    button.innerHTML = original;
+    button.style.background = '';
+    button.style.borderColor = '';
+  }
+
+  function updateCurrentImageUrl(url){
+    const freshUrl = `${url}${url.includes('?') ? '&' : '?'}v=${Date.now()}`;
+    caps[current].src = freshUrl;
+
+    const mainImage = document.getElementById('viMainImage');
+    if(mainImage){
+      mainImage.src = freshUrl;
+    }
+
+    const stripImage = document.querySelector(`.vi-strip-item[data-idx="${current}"] img`);
+    if(stripImage){
+      stripImage.src = freshUrl;
+    }
+
+    loadImageInCanvas(freshUrl);
+  }
+
+  async function saveEditedImage(button, mode){
+    const original = setButtonSaving(button, mode === 'copy' ? 'Guardando copia...' : 'Guardando...');
+    try {
+      const id = selectedArchivoId();
+      if(!id){
+        throw new Error('No se encontró el archivo actual para guardar.');
+      }
+
+      const blob = dataUrlToBlob(drawEditedImageCopy());
+      const form = new FormData();
+      form.append('image', blob, `${mode === 'copy' ? 'copia_editada' : 'imagen_editada'}_${id}.jpg`);
+
+      const response = await fetch(`${imageSaveBaseUrl}/${id}/${mode === 'copy' ? 'guardar-copia' : 'guardar'}`, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': csrfToken,
+          'Accept': 'application/json'
+        },
+        body: form
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if(!response.ok || !data.ok){
+        throw new Error(data.message || 'No se pudo guardar la imagen editada.');
+      }
+
+      if(mode !== 'copy' && data.archivo?.url){
+        updateCurrentImageUrl(data.archivo.url);
+      }
+
+      if(button){
+        button.textContent = mode === 'copy' ? 'Copia guardada' : 'Guardado';
+        button.style.background = 'var(--green)';
+        button.style.borderColor = 'rgba(61,220,151,.55)';
+        setTimeout(() => {
+          restoreButton(button, original);
+        }, 1800);
+      }
+    } catch (error) {
+      restoreButton(button, original);
+      alert(error.message || 'No se pudo guardar la imagen editada.');
+    }
+  }
+
+  const saveEditedOriginalBtn = document.getElementById('viSaveEditedOriginal');
+  if(saveEditedOriginalBtn){
+    saveEditedOriginalBtn.addEventListener('click', function(){
+      saveEditedImage(this, 'original');
+    });
+  }
+
+  const saveEditedCopyBtn = document.getElementById('viSaveEditedCopy');
+  if(saveEditedCopyBtn){
+    saveEditedCopyBtn.addEventListener('click', function(){
+      saveEditedImage(this, 'copy');
+    });
+  }
+
   /* ── Mediciones ── */
   const measureCanvas = document.getElementById('viMeasureCanvas');
   const measureCtx = measureCanvas.getContext('2d');
@@ -208,6 +346,7 @@
   const measureSave = document.getElementById('viAnnoSave');
   const measureClear = document.getElementById('viAnnoClear');
   const viewer = document.getElementById('viViewer');
+  const measureHeart = document.getElementById('viMeasureHeart');
   let measuring = false;
   let measureDrawing = false;
   let measureTool = 'circle';
@@ -215,6 +354,9 @@
   let measurePreview = null;
   let measureImageIndex = current;
   const measureStates = {};
+  let draggingItem = null;
+  let draggingMode = 'move';
+  let dragOffset = { x: 0, y: 0 };
 
   function emptyMeasureState(){
     return { items: [], redo: [] };
@@ -243,6 +385,18 @@
     };
   }
 
+  function drawHeartPath(ctx, cx, cy, size){
+    const s = Math.max(size, 1);
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy + s * 0.58);
+    ctx.bezierCurveTo(cx - s * 0.82, cy + s * 0.08, cx - s * 0.9, cy - s * 0.48, cx - s * 0.48, cy - s * 0.68);
+    ctx.bezierCurveTo(cx - s * 0.22, cy - s * 0.8, cx - s * 0.04, cy - s * 0.62, cx, cy - s * 0.4);
+    ctx.bezierCurveTo(cx + s * 0.04, cy - s * 0.62, cx + s * 0.22, cy - s * 0.8, cx + s * 0.48, cy - s * 0.68);
+    ctx.bezierCurveTo(cx + s * 0.9, cy - s * 0.48, cx + s * 0.82, cy + s * 0.08, cx, cy + s * 0.58);
+    ctx.closePath();
+  }
+
   function drawMeasureItem(item){
     measureCtx.save();
     measureCtx.strokeStyle = item.color;
@@ -254,6 +408,11 @@
     if(item.type === 'circle'){
       measureCtx.beginPath();
       measureCtx.arc(item.x, item.y, item.radius, 0, Math.PI * 2);
+      measureCtx.stroke();
+    }
+
+    if(item.type === 'heart'){
+      drawHeartPath(measureCtx, item.x, item.y, item.size);
       measureCtx.stroke();
     }
 
@@ -284,6 +443,72 @@
     measureCtx.restore();
   }
 
+  function hitTestItem(item, pos){
+    var margin = Math.max(8, item.width * 1.5);
+    if(item.type === 'circle'){
+      var dist = Math.hypot(pos.x - item.x, pos.y - item.y);
+      return Math.abs(dist - item.radius) < margin || dist < item.radius;
+    }
+    if(item.type === 'heart'){
+      var dist = Math.hypot(pos.x - item.x, pos.y - item.y);
+      return dist < item.size * 0.6;
+    }
+    if(item.type === 'line' || item.type === 'arrow'){
+      var dx = item.x2 - item.x1, dy = item.y2 - item.y1;
+      var len = Math.hypot(dx, dy);
+      if(len < 1) return Math.hypot(pos.x - item.x1, pos.y - item.y1) < margin;
+      var t = Math.max(0, Math.min(1, ((pos.x - item.x1)*dx + (pos.y - item.y1)*dy) / (len*len)));
+      var px = item.x1 + t*dx, py = item.y1 + t*dy;
+      return Math.hypot(pos.x - px, pos.y - py) < margin;
+    }
+    return false;
+  }
+
+  function hitModeForItem(item, pos){
+    if(item.type === 'circle'){
+      var margin = Math.max(10, item.width * 2);
+      var dist = Math.hypot(pos.x - item.x, pos.y - item.y);
+      return Math.abs(dist - item.radius) <= margin ? 'resize' : 'move';
+    }
+    return 'move';
+  }
+
+  function findItemAtPos(pos){
+    var state = getMeasureState();
+    for(var i = state.items.length - 1; i >= 0; i--){
+      if(hitTestItem(state.items[i], pos)) return state.items[i];
+    }
+    return null;
+  }
+
+  function updateMeasureCursor(e){
+    if(!measuring || draggingItem || measureDrawing) return;
+    var hit = findItemAtPos(measurePointerPosition(e));
+    if(!hit){
+      measureCanvas.style.cursor = 'crosshair';
+      return;
+    }
+    measureCanvas.style.cursor = hitModeForItem(hit, measurePointerPosition(e)) === 'resize'
+      ? 'nwse-resize'
+      : 'grab';
+  }
+
+  function moveItem(item, dx, dy){
+    if(item.type === 'circle' || item.type === 'heart'){
+      item.x += dx;
+      item.y += dy;
+    } else {
+      item.x1 += dx; item.y1 += dy;
+      item.x2 += dx; item.y2 += dy;
+    }
+  }
+
+  function resizeItem(item, pos){
+    if(item.type === 'circle'){
+      item.radius = Math.max(6, Math.hypot(pos.x - item.x, pos.y - item.y));
+    }
+  }
+
   function renderMeasurements(){
     const state = getMeasureState();
     measureCtx.clearRect(0, 0, measureCanvas.width, measureCanvas.height);
@@ -301,6 +526,17 @@
         x: from.x,
         y: from.y,
         radius: Math.hypot(to.x - from.x, to.y - from.y),
+        color,
+        width
+      };
+    }
+
+    if(measureTool === 'heart'){
+      return {
+        type: 'heart',
+        x: from.x,
+        y: from.y,
+        size: Math.hypot(to.x - from.x, to.y - from.y),
         color,
         width
       };
@@ -328,17 +564,41 @@
     measureCircle.classList.toggle('active', tool === 'circle');
     measureArrow.classList.toggle('active', tool === 'arrow');
     measureLine.classList.toggle('active', tool === 'line');
+    if(measureHeart) measureHeart.classList.toggle('active', tool === 'heart');
   }
 
   function startMeasure(e){
     if(!measuring) return;
     e.preventDefault();
+    var pos = measurePointerPosition(e);
+    var hit = findItemAtPos(pos);
+    if(hit){
+      draggingItem = hit;
+      draggingMode = hitModeForItem(hit, pos);
+      dragOffset = { x: pos.x, y: pos.y };
+      measureCanvas.style.cursor = draggingMode === 'resize' ? 'nwse-resize' : 'grabbing';
+      return;
+    }
     measureDrawing = true;
-    measureStart = measurePointerPosition(e);
+    measureStart = pos;
     measurePreview = null;
   }
 
   function drawMeasure(e){
+    if(draggingItem){
+      e.preventDefault();
+      var pos = measurePointerPosition(e);
+      var dx = pos.x - dragOffset.x;
+      var dy = pos.y - dragOffset.y;
+      if(draggingMode === 'resize'){
+        resizeItem(draggingItem, pos);
+      } else {
+        moveItem(draggingItem, dx, dy);
+      }
+      dragOffset = pos;
+      renderMeasurements();
+      return;
+    }
     if(!measureDrawing) return;
     e.preventDefault();
     measurePreview = buildMeasureItem(measureStart, measurePointerPosition(e));
@@ -346,13 +606,21 @@
   }
 
   function stopMeasure(e){
+    if(draggingItem){
+      e.preventDefault();
+      draggingItem = null;
+      draggingMode = 'move';
+      measureCanvas.style.cursor = '';
+      renderMeasurements();
+      return;
+    }
     if(!measureDrawing) return;
     e.preventDefault();
     const state = getMeasureState();
     const end = measurePointerPosition(e.changedTouches ? { touches: e.changedTouches } : e);
     const item = buildMeasureItem(measureStart, end);
 
-    if(item.type !== 'circle' || item.radius > 2){
+    if((item.type === 'circle' || item.type === 'heart') ? (item.radius || item.size) > 2 : true){
       state.items.push(item);
       state.redo = [];
     }
@@ -389,6 +657,7 @@
   measureCircle.addEventListener('click', () => setMeasureTool('circle'));
   measureArrow.addEventListener('click', () => setMeasureTool('arrow'));
   measureLine.addEventListener('click', () => setMeasureTool('line'));
+  if(measureHeart) measureHeart.addEventListener('click', () => setMeasureTool('heart'));
   measureUndo.addEventListener('click', function(){
     if(!measuring) return;
     const state = getMeasureState();
@@ -413,14 +682,12 @@
   measureSave.addEventListener('click', function(){
     if(!measuring) return;
     renderMeasurements();
-    const link = document.createElement('a');
-    link.href = measureCanvas.toDataURL('image/png');
-    link.download = `mediciones-imagen-${measureImageIndex + 1}.png`;
-    link.click();
+    saveEditedImage(this, 'original');
   });
 
   measureCanvas.addEventListener('mousedown', startMeasure);
   measureCanvas.addEventListener('mousemove', drawMeasure);
+  measureCanvas.addEventListener('mousemove', updateMeasureCursor);
   measureCanvas.addEventListener('mouseup', stopMeasure);
   measureCanvas.addEventListener('mouseleave', stopMeasure);
   measureCanvas.addEventListener('touchstart', startMeasure, { passive: false });
@@ -627,10 +894,7 @@
   });
   annoSave.addEventListener('click', function(){
     if(!annotating) return;
-    const link = document.createElement('a');
-    link.href = annotationCanvas.toDataURL('image/png');
-    link.download = `anotacion-imagen-${annotationImageIndex + 1}.png`;
-    link.click();
+    saveEditedImage(this, 'original');
   });
 
   annotationCanvas.addEventListener('mousedown', startAnnotation);
@@ -752,23 +1016,14 @@
     });
   });
 
-  /* Botón aplicar (descarga canvas con filtros) */
+  /* Botón aplicar: guarda una copia editada en la galería del paciente */
   document.getElementById('viFilterApply').addEventListener('click', function(){
     if(!currentImg){
       this.textContent = '⚠ Sin imagen cargada';
       setTimeout(() => { this.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Aplicar filtros'; }, 2000);
       return;
     }
-    const link = document.createElement('a');
-    link.download = 'imagen-filtrada.png';
-    link.href = filterCanvas.toDataURL('image/png');
-    link.click();
-    this.innerHTML = '✓ Descargado';
-    this.style.background = 'var(--green)';
-    setTimeout(() => {
-      this.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Aplicar filtros';
-      this.style.background = '';
-    }, 2000);
+    saveEditedImage(this, 'copy');
   });
 
   /* Botón restablecer */

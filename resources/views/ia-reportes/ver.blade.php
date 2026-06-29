@@ -44,7 +44,7 @@
 
 /* Imágenes */
 .rep-imgs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:14px 0 20px}
-.rep-imgs .cell{aspect-ratio:4/3;background:linear-gradient(160deg,#1c2435,#10151f);border:1px solid var(--stroke);border-radius:4px}
+.rep-imgs .cell{aspect-ratio:4/3;background:#e5e5e5;border:1px solid var(--stroke);border-radius:4px}
 
 /* Firma */
 .rep-sign{margin-top:38px;display:flex;justify-content:center}
@@ -55,17 +55,34 @@
 .doc-content{white-space:pre-wrap;font-size:13px;line-height:1.55}
 .doc-content h4{color:var(--cyan);font-size:13px;font-weight:700;margin:16px 0 6px}
 
-/* Impresión en tamaño carta */
+/* Impresión en tamaño carta (una sola hoja) */
 @media print{
-  @page { size: letter; margin: 0.5in; }
-  body * { visibility: hidden; }
+  @page { size: letter; margin: 0.4in; }
+  body { margin: 0; padding: 0; }
+  /* Ocultar todo el layout de la app excepto el documento del informe */
+  body > * { display: none !important; }
+  .vw-doc { display: block !important; }
   .vw-doc, .vw-doc * { visibility: visible; }
-  .vw-doc { position: absolute; left: 0; top: 0; width: 100%; max-width: none; margin: 0; border: 0; border-radius: 0; box-shadow: none; background: #fff; color: #000; padding: 0; }
-  .vw-actions, .vw-status, .widget-drag-handle, .widget-resize-handle, header, aside, nav, footer { display: none !important; }
+  .vw-doc { position: absolute; left: 0; top: 0; width: 7.7in; height: 10.2in; max-width: none; margin: 0; border: 0; border-radius: 0; box-shadow: none; background: #fff; color: #000; padding: 0; overflow: hidden; font-size: 10pt; line-height: 1.35; }
+  .vw-doc .doc-h { margin-bottom: 12px; }
+  .vw-doc .doc-h h2 { font-size: 16pt; }
+  .vw-doc .doc-h p { font-size: 9pt; }
+  .vw-doc .doc-meta { font-size: 9.5pt; margin-bottom: 12px; gap: 3px 10px; }
+  .vw-doc h4 { font-size: 10pt; margin: 10px 0 4px; color: #000; }
+  .vw-doc p, .vw-doc ul { font-size: 9.5pt; }
+  .rep-header { height: 70px; margin-bottom: 10px; }
+  .rep-header > div { height: 70px; }
+  .rep-logo { width: 70px; }
+  .rep-anat { width: 70px; }
+  .rep-clinic { left: 76px; right: 76px; }
+  .rep-imgs { grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 8px 0 12px; }
+  .rep-imgs .cell { aspect-ratio: 4/3; max-height: 1.4in; background: #e5e5e5; }
+  .rep-imgs .cell img { max-height: 1.4in; object-fit: cover; }
+  .rep-sign { margin-top: 18px; }
+  .rep-sign .sign-box .nm { font-size: 10pt; }
   .rep-header, .rep-imgs, .doc-meta, .doc-content { page-break-inside: avoid; }
   .vw-doc .doc-h h2, .vw-doc h4 { color: #000; }
   .rep-clinic { background: #e8f4f3; }
-  .rep-imgs .cell { background: #e5e5e5; }
 }
 </style>
 @endpush
@@ -79,7 +96,15 @@
     $horaEstudio = $reporte?->estudio?->hora_inicio ?? '';
     $tipoEstudio = $reporte?->estudio?->tipo ?? 'Endoscopia';
     $medicoNombre = $reporte?->usuario?->name ?? auth()->user()?->name ?? '—';
-    $contenido = $reporte?->contenido_texto ?? '';
+
+    $tituloPlantilla = $reporte?->plantilla?->titulo ?? 'INFORME DE '.mb_strtoupper($tipoEstudio);
+    $subPlantilla = $reporte?->plantilla?->subtitulo ?? mb_strtoupper($tipoEstudio);
+    $firmaNombre = $reporte?->plantilla?->configuracion['signName'] ?? $reporte?->usuario?->name ?? auth()->user()?->name ?? '—';
+
+    $contenidoHtml = $reporte?->contenido_html;
+    $contenidoTexto = $reporte?->contenido_texto ?? '';
+
+    $imagenes = $estudioImagenes->map(fn ($img) => is_array($img) ? ($img['url'] ?? null) : $img)->filter()->values();
   @endphp
 
   <div class="vw-actions">
@@ -87,7 +112,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
       Volver
     </a>
-    <button class="vw-btn primary" type="button" onclick="window.print()">
+    <button class="vw-btn primary" type="button" onclick="downloadPdf()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       Descargar PDF
     </button>
@@ -113,8 +138,8 @@
     </div>
 
     <div class="doc-h">
-      <h2>INFORME DE {{ mb_strtoupper($tipoEstudio) }}</h2>
-      <p>{{ mb_strtoupper($tipoEstudio) }}</p>
+      <h2>{{ $tituloPlantilla }}</h2>
+      <p>{{ $subPlantilla }}</p>
     </div>
 
     <div class="doc-meta">
@@ -127,21 +152,146 @@
       <span class="k">Tipo de estudio:</span><span>{{ $tipoEstudio }}</span>
     </div>
 
+    @php
+      $cols = $reporte?->plantilla?->columnas ?? 4;
+      if ($cols < 1 || $cols > 8) $cols = 4;
+      $imgCount = $imagenes->count();
+      $repImgsStyle = $imgCount ? 'grid-template-columns:repeat(' . min($cols, $imgCount) . ',1fr);' : '';
+    @endphp
     {{-- Imágenes del estudio --}}
-    <div class="rep-imgs">
-      <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
-      <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
-    </div>
+    @if($imgCount)
+      <div class="rep-imgs" style="{{ $repImgsStyle }}">
+        @foreach($imagenes as $url)
+          <span class="cell" style="background:none;overflow:hidden">
+            <img src="{{ $url }}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">
+          </span>
+        @endforeach
+      </div>
+    @endif
 
-    <div class="doc-content">
-      {{ $contenido }}
+    <div class="doc-content @if(!$contenidoHtml) pre @endif">
+      @if($contenidoHtml)
+        {!! $contenidoHtml !!}
+      @else
+        {!! nl2br(e($contenidoTexto)) !!}
+      @endif
     </div>
 
     <div class="rep-sign" data-pos="center">
       <div class="sign-box">
-        <div class="nm">{{ $medicoNombre }}</div>
+        <div class="nm">{{ $firmaNombre }}</div>
       </div>
     </div>
   </article>
+
+  @php
+    $cfg = $reporte?->plantilla?->configuracion ?? null;
+  @endphp
+  @if($cfg)
+  <script>
+    (function() {
+      const cfg = @json($cfg);
+      const header = document.querySelector('.rep-header');
+      const repLogo = document.querySelector('.rep-logo');
+      const repAnat = document.querySelector('.rep-anat');
+      const repClinic = document.querySelector('.rep-clinic span');
+      const repClinicBox = document.querySelector('.rep-clinic');
+      const PAGE_W = 794;
+      const s = (header ? header.clientWidth : PAGE_W) / PAGE_W;
+      const place = (el, box) => {
+        if (!el || !box) return;
+        el.style.position = 'absolute';
+        el.style.left = (box.x * s) + 'px';
+        el.style.top = (box.y * s) + 'px';
+        el.style.width = (box.w * s) + 'px';
+        el.style.height = (box.h * s) + 'px';
+      };
+      if (header && cfg.headH) header.style.height = (cfg.headH * s) + 'px';
+      if (repLogo) {
+        if (cfg.logoImg) repLogo.innerHTML = '<img src="' + cfg.logoImg + '" alt="Logo de la clínica" style="width:100%;height:100%;object-fit:contain">';
+        place(repLogo, cfg.logo);
+      }
+      if (repClinicBox) place(repClinicBox, cfg.name);
+      if (repClinic) {
+        if (cfg.clinic) repClinic.textContent = cfg.clinic;
+        if (cfg.name && cfg.name.fontSize) repClinic.style.fontSize = (cfg.name.fontSize * s) + 'px';
+      }
+      if (repAnat) {
+        const tipo = '{{ ucfirst(strtolower($tipoEstudio)) }}';
+        const STUDY_IMG = {
+          'Colonoscopia': '/images/Colonoscopia.png',
+          'Gastroscopia': '/images/Gastroscopia.png',
+          'Duodenoscopia': '/images/Duodenoscopia.png',
+          'Broncoscopia': '/images/Broncoscopia.png',
+        };
+        const anatSrc = cfg.anatImg || STUDY_IMG[tipo] || null;
+        if (anatSrc) repAnat.innerHTML = '<img src="' + anatSrc + '" alt="Imagen lateral" style="width:100%;height:100%;object-fit:contain">';
+        place(repAnat, cfg.anat);
+      }
+    })();
+  </script>
+  @endif
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script>
+    (function() {
+      const doc = document.querySelector('.vw-doc');
+      if (!doc) return;
+      let originalTransform = '';
+      let originalWidth = '';
+      const fitToOnePage = () => {
+        originalTransform = doc.style.transform || '';
+        originalWidth = doc.style.width || '';
+        doc.style.transform = '';
+        const targetHeight = 10.2 * 96; // 10.2in a 96dpi
+        const actualHeight = doc.scrollHeight;
+        if (actualHeight > targetHeight) {
+          const scale = targetHeight / actualHeight;
+          doc.style.transform = 'scale(' + scale + ')';
+          doc.style.transformOrigin = 'top left';
+          doc.style.width = (7.7 / scale) + 'in';
+        }
+      };
+      const restore = () => {
+        doc.style.transform = originalTransform;
+        doc.style.transformOrigin = '';
+        doc.style.width = originalWidth;
+      };
+      window.addEventListener('beforeprint', fitToOnePage);
+      window.addEventListener('afterprint', restore);
+
+      window.downloadPdf = () => {
+        const clone = doc.cloneNode(true);
+        clone.style.position = 'relative';
+        clone.style.width = '7.7in';
+        clone.style.height = 'auto';
+        clone.style.transform = 'none';
+        clone.style.background = '#fff';
+        clone.style.color = '#000';
+        clone.style.padding = '0';
+        clone.style.margin = '0';
+        clone.style.maxWidth = 'none';
+        clone.style.boxShadow = 'none';
+        clone.style.border = '0';
+        const wrapper = document.createElement('div');
+        wrapper.style.position = 'absolute';
+        wrapper.style.left = '-9999px';
+        wrapper.style.top = '0';
+        wrapper.style.width = '7.7in';
+        wrapper.style.background = '#fff';
+        wrapper.appendChild(clone);
+        document.body.appendChild(wrapper);
+        const opt = {
+          margin: [0.4, 0.4, 0.4, 0.4],
+          filename: 'Informe_{{ \Illuminate\Support\Str::replace(' ', '_', $nombrePaciente) }}_{{ $fechaEstudio }}.pdf',
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, backgroundColor: '#fff' },
+          jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+        };
+        html2pdf().set(opt).from(clone).save().then(() => wrapper.remove());
+      };
+    })();
+  </script>
 
 @endsection

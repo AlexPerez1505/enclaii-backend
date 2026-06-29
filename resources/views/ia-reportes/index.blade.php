@@ -561,28 +561,19 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
 
     {{-- Hallazgos detectados --}}
       <article class="card rep-hall rise d6">
-        <h3>HALLAZGOS DETECTADOS POR IA</h3>
+        <h3>HALLAZGOS</h3>
 
-        <div class="find">
-          <div class="top"><span>Gastritis crónica</span><b>68%</b></div>
-          <div class="bar c1"><i data-w="68"></i></div>
-        </div>
-        <div class="find">
-          <div class="top"><span>Reflujo gastroesofágico</span><b>42%</b></div>
-          <div class="bar c2"><i data-w="42"></i></div>
-        </div>
-        <div class="find">
-          <div class="top"><span>Úlcera péptica</span><b>18%</b></div>
-          <div class="bar c3"><i data-w="18"></i></div>
-        </div>
-        <div class="find">
-          <div class="top"><span>Pólipos</span><b>11%</b></div>
-          <div class="bar c4"><i data-w="11"></i></div>
-        </div>
-        <div class="find">
-          <div class="top"><span>Esofagitis</span><b>9%</b></div>
-          <div class="bar c5"><i data-w="9"></i></div>
-        </div>
+        @forelse($hallazgos as $i => $h)
+          @php $colorClass = 'c' . (($i % 5) + 1); @endphp
+          <div class="find">
+            <div class="top"><span>{{ $h['nombre'] }}</span><b>{{ $h['cantidad'] }}</b></div>
+            <div class="bar {{ $colorClass }}"><i data-w="{{ $h['porcentaje'] }}"></i></div>
+          </div>
+        @empty
+          <div class="find">
+            <div class="top"><span>Sin hallazgos registrados</span></div>
+          </div>
+        @endforelse
 
         <a class="tbl-link" href="{{ route('ia-reportes.hallazgos') }}">
           Ver todos los hallazgos
@@ -591,23 +582,23 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
       </article>
 
       <article class="card recs rise d7">
-        <h3>RECOMENDACIONES IA</h3>
+        <h3>¿CÓMO USAR LA IA?</h3>
         <ul>
           <li>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            Comparar con estudio previo del 2024
+            "Resume el informe en 3 párrafos"
           </li>
           <li>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            Seguimiento en 3 meses
+            "Agrega hallazgos por segmento del estudio"
           </li>
           <li>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            Revisar antecedentes gástricos del paciente
+            "Reescribe el plan de recomendaciones con lenguaje claro"
           </li>
           <li>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            Considerar prueba para H. pylori
+            "Incluye la descripción clínica del paciente para llegar a una mejor conclusión"
           </li>
         </ul>
       </article>
