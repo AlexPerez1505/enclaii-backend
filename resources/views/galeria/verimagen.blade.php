@@ -38,3 +38,4 @@ $current = $current ?? 0;
 @push('scripts')
 @include('galeria.verimagen._scripts')
 @endpush
+
