@@ -288,6 +288,11 @@
   color:var(--cyan);
   margin-bottom:4px;
 }
+.filter-row-2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
 .filter-row-3{
   display:grid;
   grid-template-columns:1fr 1fr 1fr;
@@ -338,6 +343,27 @@
   font-size:12px;
   font-weight:600;
   margin-left:2px;
+}
+.filter-toggle-more{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-size:13px;
+  font-weight:600;
+  color:var(--cyan);
+  background:transparent;
+  border:none;
+  padding:0;
+  cursor:pointer;
+  transition:color 150ms ease;
+  margin-top:-4px;
+}
+.filter-toggle-more:hover{color:var(--blue)}
+.filter-toggle-more svg{
+  transition:transform 200ms var(--ease-out);
+}
+.filter-toggle-more.open svg{
+  transform:rotate(180deg);
 }
 @media (max-width:680px){
   .filter-panel{
@@ -1719,8 +1745,8 @@
           </select>
         </div>
       </div>
-      {{-- Fila 2: Estado, Último estudio, Más filtros --}}
-      <div class="filter-row-3">
+      {{-- Fila 2: Estado y Último estudio --}}
+      <div class="filter-row-2">
         <div class="filter-group">
           <label>Estado</label>
           <select class="filter-input filter-select" id="fEstado">
@@ -1742,13 +1768,6 @@
             <option value="anio">Este año</option>
           </select>
         </div>
-        <div class="filter-group">
-          <label>Más filtros</label>
-          <select class="filter-input filter-select" id="fMasFiltros" onchange="toggleMoreFilters(this.value)">
-            <option value="">Seleccionar opción</option>
-            <option value="show">Mostrar más filtros</option>
-          </select>
-        </div>
       </div>
 
       {{-- Fila 3: Acciones rápidas de fecha --}}
@@ -1759,6 +1778,12 @@
           <button class="filter-date-btn" onclick="setDateFilter(this,'mes')">Mes</button>
         </div>
       </div>
+
+      {{-- Botón toggle más filtros --}}
+      <button type="button" class="filter-toggle-more" id="btnToggleMore" onclick="toggleMoreFilters()">
+        <span id="btnToggleMoreText">Más filtros</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
 
       {{-- Más filtros expandible --}}
       <div id="moreFiltersBox" style="display:none;">
@@ -2488,14 +2513,15 @@ function closeFilters() {
   document.getElementById('btnFiltros').classList.remove('active');
   document.body.style.overflow = '';
 }
-function toggleMoreFilters(value) {
+function toggleMoreFilters() {
   const box = document.getElementById('moreFiltersBox');
-  if (!box) return;
-  if (value === 'show') {
-    box.style.display = 'block';
-  } else {
-    box.style.display = 'none';
-  }
+  const btn = document.getElementById('btnToggleMore');
+  const btnText = document.getElementById('btnToggleMoreText');
+  if (!box || !btn) return;
+  const isOpen = box.style.display === 'block';
+  box.style.display = isOpen ? 'none' : 'block';
+  btn.classList.toggle('open', !isOpen);
+  if (btnText) btnText.textContent = isOpen ? 'Más filtros' : 'Menos filtros';
   updateFilterCounter();
 }
 function setDateFilter(btn, val) {
@@ -2568,19 +2594,23 @@ function clearFilters() {
     const el = document.getElementById(id); if(el) el.value = '';
   });
   // Limpiar selects
-  ['fMedico','fRangoEdad','fEstado','fUltimoEstudio','fMasFiltros','fTipoEstudio','fEstadoEstudio','fEtiquetas'].forEach(id => {
+  ['fMedico','fRangoEdad','fEstado','fUltimoEstudio','fTipoEstudio','fEstadoEstudio','fEtiquetas'].forEach(id => {
     const el = document.getElementById(id); if(el) el.selectedIndex = 0;
   });
-  // Ocultar más filtros
+  // Ocultar más filtros y resetear botón
   const moreBox = document.getElementById('moreFiltersBox');
   if (moreBox) moreBox.style.display = 'none';
+  const btnToggle = document.getElementById('btnToggleMore');
+  const btnToggleText = document.getElementById('btnToggleMoreText');
+  if (btnToggle) btnToggle.classList.remove('open');
+  if (btnToggleText) btnToggleText.textContent = 'Más filtros';
   // Resetear botones de fecha
   document.querySelectorAll('.filter-date-btn').forEach((b, i) => b.classList.toggle('active', i === 1));
   updateFilterCounter();
 }
 
 // Actualizar contador cuando cambia cualquier filtro
-['fNombre','fMedico','fRangoEdad','fEstado','fUltimoEstudio','fMasFiltros','fFechaNacimiento','fTipoEstudio','fEstadoEstudio','fFechaRegistro','fFolio','fEtiquetas'].forEach(id => {
+['fNombre','fMedico','fRangoEdad','fEstado','fUltimoEstudio','fFechaNacimiento','fTipoEstudio','fEstadoEstudio','fFechaRegistro','fFolio','fEtiquetas'].forEach(id => {
   const el = document.getElementById(id);
   if (el) el.addEventListener('change', updateFilterCounter);
   if (el) el.addEventListener('input', updateFilterCounter);
