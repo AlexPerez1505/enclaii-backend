@@ -808,8 +808,8 @@
 
         <div class="ec-brand ec-stagger">
           <img src="{{ asset('images/logo.png') }}" alt="Logotipo">
-          <div class="ec-brand-name">JURE<span>TO</span></div>
-          <div class="ec-brand-tag">Cotizaciones · Ventas · Plataforma inteligente</div>
+          <div class="ec-brand-name">ENCLA<span>II</span></div>
+          <div class="ec-brand-tag">Endoscopia · Nube · Inteligencia Artificial · Innovacion</div>
         </div>
 
         <div class="ec-stagger">
