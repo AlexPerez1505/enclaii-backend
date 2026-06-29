@@ -92,28 +92,20 @@
 .filter-overlay.open{opacity:1;visibility:visible}
 .filter-panel{
   position:fixed;
-  top:50%;left:50%;
-  width:640px;
+  top:0;right:0;
+  width:320px;
   max-width:94vw;
-  max-height:88vh;
+  height:100vh;
   background:linear-gradient(180deg,var(--card) 0%,var(--panel-2) 100%);
-  border:1px solid var(--stroke-strong);
-  border-radius:var(--r-lg);
-  box-shadow:0 24px 60px rgba(0,0,0,.5);
+  border-left:1px solid var(--stroke-strong);
   z-index:201;
   display:flex;
   flex-direction:column;
-  transform:translate(-50%,-45%) scale(.96);
-  opacity:0;
-  visibility:hidden;
-  transition:transform 300ms var(--ease-out), opacity 250ms ease, visibility 250ms ease;
+  transform:translateX(100%);
+  transition:transform 300ms var(--ease-out);
   overflow:hidden;
 }
-.filter-panel.open{
-  transform:translate(-50%,-50%) scale(1);
-  opacity:1;
-  visibility:visible;
-}
+.filter-panel.open{transform:translateX(0)}
 .filter-panel-head{
   display:flex;
   align-items:center;
@@ -287,102 +279,6 @@
   text-transform:uppercase;
   color:var(--cyan);
   margin-bottom:4px;
-}
-.filter-row-2{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-}
-.filter-row-3{
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr;
-  gap:10px;
-}
-.filter-row-3 .filter-group label{
-  font-size:11px;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.filter-row-3 .filter-input{
-  padding:8px 10px;
-  font-size:12px;
-}
-.filter-row-3 .filter-select{
-  background-position:right 8px center;
-  padding-right:26px;
-}
-.filter-count{
-  font-size:13px;
-  font-weight:600;
-  color:var(--cyan);
-  margin-left:4px;
-}
-.filter-clear-all{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  font-size:12px;
-  font-weight:600;
-  color:var(--red);
-  background:transparent;
-  border:1px solid var(--stroke);
-  border-radius:var(--r-md);
-  padding:6px 10px;
-  cursor:pointer;
-  transition:all 150ms ease;
-}
-.filter-clear-all:hover{
-  border-color:var(--red);
-  background:rgba(255,90,110,.08);
-}
-.filter-clear-all svg{
-  width:14px;height:14px;
-}
-.filter-apply-count{
-  font-size:12px;
-  font-weight:600;
-  margin-left:2px;
-}
-.filter-toggle-more{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  font-size:13px;
-  font-weight:600;
-  color:var(--cyan);
-  background:transparent;
-  border:none;
-  padding:0;
-  cursor:pointer;
-  transition:color 150ms ease;
-  margin-top:-4px;
-}
-.filter-toggle-more:hover{color:var(--blue)}
-.filter-toggle-more svg{
-  transition:transform 200ms var(--ease-out);
-}
-.filter-toggle-more.open svg{
-  transform:rotate(180deg);
-}
-@media (max-width:680px){
-  .filter-panel{
-    width:100vw;
-    max-width:100vw;
-    max-height:100vh;
-    border-radius:0;
-    top:0;left:0;
-    transform:translate(0,20px) scale(.96);
-  }
-  .filter-panel.open{
-    transform:translate(0,0) scale(1);
-  }
-  .filter-row-3{
-    grid-template-columns:1fr;
-  }
-  .filter-row-3 .filter-group label{
-    white-space:normal;
-  }
 }
 
 /* Tabla de pacientes */
@@ -1708,141 +1604,116 @@
   <div class="filter-overlay" id="filterOverlay" onclick="closeFilters()"></div>
   <aside class="filter-panel" id="filterPanel">
     <div class="filter-panel-head">
-      <h2>Filtros <span class="filter-count" id="filterCount">(0)</span></h2>
-      <button class="filter-clear-all" onclick="clearFilters()" id="btnLimpiarTodo" style="display:none;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-        Limpiar todo
-      </button>
+      <h2>Filtros</h2>
       <button class="filter-close" onclick="closeFilters()" aria-label="Cerrar filtros">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
+    <div class="filter-tabs-row">
+      <button class="filter-tab active" id="ftab-basic" onclick="switchFilterTab('basic')">Filtros</button>
+      <button class="filter-tab" id="ftab-advanced" onclick="switchFilterTab('advanced')">Avanzados</button>
+    </div>
     <div class="filter-body">
-      {{-- Fila 1: Nombre, Médico, Rango de edad --}}
-      <div class="filter-row-3">
+      {{-- Tab básico --}}
+      <div id="ftab-content-basic">
         <div class="filter-group">
-          <label>Nombre del paciente</label>
-          <input type="text" class="filter-input" placeholder="Ej. María González" id="fNombre">
+          <label>Buscar</label>
+          <input type="text" class="filter-input" placeholder="Buscar pacientes" id="fBuscar">
+        </div>
+        <div class="filter-group">
+          <label>Número de seguro social</label>
+          <input type="text" class="filter-input" placeholder="Buscar pacientes" id="fSeguro">
+        </div>
+        <div class="filter-group">
+          <label>Número de folio</label>
+          <input type="text" class="filter-input" placeholder="Buscar pacientes" id="fFolio">
+        </div>
+        <div class="filter-group">
+          <label>Tipo de estudio</label>
+          <select class="filter-input filter-select" id="fTipoEstudio">
+            <option value="">Todos los estudios</option>
+            <option>Endoscopia diagnóstica</option>
+            <option>Endoscopia alta</option>
+            <option>Colonoscopia</option>
+            <option>CPRE</option>
+          </select>
         </div>
         <div class="filter-group">
           <label>Médico</label>
           <select class="filter-input filter-select" id="fMedico">
-            <option value="">Seleccionar médico</option>
             <option>Ricardo Martínez</option>
             <option>Dr. Victor</option>
             <option>Dra. López</option>
           </select>
         </div>
+      </div>
+      {{-- Tab avanzado --}}
+      <div id="ftab-content-advanced" style="display:none">
+        <div class="filter-group">
+          <label>Buscar</label>
+          <input type="text" class="filter-input" placeholder="Buscar pacientes" id="fBuscarAdv">
+        </div>
+        <div class="filter-group">
+          <label>Número de seguro social</label>
+          <input type="text" class="filter-input" placeholder="Buscar pacientes" id="fSeguroAdv">
+        </div>
+        <div class="filter-group">
+          <label>Número de folio</label>
+          <input type="text" class="filter-input" placeholder="Buscar pacientes" id="fFolioAdv">
+        </div>
+        <div class="filter-group">
+          <label>Tipo de estudio</label>
+          <select class="filter-input filter-select" id="fTipoEstudioAdv">
+            <option value="">Todos los estudios</option>
+            <option>Endoscopia diagnóstica</option>
+            <option>Endoscopia alta</option>
+            <option>Colonoscopia</option>
+            <option>CPRE</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Médico</label>
+          <select class="filter-input filter-select" id="fMedicoAdv">
+            <option>Ricardo Martínez</option>
+            <option>Dr. Victor</option>
+            <option>Dra. López</option>
+          </select>
+        </div>
+        <p class="filter-section-title" style="margin-top:8px">Filtros avanzados</p>
+        <div class="filter-group">
+          <label>Fecha</label>
+          <div class="filter-date-btns">
+            <button class="filter-date-btn" onclick="setDateFilter(this,'hoy')">Hoy</button>
+            <button class="filter-date-btn active" onclick="setDateFilter(this,'semana')">Semana</button>
+            <button class="filter-date-btn" onclick="setDateFilter(this,'mes')">Mes</button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <label>Sexo</label>
+          <select class="filter-input filter-select" id="fSexo">
+            <option value="">Todos</option>
+            <option>Masculino</option>
+            <option>Femenino</option>
+          </select>
+        </div>
         <div class="filter-group">
           <label>Rango de edad</label>
-          <select class="filter-input filter-select" id="fRangoEdad">
-            <option value="">Seleccionar rango</option>
-            <option value="0-18">0 - 18 años</option>
-            <option value="19-30">19 - 30 años</option>
-            <option value="31-45">31 - 45 años</option>
-            <option value="46-60">46 - 60 años</option>
-            <option value="60+">60+ años</option>
-          </select>
-        </div>
-      </div>
-      {{-- Fila 2: Estado y Último estudio --}}
-      <div class="filter-row-2">
-        <div class="filter-group">
-          <label>Estado</label>
-          <select class="filter-input filter-select" id="fEstado">
-            <option value="">Seleccionar estado</option>
-            <option>En tratamiento</option>
-            <option>Completado</option>
-            <option>En espera</option>
-            <option>Cancelado</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label>Último estudio</label>
-          <select class="filter-input filter-select" id="fUltimoEstudio">
-            <option value="">Seleccionar período</option>
-            <option value="hoy">Hoy</option>
-            <option value="semana">Esta semana</option>
-            <option value="mes">Este mes</option>
-            <option value="3meses">Últimos 3 meses</option>
-            <option value="anio">Este año</option>
-          </select>
-        </div>
-      </div>
-
-      {{-- Fila 3: Acciones rápidas de fecha --}}
-      <div class="filter-group">
-        <div class="filter-date-btns">
-          <button class="filter-date-btn" onclick="setDateFilter(this,'hoy')">Hoy</button>
-          <button class="filter-date-btn active" onclick="setDateFilter(this,'semana')">Semana</button>
-          <button class="filter-date-btn" onclick="setDateFilter(this,'mes')">Mes</button>
-        </div>
-      </div>
-
-      {{-- Botón toggle más filtros --}}
-      <button type="button" class="filter-toggle-more" id="btnToggleMore" onclick="toggleMoreFilters()">
-        <span id="btnToggleMoreText">Más filtros</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-
-      {{-- Más filtros expandible --}}
-      <div id="moreFiltersBox" style="display:none;">
-        <p class="filter-section-title">Más filtros</p>
-        <div class="filter-row-3">
-          <div class="filter-group">
-            <label>Fecha de nacimiento</label>
-            <input type="date" class="filter-input" id="fFechaNacimiento">
-          </div>
-          <div class="filter-group">
-            <label>Tipo de estudio</label>
-            <select class="filter-input filter-select" id="fTipoEstudio">
-              <option value="">Seleccionar tipo</option>
-              <option>Endoscopia diagnóstica</option>
-              <option>Endoscopia alta</option>
-              <option>Colonoscopia</option>
-              <option>CPRE</option>
-              <option>Panendoscopia</option>
-              <option>Gastroscopia</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label>Estado del estudio</label>
-            <select class="filter-input filter-select" id="fEstadoEstudio">
-              <option value="">Seleccionar estado</option>
-              <option>En proceso</option>
-              <option>Completado</option>
-              <option>Cancelado</option>
-              <option>Archivado</option>
-            </select>
-          </div>
-        </div>
-        <div class="filter-row-3">
-          <div class="filter-group">
-            <label>Fecha de registro</label>
-            <input type="date" class="filter-input" id="fFechaRegistro">
-          </div>
-          <div class="filter-group">
-            <label>Número de folio</label>
-            <input type="text" class="filter-input" placeholder="Ej. P-001" id="fFolio">
-          </div>
-          <div class="filter-group">
-            <label>Etiquetas</label>
-            <select class="filter-input filter-select" id="fEtiquetas">
-              <option value="">Seleccionar etiquetas</option>
-              <option>Urgente</option>
-              <option>Seguimiento</option>
-              <option>Crítico</option>
-              <option>Rutina</option>
-            </select>
+          <div class="filter-age-row">
+            <div class="filter-age-input">
+              <span class="filter-age-label">Desde</span>
+              <input type="number" placeholder="19" id="fEdadDesde" min="0" max="120">
+            </div>
+            <div class="filter-age-input">
+              <span class="filter-age-label">Hasta</span>
+              <input type="number" placeholder="45" id="fEdadHasta" min="0" max="120">
+            </div>
           </div>
         </div>
       </div>
     </div>
     <div class="filter-footer">
-      <button class="filter-btn-clear" onclick="clearFilters()">Cancelar</button>
-      <button class="filter-btn-apply" onclick="applyFilters()" id="btnAplicarFiltros">
-        Aplicar filtros <span class="filter-apply-count" id="applyCount">(0)</span>
-      </button>
+      <button class="filter-btn-clear" onclick="clearFilters()">Limpiar</button>
+      <button class="filter-btn-apply" onclick="applyFilters()">Aplicar</button>
     </div>
   </aside>
 
@@ -2505,7 +2376,6 @@ function openFilters() {
   document.getElementById('filterOverlay').classList.add('open');
   document.getElementById('btnFiltros').classList.add('active');
   document.body.style.overflow = 'hidden';
-  updateFilterCounter();
 }
 function closeFilters() {
   document.getElementById('filterPanel').classList.remove('open');
@@ -2513,61 +2383,20 @@ function closeFilters() {
   document.getElementById('btnFiltros').classList.remove('active');
   document.body.style.overflow = '';
 }
-function toggleMoreFilters() {
-  const box = document.getElementById('moreFiltersBox');
-  const btn = document.getElementById('btnToggleMore');
-  const btnText = document.getElementById('btnToggleMoreText');
-  if (!box || !btn) return;
-  const isOpen = box.style.display === 'block';
-  box.style.display = isOpen ? 'none' : 'block';
-  btn.classList.toggle('open', !isOpen);
-  if (btnText) btnText.textContent = isOpen ? 'Más filtros' : 'Menos filtros';
-  updateFilterCounter();
+function switchFilterTab(tab) {
+  document.getElementById('ftab-content-basic').style.display    = tab === 'basic'    ? 'flex' : 'none';
+  document.getElementById('ftab-content-advanced').style.display = tab === 'advanced' ? 'flex' : 'none';
+  document.getElementById('ftab-content-basic').style.flexDirection    = 'column';
+  document.getElementById('ftab-content-advanced').style.flexDirection = 'column';
+  document.getElementById('ftab-basic').classList.toggle('active',    tab === 'basic');
+  document.getElementById('ftab-advanced').classList.toggle('active', tab === 'advanced');
 }
 function setDateFilter(btn, val) {
   btn.closest('.filter-date-btns').querySelectorAll('.filter-date-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  updateFilterCounter();
-}
-function updateFilterCounter() {
-  const fields = ['fNombre','fMedico','fRangoEdad','fEstado','fUltimoEstudio','fFechaNacimiento','fTipoEstudio','fEstadoEstudio','fFechaRegistro','fFolio','fEtiquetas'];
-  let count = 0;
-  fields.forEach(id => {
-    const el = document.getElementById(id);
-    if (el && el.value.trim() !== '') count++;
-  });
-  const dateActive = document.querySelectorAll('.filter-date-btn.active').length > 0;
-  const moreOpen = document.getElementById('moreFiltersBox')?.style.display === 'block';
-  if (moreOpen) count++;
-
-  const filterCount = document.getElementById('filterCount');
-  const applyCount = document.getElementById('applyCount');
-  const btnLimpiar = document.getElementById('btnLimpiarTodo');
-  if (filterCount) filterCount.textContent = '(' + count + ')';
-  if (applyCount) applyCount.textContent = '(' + count + ')';
-  if (btnLimpiar) btnLimpiar.style.display = count > 0 ? 'inline-flex' : 'none';
 }
 function applyFilters() {
   closeFilters();
-  // Reutilizar búsqueda principal filtrando por nombre/folio
-  const nombre = document.getElementById('fNombre')?.value.toLowerCase().trim() || '';
-  const folio = document.getElementById('fFolio')?.value.toLowerCase().trim() || '';
-  const medico = document.getElementById('fMedico')?.value.toLowerCase().trim() || '';
-  const estado = document.getElementById('fEstado')?.value.toLowerCase().trim() || '';
-
-  if (!nombre && !folio && !medico && !estado) {
-    patientsDataFiltered = [...patientsData];
-  } else {
-    patientsDataFiltered = patientsData.filter(p => {
-      const matchNombre = !nombre || (p.name && p.name.toLowerCase().includes(nombre));
-      const matchFolio = !folio || (p.folio && p.folio.toLowerCase().includes(folio));
-      const matchMedico = !medico || (p.medico && p.medico.toLowerCase().includes(medico));
-      const matchEstado = !estado || (p.status && p.status.toLowerCase().includes(estado));
-      return matchNombre && matchFolio && matchMedico && matchEstado;
-    });
-  }
-  currentPage = 1;
-  renderPage(1);
 }
 
 function filterPatients() {
@@ -2589,33 +2418,15 @@ function filterPatients() {
   renderPage(1);
 }
 function clearFilters() {
-  // Limpiar todos los campos de texto y fecha
-  ['fNombre','fFolio','fFechaNacimiento','fFechaRegistro'].forEach(id => {
+  ['fBuscar','fSeguro','fFolio','fBuscarAdv','fSeguroAdv','fFolioAdv'].forEach(id => {
     const el = document.getElementById(id); if(el) el.value = '';
   });
-  // Limpiar selects
-  ['fMedico','fRangoEdad','fEstado','fUltimoEstudio','fTipoEstudio','fEstadoEstudio','fEtiquetas'].forEach(id => {
+  ['fTipoEstudio','fMedico','fTipoEstudioAdv','fMedicoAdv','fSexo'].forEach(id => {
     const el = document.getElementById(id); if(el) el.selectedIndex = 0;
   });
-  // Ocultar más filtros y resetear botón
-  const moreBox = document.getElementById('moreFiltersBox');
-  if (moreBox) moreBox.style.display = 'none';
-  const btnToggle = document.getElementById('btnToggleMore');
-  const btnToggleText = document.getElementById('btnToggleMoreText');
-  if (btnToggle) btnToggle.classList.remove('open');
-  if (btnToggleText) btnToggleText.textContent = 'Más filtros';
-  // Resetear botones de fecha
-  document.querySelectorAll('.filter-date-btn').forEach((b, i) => b.classList.toggle('active', i === 1));
-  updateFilterCounter();
+  const edD = document.getElementById('fEdadDesde'); if(edD) edD.value = '';
+  const edH = document.getElementById('fEdadHasta'); if(edH) edH.value = '';
 }
-
-// Actualizar contador cuando cambia cualquier filtro
-['fNombre','fMedico','fRangoEdad','fEstado','fUltimoEstudio','fFechaNacimiento','fTipoEstudio','fEstadoEstudio','fFechaRegistro','fFolio','fEtiquetas'].forEach(id => {
-  const el = document.getElementById(id);
-  if (el) el.addEventListener('change', updateFilterCounter);
-  if (el) el.addEventListener('input', updateFilterCounter);
-});
-
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closeFilters(); });
 
 // Quita el recorte de los contenedores mientras haya un menú abierto, para que
