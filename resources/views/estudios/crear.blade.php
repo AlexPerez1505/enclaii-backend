@@ -622,6 +622,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   $galEdad = $paciente ? ($paciente->edad ? $paciente->edad.' años' : '—') : '38 años';
   $galCodigo = $paciente ? ($paciente->folio ?? $paciente->identificacion ?? '—') : '00012345';
   $reportes = $reportes ?? collect();
+  $fotoPaciente = $paciente && $paciente->foto ? asset('storage/' . $paciente->foto) : null;
 @endphp
 
 {{-- Tabs de navegacion --}}
@@ -689,21 +690,16 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
       <div class="np-sec-header" style="font-size:18px;font-weight:700;margin-bottom:20px">Informacion del paciente</div>
 
       <div class="np-info-layout">
-
+        {{-- Columna foto --}}
+        <div class="np-foto-col">
+          <div class="np-foto-box" id="npFotoBox">
             @if($fotoPaciente)
-                {{-- Si el paciente tiene foto, se renderiza perfectamente adaptada al círculo --}}
-                <img src="{{ asset($fotoPaciente) }}" alt="Foto del Paciente" style="width: 100%; height: 100%; object-fit: cover;">
+              <img src="{{ $fotoPaciente }}" alt="Foto del Paciente" id="npFotoPreview" style="display:block">
             @else
-                {{-- Fallback: Icono SVG premium si no hay foto en la base de datos --}}
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--txt-soft)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.7;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              <div class="np-foto-ph" id="npFotoPh">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--txt-soft)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              </div>
             @endif
-        </div>
-
-        {{-- TEXTO DE LA CABECERA --}}
-        <div>
-            <div class="np-sec-header" style="margin-bottom: 4px; display: flex; align-items: center; gap: 8px; padding: 0;">
-                Información General del Paciente
-            </div>
           </div>
           <input type="file" id="npFotoInput" accept="image/*" style="display:none">
           <input type="file" id="npFotoCamera" accept="image/*" capture="environment" style="display:none">
@@ -724,24 +720,62 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
             </div>
           </div>
         </div>
-    </div>
-    
-    {{-- REJILLA DE DATOS (CAMPOS EXTRAÍDOS DE LA IMAGEN) --}}
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px 32px;">
-        
-        {{-- 1. NOMBRE COMPLETO --}}
-        <div>
-            <div style="font-size: 11px; font-weight: 700; color: var(--txt-soft); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">
-                Nombre Completo
-            </div>
-            <div style="font-size: 14px; font-weight: 600; color: var(--txt);">
-                @if(isset($paciente))
-                    {{ is_object($paciente) ? ($paciente->nombre ?? '—') : ($paciente['nombre'] ?? '—') }}
-                @else
-                    —
-                @endif
-            </div>
+
+        {{-- Columna personal --}}
+        <div class="np-inline-fields">
+          <div class="np-sub-header">Información General</div>
+          <div class="np-inline-row">
+            <span class="np-lbl">Nombre:</span>
+            <span class="np-val">{{ $paciente?->nombre_completo ?? '—' }}</span>
+            <span class="np-lbl">Folio:</span>
+            <span class="np-val">{{ $paciente?->folio ?? '—' }}</span>
+          </div>
+          <div class="np-inline-row">
+            <span class="np-lbl">Edad:</span>
+            <span class="np-val">{{ $paciente?->edad ? $paciente->edad.' años' : '—' }}</span>
+            <span class="np-lbl">Sexo:</span>
+            <span class="np-val">{{ $paciente?->sexo ? ucfirst($paciente->sexo) : '—' }}</span>
+          </div>
+          <div class="np-inline-row">
+            <span class="np-lbl">Teléfono:</span>
+            <span class="np-val">{{ $paciente?->telefono ?? '—' }}</span>
+            <span class="np-lbl">Email:</span>
+            <span class="np-val">{{ $paciente?->email ?? '—' }}</span>
+          </div>
+          <div class="np-inline-row">
+            <span class="np-lbl">Dirección:</span>
+            <span class="np-val">{{ $paciente?->direccion ?? '—' }}</span>
+          </div>
         </div>
+
+        {{-- Columna médica --}}
+        <div class="np-info-medica">
+          <div class="np-sub-header">Datos médicos</div>
+          <div class="np-inline-fields">
+            <div class="np-inline-row">
+              <span class="np-lbl">Peso:</span>
+              <span class="np-val">{{ $paciente?->peso ? $paciente->peso.' kg' : '—' }}</span>
+            </div>
+            <div class="np-inline-row">
+              <span class="np-lbl">Altura:</span>
+              <span class="np-val">{{ $paciente?->altura ? $paciente->altura.' m' : '—' }}</span>
+            </div>
+            <div class="np-inline-row">
+              <span class="np-lbl">Médico:</span>
+              <span class="np-val">{{ $paciente?->medico ?? '—' }}</span>
+            </div>
+            <div class="np-inline-row">
+              <span class="np-lbl">Procedimiento:</span>
+              <span class="np-val">{{ $paciente?->procedimiento ?? '—' }}</span>
+            </div>
+            <div class="np-inline-row">
+              <span class="np-lbl">Diagnóstico preliminar:</span>
+              <span class="np-val">{{ $paciente?->diagnostico_preliminar ?? '—' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     {{-- Card historial de estudios --}}
     <div class="np-card rise d3" style="margin-top:16px">
@@ -824,7 +858,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff5a6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="#ff5a6e" stroke="none"/></svg>
         </span>
         Iniciar estudio
-      </button>
+      </a>
       <a class="np-action-btn" href="{{ route('nuevo-estudio.configuracion') }}">
         <span class="np-ab-icon">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87 1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
@@ -1179,6 +1213,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
 @push('scripts')
 <script>
 (function () {
+  const CSRF = @json(csrf_token());
 
   /* Fecha por defecto */
   var now  = new Date();
