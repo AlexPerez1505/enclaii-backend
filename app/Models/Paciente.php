@@ -39,4 +39,9 @@ class Paciente extends Model
     {
         return $this->hasMany(WhatsAppMessage::class);
     }
+
+    public function estudios(): HasMany
+    {
+        return $this->hasMany(Estudio::class);
+    }
 }
