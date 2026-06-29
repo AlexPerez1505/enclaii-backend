@@ -1218,7 +1218,8 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   /* Fecha por defecto */
   var now  = new Date();
   var pad  = function(n){ return String(n).padStart(2,'0'); };
-  document.getElementById('fecha_registro').textContent = pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear();
+  var elFechaRegistro = document.getElementById('fecha_registro');
+  if (elFechaRegistro) elFechaRegistro.textContent = pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear();
 
   /* Auto-fill desde query params (cuando viene de Pacientes > Iniciar estudio) */
   var urlParams = new URLSearchParams(window.location.search);
@@ -1228,27 +1229,33 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   var qDob    = urlParams.get('dob')    || '';
 
   if (qName) {
-    document.getElementById('nombre').textContent = qName;
-    document.getElementById('npSearch').value = qName;
+    var elNombre = document.getElementById('nombre');
+    if (elNombre) elNombre.textContent = qName;
+    var elSearch = document.getElementById('npSearch');
+    if (elSearch) elSearch.value = qName;
   }
   if (qAge) {
-    document.getElementById('edad').textContent = qAge;
+    var elEdad = document.getElementById('edad');
+    if (elEdad) elEdad.textContent = qAge;
   }
   if (qGender) {
+    var elSexo = document.getElementById('sexo');
     var sexVal = qGender.charAt(0).toUpperCase();
-    if (sexVal === 'F') {
-      document.getElementById('sexo').textContent = 'Femenino';
-    } else if (sexVal === 'M') {
-      document.getElementById('sexo').textContent = 'Masculino';
+    if (elSexo && sexVal === 'F') {
+      elSexo.textContent = 'Femenino';
+    } else if (elSexo && sexVal === 'M') {
+      elSexo.textContent = 'Masculino';
     }
   }
   if (qDob) {
-    // qDob puede venir como dd/mm/yyyy o yyyy-mm-dd
-    if (qDob.includes('/')) {
-      document.getElementById('fecha_nac').textContent = qDob;
-    } else {
-      var parts = qDob.split('-');
-      document.getElementById('fecha_nac').textContent = parts[2]+'/'+parts[1]+'/'+parts[0];
+    var elFechaNac = document.getElementById('fecha_nac');
+    if (elFechaNac) {
+      if (qDob.includes('/')) {
+        elFechaNac.textContent = qDob;
+      } else {
+        var parts = qDob.split('-');
+        elFechaNac.textContent = parts[2]+'/'+parts[1]+'/'+parts[0];
+      }
     }
   }
 
@@ -1260,20 +1267,31 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   /* Foto menu */
   var fotoMenu   = document.getElementById('npFotoMenu');
   var btnFotoTxt = document.getElementById('npBtnFotoTxt');
+  var btnFotoMenu = document.getElementById('npBtnFotoMenu');
+  var btnGaleria  = document.getElementById('npBtnGaleria');
+  var btnCamara   = document.getElementById('npBtnCamara');
+  var inputFoto   = document.getElementById('npFotoInput');
+  var inputCamera = document.getElementById('npFotoCamera');
 
-  document.getElementById('npBtnFotoMenu').addEventListener('click', function(e){
-    e.stopPropagation();
-    fotoMenu.style.display = fotoMenu.style.display === 'none' ? 'block' : 'none';
-  });
-  document.addEventListener('click', function(){ fotoMenu.style.display = 'none'; });
-  document.getElementById('npBtnGaleria').addEventListener('click', function(){
-    fotoMenu.style.display = 'none';
-    document.getElementById('npFotoInput').click();
-  });
-  document.getElementById('npBtnCamara').addEventListener('click', function(){
-    fotoMenu.style.display = 'none';
-    document.getElementById('npFotoCamera').click();
-  });
+  if (btnFotoMenu && fotoMenu) {
+    btnFotoMenu.addEventListener('click', function(e){
+      e.stopPropagation();
+      fotoMenu.style.display = fotoMenu.style.display === 'none' ? 'block' : 'none';
+    });
+  }
+  document.addEventListener('click', function(){ if (fotoMenu) fotoMenu.style.display = 'none'; });
+  if (btnGaleria && inputFoto) {
+    btnGaleria.addEventListener('click', function(){
+      if (fotoMenu) fotoMenu.style.display = 'none';
+      inputFoto.click();
+    });
+  }
+  if (btnCamara && inputCamera) {
+    btnCamara.addEventListener('click', function(){
+      if (fotoMenu) fotoMenu.style.display = 'none';
+      inputCamera.click();
+    });
+  }
 
   function applyPreview(file){
     if (!file) return;
@@ -1281,15 +1299,14 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
     r.onload = function(e){
       var img = document.getElementById('npFotoPreview');
       var ph  = document.getElementById('npFotoPh');
-      img.src = e.target.result;
-      img.style.display = 'block';
-      ph.style.display  = 'none';
-      btnFotoTxt.textContent = 'Cambiar foto';
+      if (img) { img.src = e.target.result; img.style.display = 'block'; }
+      if (ph)  ph.style.display = 'none';
+      if (btnFotoTxt) btnFotoTxt.textContent = 'Cambiar foto';
     };
     r.readAsDataURL(file);
   }
-  document.getElementById('npFotoInput').addEventListener('change',  function(){ applyPreview(this.files[0]); });
-  document.getElementById('npFotoCamera').addEventListener('change', function(){ applyPreview(this.files[0]); });
+  if (inputFoto)   inputFoto.addEventListener('change',  function(){ applyPreview(this.files[0]); });
+  if (inputCamera) inputCamera.addEventListener('change', function(){ applyPreview(this.files[0]); });
 
   /* Buscador de pacientes */
   (function () {
