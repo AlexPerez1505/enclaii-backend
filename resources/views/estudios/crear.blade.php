@@ -20,12 +20,18 @@
   padding-bottom: 0;
 }
 .np-tab {
+  display: inline-flex;
+  align-items: center;
   font-size: 14px;
   font-weight: 600;
   color: var(--txt-soft);
   text-decoration: none;
   padding-bottom: 10px;
+  background: none;
+  border: none;
   border-bottom: 2px solid transparent;
+  font: inherit;
+  cursor: pointer;
   transition: color 150ms, border-color 150ms;
 }
 .np-tab:hover { color: var(--txt); }
@@ -33,6 +39,9 @@
   color: var(--txt);
   border-bottom-color: var(--blue);
 }
+.np-tab.hidden { display: none; }
+.np-tab-panel { display: none; }
+.np-tab-panel.active { display: block; }
 
 /* Boton volver a pacientes */
 .np-volver-btn {
@@ -435,7 +444,6 @@
 .np-agendar-btn:hover { background: rgba(56,199,244,.1); }
 .np-agendar-btn:active { transform: scale(.97); }
 
-<<<<<<< HEAD
 /* Vista detalle del paciente */
 .np-detail-toolbar {
   display: flex; align-items: center; justify-content: space-between; gap: 14px;
@@ -701,8 +709,6 @@ html[data-theme="light"] .ns-modal-backdrop {
 .pa-tag{padding:6px 10px;border-radius:999px;border:1px solid var(--stroke);background:var(--card);font-size:12px;font-weight:700}
 .pa-empty{display:none;padding:34px 0;text-align:center;color:var(--txt-soft)}
 
-=======
->>>>>>> origin/Paulina-Pacientes
 @media (max-width:1100px) {
   .np-layout { grid-template-columns: 1fr; }
   .np-info-layout { grid-template-columns: auto 1fr; }
@@ -892,11 +898,11 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   $reportes = $reportes ?? collect();
 @endphp
 
-{{-- Tabs de navegacion --}}
-<div class="np-tabs">
-  <a class="np-tab active" href="{{ route('nuevo-estudio') }}">Pacientes</a>
-  <a class="np-tab" href="{{ route('galeria') }}">Galeria</a>
-  <a class="np-tab" href="{{ route('ia-reportes') }}">Reportes</a>
+{{-- Pestañas internas de Nuevo Estudio --}}
+<div class="np-tabs rise d1">
+  <button class="np-tab active" type="button" data-tab="pacientes">Pacientes</button>
+  <button class="np-tab hidden np-tab-extra" type="button" data-tab="galeria">Galeria</button>
+  <button class="np-tab hidden np-tab-extra" type="button" data-tab="reportes">Reportes</button>
 </div>
 
 @php
@@ -952,7 +958,81 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   {{-- Formulario --}}
   <div id="formNuevoPaciente">
 
-<<<<<<< HEAD
+    {{-- Card de información del paciente --}}
+    <div class="np-card rise d2">
+      <div class="np-sec-header">Información del paciente</div>
+
+      <div class="np-personal-layout">
+        <div class="np-foto-col">
+          @php
+            $pacFoto = $paciente && $paciente->foto ? asset('storage/'.$paciente->foto) : '';
+          @endphp
+          <div class="np-foto-box" id="npFotoBox">
+            <img id="npFotoPreview" src="{{ $pacFoto }}" alt="{{ $paciente?->nombre_completo }}" @if($pacFoto) style="display:block;" @endif>
+            <div class="np-foto-ph" id="npFotoPh" @if($pacFoto) style="display:none;" @endif>
+              <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+          </div>
+          <input type="file" id="npFotoInput" accept="image/*" style="display:none">
+          <input type="file" id="npFotoCamera" accept="image/*" capture="environment" style="display:none">
+        </div>
+
+        <div class="np-info-grid">
+          <div class="np-info-box">
+            <label>Nombre completo</label>
+            <div class="np-field-value" id="nombre">{{ $paciente?->nombre_completo ?? '—' }}</div>
+          </div>
+          <div class="np-info-box">
+            <label>Edad</label>
+            <div class="np-field-value" id="edad">{{ $paciente && $paciente->edad ? $paciente->edad.' años' : '—' }}</div>
+          </div>
+          <div class="np-info-box">
+            <label>Sexo</label>
+            <div class="np-field-value" id="sexo">{{ $paciente && $paciente->sexo ? ucfirst($paciente->sexo) : '—' }}</div>
+          </div>
+          <div class="np-info-box">
+            <label>Fecha nacimiento</label>
+            <div class="np-field-value" id="fecha_nac">{{ $paciente?->fecha_nacimiento?->format('Y-m-d') ?? '—' }}</div>
+          </div>
+          <div class="np-info-box">
+            <label>Peso</label>
+            <div class="np-field-value" id="peso">{{ $paciente && $paciente->peso ? $paciente->peso.' kg' : '—' }}</div>
+          </div>
+          <div class="np-info-box">
+            <label>Altura</label>
+            <div class="np-field-value" id="altura">{{ $paciente && $paciente->altura ? $paciente->altura.' m' : '—' }}</div>
+          </div>
+          <div class="np-info-box">
+            <label>Número de Seguro Social</label>
+            <div class="np-field-value" id="nss">{{ $paciente?->identificacion ?? '—' }}</div>
+          </div>
+          <div class="np-info-box">
+            <label>Teléfono</label>
+            <div class="np-field-value" id="telefono">{{ $paciente?->telefono ?? '—' }}</div>
+          </div>
+          <div class="np-info-box">
+            <label>Correo electrónico</label>
+            <div class="np-field-value" id="email">{{ $paciente?->email ?? '—' }}</div>
+          </div>
+          <div class="np-info-box">
+            <label>Procedimiento</label>
+            <div class="np-field-value">{{ $paciente?->procedimiento ?? '—' }}</div>
+          </div>
+          <div class="np-info-box">
+            <label>Fecha de registro</label>
+            <div class="np-field-value" id="fecha_registro">{{ $paciente?->created_at?->format('Y-m-d') ?? '—' }}</div>
+          </div>
+          <div class="np-info-box np-wide">
+            <label>Diagnóstico preliminar</label>
+            <div class="np-field-value np-textarea-value">{{ $paciente?->diagnostico_preliminar ?? 'Define lo que podría tener' }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {{-- La versión anterior se conserva fuera del renderizado mientras se estabiliza la integración. --}}
+    @if(false)
+    {{-- Inicio de la vista anterior --}}
 {{-- ======================================================================= --}}
 {{-- COMPONENTE INTEGRAL DEL PACIENTE Y ESTUDIO (ESTÉTICA ENCLAII) --}}
 {{-- ======================================================================= --}}
@@ -969,13 +1049,13 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
                 // Detectamos si existe una foto en formato objeto o array
                 $fotoPaciente = isset($paciente) ? (is_object($paciente) ? ($paciente->foto ?? $paciente->avatar ?? null) : ($paciente['foto'] ?? $paciente['avatar'] ?? null)) : null;
             @endphp
-=======
+    {{-- Alternativa descartada durante la integración --}}
     {{-- Card informacion del paciente --}}
     <div class="np-card rise d2">
       <div class="np-sec-header" style="font-size:18px;font-weight:700;margin-bottom:20px">Informacion del paciente</div>
 
       <div class="np-info-layout">
->>>>>>> origin/Paulina-Pacientes
+    {{-- Fin de alternativa descartada --}}
 
             @if($fotoPaciente)
                 {{-- Si el paciente tiene foto, se renderiza perfectamente adaptada al círculo --}}
@@ -991,9 +1071,9 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
             <div class="np-sec-header" style="margin-bottom: 4px; display: flex; align-items: center; gap: 8px; padding: 0;">
                 Información General del Paciente
             </div>
-<<<<<<< HEAD
+    {{-- Continuación de la vista anterior --}}
             <div style="font-size: 13px; color: var(--txt-soft);">Ficha clínica e historial unificado</div>
-=======
+    {{-- Alternativa descartada durante la integración --}}
           </div>
           <input type="file" id="npFotoInput" accept="image/*" style="display:none">
           <input type="file" id="npFotoCamera" accept="image/*" capture="environment" style="display:none">
@@ -1013,7 +1093,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
               </button>
             </div>
           </div>
->>>>>>> origin/Paulina-Pacientes
+    {{-- Fin de alternativa descartada --}}
         </div>
     </div>
     
@@ -1034,7 +1114,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
             </div>
         </div>
 
-<<<<<<< HEAD
+    {{-- Continuación de la vista anterior --}}
         {{-- 2. FECHA DE NACIMIENTO --}}
         <div>
             <div style="font-size: 11px; font-weight: 700; color: var(--txt-soft); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">
@@ -1173,7 +1253,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
     </div>
 </div>
   </form>
-=======
+    {{-- Historial anterior descartado durante la integración --}}
     {{-- Card historial de estudios --}}
     <div class="np-card rise d3" style="margin-top:16px">
       <div class="np-sec-header" style="font-size:16px;font-weight:700;margin-bottom:16px">Historial de estudios</div>
@@ -1246,12 +1326,15 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
     </div>
 
   </div>
->>>>>>> origin/Paulina-Pacientes
+    {{-- Fin del historial anterior --}}
+    @endif
+
+  </div>
 
   {{-- Sidebar acciones --}}
   <div class="np-side rise d4">
     <div class="np-action-btns">
-      <a class="np-action-btn" href="{{ route('nuevo-estudio.grabando') }}">
+      <button class="np-action-btn" type="button" id="btnIniciarGrabacion" onclick="window.openDispositivoModal()">
         <span class="np-ab-icon" style="background:rgba(255,59,59,.12);border-color:rgba(255,90,110,.4)">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff5a6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="#ff5a6e" stroke="none"/></svg>
         </span>
@@ -1415,12 +1498,14 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
 {{-- Panel Reportes --}}
 <div class="np-tab-panel" id="tab-reportes">
 
-  @php($rptList = $reportes ?? collect())
-  @php($rpt = $rptList->first())
-  @php($rptNombre = $paciente?->nombre_completo ?? $rpt?->estudio?->paciente_nombre ?? '—')
-  @php($rptIni = collect(explode(' ', $rptNombre))->filter()->take(2)->map(fn($x)=>mb_strtoupper(mb_substr($x,0,1)))->implode('') ?: 'NA')
-  @php($rptIdent = $paciente?->identificacion ?? $paciente?->folio ?? '—')
-  @php($rptCritico = $rpt ? (bool) $rpt->contiene_hallazgos_criticos : false)
+  @php
+    $rptList = $reportes ?? collect();
+    $rpt = $rptList->first();
+    $rptNombre = $paciente?->nombre_completo ?? $rpt?->estudio?->paciente_nombre ?? '—';
+    $rptIni = collect(explode(' ', $rptNombre))->filter()->take(2)->map(fn($x) => mb_strtoupper(mb_substr($x, 0, 1)))->implode('') ?: 'NA';
+    $rptIdent = $paciente?->identificacion ?? $paciente?->folio ?? '—';
+    $rptCritico = $rpt ? (bool) $rpt->contiene_hallazgos_criticos : false;
+  @endphp
 
   @if($rpt)
   {{-- Barra de acciones del reporte --}}
@@ -1452,10 +1537,12 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   </div>
 
   {{-- Documento del reporte (mismo formato que el editor / reporte real) --}}
-  @php($rptImgs = ($galImagenes ?? collect())->where('estudio_id', $rpt->estudio_id)->take(8)->values())
-  @php($rptFirma = $rpt->usuario?->name ?? $rpt->estudio?->medico ?? $paciente?->medico ?? 'Dr. Nombre del médico')
-  @php($rptFechaEstudio = optional($rpt->estudio?->fecha)->format('d/m/Y') ?? $rpt->created_at?->format('d/m/Y') ?? '')
-  @php($rptNac = optional($paciente?->fecha_nacimiento)->format('d/m/Y') ?? '')
+  @php
+    $rptImgs = ($galImagenes ?? collect())->where('estudio_id', $rpt->estudio_id)->take(8)->values();
+    $rptFirma = $rpt->usuario?->name ?? $rpt->estudio?->medico ?? $paciente?->medico ?? 'Dr. Nombre del médico';
+    $rptFechaEstudio = optional($rpt->estudio?->fecha)->format('d/m/Y') ?? $rpt->created_at?->format('d/m/Y') ?? '';
+    $rptNac = optional($paciente?->fecha_nacimiento)->format('d/m/Y') ?? '';
+  @endphp
   <div class="rpt-doc-wrap rise d2">
     <div class="rptd-doc" id="rptDoc">
 
@@ -1611,10 +1698,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
 @push('scripts')
 <script>
 (function () {
-<<<<<<< HEAD
   const CSRF = @json(csrf_token());
-=======
->>>>>>> origin/Paulina-Pacientes
 
   /* Fecha por defecto */
   var now  = new Date();
@@ -1660,21 +1744,32 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
 
   /* Foto menu */
   var fotoMenu   = document.getElementById('npFotoMenu');
+  var btnFotoMenu = document.getElementById('npBtnFotoMenu');
   var btnFotoTxt = document.getElementById('npBtnFotoTxt');
+  var btnGaleria = document.getElementById('npBtnGaleria');
+  var btnCamara = document.getElementById('npBtnCamara');
+  var fotoInput = document.getElementById('npFotoInput');
+  var fotoCamera = document.getElementById('npFotoCamera');
 
-  document.getElementById('npBtnFotoMenu').addEventListener('click', function(e){
-    e.stopPropagation();
-    fotoMenu.style.display = fotoMenu.style.display === 'none' ? 'block' : 'none';
-  });
-  document.addEventListener('click', function(){ fotoMenu.style.display = 'none'; });
-  document.getElementById('npBtnGaleria').addEventListener('click', function(){
-    fotoMenu.style.display = 'none';
-    document.getElementById('npFotoInput').click();
-  });
-  document.getElementById('npBtnCamara').addEventListener('click', function(){
-    fotoMenu.style.display = 'none';
-    document.getElementById('npFotoCamera').click();
-  });
+  if (btnFotoMenu && fotoMenu) {
+    btnFotoMenu.addEventListener('click', function(e){
+      e.stopPropagation();
+      fotoMenu.style.display = fotoMenu.style.display === 'none' ? 'block' : 'none';
+    });
+    document.addEventListener('click', function(){ fotoMenu.style.display = 'none'; });
+  }
+  if (btnGaleria && fotoInput) {
+    btnGaleria.addEventListener('click', function(){
+      if (fotoMenu) fotoMenu.style.display = 'none';
+      fotoInput.click();
+    });
+  }
+  if (btnCamara && fotoCamera) {
+    btnCamara.addEventListener('click', function(){
+      if (fotoMenu) fotoMenu.style.display = 'none';
+      fotoCamera.click();
+    });
+  }
 
   function applyPreview(file){
     if (!file) return;
@@ -1685,12 +1780,12 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
       img.src = e.target.result;
       img.style.display = 'block';
       ph.style.display  = 'none';
-      btnFotoTxt.textContent = 'Cambiar foto';
+      if (btnFotoTxt) btnFotoTxt.textContent = 'Cambiar foto';
     };
     r.readAsDataURL(file);
   }
-  document.getElementById('npFotoInput').addEventListener('change',  function(){ applyPreview(this.files[0]); });
-  document.getElementById('npFotoCamera').addEventListener('change', function(){ applyPreview(this.files[0]); });
+  if (fotoInput) fotoInput.addEventListener('change', function(){ applyPreview(this.files[0]); });
+  if (fotoCamera) fotoCamera.addEventListener('change', function(){ applyPreview(this.files[0]); });
 
   /* Buscador de pacientes */
   (function () {
@@ -1797,6 +1892,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
     var emptyState = document.getElementById('npEmptyState');
     if (emptyState) emptyState.style.display = 'none';
     document.getElementById('npFormLayout').style.display = 'grid';
+    document.querySelectorAll('.np-tab.hidden').forEach(function(t){ t.classList.remove('hidden'); });
   }
 
 
