@@ -92,20 +92,28 @@
 .filter-overlay.open{opacity:1;visibility:visible}
 .filter-panel{
   position:fixed;
-  top:0;right:0;
-  width:440px;
+  top:50%;left:50%;
+  width:640px;
   max-width:94vw;
-  height:100vh;
+  max-height:88vh;
   background:linear-gradient(180deg,var(--card) 0%,var(--panel-2) 100%);
-  border-left:1px solid var(--stroke-strong);
+  border:1px solid var(--stroke-strong);
+  border-radius:var(--r-lg);
+  box-shadow:0 24px 60px rgba(0,0,0,.5);
   z-index:201;
   display:flex;
   flex-direction:column;
-  transform:translateX(100%);
-  transition:transform 300ms var(--ease-out);
+  transform:translate(-50%,-45%) scale(.96);
+  opacity:0;
+  visibility:hidden;
+  transition:transform 300ms var(--ease-out), opacity 250ms ease, visibility 250ms ease;
   overflow:hidden;
 }
-.filter-panel.open{transform:translateX(0)}
+.filter-panel.open{
+  transform:translate(-50%,-50%) scale(1);
+  opacity:1;
+  visibility:visible;
+}
 .filter-panel-head{
   display:flex;
   align-items:center;
@@ -330,6 +338,25 @@
   font-size:12px;
   font-weight:600;
   margin-left:2px;
+}
+@media (max-width:680px){
+  .filter-panel{
+    width:100vw;
+    max-width:100vw;
+    max-height:100vh;
+    border-radius:0;
+    top:0;left:0;
+    transform:translate(0,20px) scale(.96);
+  }
+  .filter-panel.open{
+    transform:translate(0,0) scale(1);
+  }
+  .filter-row-3{
+    grid-template-columns:1fr;
+  }
+  .filter-row-3 .filter-group label{
+    white-space:normal;
+  }
 }
 
 /* Tabla de pacientes */
