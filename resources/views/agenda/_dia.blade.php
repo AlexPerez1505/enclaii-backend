@@ -187,20 +187,6 @@ html[data-theme="light"] .day-pc-info b{color:#0E1530}
 .del-confirm-yes:hover{opacity:.85}
 .del-confirm-no{padding:11px 14px;border-radius:10px;border:1.5px solid rgba(110,160,255,.25);background:transparent;color:#8FA3CF;font-size:13px;font-weight:600;cursor:pointer;transition:all 150ms ease}
 .del-confirm-no:hover{background:rgba(110,160,255,.1);color:#EAF1FF}
-html[data-theme="light"] .del-confirm-panel{background:rgba(240,245,255,.96)}
-html[data-theme="light"] .del-confirm-title{color:#0E1530}
-html[data-theme="light"] .del-confirm-sub{color:rgba(14,21,48,.5)}
-html[data-theme="light"] .del-confirm-no{border-color:rgba(20,50,120,.2);color:#5B6A99}
-html[data-theme="light"] .del-confirm-no:hover{background:rgba(20,50,120,.08);color:#0E1530}
-html[data-theme="light"] .day-modal{background:#FFFFFF;border-color:rgba(20,50,120,.2);box-shadow:0 16px 48px rgba(20,50,120,.15)}
-html[data-theme="light"] .day-modal-title{color:#0E1530}
-html[data-theme="light"] .day-modal-close{color:#5B6A99}
-html[data-theme="light"] .day-modal-close:hover{background:rgba(20,50,120,.1);color:#0E1530}
-html[data-theme="light"] #delGlobalBox{background:#FFFFFF;border-color:rgba(180,0,0,.5);box-shadow:0 0 32px rgba(180,0,0,.15),0 16px 48px rgba(20,50,120,.12)}
-html[data-theme="light"] #delGlobalOverlay{background:rgba(220,225,240,.75)}
-html[data-theme="light"] .day-modal-del{color:#5B6A99}
-html[data-theme="light"] .day-modal-del:hover{background:rgba(180,0,0,.1);color:#B00000}
-html[data-theme="light"] .day-modal-header{border-bottom-color:rgba(20,50,120,.12)}
 /* Botón borrar cita — rojo explícito, responsive */
 .ev-pop-btn.danger{display:flex!important;align-items:center;justify-content:center;gap:7px;width:100%;box-sizing:border-box;margin-top:8px;margin-bottom:0;padding:10px 14px;border-radius:10px!important;border:1.5px solid rgba(217,0,0,.55)!important;background:rgba(217,0,0,.08)!important;color:#D90000!important;font-size:13px;font-weight:700;cursor:pointer;transition:all 150ms ease}
 .ev-pop-btn.danger:hover{background:rgba(217,0,0,.2)!important;border-color:#D90000!important;opacity:1}
@@ -278,6 +264,24 @@ html[data-theme="light"] .day-modal-header{
 
 html[data-theme="light"] .day-modal-title{
   color:#0E1530 !important;
+}
+
+html[data-theme="light"] .day-modal-close{
+  color:#5B6A99 !important;
+}
+
+html[data-theme="light"] .day-modal-close:hover{
+  background:rgba(20,50,120,.1) !important;
+  color:#0E1530 !important;
+}
+
+html[data-theme="light"] .day-modal-del{
+  color:#5B6A99 !important;
+}
+
+html[data-theme="light"] .day-modal-del:hover{
+  background:rgba(180,0,0,.1) !important;
+  color:#B00000 !important;
 }
 
 html[data-theme="light"] .day-modal-overlay{
@@ -375,6 +379,18 @@ html[data-theme="light"] .day-modal-overlay{
     'ev-soon':  [{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
   };
 
+  function minutesTo12h(min) {
+    const h = Math.floor(min / 60);
+    const m = min % 60;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+  }
+  function time24To12h(time24) {
+    const [h, m] = String(time24 || '00:00').split(':').map(Number);
+    return minutesTo12h((h || 0) * 60 + (m || 0));
+  }
+
   /* ---- Modal de día ---- */
   const dayModalOverlay = document.getElementById('dayModalOverlay');
   const dayModalTitle   = document.getElementById('dayModalTitle');
@@ -386,6 +402,7 @@ html[data-theme="light"] .day-modal-overlay{
 
   function showDelConfirm(ev, y, m, d) {
     __currentDelEv = { ev, y, m, d };
+    const isEliminar = ev && ['cancelado', 'completado'].includes(ev.estado);
     const panel = document.createElement('div');
     panel.className = 'del-confirm-panel';
     panel.id = 'delConfirmPanel';
@@ -393,10 +410,10 @@ html[data-theme="light"] .day-modal-overlay{
       <div class="del-confirm-icon">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
       </div>
-      <div class="del-confirm-title">¿Borrar esta cita?</div>
-      <div class="del-confirm-sub">Esta acción eliminará la cita de la agenda. No se puede deshacer.</div>
+      <div class="del-confirm-title">${isEliminar ? '¿Eliminar esta cita?' : '¿Cancelar esta cita?'}</div>
+      <div class="del-confirm-sub">${isEliminar ? 'Esta acción eliminará la cita de la base de datos. No se puede deshacer.' : 'La cita se marcará como cancelada y seguirá visible en el historial.'}</div>
       <div class="del-confirm-actions">
-        <button class="del-confirm-yes" id="delConfirmYes">Sí, borrar cita</button>
+        <button class="del-confirm-yes" id="delConfirmYes">${isEliminar ? 'Sí, eliminar' : 'Sí, cancelar'}</button>
         <button class="del-confirm-no" id="delConfirmNo">Cancelar</button>
       </div>
     `;
@@ -404,15 +421,17 @@ html[data-theme="light"] .day-modal-overlay{
     document.getElementById('delConfirmNo').addEventListener('click', () => panel.remove());
     document.getElementById('delConfirmYes').addEventListener('click', () => {
       const current = __currentDelEv;
-      const url = current.ev && current.ev.delete_url;
+      const isEliminarCurrent = current.ev && ['cancelado', 'completado'].includes(current.ev.estado);
+      const urlEliminar = current.ev && current.ev.delete_url;
+      const urlCancelar = current.ev && current.ev.estado_url;
       const id = current.ev && current.ev.id;
       const finish = () => {
         panel.remove();
         closeDayModal();
         if (window.__rebuildAgenda) window.__rebuildAgenda();
       };
-      if (url) {
-        window.__deleteCita(url, {
+      if (isEliminarCurrent && urlEliminar) {
+        window.__deleteCita(urlEliminar, {
           onSuccess: () => {
             if (id) window.__removeAgendaEventById(id);
             finish();
@@ -421,6 +440,37 @@ html[data-theme="light"] .day-modal-overlay{
             alert(msg);
             panel.remove();
           }
+        });
+      } else if (!isEliminarCurrent && urlCancelar) {
+        fetch(urlCancelar, {
+          method: 'PATCH',
+          headers: {
+            'X-CSRF-TOKEN': "{{ csrf_token() }}",
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ estado: 'cancelado' })
+        })
+        .then(r => r.json().catch(() => ({})))
+        .then(data => {
+          current.ev.estado = 'cancelado';
+          current.ev.cls = 'ev-cancel';
+          if (id && window.__AGENDA_EVENTS) {
+            Object.keys(window.__AGENDA_EVENTS).forEach(key => {
+              window.__AGENDA_EVENTS[key].forEach(evv => {
+                if (String(evv.id) === String(id)) {
+                  evv.estado = 'cancelado';
+                  evv.cls = 'ev-cancel';
+                }
+              });
+            });
+          }
+          finish();
+        })
+        .catch(err => {
+          alert(err.message || 'No se pudo cancelar la cita');
+          panel.remove();
         });
       } else {
         const key = `${current.y}-${String(current.m+1).padStart(2,'0')}-${String(current.d).padStart(2,'0')}`;
@@ -471,7 +521,12 @@ html[data-theme="light"] .day-modal-overlay{
     const el = __globalDelEl;
     const url = __globalDelUrl || (el && el.dataset.deleteUrl) || '';
     const id = el && el.dataset.citaId;
-    if (url) {
+    const isEliminar = el && ['cancelado', 'completado'].includes(el.dataset.estado);
+    if (!url) {
+      finishGlobalDelRemove();
+      return;
+    }
+    if (isEliminar) {
       window.__deleteCita(url, {
         onSuccess: () => {
           if (id) window.__removeAgendaEventById(id);
@@ -483,13 +538,56 @@ html[data-theme="light"] .day-modal-overlay{
         }
       });
     } else {
-      finishGlobalDelRemove();
+      // Cancelar cita: PATCH al estado_url
+      fetch(url, {
+        method: 'PATCH',
+        headers: {
+          'X-CSRF-TOKEN': "{{ csrf_token() }}",
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ estado: 'cancelado' })
+      })
+      .then(r => r.json().catch(() => ({})))
+      .then(data => {
+        if (el) {
+          el.dataset.estado = 'cancelado';
+          el.classList.remove('ev-soon', 'ev-wait', 'ev-done');
+          el.classList.add('ev-cancel');
+        }
+        if (id && window.__AGENDA_EVENTS) {
+          Object.keys(window.__AGENDA_EVENTS).forEach(key => {
+            window.__AGENDA_EVENTS[key].forEach(ev => {
+              if (String(ev.id) === String(id)) {
+                ev.estado = 'cancelado';
+                ev.cls = 'ev-cancel';
+              }
+            });
+          });
+        }
+        closeGlobalDel();
+        if (window.__rebuildAgenda) window.__rebuildAgenda();
+      })
+      .catch(err => {
+        alert(err.message || 'No se pudo cancelar la cita');
+        closeGlobalDel();
+      });
     }
   });
 
   window.showDelConfirmGlobal = function(evEl, url) {
     __globalDelEl = evEl;
     __globalDelUrl = url || (evEl && evEl.dataset.deleteUrl) || '';
+    const isEliminar = evEl && ['cancelado', 'completado'].includes(evEl.dataset.estado);
+    const title = document.querySelector('#delGlobalBox .del-confirm-title');
+    const sub   = document.querySelector('#delGlobalBox .del-confirm-sub');
+    const yes   = document.getElementById('delGlobalYes');
+    if (title) title.textContent = isEliminar ? '¿Eliminar esta cita?' : '¿Cancelar esta cita?';
+    if (sub) sub.textContent = isEliminar
+      ? 'Esta acción eliminará la cita de la base de datos. No se puede deshacer.'
+      : 'La cita se marcará como cancelada y seguirá visible en el historial.';
+    if (yes) yes.textContent = isEliminar ? 'Sí, eliminar' : 'Sí, cancelar';
     delGlobalOverlay.style.display = 'flex';
   };
   dayModalClose.addEventListener('click', closeDayModal);
@@ -508,8 +606,24 @@ html[data-theme="light"] .day-modal-overlay{
   const PACIENTE_LABELS_DIA = ['Datos del paciente','Datos del Paciente'];
   const MENSAJE_LABELS_DIA = ['Enviar mensaje'];
   const INFORME_LABELS_DIA = ['Ver Informe'];
+  const INICIAR_LABELS_DIA = ['Iniciar Estudio'];
 
-  function buildAgendarUrlDia(name, proc, time, d, m, y) {
+  function __parseEvData(ev) {
+    const text = ev.t ? ev.t.trim() : '';
+    const timeM = text.match(/^(\d+:\d+)/);
+    const time = timeM ? timeM[1] : (ev.h ? String(ev.h).padStart(2, '0') + ':00' : '');
+    let name = ev.name || '';
+    let proc = ev.proc || '';
+    if (!name && text) {
+      const rest = text.replace(/^\d+:\d+\s*/, '');
+      const sepIdx = rest.indexOf('·');
+      name = sepIdx !== -1 ? rest.substring(0, sepIdx).trim() : rest.trim() || 'Paciente';
+      proc = sepIdx !== -1 ? rest.substring(sepIdx + 1).trim() : 'Procedimiento';
+    }
+    return { name, proc, time };
+  }
+
+  function buildAgendarUrlDia(name, proc, time, d, m, y, citaId) {
     const params = new URLSearchParams();
     if (name) params.set('paciente', name);
     if (proc) params.set('proc', proc);
@@ -517,31 +631,27 @@ html[data-theme="light"] .day-modal-overlay{
     if (d)    params.set('dia', d);
     if (m >= 0) params.set('mes', m + 1);
     if (y)    params.set('anio', y);
+    if (citaId) params.set('cita_id', citaId);
     return '{{ route("agendar") }}?' + params.toString();
   }
 
   window.openDayModal = function(ev, dayNames, dow, d, m, y) {
     const key = `${y}-${m+1}-${d}`;
     const liveCls = typeof window.__recomputeClass === 'function' ? window.__recomputeClass(ev, key) : (ev.cls || 'ev-done');
-    const text = ev.t ? ev.t.trim() : '';
-    const timeM = text.match(/^(\d+:\d+)/);
-    const time = timeM ? timeM[1] : (ev.h ? String(ev.h).padStart(2,'0') + ':00' : '');
-    let name = ev.name || '';
-    let proc = ev.proc || '';
-    if (!name && text) {
-      const rest = text.replace(/^\d+:\d+\s*/,'');
-      const sepIdx = rest.indexOf('·');
-      name = sepIdx !== -1 ? rest.substring(0, sepIdx).trim() : rest.trim() || 'Paciente';
-      proc = sepIdx !== -1 ? rest.substring(sepIdx + 1).trim() : 'Procedimiento';
-    }
+    const { name, proc, time } = __parseEvData(ev);
     const displayName = (window.__displayName ? window.__displayName(name) : name);
     const inits = displayName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const endHr = parseInt(time) + 1;
+    const duration = parseInt(ev.duracion || '60', 10) || 60;
+    const startMin = (() => {
+      const [h, m] = String(time || '00:00').split(':').map(Number);
+      return (h || 0) * 60 + (m || 0);
+    })();
+    const timeRange = `${time24To12h(time)} – ${minutesTo12h(startMin + duration)}`;
     const cls = liveCls;
     const badgeKey = STATUS_BADGE_KEY[cls] || 'done';
     const badgeLabel = STATUS_LABELS_MODAL[cls] || 'Completado';
 
-    dayModalTitle.textContent = `${time} – ${displayName}`;
+    dayModalTitle.textContent = `${time24To12h(time)} – ${displayName}`;
     dayModalBody.innerHTML = '';
 
     const card = document.createElement('div');
@@ -560,7 +670,7 @@ html[data-theme="light"] .day-modal-overlay{
     info.innerHTML =
       `<b>Motivo:</b> ${proc}<br>` +
       `<b>Fecha:</b> ${dayNames[dow]} ${d} de ${MESES_DIA[m]}<br>` +
-      `<b>Tiempo:</b> ${time} AM – ${endHr}:00 PM<br>` +
+      `<b>Tiempo:</b> ${timeRange}<br>` +
       `<b>Habitación:</b> Sala 3`;
     card.appendChild(head);
     card.appendChild(info);
@@ -572,19 +682,17 @@ html[data-theme="light"] .day-modal-overlay{
       btn.textContent = b.label;
       if (REPROG_LABELS_DIA.includes(b.label)) {
         btn.addEventListener('click', () => {
-          window.location.href = buildAgendarUrlDia(name, proc, time, d, m, y);
+          window.location.href = buildAgendarUrlDia(name, proc, time, d, m, y, ev.id);
         });
       }
       if (PACIENTE_LABELS_DIA.includes(b.label)) {
         btn.addEventListener('click', () => {
-          try {
-            localStorage.setItem('lastPatient', JSON.stringify({
-              name: name,
-              source: 'agenda',
-              timestamp: Date.now()
-            }));
-          } catch(e) {}
-          window.location.href = '{{ url('/pacientes') }}?paciente=' + encodeURIComponent(name);
+          const pId = ev.paciente_id || ev.pacienteId || '';
+          if (pId) {
+            window.location.href = '{{ route('pacientes.index') }}?paciente_id=' + encodeURIComponent(pId);
+          } else {
+            window.location.href = '{{ route('pacientes.index') }}?paciente=' + encodeURIComponent(name);
+          }
         });
       }
       if (MENSAJE_LABELS_DIA.includes(b.label)) {
@@ -595,6 +703,12 @@ html[data-theme="light"] .day-modal-overlay{
       if (INFORME_LABELS_DIA.includes(b.label)) {
         btn.addEventListener('click', () => {
           window.location.href = '{{ route('ia-reportes.ver') }}?paciente=' + encodeURIComponent(displayName || name) + '&procedimiento=' + encodeURIComponent(proc || 'Endoscopia');
+        });
+      }
+      if (INICIAR_LABELS_DIA.includes(b.label)) {
+        btn.addEventListener('click', () => {
+          const pId = ev.paciente_id || ev.pacienteId || '';
+          window.location.href = '{{ route('nuevo-estudio') }}?paciente=' + encodeURIComponent(pId || displayName || name);
         });
       }
       card.appendChild(btn);
@@ -615,8 +729,10 @@ html[data-theme="light"] .day-modal-overlay{
     document.getElementById('dayTitleText').textContent = isPhone
       ? `${pad(d)}/${pad(m+1)}/${y}`
       : `${dayNames[dow]} ${d} de ${MESES[m]} del ${y}`;
-    document.getElementById('mesActual').textContent = MESES[m];
-    document.getElementById('anioActual').textContent = y;
+    const mesActualEl = document.getElementById('mesActual');
+    const anioActualEl = document.getElementById('anioActual');
+    if (mesActualEl) mesActualEl.textContent = MESES[m];
+    if (anioActualEl) anioActualEl.textContent = y;
 
     const key = `${y}-${m+1}-${d}`;
     const dayEvs = EVENTS[key] || [];
@@ -629,7 +745,7 @@ html[data-theme="light"] .day-modal-overlay{
       row.className = 'day-row';
       const hourEl = document.createElement('div');
       hourEl.className = 'day-hour';
-      hourEl.textContent = hr + ':00';
+      hourEl.textContent = time24To12h(String(hr).padStart(2, '0') + ':00');
       row.appendChild(hourEl);
       const slot = document.createElement('div');
       slot.className = 'day-slot';
@@ -654,17 +770,7 @@ html[data-theme="light"] .day-modal-overlay{
         // Mostrar eventos individualmente
         hourEvs.forEach(ev => {
           const liveCls = typeof window.__recomputeClass === 'function' ? window.__recomputeClass(ev, key) : ev.cls;
-          const text = ev.t ? ev.t.trim() : '';
-          const timeM = text.match(/^(\d+:\d+)/);
-          const time = timeM ? timeM[1] : (ev.h ? String(ev.h).padStart(2,'0') + ':00' : '');
-          let name = ev.name || '';
-          let proc = ev.proc || '';
-          if (!name && text) {
-            const rest = text.replace(/^\d+:\d+\s*/,'');
-            const parts = rest.split('·').map(s=>s.trim());
-            name = parts[0] || 'Paciente';
-            proc = parts[1] || 'Procedimiento';
-          }
+          const { name, proc, time } = __parseEvData(ev);
           const displayName = (window.__displayName ? window.__displayName(name) : name);
           const inits = displayName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
 
@@ -674,11 +780,14 @@ html[data-theme="light"] .day-modal-overlay{
           card.dataset.name = name;
           card.dataset.proc = proc;
           card.dataset.time = time;
+          card.dataset.duration = ev.duracion || '60';
           card.dataset.inits = inits;
           card.dataset.fechatxt = `${dayNames[dow]} ${d} de ${MESES[m]}`;
           card.dataset.citaId = ev.id || '';
           card.dataset.pacienteId = ev.paciente_id || '';
           card.dataset.deleteUrl = ev.delete_url || '';
+          card.dataset.estado = ev.estado || '';
+          card.dataset.estadoUrl = ev.estado_url || '';
           if (ev.cls === 'ev-block' && ev.blockId !== undefined) {
             card.dataset.blockid    = ev.blockId;
             card.dataset.blockkey   = key;
@@ -706,11 +815,9 @@ html[data-theme="light"] .day-modal-overlay{
             icon.innerHTML = STATUS_ICONS_SVG[liveCls] || '';
             card.appendChild(thumb); card.appendChild(info);
             card.appendChild(status); card.appendChild(icon);
-            // Click handler para modo expandido con 1 cita
+            // Click handler para abrir modal de cita
             card.addEventListener('click', (e) => {
-              const isExpanded = document.querySelector('.agenda-left')?.classList.contains('expanded');
-              console.log('Click en day-event, expanded:', isExpanded, 'openDayModal:', !!window.openDayModal);
-              if (isExpanded && window.openDayModal) {
+              if (window.openDayModal) {
                 e.stopPropagation();
                 window.openDayModal(ev, dayNames, dow, d, m, y);
               }
@@ -733,20 +840,15 @@ html[data-theme="light"] .day-modal-overlay{
       panel.appendChild(empty);
     }
     realEvs.forEach(ev => {
-      const text = ev.t ? ev.t.trim() : '';
-      const timeM = text.match(/^(\d+:\d+)/);
-      const time = timeM ? timeM[1] : (ev.h ? String(ev.h).padStart(2,'0') + ':00' : '');
-      let name = ev.name || '';
-      let proc = ev.proc || '';
-      if (!name && text) {
-        const rest = text.replace(/^\d+:\d+\s*/,'');
-        const parts = rest.split('·').map(s=>s.trim());
-        name = parts[0] || 'Paciente';
-        proc = parts[1] || 'Procedimiento';
-      }
+      const { name, proc, time } = __parseEvData(ev);
       const displayName = (window.__displayName ? window.__displayName(name) : name);
       const inits = displayName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-      const endHr = parseInt(time) + 1;
+      const duration = parseInt(ev.duracion || '60', 10) || 60;
+      const startMin = (() => {
+        const [h, m] = String(time || '00:00').split(':').map(Number);
+        return (h || 0) * 60 + (m || 0);
+      })();
+      const timeRange = `${time24To12h(time)} – ${minutesTo12h(startMin + duration)}`;
       const liveCls = typeof window.__recomputeClass === 'function' ? window.__recomputeClass(ev, key) : ev.cls;
 
       const card = document.createElement('div');
@@ -759,7 +861,7 @@ html[data-theme="light"] .day-modal-overlay{
       info.innerHTML =
         `<b>Motivo:</b> ${proc}<br>` +
         `<b>Fecha:</b> ${dayNames[dow]} ${d} de ${MESES[m]}<br>` +
-        `<b>Tiempo:</b> ${time} AM – ${endHr}:00 PM<br>` +
+        `<b>Tiempo:</b> ${timeRange}<br>` +
         `<b>Habitación:</b> Sala 3`;
       const panelBadgeKey = STATUS_BADGE_KEY[liveCls] || 'done';
       const panelBadgeLabel = STATUS_LABELS_MODAL[liveCls] || 'Completado';
@@ -771,26 +873,24 @@ html[data-theme="light"] .day-modal-overlay{
       card.appendChild(head);
       card.appendChild(info);
       card.appendChild(panelBadge);
-      (DAY_BUTTONS[ev.cls] || []).forEach((b,i) => {
+      (DAY_BUTTONS[liveCls] || []).forEach((b,i) => {
         const btn = document.createElement('button');
         btn.className = 'ev-pop-btn ' + b.cls;
-        btn.style.marginBottom = i < (DAY_BUTTONS[ev.cls].length-1) ? '6px' : '0';
+        btn.style.marginBottom = i < (DAY_BUTTONS[liveCls].length-1) ? '6px' : '0';
         btn.textContent = b.label;
         if (REPROG_LABELS_DIA.includes(b.label)) {
           btn.addEventListener('click', () => {
-            window.location.href = buildAgendarUrlDia(name, proc, time, d, m, y);
+            window.location.href = buildAgendarUrlDia(name, proc, time, d, m, y, ev.id);
           });
         }
         if (PACIENTE_LABELS_DIA.includes(b.label)) {
           btn.addEventListener('click', () => {
-            try {
-              localStorage.setItem('lastPatient', JSON.stringify({
-                name: name,
-                source: 'agenda',
-                timestamp: Date.now()
-              }));
-            } catch(e) {}
-            window.location.href = '{{ url('/pacientes') }}?paciente=' + encodeURIComponent(name);
+            const pId = ev.paciente_id || ev.pacienteId || '';
+            if (pId) {
+              window.location.href = '{{ route('pacientes.index') }}?paciente_id=' + encodeURIComponent(pId);
+            } else {
+              window.location.href = '{{ route('pacientes.index') }}?paciente=' + encodeURIComponent(name);
+            }
           });
         }
         if (MENSAJE_LABELS_DIA.includes(b.label)) {
@@ -803,11 +903,18 @@ html[data-theme="light"] .day-modal-overlay{
             window.location.href = '{{ route('ia-reportes.ver') }}?paciente=' + encodeURIComponent(displayName || name) + '&procedimiento=' + encodeURIComponent(proc || 'Endoscopia');
           });
         }
+        if (INICIAR_LABELS_DIA.includes(b.label)) {
+          btn.addEventListener('click', () => {
+            const pId = ev.paciente_id || ev.pacienteId || '';
+            window.location.href = '{{ route('nuevo-estudio') }}?paciente=' + encodeURIComponent(pId || displayName || name);
+          });
+        }
         card.appendChild(btn);
       });
       const panelDelBtn = document.createElement('button');
       panelDelBtn.className = 'ev-pop-btn danger';
-      panelDelBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>Borrar cita`;
+      const isEliminarPanel = ['cancelado', 'completado'].includes(ev.estado);
+      panelDelBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>${isEliminarPanel ? 'Eliminar cita' : 'Cancelar cita'}`;
       panelDelBtn.addEventListener('click', () => {
         window.openDayModal(ev, dayNames, dow, d, m, y);
         setTimeout(() => showDelConfirm(ev, y, m, d), 50);
@@ -903,5 +1010,6 @@ html[data-theme="light"] .day-modal-overlay{
     ddpM = date.getMonth();
     ddpSelected = {y: ddpY, m: ddpM, d: date.getDate()};
   };
+  window.__parseEvData = __parseEvData;
 })();
 </script>

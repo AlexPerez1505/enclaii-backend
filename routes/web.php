@@ -10,6 +10,7 @@ use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\NuevoEstudioController;
 use App\Models\Paciente;
 use App\Models\Reporte;
+use App\Http\Controllers\AiAssistantController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -34,25 +35,39 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
         $estudiosSinReporte = \App\Models\Estudio::whereDoesntHave('reportes')->count();
 
-        // Próximo paciente: la cita pendiente más cercana
+        // Auto-cancelar citas próximas cuya fecha/hora ya pasó
+        \App\Models\Cita::query()
+            ->where('estado', 'proximo')
+            ->whereRaw("CONCAT(fecha, ' ', hora) <= ?", [now()->format('Y-m-d H:i:s')])
+            ->update(['estado' => 'cancelado']);
+
+        // Próximo paciente: la cita pendiente más cercana (solo futuras)
         $proximaCita = \App\Models\Cita::with('paciente')
             ->whereNotIn('estado', ['cancelado', 'completado'])
-            ->whereDate('fecha', '>=', now()->toDateString())
+            ->whereRaw("CONCAT(fecha, ' ', hora) >= ?", [now()->format('Y-m-d H:i:s')])
             ->orderBy('fecha')
             ->orderBy('hora')
             ->first();
 
-        // Pacientes pendientes HOY: citas de hoy que no estén completadas ni canceladas
+        // Pacientes pendientes HOY: citas de hoy futuras y no completadas/canceladas
         $pendientesHoy = \App\Models\Cita::with('paciente')
             ->whereDate('fecha', now()->toDateString())
             ->whereNotIn('estado', ['completado', 'cancelado'])
+            ->whereTime('hora', '>=', now()->format('H:i:s'))
             ->orderBy('hora')
             ->get();
 
-        return view('dashboard.index', compact('estudiosSinReporte', 'proximaCita', 'pendientesHoy'));
+        // Citas por estado para el donut del resumen
+        $citasProximas = \App\Models\Cita::where('estado', 'proximo')->count();
+        $citasCompletadas = \App\Models\Cita::where('estado', 'completado')->count();
+        $citasCanceladas = \App\Models\Cita::where('estado', 'cancelado')->count();
+
+        return view('dashboard.index', compact(
+            'estudiosSinReporte', 'proximaCita', 'pendientesHoy',
+            'citasProximas', 'citasCompletadas', 'citasCanceladas'
+        ));
     })->name('dashboard');
     
-
 
     Route::get('/ia-reportes', function () {
         $reportes = Reporte::with(['estudio.paciente', 'usuario'])
@@ -98,7 +113,10 @@ Route::middleware('auth')->group(function () {
             'estudios' => ['valor' => $estMes, 'trend' => $pct($estMes, $estPrev)],
         ];
 
-        return view('ia-reportes.index', compact('reportes', 'kpis'));
+        $hallazgosData = app(\App\Http\Controllers\IaReporteController::class)->hallazgosData();
+        $hallazgos = collect($hallazgosData['hallazgos'])->take(5)->all();
+
+        return view('ia-reportes.index', compact('reportes', 'kpis', 'hallazgos'));
     })->name('ia-reportes');
 
     Route::get('/ia-reportes/generar', function () {
@@ -241,6 +259,9 @@ Route::middleware('auth')->group(function () {
         // Plantillas guardadas (configuración persistida por clave)
         $plantillasDb = \App\Models\Plantilla::all()->mapWithKeys(fn ($p) => [
             $p->clave => [
+                'id' => $p->id,
+                'titulo' => $p->titulo,
+                'subtitulo' => $p->subtitulo,
                 'configuracion' => $p->configuracion,
                 'columnas' => $p->columnas,
                 'num_imagenes' => $p->num_imagenes,
@@ -290,9 +311,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/ia-reportes/chat', [IaReporteController::class, 'chat'])
         ->name('ia-reportes.chat.post');
 
-    Route::get('/ia-reportes/hallazgos', function () {
-        return view('ia-reportes.hallazgos');
-    })->name('ia-reportes.hallazgos');
+    Route::get('/ia-reportes/hallazgos', [IaReporteController::class, 'hallazgos'])
+        ->name('ia-reportes.hallazgos');
 
     Route::get('/ia-reportes/reportes', function () {
         $reportes = Reporte::with(['estudio.paciente', 'usuario'])
@@ -301,10 +321,6 @@ Route::middleware('auth')->group(function () {
 
         return view('ia-reportes.reportes', compact('reportes'));
     })->name('ia-reportes.todos');
-
-    Route::get('/ia-reportes/redactar', function () {
-        return view('ia-reportes.redactar');
-    })->name('ia-reportes.redactar');
 
     Route::get('/ia-reportes/editar', function () {
         $reporteId = request()->query('reporte');
@@ -319,10 +335,26 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/ia-reportes/ver', function () {
         $reporte = null;
+        $estudioImagenes = collect();
         if (request()->has('reporte')) {
-            $reporte = \App\Models\Reporte::with(['estudio.paciente', 'usuario'])->find(request()->query('reporte'));
+            $reporte = \App\Models\Reporte::with(['estudio.paciente', 'estudio.archivos', 'usuario', 'plantilla'])->find(request()->query('reporte'));
+            if ($reporte && $reporte->estudio_id) {
+                $estudioImagenes = \App\Models\EstudioArchivo::where('estudio_id', $reporte->estudio_id)
+                    ->where('tipo', 'imagen')
+                    ->orderByDesc('capturado_en')
+                    ->get()
+                    ->map(fn ($a) => ['url' => asset('storage/' . $a->path), 'titulo' => $a->nombre_original]);
+            }
+            // Si el reporte no tiene plantilla asignada, cargar la que corresponda al tipo de estudio
+            if ($reporte && ! $reporte->plantilla && $reporte->estudio?->tipo) {
+                $tipoKey = \Illuminate\Support\Str::lower($reporte->estudio->tipo);
+                $default = \App\Models\Plantilla::where('clave', $tipoKey)->first();
+                if ($default) {
+                    $reporte->setRelation('plantilla', $default);
+                }
+            }
         }
-        return view('ia-reportes.ver', compact('reporte'));
+        return view('ia-reportes.ver', compact('reporte', 'estudioImagenes'));
     })->name('ia-reportes.ver');
 
     Route::get('/ia-reportes/analisis', function () {
@@ -335,9 +367,9 @@ Route::middleware('auth')->group(function () {
         ]);
     })->name('configuracion');
 
-    Route::get('/finanzas', function () {
-        return view('finanzas.index');
-    })->name('finanzas');
+    // Route::get('/finanzas', function () {
+    //     return view('finanzas.index');
+    // })->name('finanzas');
 
     Route::patch('/configuracion/general', [SettingsController::class, 'update'])
         ->name('configuracion.general.update');
@@ -358,6 +390,10 @@ Route::middleware('auth')->group(function () {
         $paciente = $request->filled('paciente')
             ? Paciente::find($request->query('paciente'))
             : null;
+
+        $pacientes = Paciente::select('id', 'nombre_completo', 'folio', 'edad', 'sexo', 'telefono', 'email', 'foto')
+            ->orderBy('nombre_completo')
+            ->get();
 
         $galImagenes = collect();
         $galVideos = collect();
@@ -381,6 +417,7 @@ Route::middleware('auth')->group(function () {
 
         return view('estudios.crear', [
             'paciente' => $paciente,
+            'pacientes' => $pacientes,
             'galImagenes' => $galImagenes,
             'galVideos' => $galVideos,
             'reportes' => $reportes,
@@ -647,9 +684,9 @@ Route::middleware('auth')->group(function () {
     })->name('galeria.imagen.guardar-copia');
 
     /* ── Finanzas ── */
-    Route::get('/finanzas', function () {
-        return view('finanzas.index');
-    })->name('finanzas');
+    // Route::get('/finanzas', function () {
+    //     return view('finanzas.index');
+    // })->name('finanzas');
 });
 
 
@@ -662,3 +699,41 @@ Route::post('/agenda/citas', [AgendaController::class, 'store'])->name('agenda.c
 Route::put('/agenda/citas/{cita}', [AgendaController::class, 'update'])->name('agenda.citas.update');
 Route::patch('/agenda/citas/{cita}/estado', [AgendaController::class, 'cambiarEstado'])->name('agenda.citas.estado');
 Route::delete('/agenda/citas/{cita}', [AgendaController::class, 'destroy'])->name('agenda.citas.destroy');
+
+Route::get('/finanzas', function () {
+    return view('finanzas.index');
+})->name('finanzas');
+
+
+Route::get('/forgot-password', function () {
+    return view('auth.forgot-password');
+})->middleware('guest')->name('password.request');
+
+Route::post('/forgot-password', function (Request $request) {
+    $request->validate([
+        'email' => ['required', 'email'],
+    ]);
+
+    $status = Password::sendResetLink(
+        $request->only('email')
+    );
+
+    return $status === Password::RESET_LINK_SENT
+        ? back()->with(['status' => __($status)])
+        : back()->withErrors(['email' => __($status)]);
+})->middleware('guest')->name('password.email');
+
+Route::post('/ia/chat', [AiAssistantController::class, 'chat'])
+    ->name('ia.chat');
+
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::post('/ia/conversations/start', [AiAssistantController::class, 'start'])->name('ia.conversations.start');
+    Route::get('/ia/conversations', [AiAssistantController::class, 'conversations'])->name('ia.conversations');
+    Route::get('/ia/conversations/{conversation}', [AiAssistantController::class, 'show'])->name('ia.conversations.show');
+
+    Route::post('/ia/chat', [AiAssistantController::class, 'chat'])->name('ia.chat');
+    Route::get('/ia/history', [AiAssistantController::class, 'history'])->name('ia.history');
+    Route::post('/ia/reset', [AiAssistantController::class, 'reset'])->name('ia.reset');
+});
