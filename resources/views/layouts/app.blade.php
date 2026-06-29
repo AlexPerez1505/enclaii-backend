@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="csrf-token" content="{{ csrf_token() }}">
+<link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}?v=20260627-2">
 <script>
   /* Aplicar tema guardado antes del primer render (evita parpadeo) */
   document.documentElement.dataset.theme = localStorage.getItem('enclaii-theme') || 'dark';

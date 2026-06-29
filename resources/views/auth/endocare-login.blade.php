@@ -1,9 +1,43 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}?v=20260627-2">
+<title>Iniciar sesión — ENCLAII</title>
+<script>document.documentElement.lang = localStorage.getItem('enclaii-lang') || 'es';</script>
+<script defer src="{{ asset('js/i18n.js') }}"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy-900:#070F2E;
+  --navy-800:#0B1A4A;
+  --navy-700:#12266B;
+  --blue-600:#1E5AE8;
+  --blue-500:#2E7BF6;
+  --cyan-400:#38C7F4;
+  --ink:#0E1530;
+  --ink-soft:#4A5578;
+  --surface:#F7F9FE;
+  --field:#EEF3FC;
+  --field-border:#D7E2F5;
+  --error:#D93B4A;
+  --r-lg:22px;
+  --r-md:14px;
+  /* Easings fuertes (no usar las nativas débiles) */
+  --ease-out:cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out:cubic-bezier(0.77, 0, 0.175, 1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:'Hanken Grotesk',sans-serif;
+  background:var(--navy-900);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+}
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
