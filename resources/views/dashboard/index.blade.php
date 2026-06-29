@@ -759,6 +759,16 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
         maxH: Math.round(baseHStored * 3)
       };
     }
+    // Widgets con tamaño predeterminado fijo en el dashboard original
+    if (['next-patient', 'ia-pending', 'new-study'].includes(id)) {
+      const baseHStored = parseInt(w.dataset.baseH, 10) || w.offsetHeight;
+      return {
+        minW: Math.max(3, Math.floor(initialW * 0.5)),
+        maxW: 13,
+        minH: Math.round(baseHStored * 0.85),
+        maxH: Math.round(baseHStored * 1.5)
+      };
+    }
     return {
       minW: Math.max(3, Math.floor(initialW * 0.5)),
       maxW: 13,
@@ -998,6 +1008,15 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
     /* Aplicar límites de tamaño al cargar */
     applySizeLimits();
 
+    /* Capturar altura inicial de cada widget como base */
+    (function captureInitialHeights() {
+      grid.querySelectorAll('.widget').forEach(w => {
+        if (!w.dataset.baseH) {
+          w.dataset.baseH = Math.round(w.offsetHeight);
+        }
+      });
+    })();
+
     /* Tooltips de handles */
     (function setHandleTitles() {
       grid.querySelectorAll('.widget-drag-handle').forEach(el => el.title = 'Arrastre para mover');
@@ -1018,6 +1037,99 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
         });
       });
       grid.querySelectorAll('.widget').forEach(w => ro.observe(w));
+    })();
+
+    /* ---- Actualizar calendario y resumen al cambiar de mes ---- */
+    (function(){
+      const calWidget = grid.querySelector('[data-widget-id="agenda-today"]');
+      if (!calWidget) return;
+      const summaryWidget = grid.querySelector('[data-widget-id="agenda-summary"]');
+      const CSRF = @json(csrf_token());
+
+      async function refreshWidget(widget, url, targetSelector) {
+        try {
+          const current = grid.querySelector('[data-widget-id="' + widget + '"]');
+          if (!current) return;
+          current.style.transition = 'opacity .25s ease, transform .25s ease';
+          current.style.opacity = '0.6';
+          current.style.transform = 'scale(0.98)';
+          const res = await fetch(url, {
+            headers: { 'X-CSRF-TOKEN': CSRF, 'X-Requested-With': 'XMLHttpRequest' }
+          });
+          if (!res.ok) return;
+          const html = await res.text();
+          const temp = document.createElement('div');
+          temp.innerHTML = html;
+          const newWidget = temp.querySelector('[data-widget-id="' + widget + '"]');
+          if (!newWidget) return;
+          const ro = current._resizeObserver;
+          if (ro && typeof ro.disconnect === 'function') ro.disconnect();
+          newWidget.style.opacity = '0';
+          newWidget.style.transform = 'scale(0.98)';
+          newWidget.style.transition = 'opacity .25s ease, transform .25s ease';
+          current.replaceWith(newWidget);
+          requestAnimationFrame(() => {
+            newWidget.style.opacity = '1';
+            newWidget.style.transform = 'scale(1)';
+          });
+          const newRo = new ResizeObserver(entries => {
+            entries.forEach(entry => {
+              const w = entry.borderBoxSize && entry.borderBoxSize[0] ? entry.borderBoxSize[0].inlineSize : entry.contentRect.width;
+              const h = entry.borderBoxSize && entry.borderBoxSize[0] ? entry.borderBoxSize[0].blockSize : entry.contentRect.height;
+              entry.target.style.setProperty('--widget-w-px', Math.round(w));
+              entry.target.style.setProperty('--widget-h-px', Math.round(h));
+              if (!entry.target.dataset.baseH) entry.target.dataset.baseH = Math.round(h);
+            });
+          });
+          newWidget._resizeObserver = newRo;
+          newRo.observe(newWidget);
+          applySizeLimits();
+          bindCalendarNav();
+          if (window.gsap) {
+            const counters = newWidget.querySelectorAll('[data-target]');
+            counters.forEach((counter, i) => {
+              if (!counter.id) return;
+              const target = parseInt(counter.dataset.target, 10);
+              const obj = { v: 0 };
+              gsap.to(obj, { v: target, duration: 1.4, ease: 'expo.out', delay: 0.4 + i * 0.12,
+                onUpdate: () => { counter.textContent = Math.round(obj.v).toLocaleString('es-MX'); }
+              });
+            });
+          } else {
+            newWidget.querySelectorAll('[data-target]').forEach(c => { if (c.dataset.target) c.textContent = parseInt(c.dataset.target, 10).toLocaleString('es-MX'); });
+          }
+        } catch(e) {
+          console.error('Error actualizando widget', widget, e);
+          window.location.href = url;
+        }
+      }
+
+      function bindCalendarNav() {
+        const cal = grid.querySelector('[data-widget-id="agenda-today"]');
+        if (!cal) return;
+        cal.querySelectorAll('.cal-nav-btn').forEach(btn => {
+          btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const url = this.dataset.url;
+            if (!url) return;
+            const params = new URL(url, window.location.origin).searchParams;
+            const mes = params.get('widget_mes');
+            const anio = params.get('widget_anio');
+            const baseUrl = new URL(window.location.href);
+            if (mes) baseUrl.searchParams.set('widget_mes', mes);
+            if (anio) baseUrl.searchParams.set('widget_anio', anio);
+            window.history.replaceState({}, '', baseUrl.toString());
+            refreshWidget('agenda-today', url, '[data-widget-id="agenda-today"]');
+            if (summaryWidget) {
+              const summaryUrl = baseUrl.toString().replace('/dashboard', '/dashboard/widget/agenda-summary');
+              refreshWidget('agenda-summary', summaryUrl, '[data-widget-id="agenda-summary"]');
+            }
+          });
+        });
+      }
+
+      bindCalendarNav();
     })();
   })();
 

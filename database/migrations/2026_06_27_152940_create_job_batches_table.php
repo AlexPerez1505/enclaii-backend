@@ -1,7 +1,3 @@
-<<<<<<< HEAD:database/migrations/0001_01_01_000002_create_jobs_table.php
-
-=======
->>>>>>> Frontend-Dylan:database/migrations/2026_06_27_152940_create_job_batches_table.php
 <?php
 
 use Illuminate\Database\Migrations\Migration;

@@ -55,12 +55,69 @@ Route::middleware('auth')->group(function () {
         $citasCompletadas = \App\Models\Cita::where('estado', 'completado')->count();
         $citasCanceladas = \App\Models\Cita::where('estado', 'cancelado')->count();
 
+        // Resumen del mes (coincide con el mes mostrado en el widget de agenda)
+        $widgetMes = (int) request()->query('widget_mes', now()->month);
+        $widgetAnio = (int) request()->query('widget_anio', now()->year);
+        $inicioMes = \Carbon\Carbon::create($widgetAnio, $widgetMes, 1)->startOfDay();
+        $finMes = $inicioMes->copy()->endOfMonth();
+
+        $citasProximasMes = \App\Models\Cita::where('estado', 'proximo')
+            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
+            ->count();
+        $citasCompletadasMes = \App\Models\Cita::where('estado', 'completado')
+            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
+            ->count();
+        $citasCanceladasMes = \App\Models\Cita::where('estado', 'cancelado')
+            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
+            ->count();
+
+        $pendientesMes = \App\Models\Cita::with('paciente')
+            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
+            ->whereNotIn('estado', ['completado', 'cancelado'])
+            ->orderBy('fecha')
+            ->orderBy('hora')
+            ->get();
+
         return view('dashboard.index', compact(
             'estudiosSinReporte', 'proximaCita', 'pendientesHoy',
-            'citasProximas', 'citasCompletadas', 'citasCanceladas'
+            'citasProximas', 'citasCompletadas', 'citasCanceladas',
+            'citasProximasMes', 'citasCompletadasMes', 'citasCanceladasMes',
+            'pendientesMes', 'widgetMes', 'widgetAnio'
         ));
     })->name('dashboard');
-    
+
+    Route::get('/dashboard/widget/{widget}', function ($widget) {
+        $allowed = ['agenda-today', 'agenda-summary'];
+        if (!in_array($widget, $allowed)) abort(404);
+
+        $widgetMes = (int) request()->query('widget_mes', now()->month);
+        $widgetAnio = (int) request()->query('widget_anio', now()->year);
+        $inicioMes = \Carbon\Carbon::create($widgetAnio, $widgetMes, 1)->startOfDay();
+        $finMes = $inicioMes->copy()->endOfMonth();
+
+        $citasProximasMes = \App\Models\Cita::where('estado', 'proximo')
+            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
+            ->count();
+        $citasCompletadasMes = \App\Models\Cita::where('estado', 'completado')
+            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
+            ->count();
+        $citasCanceladasMes = \App\Models\Cita::where('estado', 'cancelado')
+            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
+            ->count();
+
+        $pendientesMes = \App\Models\Cita::with('paciente')
+            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
+            ->whereNotIn('estado', ['completado', 'cancelado'])
+            ->orderBy('fecha')
+            ->orderBy('hora')
+            ->get();
+
+        return view('dashboard.widgets.' . $widget . '.index', compact(
+            'citasProximasMes', 'citasCompletadasMes', 'citasCanceladasMes',
+            'pendientesMes', 'widgetMes', 'widgetAnio'
+        ));
+    })->name('dashboard.widget');
+
 
     Route::get('/ia-reportes', function () {
         $reportes = Reporte::with(['estudio.paciente', 'usuario'])

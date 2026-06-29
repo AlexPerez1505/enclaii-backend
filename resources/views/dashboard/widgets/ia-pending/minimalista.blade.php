@@ -1,4 +1,7 @@
 {{-- Widget: Reporte IA (minimalista) --}}
+@php
+  $pendientes = $estudiosSinReporte ?? 0;
+@endphp
 <div class="widget widget-minimal mode-hidden d2" data-widget-id="ia-pending-min" data-w="3">
   <span class="widget-drag-handle" aria-hidden="true">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="19" r="1"/></svg>
@@ -9,7 +12,7 @@
       <x-carbon-report style="width:100%;height:100%" />
     </a>
     <div class="min-text" style="flex:0 0 22%;display:flex;flex-direction:column;justify-content:center;gap:0.35em;text-align:center;min-height:0">
-      <div class="min-value" style="font-size:clamp(0.85em,4.5cqi,1.35em);line-height:1.1">2 <span>pendientes</span></div>
+      <div class="min-value" style="font-size:clamp(0.85em,4.5cqi,1.35em);line-height:1.1">{{ $pendientes }} <span>pendiente{{ $pendientes == 1 ? '' : 's' }}</span></div>
     </div>
     <span class="widget-resize-handle"></span>
   </article>
