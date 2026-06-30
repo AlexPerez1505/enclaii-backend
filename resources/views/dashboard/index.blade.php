@@ -12,7 +12,8 @@
 /* ============ WIDGET GRID SYSTEM ============ */
 
 /* Contenedor principal de widgets */
-#widgetGrid{
+#widgetGrid,
+#widgetGridMinimal{
   display:grid;
   grid-template-columns:repeat(13,1fr);
   grid-auto-rows:minmax(60px,auto);
@@ -512,6 +513,11 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
 /* Minimalista widgets */
 .widget.mode-hidden{display:none !important}
 
+/* Visibilidad de grids según modo */
+#widgetGridMinimal{display:none}
+#widgetGrid.dashboard-mode-min{display:none}
+#widgetGridMinimal:not(.dashboard-mode-min){display:grid}
+
 /* Dashboard mode switch */
 .db-mode-bar{
   display:flex;align-items:center;justify-content:space-between;gap:16px;
@@ -642,30 +648,27 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
 
 @section('content')
 
+  {{-- Grid original --}}
   <div id="widgetGrid">
-
     @include('dashboard.widgets.next-patient.index')
-    @include('dashboard.widgets.next-patient.minimalista')
-
     @include('dashboard.widgets.ia-pending.index')
-    @include('dashboard.widgets.ia-pending.minimalista')
-
     @include('dashboard.widgets.agenda-today.index')
-    @include('dashboard.widgets.agenda-today.minimalista')
-
     @include('dashboard.widgets.new-study.index')
-    @include('dashboard.widgets.new-study.minimalista')
-
     @include('dashboard.widgets.next-list.index')
-    @include('dashboard.widgets.next-list.minimalista')
-
     @include('dashboard.widgets.agenda-summary.index')
-    @include('dashboard.widgets.agenda-summary.minimalista')
-
     @include('dashboard.widgets.ia-risk.index')
-    @include('dashboard.widgets.ia-risk.minimalista')
-
   </div>{{-- /#widgetGrid --}}
+
+  {{-- Grid minimalista --}}
+  <div id="widgetGridMinimal" class="dashboard-mode-min">
+    @include('dashboard.widgets.next-patient.minimalista')
+    @include('dashboard.widgets.ia-pending.minimalista')
+    @include('dashboard.widgets.agenda-today.minimalista')
+    @include('dashboard.widgets.new-study.minimalista')
+    @include('dashboard.widgets.next-list.minimalista')
+    @include('dashboard.widgets.agenda-summary.minimalista')
+    @include('dashboard.widgets.ia-risk.minimalista')
+  </div>{{-- /#widgetGridMinimal --}}
 
 @endsection
 
@@ -777,28 +780,49 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
     };
   }
 
-  function applySizeLimits() {
-    const grid = document.getElementById('widgetGrid');
-    if (!grid) return;
+  function applySizeLimits(grid) {
+    if (!grid) {
+      applySizeLimits(document.getElementById('widgetGrid'));
+      applySizeLimits(document.getElementById('widgetGridMinimal'));
+      return;
+    }
+    if (grid.offsetParent === null) return; // grid oculto, no aplicar
     const visible = Array.from(grid.querySelectorAll('.widget:not(.widget-ghost):not(.widget-hidden):not(.mode-hidden)'));
+    let needsRetry = false;
     visible.forEach(w => {
+      const isMinimal = w.classList.contains('widget-minimal');
+      const minRendered = isMinimal ? 260 : 120;
+      if (w.offsetHeight < minRendered && !w.style.height) { needsRetry = true; return; }
       if (!w.dataset.baseW) w.dataset.baseW = parseInt(w.dataset.w, 10);
-      if (!w.dataset.baseH) w.dataset.baseH = w.offsetHeight;
+      const storedBaseH = parseInt(w.dataset.baseH, 10) || 0;
+      if (!w.dataset.baseH || storedBaseH <= 0) w.dataset.baseH = w.offsetHeight;
       const limits = getWidgetLimits(w);
       const currentW = parseInt(w.dataset.w, 10);
       const currentH = parseInt(w.style.height, 10) || w.offsetHeight;
       const newW = Math.max(limits.minW, Math.min(limits.maxW, currentW));
-      const newH = Math.max(limits.minH, Math.min(limits.maxH, currentH));
+      let newH = Math.max(limits.minH, Math.min(limits.maxH, currentH));
+      if (newH <= 0) newH = w.offsetHeight || limits.minH || 220;
       w.dataset.w = newW;
       w.style.gridColumn = 'span ' + newW;
       w.style.height = newH + 'px';
     });
+    if (needsRetry) {
+      const retries = parseInt(grid.dataset.applyRetries, 10) || 0;
+      if (retries < 10) {
+        grid.dataset.applyRetries = retries + 1;
+        requestAnimationFrame(() => applySizeLimits(grid));
+      } else {
+        grid.dataset.applyRetries = 0;
+      }
+    } else {
+      grid.dataset.applyRetries = 0;
+    }
   }
 
   /* ============ WIDGET DRAG & REORDER ============ */
-  (function(){
-    const grid = document.getElementById('widgetGrid');
+  function initGrid(grid){
     if (!grid) return;
+    const storageKey = grid.id === 'widgetGridMinimal' ? 'dbWidgetOrderV2Minimal' : 'dbWidgetOrderV2';
 
     let dragging = null, ghost = null, originNext = null;
 
@@ -944,12 +968,12 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
         const h = w.style.height;
         return { id: w.dataset.widgetId, w: w.dataset.w, h: h || null };
       });
-      try { localStorage.setItem('dbWidgetOrderV2', JSON.stringify(order)); } catch(e) {}
+      try { localStorage.setItem(storageKey, JSON.stringify(order)); } catch(e) {}
     }
 
     function restoreOrder() {
       try {
-        const saved = JSON.parse(localStorage.getItem('dbWidgetOrderV2') || 'null');
+        const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
         if (!saved) return;
         saved.forEach(({ id, w, h }) => {
           const el = grid.querySelector(`[data-widget-id="${id}"]`);
@@ -1006,7 +1030,7 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
     })();
 
     /* Aplicar límites de tamaño al cargar */
-    applySizeLimits();
+    applySizeLimits(grid);
 
     /* Capturar altura inicial de cada widget como base */
     (function captureInitialHeights() {
@@ -1131,8 +1155,12 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
 
       bindCalendarNav();
     })();
-  })();
+  }
 
+  initGrid(document.getElementById('widgetGrid'));
+  initGrid(document.getElementById('widgetGridMinimal'));
+
+  window.applyWidgetSizeLimits = applySizeLimits;
 })();
 </script>
 @endpush

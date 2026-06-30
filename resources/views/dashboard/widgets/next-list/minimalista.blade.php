@@ -1,5 +1,5 @@
 {{-- Widget: Pacientes pendientes hoy (minimalista) --}}
-<div class="widget widget-minimal mode-hidden d5" data-widget-id="next-list-min" data-w="8">
+<div class="widget widget-minimal d5" data-widget-id="next-list-min" data-w="8">
   <span class="widget-drag-handle" aria-hidden="true">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="19" r="1"/></svg>
   </span>

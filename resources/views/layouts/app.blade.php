@@ -2007,14 +2007,32 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
 
       function applyMode(mode) {
         const isMinimal = mode === 'minimal';
-        grid.querySelectorAll('.widget:not(.widget-minimal)').forEach(w => w.classList.toggle('mode-hidden', isMinimal));
-        grid.querySelectorAll('.widget-minimal').forEach(w => w.classList.toggle('mode-hidden', !isMinimal));
-        grid.classList.toggle('dashboard-mode-min', isMinimal);
+        const originalGrid = document.getElementById('widgetGrid');
+        const minimalGrid = document.getElementById('widgetGridMinimal');
+        if (originalGrid) {
+          originalGrid.classList.toggle('dashboard-mode-min', isMinimal);
+          originalGrid.style.display = isMinimal ? 'none' : '';
+        }
+        if (minimalGrid) {
+          minimalGrid.classList.toggle('dashboard-mode-min', !isMinimal);
+          minimalGrid.style.display = !isMinimal ? 'none' : '';
+        }
         originalBtn.classList.toggle('active', !isMinimal);
         originalBtn.setAttribute('aria-pressed', String(!isMinimal));
         minimalBtn.classList.toggle('active', isMinimal);
         minimalBtn.setAttribute('aria-pressed', String(isMinimal));
         try { localStorage.setItem('dbMode', mode); } catch(e) {}
+        if (originalGrid) originalGrid.offsetHeight;
+        if (minimalGrid) minimalGrid.offsetHeight;
+        if (window.applyWidgetSizeLimits) window.applyWidgetSizeLimits();
+        requestAnimationFrame(() => {
+          if (window.applyWidgetSizeLimits) window.applyWidgetSizeLimits();
+        });
+        setTimeout(() => {
+          if (originalGrid) originalGrid.offsetHeight;
+          if (minimalGrid) minimalGrid.offsetHeight;
+          if (window.applyWidgetSizeLimits) window.applyWidgetSizeLimits();
+        }, 120);
       }
 
       originalBtn.addEventListener('click', () => applyMode('original'));
