@@ -20,6 +20,15 @@ class User extends Authenticatable
         'position',
         'profile_completed',
         'settings',
+        'stripe_customer_id',
+        'stripe_subscription_id',
+        'stripe_plan',
+        'subscription_status',
+        'subscription_renews_at',
+        'subscription_cancel_at',
+        'pm_type',
+        'pm_last_four',
+        'pm_brand',
     ];
 
     protected $hidden = [
@@ -34,7 +43,25 @@ class User extends Authenticatable
             'password' => 'hashed',
             'profile_completed' => 'boolean',
             'settings' => 'array',
+            'subscription_renews_at' => 'datetime',
+            'subscription_cancel_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Indica si el usuario tiene una suscripción activa en Stripe.
+     */
+    public function subscribed(): bool
+    {
+        return in_array($this->subscription_status, ['active', 'trialing'], true);
+    }
+
+    /**
+     * Indica si la suscripción está programada para cancelarse al final del ciclo.
+     */
+    public function cancelScheduled(): bool
+    {
+        return $this->subscription_cancel_at !== null;
     }
 
     /**
