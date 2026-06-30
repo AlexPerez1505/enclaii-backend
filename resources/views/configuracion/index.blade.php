@@ -176,6 +176,108 @@
 .pl-reco{display:flex;align-items:center;gap:10px;margin-bottom:6px}
 .pl-reco .ri{width:34px;height:34px;flex:none;border-radius:9px;display:grid;place-items:center;color:var(--orange);background:rgba(245,158,45,.14)}
 .pl-reco .ri svg{width:18px;height:18px}
+
+/* ===== RESPONSIVE: MÓVILES Y TABLETS ===== */
+@media (max-width:768px){
+  /* Tabs más compactos */
+  .cfg-tabs{gap:16px;margin-bottom:16px}
+  .cfg-tab{font-size:13px;padding-bottom:10px}
+  
+  /* Plan actual */
+  .pl-plan{flex-direction:column;align-items:flex-start;gap:12px;padding:14px}
+  .pl-plan .pl-ico{width:40px;height:40px}
+  .pl-plan .pl-ico svg{width:20px;height:20px}
+  .pl-plan .pl-info b{font-size:14px}
+  .pl-plan .pl-info p{font-size:11px}
+  .pl-btn{width:100%;justify-content:center;padding:9px 14px;font-size:12px}
+  
+  /* Archivos por tipo */
+  .pl-files{grid-template-columns:1fr;gap:10px}
+  .pl-file{padding:11px}
+  .pl-file .fi{width:28px;height:28px;margin-bottom:7px}
+  .pl-file .fi svg{width:15px;height:15px}
+  .pl-file .fv{font-size:14px}
+  
+  /* Planes disponibles */
+  .pl-plans{gap:12px}
+  .pl-card{padding:14px}
+  .pl-card h4{font-size:13.5px}
+  .pl-card .pc-price{font-size:18px}
+  .pl-card .pc-feat{gap:6px;margin:10px 0}
+  .pl-card .pc-feat li{font-size:11px}
+  
+  /* Botones de intervalo más compactos */
+  .pc-interval{flex-wrap:wrap;gap:4px!important}
+  .pc-int-btn{padding:5px 10px;font-size:10.5px}
+  
+  /* Resumen del plan */
+  .pl-summary-row{font-size:11.5px;padding:9px 0}
+  .pl-link{font-size:11.5px;padding:9px 0}
+  .pl-wide-btn{font-size:11.5px;padding:9px;margin-top:12px}
+  
+  /* Gráfico */
+  .pl-chart-wrap{margin-top:12px}
+  .pl-chart-y{font-size:8.5px;height:110px}
+  .pl-chart svg{height:110px}
+  
+  /* Cards de configuración */
+  .cfg-card-head h2{font-size:14.5px}
+  .cfg-card-head p{font-size:11.5px}
+  
+  /* Filas de configuración */
+  .cfg-row{gap:10px;padding:11px 0}
+  .cfg-ico{width:32px;height:32px}
+  .cfg-ico svg{width:16px;height:16px}
+  .cfg-info .t{font-size:12.5px}
+  .cfg-info .d{font-size:10.5px}
+  .cfg-select select{font-size:11.5px;padding:8px 30px 8px 11px;min-width:130px}
+  
+  /* Perfil */
+  .prof-ava-wrap{width:90px;height:90px}
+  .prof-ava{width:90px;height:90px}
+  .prof-cam{width:28px;height:28px}
+  .prof-cam svg{width:13px;height:13px}
+  .prof-name{font-size:15px}
+  .prof-role{font-size:11.5px}
+  .prof-lines{font-size:11.5px;margin:12px 0 14px}
+  .prof-edit{font-size:12px;padding:9px 15px}
+  
+  /* Acciones rápidas */
+  .qa{gap:10px;padding:10px 0}
+  .qa .qico{width:30px;height:30px}
+  .qa .qico svg{width:15px;height:15px}
+  .qa .t{font-size:12px}
+  .qa .d{font-size:10px}
+}
+
+@media (max-width:480px){
+  /* Tabs en scroll horizontal */
+  .cfg-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;gap:20px;padding-bottom:2px}
+  .cfg-tab{white-space:nowrap;font-size:12.5px}
+  
+  /* Planes en una sola columna siempre */
+  .pl-plans{grid-template-columns:1fr!important}
+  
+  /* Almacenamiento más compacto */
+  .store-top{font-size:12px}
+  .store-top svg{width:15px;height:15px}
+  .store-meta{font-size:10.5px}
+  .store-bar{height:7px}
+  .store-legend{font-size:10px;gap:12px;flex-wrap:wrap}
+  
+  /* Botones de intervalo en columna */
+  .pc-interval{flex-direction:column!important;gap:6px!important}
+  .pc-int-btn{width:100%;text-align:center}
+  
+  /* Cards más compactos */
+  .card{padding:14px!important}
+  .cfg-card-head h2{font-size:13.5px}
+  .cfg-card-head p{font-size:10.5px}
+  
+  /* Select más pequeño */
+  .cfg-select select{min-width:110px;font-size:11px;padding:7px 28px 7px 10px}
+  .cfg-select svg{width:13px;height:13px;right:9px}
+}
 </style>
 @endpush
 

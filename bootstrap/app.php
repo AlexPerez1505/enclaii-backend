@@ -11,7 +11,21 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->validateCsrfTokens(except: [
+            'webhooks/whatsapp',
+            'webhooks/stripe',
+        ]);
+
+        $middleware->alias([
+            'subscribed' => \App\Http\Middleware\EnsureSubscribed::class,
+        ]);
+
+        // Usuarios ya autenticados que visitan /login o /registro:
+        // si tienen plan -> dashboard, si no -> seleccionar plan
+        $middleware->redirectUsersTo(function ($request) {
+            $user = $request->user();
+            return $user && $user->subscribed() ? '/dashboard' : '/configuracion';
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
