@@ -28,7 +28,14 @@ class EndoCareAuthController extends Controller
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
-            return redirect()->route($this->defaultRouteFor(Auth::user()));
+            $user = Auth::user();
+
+            if (!$user->subscribed()) {
+                return redirect()->route('configuracion')
+                    ->with('warning', 'Selecciona un plan para comenzar a usar EndoCare.');
+            }
+
+            return redirect()->route($this->defaultRouteFor($user));
         }
 
         return back()
@@ -67,7 +74,8 @@ class EndoCareAuthController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('dashboard');
+        return redirect()->route('configuracion')
+            ->with('warning', 'Selecciona un plan para comenzar a usar EndoCare.');
     }
 
     /**

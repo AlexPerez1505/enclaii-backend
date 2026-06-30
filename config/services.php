@@ -42,6 +42,44 @@ return [
         'assistant_model' => env('OPENAI_ASSISTANT_MODEL', 'gpt-5.4-mini'),
     ],
 
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+        'currency' => env('STRIPE_CURRENCY', 'mxn'),
+
+        // Planes con múltiples intervalos de facturación.
+        // Cada plan tiene 3 price IDs: mensual, trimestral y anual.
+        'plans' => [
+            'clinica' => [
+                'month' => env('STRIPE_PRICE_CLINICA_MONTH'),
+                'quarter' => env('STRIPE_PRICE_CLINICA_QUARTER'),
+                'year' => env('STRIPE_PRICE_CLINICA_YEAR'),
+            ],
+            'hospital' => [
+                'month' => env('STRIPE_PRICE_HOSPITAL_MONTH'),
+                'quarter' => env('STRIPE_PRICE_HOSPITAL_QUARTER'),
+                'year' => env('STRIPE_PRICE_HOSPITAL_YEAR'),
+            ],
+            'red_medica' => [
+                'month' => env('STRIPE_PRICE_RED_MEDICA_MONTH'),
+                'quarter' => env('STRIPE_PRICE_RED_MEDICA_QUARTER'),
+                'year' => env('STRIPE_PRICE_RED_MEDICA_YEAR'),
+            ],
+            'empresarial' => [
+                'month' => env('STRIPE_PRICE_EMPRESARIAL_MONTH'),
+                'quarter' => env('STRIPE_PRICE_EMPRESARIAL_QUARTER'),
+                'year' => env('STRIPE_PRICE_EMPRESARIAL_YEAR'),
+            ],
+        ],
+
+        // Almacenamiento adicional (suscripción recurrente mensual).
+        'storage' => [
+            'storage_50' => env('STRIPE_PRICE_STORAGE_50'),
+            'storage_100' => env('STRIPE_PRICE_STORAGE_100'),
+        ],
+    ],
+
     'whatsapp' => [
         'access_token' => env('WHATSAPP_ACCESS_TOKEN'),
         'business_account_id' => env('WHATSAPP_BUSINESS_ACCOUNT_ID'),
