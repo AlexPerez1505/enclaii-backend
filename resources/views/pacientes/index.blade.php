@@ -79,81 +79,86 @@
   background:rgba(56,199,244,.1);
 }
 
-/* ============ PANEL FILTROS ============ */
+/* ============ PANEL FILTROS MODAL ============ */
 .filter-overlay{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.45);
+  background:rgba(2,6,23,.72);
+  backdrop-filter:blur(8px);
   z-index:200;
   opacity:0;
   visibility:hidden;
   transition:opacity 250ms ease, visibility 250ms ease;
 }
 .filter-overlay.open{opacity:1;visibility:visible}
-.filter-panel{
+.filter-modal{
   position:fixed;
-  top:0;right:0;
-  width:320px;
-  max-width:94vw;
-  height:100vh;
-  background:linear-gradient(180deg,var(--card) 0%,var(--panel-2) 100%);
-  border-left:1px solid var(--stroke-strong);
+  top:50%; left:50%;
+  transform:translate(-50%, -50%) scale(.96);
+  width:min(840px, 94vw);
+  max-height:min(90vh, 720px);
+  background:var(--card);
+  border:1px solid var(--stroke-strong);
+  border-radius:var(--r-lg);
   z-index:201;
   display:flex;
   flex-direction:column;
-  transform:translateX(100%);
-  transition:transform 300ms var(--ease-out);
-  overflow:hidden;
+  opacity:0;
+  visibility:hidden;
+  transition:opacity 250ms ease, visibility 250ms ease, transform 250ms var(--ease-out);
+  box-shadow:0 24px 80px rgba(0,0,0,.5);
 }
-.filter-panel.open{transform:translateX(0)}
-.filter-panel-head{
+.filter-modal.open{
+  opacity:1;
+  visibility:visible;
+  transform:translate(-50%, -50%) scale(1);
+}
+.filter-modal-head{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:22px 20px 16px;
+  padding:22px 24px 18px;
   border-bottom:1px solid var(--stroke);
-  flex:none;
 }
-.filter-panel-head h2{
+.filter-modal-head h2{
   font-family:'Sora',sans-serif;
   font-size:18px;
   font-weight:700;
+  color:var(--txt);
 }
-.filter-close{
-  width:32px;height:32px;
-  border-radius:50%;
-  border:1px solid var(--stroke);
-  display:grid;place-items:center;
-  color:var(--txt-soft);
-  transition:all 150ms ease;
-}
-.filter-close:hover{border-color:var(--stroke-strong);color:var(--txt)}
-.filter-tabs-row{
+.filter-clear-all{
   display:flex;
-  gap:0;
-  border-bottom:1px solid var(--stroke);
-  flex:none;
-}
-.filter-tab{
-  flex:1;
-  padding:12px 0;
-  font-size:13.5px;
+  align-items:center;
+  gap:6px;
+  background:transparent;
+  border:none;
+  font-size:13px;
   font-weight:600;
-  color:var(--txt-soft);
-  text-align:center;
-  border-bottom:2px solid transparent;
-  transition:color 150ms ease, border-color 150ms ease;
+  color:var(--cyan);
+  cursor:pointer;
+  transition:color 150ms ease;
 }
-.filter-tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
-.filter-body{
+.filter-clear-all:hover{color:var(--txt)}
+.filter-clear-all svg{
+  width:14px; height:14px;
+}
+.filter-modal-body{
   flex:1;
   overflow-y:auto;
-  padding:20px;
-  display:flex;
-  flex-direction:column;
-  gap:16px;
+  padding:24px;
   scrollbar-width:thin;
   scrollbar-color:var(--stroke) transparent;
+}
+.filter-grid{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:16px;
+}
+@media (max-width: 720px){
+  .filter-grid{grid-template-columns:repeat(2, 1fr);}
+}
+@media (max-width: 480px){
+  .filter-grid{grid-template-columns:1fr;}
 }
 .filter-group{
   display:flex;
@@ -187,68 +192,59 @@
   padding-right:36px;
   cursor:pointer;
 }
-.filter-date-btns{
+.filter-toggle{
   display:flex;
-  gap:8px;
-}
-.filter-date-btn{
-  flex:1;
-  padding:9px 0;
-  border-radius:var(--r-md);
-  border:1px solid var(--stroke);
+  align-items:center;
+  justify-content:space-between;
+  text-align:left;
   background:var(--panel-2);
+}
+.filter-toggle-icon{
+  transition:transform 200ms ease;
+}
+.filter-toggle.active .filter-toggle-icon{transform:rotate(180deg)}
+.filter-more-link{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin-top:28px;
+  margin-bottom:8px;
+  background:transparent;
+  border:none;
   font-size:13px;
   font-weight:600;
-  color:var(--txt-soft);
-  transition:all 150ms ease;
+  color:var(--cyan);
   cursor:pointer;
+  transition:color 150ms ease;
 }
-.filter-date-btn.active{
-  background:var(--cyan);
-  border-color:var(--cyan);
-  color:#000;
+.filter-more-link:hover{color:var(--txt)}
+.filter-more-icon{
+  transition:transform 200ms ease;
 }
-.filter-age-row{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-}
-.filter-age-input{
-  position:relative;
-}
-.filter-age-input input{
-  width:100%;
-  padding:10px 14px;
-  border-radius:var(--r-md);
-  border:1px solid var(--stroke);
-  background:var(--panel-2);
-  color:var(--txt);
-  font:inherit;
-  font-size:14px;
-  outline:none;
-  transition:border-color 150ms ease;
-}
-.filter-age-input input:focus{border-color:var(--cyan)}
-.filter-age-label{
-  position:absolute;
-  left:10px;top:50%;
-  transform:translateY(-50%);
-  font-size:11px;
-  font-weight:700;
-  color:var(--txt-soft);
-  pointer-events:none;
-}
-.filter-age-input input{padding-left:52px}
-.filter-footer{
-  padding:16px 20px;
+.filter-more-link.active .filter-more-icon{transform:rotate(180deg)}
+.filter-more-box{
+  margin-top:16px;
+  padding-top:16px;
   border-top:1px solid var(--stroke);
+}
+.filter-more-title{
+  font-size:14px;
+  font-weight:700;
+  color:var(--txt);
+  margin-bottom:14px;
+}
+.filter-modal-footer{
   display:flex;
+  justify-content:flex-end;
   gap:10px;
-  flex:none;
+  padding:16px 24px;
+  border-top:1px solid var(--stroke);
 }
 .filter-btn-apply{
-  flex:1;
-  padding:12px 0;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:12px 20px;
   border-radius:var(--r-md);
   background:var(--blue);
   color:#fff;
@@ -260,25 +256,20 @@
 }
 .filter-btn-apply:hover{background:#1c6ae0}
 .filter-btn-apply:active{transform:scale(.97)}
-.filter-btn-clear{
-  padding:12px 16px;
+.filter-btn-cancel{
+  padding:12px 20px;
   border-radius:var(--r-md);
   border:1px solid var(--stroke-strong);
   background:transparent;
-  color:var(--txt-soft);
-  font-size:13px;
+  color:var(--txt);
+  font-size:14px;
   font-weight:600;
   cursor:pointer;
   transition:all 150ms ease;
 }
-.filter-btn-clear:hover{color:var(--txt);border-color:var(--txt-soft)}
-.filter-section-title{
-  font-size:11px;
-  font-weight:700;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  color:var(--cyan);
-  margin-bottom:4px;
+.filter-btn-cancel:hover{border-color:var(--txt-soft);background:var(--panel-2)}
+.filter-btn-apply svg, .filter-btn-cancel svg{
+  width:16px; height:16px;
 }
 
 /* Tabla de pacientes */
@@ -641,12 +632,15 @@
 /* Tabs */
 .panel-tabs{
   display:flex;
-  gap:0;
+  justify-content:space-between;
+  gap:8px;
   margin-bottom:20px;
   border-bottom:1px solid var(--stroke);
 }
 .tab-btn{
-  padding:10px 16px;
+  flex:1;
+  text-align:center;
+  padding:10px 8px;
   border-radius:0;
   border:0;
   border-bottom:2px solid transparent;
@@ -679,13 +673,14 @@
 .info-list{
   display:flex;
   flex-direction:column;
-  gap:10px;
+  gap:8px;
 }
 .info-item{
   display:flex;
-  flex-direction:column;
-  gap:6px;
-  padding:12px 14px;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:9px 12px;
   background:var(--panel-2);
   border:1px solid var(--stroke);
   border-radius:var(--r-md);
@@ -693,24 +688,29 @@
 .info-label{
   display:flex;
   align-items:center;
-  gap:10px;
-  font-size:12px;
+  gap:8px;
+  font-size:11px;
   text-transform:uppercase;
   letter-spacing:.03em;
+  flex:none;
 }
 .info-label svg{
-  width:16px;
-  height:16px;
+  width:14px;
+  height:14px;
   color:var(--txt-soft);
 }
 .info-label span{
   color:var(--txt-soft);
 }
 .info-value{
-  font-size:14px;
+  font-size:13px;
   color:var(--txt);
   font-weight:500;
-  padding-left:26px;
+  text-align:right;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 
 /* Layout info */
@@ -1330,23 +1330,36 @@
 .ia-patient-header{
   display:flex;
   align-items:center;
-  gap:12px;
-  margin-bottom:16px;
+  gap:16px;
 }
 .ia-patient-avatar{
-  width:44px;
-  height:44px;
+  width:56px;
+  height:56px;
   border-radius:50%;
   background:var(--blue);
   display:grid;
   place-items:center;
-  font-size:14px;
+  font-size:16px;
   font-weight:700;
   color:#fff;
   flex:none;
+  overflow:hidden;
+  border:2px solid var(--stroke-strong);
+}
+.ia-patient-avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  border-radius:50%;
 }
 .ia-patient-info{
   flex:1;
+  min-width:0;
+}
+.ia-patient-info > *{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 .ia-patient-label{
   font-size:11px;
@@ -1356,9 +1369,10 @@
   margin-bottom:2px;
 }
 .ia-patient-name{
-  font-size:14px;
+  font-size:15px;
   font-weight:600;
   color:var(--txt);
+  margin-bottom:2px;
 }
 .ia-study-meta{
   font-size:12px;
@@ -1366,9 +1380,10 @@
   margin-top:4px;
 }
 .ia-stomach-icon{
-  width:60px;
-  height:60px;
-  opacity:.8;
+  width:40px;
+  height:40px;
+  opacity:.6;
+  flex:none;
 }
 .ia-stomach-icon svg{
   width:100%;
@@ -1600,122 +1615,121 @@
 
 @section('content')
 
-  {{-- Panel de filtros --}}
+  {{-- Panel de filtros modal --}}
   <div class="filter-overlay" id="filterOverlay" onclick="closeFilters()"></div>
-  <aside class="filter-panel" id="filterPanel">
-    <div class="filter-panel-head">
-      <h2>Filtros</h2>
-      <button class="filter-close" onclick="closeFilters()" aria-label="Cerrar filtros">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  <div class="filter-modal" id="filterPanel" role="dialog" aria-modal="true">
+    <div class="filter-modal-head">
+      <h2>Filtros <span id="filterCount">(0)</span></h2>
+      <button class="filter-clear-all" onclick="clearFilters()" id="btnClearAllFilters" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+        Limpiar todo
       </button>
     </div>
-    <div class="filter-tabs-row">
-      <button class="filter-tab active" id="ftab-basic" onclick="switchFilterTab('basic')">Filtros</button>
-      <button class="filter-tab" id="ftab-advanced" onclick="switchFilterTab('advanced')">Avanzados</button>
-    </div>
-    <div class="filter-body">
-      {{-- Tab básico --}}
-      <div id="ftab-content-basic">
+    <div class="filter-modal-body">
+      <div class="filter-grid" id="filterBasicGrid">
         <div class="filter-group">
-          <label>Buscar</label>
-          <input type="text" class="filter-input" placeholder="Buscar pacientes" id="fBuscar">
-        </div>
-        <div class="filter-group">
-          <label>Número de seguro social</label>
-          <input type="text" class="filter-input" placeholder="Buscar pacientes" id="fSeguro">
-        </div>
-        <div class="filter-group">
-          <label>Número de folio</label>
-          <input type="text" class="filter-input" placeholder="Buscar pacientes" id="fFolio">
-        </div>
-        <div class="filter-group">
-          <label>Tipo de estudio</label>
-          <select class="filter-input filter-select" id="fTipoEstudio">
-            <option value="">Todos los estudios</option>
-            <option>Endoscopia diagnóstica</option>
-            <option>Endoscopia alta</option>
-            <option>Colonoscopia</option>
-            <option>CPRE</option>
-          </select>
+          <label>Nombre del paciente</label>
+          <input type="text" class="filter-input" placeholder="Ej. María González" id="fNombre">
         </div>
         <div class="filter-group">
           <label>Médico</label>
           <select class="filter-input filter-select" id="fMedico">
+            <option value="">Seleccionar médico</option>
             <option>Ricardo Martínez</option>
             <option>Dr. Victor</option>
             <option>Dra. López</option>
-          </select>
-        </div>
-      </div>
-      {{-- Tab avanzado --}}
-      <div id="ftab-content-advanced" style="display:none">
-        <div class="filter-group">
-          <label>Buscar</label>
-          <input type="text" class="filter-input" placeholder="Buscar pacientes" id="fBuscarAdv">
-        </div>
-        <div class="filter-group">
-          <label>Número de seguro social</label>
-          <input type="text" class="filter-input" placeholder="Buscar pacientes" id="fSeguroAdv">
-        </div>
-        <div class="filter-group">
-          <label>Número de folio</label>
-          <input type="text" class="filter-input" placeholder="Buscar pacientes" id="fFolioAdv">
-        </div>
-        <div class="filter-group">
-          <label>Tipo de estudio</label>
-          <select class="filter-input filter-select" id="fTipoEstudioAdv">
-            <option value="">Todos los estudios</option>
-            <option>Endoscopia diagnóstica</option>
-            <option>Endoscopia alta</option>
-            <option>Colonoscopia</option>
-            <option>CPRE</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label>Médico</label>
-          <select class="filter-input filter-select" id="fMedicoAdv">
-            <option>Ricardo Martínez</option>
-            <option>Dr. Victor</option>
-            <option>Dra. López</option>
-          </select>
-        </div>
-        <p class="filter-section-title" style="margin-top:8px">Filtros avanzados</p>
-        <div class="filter-group">
-          <label>Fecha</label>
-          <div class="filter-date-btns">
-            <button class="filter-date-btn" onclick="setDateFilter(this,'hoy')">Hoy</button>
-            <button class="filter-date-btn active" onclick="setDateFilter(this,'semana')">Semana</button>
-            <button class="filter-date-btn" onclick="setDateFilter(this,'mes')">Mes</button>
-          </div>
-        </div>
-        <div class="filter-group">
-          <label>Sexo</label>
-          <select class="filter-input filter-select" id="fSexo">
-            <option value="">Todos</option>
-            <option>Masculino</option>
-            <option>Femenino</option>
           </select>
         </div>
         <div class="filter-group">
           <label>Rango de edad</label>
-          <div class="filter-age-row">
-            <div class="filter-age-input">
-              <span class="filter-age-label">Desde</span>
-              <input type="number" placeholder="19" id="fEdadDesde" min="0" max="120">
-            </div>
-            <div class="filter-age-input">
-              <span class="filter-age-label">Hasta</span>
-              <input type="number" placeholder="45" id="fEdadHasta" min="0" max="120">
-            </div>
+          <select class="filter-input filter-select" id="fRangoEdad">
+            <option value="">Seleccionar rango</option>
+            <option>0-18</option>
+            <option>19-35</option>
+            <option>36-50</option>
+            <option>51-65</option>
+            <option>65+</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Estado</label>
+          <select class="filter-input filter-select" id="fEstado">
+            <option value="">Seleccionar estado</option>
+            <option>En tratamiento</option>
+            <option>Activo</option>
+            <option>Inactivo</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Último estudio</label>
+          <select class="filter-input filter-select" id="fUltimoEstudio">
+            <option value="">Seleccionar periodo</option>
+            <option>Hoy</option>
+            <option>Esta semana</option>
+            <option>Este mes</option>
+            <option>Este año</option>
+          </select>
+        </div>
+      </div>
+      <button type="button" class="filter-more-link" id="btnMoreLink" onclick="toggleMoreFilters()">
+        <span id="btnMoreLinkTxt">Más filtros</span>
+        <svg class="filter-more-icon" id="btnMoreLinkIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="filter-more-box" id="moreFiltersBox" style="display:none">
+        <p class="filter-more-title">Más filtros</p>
+        <div class="filter-grid">
+          <div class="filter-group">
+            <label>Fecha de nacimiento</label>
+            <input type="date" class="filter-input" id="fFechaNacimiento">
+          </div>
+          <div class="filter-group">
+            <label>Tipo de estudio</label>
+            <select class="filter-input filter-select" id="fTipoEstudio">
+              <option value="">Seleccionar tipo</option>
+              <option>Endoscopia diagnóstica</option>
+              <option>Endoscopia alta</option>
+              <option>Colonoscopia</option>
+              <option>CPRE</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Estado del estudio</label>
+            <select class="filter-input filter-select" id="fEstadoEstudio">
+              <option value="">Seleccionar estado</option>
+              <option>Completado</option>
+              <option>Pendiente</option>
+              <option>En proceso</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Fecha de registro</label>
+            <input type="date" class="filter-input" id="fFechaRegistro">
+          </div>
+          <div class="filter-group">
+            <label>Número de folio</label>
+            <input type="text" class="filter-input" placeholder="Ej. P-001" id="fFolio">
+          </div>
+          <div class="filter-group">
+            <label>Etiquetas</label>
+            <select class="filter-input filter-select" id="fEtiquetas">
+              <option value="">Seleccionar etiquetas</option>
+              <option>Urgente</option>
+              <option>Seguimiento</option>
+              <option>Nuevo</option>
+            </select>
           </div>
         </div>
       </div>
     </div>
-    <div class="filter-footer">
-      <button class="filter-btn-clear" onclick="clearFilters()">Limpiar</button>
-      <button class="filter-btn-apply" onclick="applyFilters()">Aplicar</button>
+    <div class="filter-modal-footer">
+      <button class="filter-btn-cancel" onclick="closeFilters()">Cancelar</button>
+      <button class="filter-btn-apply" onclick="applyFilters()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <span>Aplicar filtros</span>
+        <span id="applyFilterCount">(0)</span>
+      </button>
     </div>
-  </aside>
+  </div>
 
   {{-- Toolbar con búsqueda y acciones --}}
   <section class="toolbar rise d2">
@@ -1875,6 +1889,27 @@
             </div>
             <div class="info-value" id="panelMedicoInfo">Sin médico</div>
           </div>
+          <div class="info-item">
+            <div class="info-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 2a10 10 0 0 1 10 10"/><path d="M12 12L2.5 8.5"/></svg>
+              <span>Estado</span>
+            </div>
+            <div class="info-value" id="panelStatus">—</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              <span>Último estudio</span>
+            </div>
+            <div class="info-value" id="panelLastStudy">—</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              <span>Total estudios</span>
+            </div>
+            <div class="info-value" id="panelTotalStudies">—</div>
+          </div>
         </div>
       </div>
 
@@ -1910,55 +1945,21 @@
     {{-- Contenido Tab Reportes IA --}}
     <div id="tab-reportes" class="tab-content">
       <div class="reportes-section">
-        <h4>Resumen de análisis IA</h4>
-        
+        <h4>Reportes IA</h4>
+
         <div class="ia-summary-card">
           <div class="ia-patient-header">
-            <div class="ia-patient-avatar">MG</div>
+            <div class="ia-patient-avatar" id="reportPanelAvatar">PX</div>
             <div class="ia-patient-info">
               <div class="ia-patient-label">paciente</div>
-              <div class="ia-patient-name">María Gonzales</div>
-              <div class="ia-study-meta">Estudio: Endoscopia digestiva alta</div>
-              <div class="ia-study-meta">Fecha: 08/05/2025</div>
-            </div>
-            <div class="ia-stomach-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-            </div>
-          </div>
-          
-          <div class="ia-probability-section">
-            <div class="ia-probability-left">
-              <div class="ia-probability-label">Probabilidad de gastritis</div>
-              <div class="ia-probability-value">82%</div>
-              <div class="ia-probability-desc">Basado en patrones<br>detectados por IA</div>
-            </div>
-            <div class="ia-gauge-container">
-              <svg class="ia-gauge-svg" viewBox="0 0 100 100">
-                <circle class="ia-gauge-bg" cx="50" cy="50" r="45"/>
-                <circle id="gaugeFill" class="ia-gauge-fill" cx="50" cy="50" r="45" data-percentage="82"/>
-              </svg>
-              <div class="ia-gauge-percentage" id="gaugePercentage">0%</div>
+              <div class="ia-patient-name" id="reportPanelName">—</div>
+              <div class="ia-study-meta" id="reportPanelFolio">Folio: —</div>
+              <div class="ia-study-meta" id="reportPanelMeta">—</div>
             </div>
           </div>
         </div>
-        
-        <div class="ia-recommendations">
-          <h5>Recomendaciones IA</h5>
-          <div class="ia-rec-item">
-            <div class="ia-rec-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
-            </div>
-            <span>Comparar con estudio previo del 2024</span>
-          </div>
-          <div class="ia-rec-item">
-            <div class="ia-rec-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
-            </div>
-            <span>Seguimiento en 3 meses</span>
-          </div>
-        </div>
-        
-        <a href="#" class="btn-view-all">
+
+        <a href="#" class="btn-view-all" id="reportPanelBtn">
           Ver reporte de IA
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </a>
@@ -2154,6 +2155,7 @@ function rowHTML(patient, globalIndex) {
 
 let _deleteIndex = null;
 let _contactoIndex = null;
+let _currentPanelIndex = null;
 
 function deletePatient(index) {
   const patient = patientsData[index];
@@ -2188,7 +2190,7 @@ function enviarWhatsApp() {
 
   let telefono = patient.phone || patient.telefono || '';
   if (!telefono) {
-    alert('El paciente no tiene número de teléfono registrado');
+    showAppAlert('Aviso', 'El paciente no tiene número de teléfono registrado');
     return;
   }
 
@@ -2206,7 +2208,7 @@ function enviarCorreo() {
 
   const email = patient.email || '';
   if (!email) {
-    alert('El paciente no tiene correo electrónico registrado');
+    showAppAlert('Aviso', 'El paciente no tiene correo electrónico registrado');
     return;
   }
 
@@ -2222,16 +2224,16 @@ function mostrarExpediente(index) {
   if (!patient) return;
 
   if (!patient.tiene_estudios || !patient.estudios || patient.estudios.length === 0) {
-    alert(`El paciente ${patient.name} no tiene expediente disponible.`);
+    showAppAlert('Aviso', `El paciente ${patient.name} no tiene expediente disponible.`);
     return;
   }
 
   const estudioConReporte = patient.estudios.find(est => est.reporte_path && est.reporte_path.length > 0);
-  
+
   if (estudioConReporte) {
     window.location.href = `/storage/${estudioConReporte.reporte_path}`;
   } else {
-    alert(`El paciente ${patient.name} tiene estudios pero no hay reporte disponible para descargar.`);
+    showAppAlert('Aviso', `El paciente ${patient.name} tiene estudios pero no hay reporte disponible para descargar.`);
   }
 }
 
@@ -2240,7 +2242,7 @@ function crearInforme(index) {
   if (!patient) return;
 
   if (!patient.tiene_estudios || !patient.estudios || patient.estudios.length === 0) {
-    alert(`El paciente ${patient.name} no tiene estudios. Para crear un informe primero debe registrar un estudio.`);
+    showAppAlert('Aviso', `El paciente ${patient.name} no tiene estudios. Para crear un informe primero debe registrar un estudio.`);
     return;
   }
 
@@ -2254,7 +2256,7 @@ function generarReporteIA(index) {
   if (!patient) return;
 
   if (!patient.tiene_estudios || !patient.estudios || patient.estudios.length === 0) {
-    alert(`El paciente ${patient.name} no tiene estudios. Para generar un reporte IA primero debe registrar un estudio.`);
+    showAppAlert('Aviso', `El paciente ${patient.name} no tiene estudios. Para generar un reporte IA primero debe registrar un estudio.`);
     return;
   }
 
@@ -2383,19 +2385,38 @@ function closeFilters() {
   document.getElementById('btnFiltros').classList.remove('active');
   document.body.style.overflow = '';
 }
-function switchFilterTab(tab) {
-  document.getElementById('ftab-content-basic').style.display    = tab === 'basic'    ? 'flex' : 'none';
-  document.getElementById('ftab-content-advanced').style.display = tab === 'advanced' ? 'flex' : 'none';
-  document.getElementById('ftab-content-basic').style.flexDirection    = 'column';
-  document.getElementById('ftab-content-advanced').style.flexDirection = 'column';
-  document.getElementById('ftab-basic').classList.toggle('active',    tab === 'basic');
-  document.getElementById('ftab-advanced').classList.toggle('active', tab === 'advanced');
+function toggleMoreFilters() {
+  const box = document.getElementById('moreFiltersBox');
+  const link = document.getElementById('btnMoreLink');
+  const linkTxt = document.getElementById('btnMoreLinkTxt');
+  const icon = document.getElementById('btnMoreLinkIcon');
+  const isOpen = box.style.display !== 'none';
+  box.style.display = isOpen ? 'none' : 'block';
+  if (link) link.classList.toggle('active', !isOpen);
+  if (linkTxt) linkTxt.textContent = isOpen ? 'Más filtros' : 'Menos filtros';
+  if (icon) icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+}
+function updateFilterCount() {
+  const ids = ['fNombre','fMedico','fRangoEdad','fEstado','fUltimoEstudio','fFechaNacimiento','fTipoEstudio','fEstadoEstudio','fFechaRegistro','fFolio','fEtiquetas'];
+  let count = 0;
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.value.trim() !== '') count++;
+  });
+  const countText = count > 0 ? `(${count})` : '(0)';
+  const filterCount = document.getElementById('filterCount');
+  const applyFilterCount = document.getElementById('applyFilterCount');
+  const btnClear = document.getElementById('btnClearAllFilters');
+  if (filterCount) filterCount.textContent = countText;
+  if (applyFilterCount) applyFilterCount.textContent = countText;
+  if (btnClear) btnClear.style.display = count > 0 ? 'flex' : 'none';
 }
 function setDateFilter(btn, val) {
   btn.closest('.filter-date-btns').querySelectorAll('.filter-date-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
 }
 function applyFilters() {
+  updateFilterCount();
   closeFilters();
 }
 
@@ -2418,16 +2439,22 @@ function filterPatients() {
   renderPage(1);
 }
 function clearFilters() {
-  ['fBuscar','fSeguro','fFolio','fBuscarAdv','fSeguroAdv','fFolioAdv'].forEach(id => {
-    const el = document.getElementById(id); if(el) el.value = '';
+  ['fNombre','fMedico','fRangoEdad','fEstado','fUltimoEstudio','fFechaNacimiento','fTipoEstudio','fEstadoEstudio','fFechaRegistro','fFolio','fEtiquetas'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      if (el.tagName === 'SELECT') el.selectedIndex = 0;
+      else el.value = '';
+    }
   });
-  ['fTipoEstudio','fMedico','fTipoEstudioAdv','fMedicoAdv','fSexo'].forEach(id => {
-    const el = document.getElementById(id); if(el) el.selectedIndex = 0;
-  });
-  const edD = document.getElementById('fEdadDesde'); if(edD) edD.value = '';
-  const edH = document.getElementById('fEdadHasta'); if(edH) edH.value = '';
+  updateFilterCount();
 }
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closeFilters(); });
+
+// Actualizar contador cuando cambia cualquier filtro
+['fNombre','fMedico','fRangoEdad','fEstado','fUltimoEstudio','fFechaNacimiento','fTipoEstudio','fEstadoEstudio','fFechaRegistro','fFolio','fEtiquetas'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('change', updateFilterCount);
+});
 
 // Quita el recorte de los contenedores mientras haya un menú abierto, para que
 // el desplegable no se corte cuando hay pocas filas en la tabla.
@@ -2455,6 +2482,7 @@ function savePatientToCache(patient) {
 }
 
 function openPanel(index) {
+  _currentPanelIndex = index;
   const patient = patientsData[index] || patientsData[0];
   savePatientToCache(patient);
 
@@ -2476,6 +2504,28 @@ function openPanel(index) {
   document.getElementById('panelAddress').textContent = patient.address;
   const panelMedicoInfo = document.getElementById('panelMedicoInfo');
   if (panelMedicoInfo) panelMedicoInfo.textContent = patient.medico || 'Sin médico';
+
+  const panelStatus = document.getElementById('panelStatus');
+  if (panelStatus) panelStatus.textContent = patient.status ? (patient.status.charAt(0).toUpperCase() + patient.status.slice(1)) : 'Sin estado';
+
+  const panelLastStudy = document.getElementById('panelLastStudy');
+  if (panelLastStudy) {
+    const estudios = patient.estudios || [];
+    if (estudios.length > 0) {
+      const sorted = [...estudios].sort((a, b) => {
+        const da = a.fecha ? a.fecha.split('/').reverse().join('-') : '';
+        const db = b.fecha ? b.fecha.split('/').reverse().join('-') : '';
+        return db.localeCompare(da);
+      });
+      const last = sorted[0];
+      panelLastStudy.textContent = `${last.tipo || 'Estudio'} (${last.fecha || 'Sin fecha'})`;
+    } else {
+      panelLastStudy.textContent = 'Sin estudios';
+    }
+  }
+
+  const panelTotalStudies = document.getElementById('panelTotalStudies');
+  if (panelTotalStudies) panelTotalStudies.textContent = (patient.estudios || []).length;
 
   const panelCards = document.getElementById('panelCards');
   const panelProximaCitaFecha = document.getElementById('panelProximaCitaFecha');
@@ -2528,6 +2578,8 @@ function openPanel(index) {
     btnVerTodoHistorial.href = `${routes.nuevoEstudio}?paciente=${encodeURIComponent(patient.id)}`;
   }
 
+  updateReportesIATab(patient);
+
   document.getElementById('contentWrapper').classList.add('panel-open');
   
   document.querySelectorAll('.patient-row').forEach(row => row.classList.remove('active'));
@@ -2538,6 +2590,37 @@ function openPanel(index) {
 function closePanel() {
   document.getElementById('contentWrapper').classList.remove('panel-open');
   document.querySelectorAll('.patient-row').forEach(row => row.classList.remove('active'));
+  _currentPanelIndex = null;
+}
+
+function updateReportesIATab(patient) {
+  if (!patient) return;
+  const reportPanelAvatar = document.getElementById('reportPanelAvatar');
+  if (reportPanelAvatar) {
+    if (patient.foto_url) {
+      reportPanelAvatar.innerHTML = `<img src="${patient.foto_url}" alt="${patient.name || 'Paciente'}">`;
+    } else {
+      reportPanelAvatar.textContent = patient.initials || 'PX';
+    }
+  }
+  const reportPanelName = document.getElementById('reportPanelName');
+  if (reportPanelName) reportPanelName.textContent = patient.name || '—';
+  const reportPanelFolio = document.getElementById('reportPanelFolio');
+  if (reportPanelFolio) reportPanelFolio.textContent = 'Folio: ' + (patient.folio || '—');
+  const reportPanelMeta = document.getElementById('reportPanelMeta');
+  if (reportPanelMeta) {
+    const metaParts = [patient.age, patient.gender, patient.dob].filter(Boolean);
+    reportPanelMeta.textContent = metaParts.join(' · ') || 'Sin datos adicionales';
+  }
+  const reportPanelBtn = document.getElementById('reportPanelBtn');
+  if (reportPanelBtn) {
+    const estudio = (patient.estudios && patient.estudios.length > 0) ? patient.estudios[0] : null;
+    if (estudio) {
+      reportPanelBtn.href = `${routes.iaReportes}?paciente=${encodeURIComponent(patient.name)}&folio=${encodeURIComponent(patient.folio || '')}&estudio=${encodeURIComponent(estudio.id)}`;
+    } else {
+      reportPanelBtn.href = `${routes.iaReportes}?paciente=${encodeURIComponent(patient.name)}&folio=${encodeURIComponent(patient.folio || '')}`;
+    }
+  }
 }
 
 // Tabs interactivos
@@ -2554,9 +2637,9 @@ function showTab(tabName) {
   });
   document.getElementById('tab-' + tabName).classList.add('active');
   
-  // Animar gauge si es la pestaña de Reportes IA
-  if (tabName === 'reportes') {
-    setTimeout(animateGauge, 100);
+  // Actualizar datos de la pestaña de Reportes IA
+  if (tabName === 'reportes' && _currentPanelIndex !== null) {
+    updateReportesIATab(patientsData[_currentPanelIndex]);
   }
 }
 

@@ -890,6 +890,79 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
 .db-editor-btn.save:hover{opacity:.9}
 .db-editor-btn.reset{background:transparent;border:1px solid var(--stroke-strong);color:var(--txt-soft)}
 .db-editor-btn.reset:hover{border-color:var(--txt);color:var(--txt)}
+
+/* Modal de alerta genérico */
+.app-alert-overlay{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  background:rgba(0,0,0,.55);
+  backdrop-filter:blur(4px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  opacity:0;
+  visibility:hidden;
+  transition:opacity 200ms ease, visibility 200ms ease;
+}
+.app-alert-overlay.open{
+  opacity:1;
+  visibility:visible;
+}
+.app-alert-modal{
+  background:var(--modal-bg);
+  border:1px solid var(--stroke-strong);
+  border-radius:var(--r-lg);
+  box-shadow:0 24px 60px rgba(0,0,0,.5);
+  max-width:420px;
+  width:100%;
+  padding:28px;
+  text-align:center;
+  transform:scale(.95);
+  transition:transform 200ms var(--ease-out);
+}
+.app-alert-overlay.open .app-alert-modal{
+  transform:scale(1);
+}
+.app-alert-icon{
+  width:56px;
+  height:56px;
+  border-radius:50%;
+  background:rgba(245,158,45,.15);
+  color:var(--orange);
+  display:grid;
+  place-items:center;
+  margin:0 auto 16px;
+}
+.app-alert-icon svg{width:28px;height:28px}
+.app-alert-title{
+  font-size:18px;
+  font-weight:700;
+  margin-bottom:8px;
+}
+.app-alert-message{
+  font-size:14px;
+  color:var(--txt-soft);
+  line-height:1.5;
+  margin-bottom:24px;
+}
+.app-alert-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:12px 28px;
+  border-radius:var(--r-md);
+  background:var(--blue);
+  color:#fff;
+  font-size:14px;
+  font-weight:600;
+  border:none;
+  cursor:pointer;
+  transition:opacity 150ms ease;
+}
+.app-alert-btn:hover{opacity:.9}
 </style>
 @stack('styles')
 </head>
@@ -2069,6 +2142,46 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeEditor(); });
   })();
 </script>
+
+{{-- Modal de alerta genérico --}}
+<div class="app-alert-overlay" id="appAlertOverlay" onclick="if(event.target===this) hideAppAlert();">
+  <div class="app-alert-modal" role="alertdialog" aria-modal="true" aria-labelledby="appAlertTitle" aria-describedby="appAlertMessage">
+    <div class="app-alert-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <h3 class="app-alert-title" id="appAlertTitle">Aviso</h3>
+    <p class="app-alert-message" id="appAlertMessage">Mensaje</p>
+    <button class="app-alert-btn" id="appAlertBtn" onclick="hideAppAlert()">Aceptar</button>
+  </div>
+</div>
+<script>
+  function showAppAlert(title, message, callback) {
+    const overlay = document.getElementById('appAlertOverlay');
+    const titleEl = document.getElementById('appAlertTitle');
+    const messageEl = document.getElementById('appAlertMessage');
+    const btn = document.getElementById('appAlertBtn');
+    if (!overlay) return;
+    window._appAlertCallback = callback || null;
+    if (titleEl) titleEl.textContent = title || 'Aviso';
+    if (messageEl) messageEl.textContent = message || '';
+    if (btn) btn.textContent = 'Aceptar';
+    overlay.classList.add('open');
+  }
+  function hideAppAlert() {
+    const overlay = document.getElementById('appAlertOverlay');
+    if (overlay) overlay.classList.remove('open');
+    if (typeof window._appAlertCallback === 'function') {
+      window._appAlertCallback();
+      window._appAlertCallback = null;
+    }
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && document.getElementById('appAlertOverlay')?.classList.contains('open')) {
+      hideAppAlert();
+    }
+  });
+</script>
+
 @stack('scripts')
 </body>
 </html>

@@ -1576,7 +1576,11 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
       if (index === 1) {
-        iniciarCamaraPaciente();
+        if (cameraStream) {
+          capturarFotoDesdeCamara();
+        } else {
+          iniciarCamaraPaciente();
+        }
       }
 
       if (index === 2) {
@@ -1603,21 +1607,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
   if (btnUsarFoto && modalFoto) {
     btnUsarFoto.addEventListener('click', function() {
-      if (cameraStream) {
-        const capturada = capturarFotoDesdeCamara();
-        if (!capturada) {
-          alert('No se pudo capturar la foto.');
-          return;
-        }
-      }
-
-      if (!currentPhotoData && inputFileFoto && inputFileFoto.files.length > 0) {
-        modalFoto.classList.remove('active');
-        return;
-      }
-
-      if (!currentPhotoData && (!inputFileFoto || inputFileFoto.files.length === 0)) {
-        alert('Selecciona una imagen o toma una foto primero.');
+      if (!currentPhotoData) {
+        showAppAlert('Aviso', 'Selecciona una imagen o toma una foto primero.');
         return;
       }
 
