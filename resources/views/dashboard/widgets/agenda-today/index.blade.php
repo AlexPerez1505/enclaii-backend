@@ -53,8 +53,13 @@
                 <td class="{{ $isToday ? 'today' : '' }}" onclick="event.stopPropagation(); window.location.href='{{ $dayUrl }}'">{{ $dayNum }}</td>
               @elseif($isValid && $isPast)
                 <td class="past {{ $isToday ? 'today' : '' }}">{{ $dayNum }}</td>
+              @elseif($idx < $startDow)
+                {{-- Días del mes anterior --}}
+                @php $prevDayNum = $prev->daysInMonth - ($startDow - $idx - 1); @endphp
+                <td class="off">{{ $prevDayNum }}</td>
               @else
-                <td class="off">{{ $dayNum }}</td>
+                {{-- Días del mes siguiente --}}
+                <td class="off">{{ $dayNum - $daysInMonth }}</td>
               @endif
             @endfor
           </tr>

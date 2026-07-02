@@ -12,6 +12,12 @@
 @endpush
 
 @section('content')
+<div style="margin-bottom:12px">
+  <a href="{{ route('dashboard') }}" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--txt-soft);text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--stroke);background:var(--panel);transition:all 150ms" onmouseover="this.style.color='var(--blue)';this.style.borderColor='var(--blue)'" onmouseout="this.style.color='var(--txt-soft)';this.style.borderColor='var(--stroke)'">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    Volver
+  </a>
+</div>
 @php
   $paciente = $paciente ?? null;
   $galImagenes = $galImagenes ?? collect();

@@ -241,6 +241,7 @@
     fd.append('files[]', blob, 'captura_' + Date.now() + '.jpg');
     if (ESTUDIO_ID) fd.append('estudio_id', ESTUDIO_ID);
     fd.append('categoria', 'captura');
+    fd.append('descripcion', String(secs));
     fetch(CAPTURAS_URL, {
       method: 'POST',
       headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },

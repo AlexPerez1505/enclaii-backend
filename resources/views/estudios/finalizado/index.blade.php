@@ -151,7 +151,17 @@
               <span class="studio-final-cap-num">{{ $i+1 }}</span>
               <span class="studio-final-cap-check"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
             </div>
-            <div class="studio-final-cap-ts">{{ optional($cap->capturado_en)->format('H:i:s') ?? '' }}</div>
+            @php
+              if (is_numeric($cap->descripcion)) {
+                $ts = gmdate('H:i:s', (int)$cap->descripcion);
+              } elseif ($cap->capturado_en && $estudio?->hora_inicio) {
+                $inicio = \Carbon\Carbon::parse($cap->capturado_en->toDateString().' '.$estudio->hora_inicio);
+                $ts = gmdate('H:i:s', max(0, (int)$inicio->diffInSeconds($cap->capturado_en, false)));
+              } else {
+                $ts = optional($cap->capturado_en)->format('H:i:s') ?? '';
+              }
+            @endphp
+            <div class="studio-final-cap-ts">{{ $ts }}</div>
           </div>
           @empty
           <div style="color:rgba(255,255,255,.4);font-size:13px;padding:8px 4px">No se capturaron fotos en este estudio.</div>

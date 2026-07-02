@@ -493,6 +493,9 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
         ->name('mensajes.whatsapp.send');
 
     Route::get('/nuevo-estudio', function (\Illuminate\Http\Request $request) {
+        /* Limpiar sesión de estudio al volver al dashboard */
+        session()->forget(['estudio_activo_id', 'ultimo_estudio_completado_id']);
+
         $paciente = $request->filled('paciente')
             ? Paciente::find($request->query('paciente'))
             : null;

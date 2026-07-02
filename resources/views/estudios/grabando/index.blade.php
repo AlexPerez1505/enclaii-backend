@@ -116,7 +116,8 @@
             <div class="studio-thumb-inner" style="padding:0;overflow:hidden">
               <img src="{{ asset('storage/'.$cap->path) }}" alt="captura" style="width:100%;height:100%;object-fit:cover;border-radius:8px">
             </div>
-            <span class="studio-thumb-time">{{ optional($cap->capturado_en)->format('H:i:s') ?? '' }}</span>
+            @php $tsTl = is_numeric($cap->descripcion) ? gmdate('H:i:s',(int)$cap->descripcion) : (optional($cap->capturado_en)->format('H:i:s') ?? ''); @endphp
+            <span class="studio-thumb-time">{{ $tsTl }}</span>
           </div>
           @empty
           <div id="recTimelineEmpty" style="display:flex;align-items:center;color:rgba(255,255,255,.4);font-size:13px;padding:8px 4px">Aún no hay fotos. Presiona "Capturar Foto".</div>
@@ -316,7 +317,8 @@
               <span class="studio-final-cap-num">{{ $i+1 }}</span>
               <span class="studio-final-cap-check"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
             </div>
-            <div class="studio-final-cap-ts">{{ optional($cap->capturado_en)->format('H:i:s') ?? '' }}</div>
+            @php $tsCap = is_numeric($cap->descripcion) ? gmdate('H:i:s',(int)$cap->descripcion) : (optional($cap->capturado_en)->format('H:i:s') ?? ''); @endphp
+            <div class="studio-final-cap-ts">{{ $tsCap }}</div>
           </div>
           @empty
           <div id="sfCapsEmpty" style="color:rgba(255,255,255,.4);font-size:13px;padding:8px 4px">No se capturaron fotos en este estudio.</div>

@@ -480,10 +480,13 @@ body.studio-expanded .side {
 .studio-finalizado-wrap {
   display: none;
   flex-direction: column;
-  height: 100vh;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
   background: #0a0f1e;
   font-family: 'Hanken Grotesk', sans-serif;
   color: #fff;
+  overflow-y: auto;
 }
 .studio-finalizado-wrap.active { display: flex; }
 
