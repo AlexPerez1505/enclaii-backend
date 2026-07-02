@@ -1196,6 +1196,35 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
       </div>
     </div>
 
+    <hr style="border:none;border-top:1px solid var(--stroke);margin:28px 0;">
+
+    {{-- Enfermedad, Alergias y Estudios --}}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
+      <div class="form-group">
+        <label>Enfermedad</label>
+        <textarea name="enfermedad" placeholder="Describe la enfermedad o padecimiento del paciente" style="min-height:110px;width:100%;">{{ old('enfermedad') }}</textarea>
+      </div>
+      <div class="form-group">
+        <label>Alergias</label>
+        <textarea name="alergias" placeholder="Especifica las alergias del paciente (medicamentos, alimentos, etc.)" style="min-height:110px;width:100%;">{{ old('alergias') }}</textarea>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:24px;">
+      <label>Estudios (archivos)</label>
+      <div style="border:1px dashed var(--stroke);border-radius:var(--r-md);padding:16px 20px;background:var(--panel-2);">
+        <input type="file" name="estudios_archivos[]" id="estudiosArchivos" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none;">
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+          <button type="button" onclick="document.getElementById('estudiosArchivos').click()" style="display:flex;align-items:center;gap:8px;padding:9px 16px;border-radius:var(--r-md);border:1px solid var(--stroke);background:var(--card);color:var(--txt);font:inherit;font-size:13px;font-weight:600;cursor:pointer;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Subir archivos
+          </button>
+          <span style="font-size:12.5px;color:var(--txt-soft);">PDF, imágenes, Word — múltiples archivos permitidos</span>
+        </div>
+        <div id="estudiosArchivosList" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;"></div>
+      </div>
+    </div>
+
     {{-- Botón guardar --}}
     <div style="display:flex;justify-content:flex-end;margin-top:28px;">
       <button type="submit" class="btn-save" id="btnGuardarPaciente">
@@ -1779,6 +1808,18 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
   window.addAnestesiologo     = function() { window.abrirMiniModal('anestesiologoSelect','Agregar anestesiólogo','Escribe el nombre del anestesiólogo'); };
   window.addReferidoMed       = function() { window.abrirMiniModal('referidoSelectMed','Agregar referido','Escribe el nombre del referido'); };
   window.addEquipo            = function() { window.abrirMiniModal('equipoSelect','Agregar equipo','Escribe el nombre del equipo'); };
+
+  // ===== ARCHIVOS DE ESTUDIOS =====
+  document.getElementById('estudiosArchivos')?.addEventListener('change', function(){
+    const list = document.getElementById('estudiosArchivosList');
+    list.innerHTML = '';
+    Array.from(this.files).forEach(function(f){
+      const tag = document.createElement('div');
+      tag.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:8px;border:1px solid var(--stroke);background:var(--card);font-size:12px;';
+      tag.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' + f.name;
+      list.appendChild(tag);
+    });
+  });
 
   // ===== AGENDAR CITA =====
   var _citaData = {};

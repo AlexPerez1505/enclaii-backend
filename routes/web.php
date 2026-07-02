@@ -7,6 +7,7 @@ use App\Http\Controllers\WhatsAppController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\PacienteController;
+use App\Http\Controllers\PacienteDocumentoController;
 use App\Http\Controllers\NuevoEstudioController;
 use App\Models\Paciente;
 use App\Models\Reporte;
@@ -733,6 +734,7 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
 
 
 Route::resource('pacientes', PacienteController::class);
+Route::delete('/paciente-documentos/{pacienteDocumento}', [PacienteDocumentoController::class, 'destroy'])->name('paciente-documentos.destroy');
 
 Route::get('/agenda', [AgendaController::class, 'index'])->name('agenda');
 Route::get('/agendar', [AgendaController::class, 'create'])->name('agendar');
