@@ -24,6 +24,7 @@ return new class extends Migration
             $table->timestamp('read_at')->nullable();
             $table->timestamp('failed_at')->nullable();
             $table->timestamps();
+            
 
             $table->index(['paciente_id', 'created_at']);
             $table->index(['wa_id', 'created_at']);

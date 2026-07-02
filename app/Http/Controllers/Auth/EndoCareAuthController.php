@@ -4,11 +4,16 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class EndoCareAuthController extends Controller
 {
+    public function __construct(
+        private readonly ActivityLogger $activity,
+    ) {}
+
     public function showLogin()
     {
         return view('auth.endocare-login');
@@ -29,6 +34,13 @@ class EndoCareAuthController extends Controller
             $request->session()->regenerate();
 
             $user = Auth::user();
+            $this->activity->record(
+                'login',
+                'authentication',
+                'Inició sesión',
+                user: $user,
+                request: $request,
+            );
 
             if (!$user->subscribed()) {
                 return redirect()->route('configuracion')
@@ -73,6 +85,13 @@ class EndoCareAuthController extends Controller
         ]);
 
         Auth::login($user);
+        $this->activity->record(
+            'account_created',
+            'authentication',
+            'Creó su cuenta',
+            user: $user,
+            request: $request,
+        );
 
         return redirect()->route('configuracion')
             ->with('warning', 'Selecciona un plan para comenzar a usar EndoCare.');
@@ -97,6 +116,14 @@ class EndoCareAuthController extends Controller
 
     public function logout(Request $request)
     {
+        $this->activity->record(
+            'logout',
+            'authentication',
+            'Cerró sesión',
+            user: $request->user(),
+            request: $request,
+        );
+
         Auth::logout();
 
         $request->session()->invalidate();

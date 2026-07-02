@@ -148,7 +148,9 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 .rep-sign[data-pos="left"]{justify-content:flex-start}
 .rep-sign[data-pos="center"]{justify-content:center}
 .rep-sign[data-pos="right"]{justify-content:flex-end}
-.rep-sign .sign-box{min-width:250px;text-align:center;padding-top:8px;border-top:1px solid var(--txt)}
+.rep-sign .sign-box{min-width:250px;text-align:center}
+.rep-sign .sign-image{display:block;max-width:230px;max-height:72px;object-fit:contain;margin:0 auto 5px}
+.rep-sign .sign-line{padding-top:8px;border-top:1px solid var(--txt)}
 .rep-sign .sign-box [contenteditable]{font-size:13px;outline:none}
 
 /* ===== Modal de Configuración ===== */
@@ -360,7 +362,16 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
         {{-- Firma (su posición se cambia desde Configuración) --}}
         <div class="rep-sign" id="repSign" data-pos="center">
           <div class="sign-box">
-            <span contenteditable="true" id="repSignName" data-ph="Dr. Nombre del médico">{{ ($datosEstudio['medico'] ?? '') ?: 'Dr. Nombre del médico' }}</span>
+            @if(auth()->user()?->signature_path)
+              <img
+                class="sign-image"
+                src="{{ route('configuracion.signature.show', ['v' => auth()->user()->signature_updated_at?->timestamp]) }}"
+                alt="Firma digital de {{ auth()->user()->name }}"
+              >
+            @endif
+            <div class="sign-line">
+              <span contenteditable="true" id="repSignName" data-ph="Dr. Nombre del médico">{{ ($datosEstudio['medico'] ?? '') ?: 'Dr. Nombre del médico' }}</span>
+            </div>
           </div>
         </div>
       </article>

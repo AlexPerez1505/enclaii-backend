@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -13,6 +14,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'password_changed_at',
         'phone',
         'specialty',
         'professional_license',
@@ -20,6 +22,8 @@ class User extends Authenticatable
         'position',
         'profile_completed',
         'settings',
+        'signature_path',
+        'signature_updated_at',
         'stripe_customer_id',
         'stripe_subscription_id',
         'stripe_plan',
@@ -41,8 +45,10 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'password_changed_at' => 'datetime',
             'profile_completed' => 'boolean',
             'settings' => 'array',
+            'signature_updated_at' => 'datetime',
             'subscription_renews_at' => 'datetime',
             'subscription_cancel_at' => 'datetime',
         ];
@@ -62,6 +68,21 @@ class User extends Authenticatable
     public function cancelScheduled(): bool
     {
         return $this->subscription_cancel_at !== null;
+    }
+
+    public function configurationBackups(): HasMany
+    {
+        return $this->hasMany(ConfigurationBackup::class);
+    }
+
+    public function activityLogs(): HasMany
+    {
+        return $this->hasMany(ActivityLog::class);
+    }
+
+    public function connectedSessions(): HasMany
+    {
+        return $this->hasMany(UserSession::class);
     }
 
     /**

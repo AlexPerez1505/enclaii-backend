@@ -6,6 +6,7 @@ use App\Models\Cita;
 use App\Models\Estudio;
 use App\Models\EstudioArchivo;
 use App\Models\Paciente;
+use App\Services\ActivityLogger;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -13,6 +14,10 @@ use Illuminate\Validation\Rule;
 
 class NuevoEstudioController extends Controller
 {
+    public function __construct(
+        private readonly ActivityLogger $activity,
+    ) {}
+
     public function index()
     {
         /*
@@ -90,6 +95,13 @@ class NuevoEstudioController extends Controller
         }
 
         $estudio = Estudio::create($validated);
+        $this->activity->record(
+            'study_created',
+            'studies',
+            'Creó el estudio '.$estudio->folio,
+            $estudio,
+            request: $request,
+        );
 
         // La cita pasa a "en espera" mientras se realiza el estudio.
         if ($estudio->cita_id && $estudio->cita?->estado !== 'completado') {
@@ -219,6 +231,13 @@ class NuevoEstudioController extends Controller
             'configuracion_audio' => $validated['audio'] ?? [],
             'configuracion_texto' => $validated['texto'] ?? [],
         ]);
+        $this->activity->record(
+            'study_configuration_updated',
+            'studies',
+            'Actualizó la configuración del estudio '.$estudio->folio,
+            $estudio,
+            request: $request,
+        );
 
         return response()->json([
             'ok' => true,
@@ -256,6 +275,13 @@ class NuevoEstudioController extends Controller
             'duracion_segundos' => $validated['duracion_segundos'] ?? $estudio->duracion_segundos,
             'video_path' => $videoPath,
         ]);
+        $this->activity->record(
+            'study_completed',
+            'studies',
+            'Finalizó el estudio '.$estudio->folio,
+            $estudio,
+            request: $request,
+        );
 
         // Al finalizar el estudio, la cita vinculada se marca como completada.
         if ($estudio->cita_id && $estudio->cita) {
@@ -280,11 +306,19 @@ class NuevoEstudioController extends Controller
 
     public function destroyArchivo(EstudioArchivo $archivo)
     {
+        $estudio = $archivo->estudio;
+
         if ($archivo->path && Storage::disk('public')->exists($archivo->path)) {
             Storage::disk('public')->delete($archivo->path);
         }
 
         $archivo->delete();
+        $this->activity->record(
+            'study_file_deleted',
+            'studies',
+            'Eliminó un archivo del estudio '.($estudio?->folio ?? '#'.$archivo->estudio_id),
+            $estudio,
+        );
 
         return response()->json([
             'ok' => true,

@@ -12,6 +12,11 @@ use App\Models\Paciente;
 use App\Models\Reporte;
 use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\StripeController;
+use App\Http\Controllers\ConfigurationBackupController;
+use App\Http\Controllers\SignatureController;
+use App\Http\Controllers\PrintTestController;
+use App\Http\Controllers\PasswordController;
+use App\Http\Controllers\UserSessionController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -35,7 +40,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/registro', [EndoCareAuthController::class, 'register'])->name('register.post');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'auth.session'])->group(function () {
 
     // Ruta de configuracion: si no tiene plan, muestra vista plan-only
     Route::get('/configuracion', function () {
@@ -44,6 +49,32 @@ Route::middleware('auth')->group(function () {
         }
         return view('configuracion.index', [
             'userSettings' => request()->user()->resolvedSettings(),
+            'configurationBackups' => request()->user()
+                ->configurationBackups()
+                ->latest()
+                ->limit(10)
+                ->get(),
+            'activityLogs' => request()->user()
+                ->activityLogs()
+                ->with('user')
+                ->when(request('activity_search'), function ($query, $search) {
+                    $query->where(function ($filter) use ($search) {
+                        $filter
+                            ->where('description', 'like', '%'.$search.'%')
+                            ->orWhere('category', 'like', '%'.$search.'%')
+                            ->orWhere('action', 'like', '%'.$search.'%')
+                            ->orWhere('ip_address', 'like', '%'.$search.'%');
+                    });
+                })
+                ->latest()
+                ->paginate(8, ['*'], 'activity_page')
+                ->withQueryString(),
+            'connectedSessions' => request()->user()
+                ->connectedSessions()
+                ->where('last_activity', '>=', now()->subMinutes(config('session.lifetime'))->timestamp)
+                ->orderByDesc('last_activity')
+                ->get(),
+            'currentSessionId' => request()->session()->getId(),
         ]);
     })->name('configuracion');
 
@@ -54,6 +85,33 @@ Route::middleware('auth')->group(function () {
 
     Route::patch('/configuracion/general', [SettingsController::class, 'update'])
         ->name('configuracion.general.update');
+
+    Route::post('/configuracion/copias', [ConfigurationBackupController::class, 'store'])
+        ->name('configuracion.backups.store');
+    Route::post('/configuracion/copias/{backup}/restaurar', [ConfigurationBackupController::class, 'restore'])
+        ->name('configuracion.backups.restore');
+    Route::get('/configuracion/copias/{backup}/descargar', [ConfigurationBackupController::class, 'download'])
+        ->name('configuracion.backups.download');
+    Route::delete('/configuracion/copias/{backup}', [ConfigurationBackupController::class, 'destroy'])
+        ->name('configuracion.backups.destroy');
+
+    Route::get('/configuracion/firma', [SignatureController::class, 'show'])
+        ->name('configuracion.signature.show');
+    Route::post('/configuracion/firma', [SignatureController::class, 'store'])
+        ->name('configuracion.signature.store');
+    Route::delete('/configuracion/firma', [SignatureController::class, 'destroy'])
+        ->name('configuracion.signature.destroy');
+
+    Route::get('/configuracion/prueba-impresion', [PrintTestController::class, 'show'])
+        ->name('configuracion.print-test');
+
+    Route::patch('/configuracion/seguridad/contrasena', [PasswordController::class, 'update'])
+        ->name('configuracion.password.update');
+
+    Route::delete('/configuracion/seguridad/sesiones/otras', [UserSessionController::class, 'destroyOthers'])
+        ->name('configuracion.sessions.destroy-others');
+    Route::delete('/configuracion/seguridad/sesiones/{session}', [UserSessionController::class, 'destroy'])
+        ->name('configuracion.sessions.destroy');
 
     // ===== Stripe (pagos y suscripciones) =====
     Route::post('/stripe/checkout', [StripeController::class, 'checkout'])
@@ -83,7 +141,7 @@ Route::middleware('auth')->group(function () {
 
 });
 
-Route::middleware(['auth', 'subscribed'])->group(function () {
+Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
 
     Route::get('/dashboard', function () {
         $estudiosSinReporte = \App\Models\Estudio::whereDoesntHave('reportes')->count();

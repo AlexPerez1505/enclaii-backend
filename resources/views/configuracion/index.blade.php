@@ -320,6 +320,12 @@
     if (target) target.classList.add('active');
   }));
 
+  const requestedTab = new URLSearchParams(window.location.search).get('tab');
+  const requestedTabButton = requestedTab
+    ? document.querySelector(`.cfg-tab[data-tab="${requestedTab}"]`)
+    : null;
+  if (requestedTabButton) requestedTabButton.click();
+
   /* Barras de almacenamiento */
   const bars = document.querySelectorAll('.store-bar i');
   setTimeout(() => bars.forEach(b => { b.style.width = b.dataset.w + '%'; }), 250);

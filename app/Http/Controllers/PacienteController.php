@@ -3,11 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Paciente;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class PacienteController extends Controller
 {
+    public function __construct(
+        private readonly ActivityLogger $activity,
+    ) {}
+
     public function index()
     {
         $pacientes = Paciente::latest()->get();
@@ -61,6 +66,13 @@ class PacienteController extends Controller
             }
 
             $paciente = Paciente::create($validated);
+            $this->activity->record(
+                'patient_created',
+                'patients',
+                'Registró al paciente '.$paciente->folio,
+                $paciente,
+                request: $request,
+            );
 
             if ($request->ajax() || $request->expectsJson()) {
                 return response()->json([
@@ -130,6 +142,13 @@ class PacienteController extends Controller
         }
 
         $paciente->update($validated);
+        $this->activity->record(
+            'patient_updated',
+            'patients',
+            'Actualizó al paciente '.$paciente->folio,
+            $paciente,
+            request: $request,
+        );
 
         return redirect()
             ->route('pacientes.index')
@@ -163,6 +182,12 @@ class PacienteController extends Controller
             });
 
             $paciente->delete();
+            $this->activity->record(
+                'patient_deleted',
+                'patients',
+                'Eliminó al paciente '.$paciente->folio,
+                $paciente,
+            );
 
             return response()->json(['success' => true, 'message' => 'Paciente eliminado correctamente.']);
         } catch (\Exception $e) {
