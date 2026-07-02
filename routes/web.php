@@ -554,6 +554,9 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
     Route::get('/nuevo-estudio/grabando', [NuevoEstudioController::class, 'grabando'])
         ->name('nuevo-estudio.grabando');
 
+    Route::get('/nuevo-estudio/finalizado', [NuevoEstudioController::class, 'finalizado'])
+        ->name('nuevo-estudio.finalizado');
+
     Route::post('/nuevo-estudio/finalizar', [NuevoEstudioController::class, 'finalizarGrabacion'])
         ->name('nuevo-estudio.finalizar');
 

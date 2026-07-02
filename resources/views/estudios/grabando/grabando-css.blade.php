@@ -4,7 +4,8 @@
 ════════════════════════════════════════════════ */
 .head { display: none !important; }
 .main { padding: 0 !important; overflow: hidden !important; background: #0a0f1e !important; }
-.dash { grid-template-columns: 260px 1fr !important; }
+.dash { grid-template-columns: 260px 1fr; }
+.dash.sidebar-collapsed { grid-template-columns: 84px 1fr !important; }
 
 /* Sidebar siempre visible en ambos modos */
 .side {
@@ -247,6 +248,8 @@ html[data-theme="light"] .studio-theme-btn .icon-moon { display: block; }
   gap: 16px;
   padding: 16px;
   overflow: hidden;
+  height: 0;
+  min-height: 0;
 }
 
 /* ═════ COLUMNA CENTRAL ═════ */
@@ -255,6 +258,8 @@ html[data-theme="light"] .studio-theme-btn .icon-moon { display: block; }
   flex-direction: column;
   gap: 16px;
   overflow: hidden;
+  min-height: 0;
+  height: 100%;
 }
 
 /* Video Box */
@@ -326,7 +331,7 @@ body.studio-expanded .studio-center {
   gap: 16px;
 }
 body.studio-expanded .studio-video-box {
-  min-height: 70vh;
+  min-height: 0;
   flex: 1;
 }
 body.studio-expanded .side {
@@ -783,13 +788,15 @@ body.studio-expanded .side {
 /* Sidebar */
 .studio-sidebar { display: flex; flex-direction: column; gap: 16px; }
 .studio-sidebar-title { font-size: 16px; font-weight: 700; color: #fff; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,.1); }
-.studio-stat-card { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 14px; }
-.studio-stat-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-.studio-stat-icon { width: 28px; height: 28px; background: rgba(14,165,233,.15); border-radius: 6px; display: grid; place-items: center; color: #0ea5e9; }
+.studio-stats { display: flex; flex-direction: column; gap: 8px; }
+.studio-stat-card { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 10px 12px; }
+.studio-stat-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.studio-stat-icon { width: 24px; height: 24px; background: rgba(14,165,233,.15); border-radius: 6px; display: grid; place-items: center; color: #0ea5e9; flex-shrink: 0; }
 .studio-stat-icon.orange { background: rgba(245,158,11,.15); color: #f59e0b; }
-.studio-stat-label { font-size: 12px; color: rgba(255,255,255,.6); }
-.studio-stat-value { font-size: 22px; font-weight: 700; color: #fff; font-family: 'Sora', sans-serif; }
+.studio-stat-label { font-size: 11px; color: rgba(255,255,255,.6); }
+.studio-stat-value { font-size: 18px; font-weight: 700; color: #fff; font-family: 'Sora', sans-serif; }
 .studio-stat-value.red { color: #ef4444; }
+.studio-stat-patient-hover { display: flex; align-items: center; gap: 5px; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,.07); font-size: 11px; color: rgba(255,255,255,.5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .studio-icon-paciente {
   position: relative;
   cursor: pointer;
@@ -857,6 +864,43 @@ body.studio-expanded .side {
 .studio-final-act-btn.ia:hover { background: rgba(34,211,238,.15); border-color: rgba(34,211,238,.45); }
 .studio-final-act-btn.fin { color: #a78bfa; border-color: rgba(167,139,250,.25); background: rgba(167,139,250,.07); }
 .studio-final-act-btn.fin:hover { background: rgba(167,139,250,.15); border-color: rgba(167,139,250,.45); }
+
+/* Botón Ver video */
+.sf-btn-volver-video {
+  display: none; align-items: center; gap: 6px;
+  position: absolute; top: 10px; right: 10px; z-index: 10;
+  background: rgba(0,0,0,.65); backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.2); border-radius: 8px;
+  padding: 6px 10px; color: #fff; font: inherit; font-size: 11.5px;
+  font-weight: 600; cursor: pointer; transition: background 150ms ease;
+}
+.sf-btn-volver-video:hover { background: rgba(14,165,233,.55); border-color: rgba(14,165,233,.6); }
+html[data-theme="light"] .sf-btn-volver-video { background: rgba(255,255,255,.85); color: var(--txt); border-color: var(--stroke); }
+html[data-theme="light"] .sf-btn-volver-video:hover { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+/* Dropdown compartir */
+.sf-share-dropdown {
+  display: none; flex-direction: column;
+  position: absolute; bottom: calc(100% + 6px); left: 0;
+  min-width: 190px;
+  background: #131929; border: 1px solid rgba(255,255,255,.12);
+  border-radius: 10px; padding: 5px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.45);
+  z-index: 100;
+}
+.sf-share-dropdown.open { display: flex; }
+.sf-share-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; border-radius: 7px;
+  font: inherit; font-size: 12.5px; font-weight: 500;
+  color: rgba(255,255,255,.8); background: none; border: none;
+  cursor: pointer; text-decoration: none; white-space: nowrap;
+  transition: background 130ms ease;
+}
+.sf-share-item:hover { background: rgba(255,255,255,.07); color: #fff; }
+html[data-theme="light"] .sf-share-dropdown { background: #fff; border-color: var(--stroke); box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+html[data-theme="light"] .sf-share-item { color: var(--txt); }
+html[data-theme="light"] .sf-share-item:hover { background: var(--hover-bg); }
 
 /* Miniaturas de imagenes capturadas */
 .studio-final-caps-title { font-size: 13px; font-weight: 600; color: rgba(255,255,255,.85); margin-bottom: 8px; }
@@ -1002,7 +1046,7 @@ html[data-theme="light"] .studio-stat-icon.orange { background: rgba(245,158,11,
 html[data-theme="light"] .studio-stat-label { color: var(--txt-soft); }
 html[data-theme="light"] .studio-stat-value { color: var(--txt); }
 html[data-theme="light"] .studio-stat-value.red { color: #ef4444; }
-html[data-theme="light"] .studio-stat-patient-hover { color: var(--txt-soft); }
+html[data-theme="light"] .studio-stat-patient-hover { color: var(--txt-soft); border-top-color: var(--stroke); }
 html[data-theme="light"] .studio-info-icon { background: var(--panel); }
 html[data-theme="light"] .studio-info-icon.blue { background: rgba(46,123,246,.12); color: var(--blue); }
 html[data-theme="light"] .studio-info-icon.orange { background: rgba(245,158,11,.12); color: #d97706; }

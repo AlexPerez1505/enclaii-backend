@@ -96,7 +96,10 @@ class NuevoEstudioController extends Controller
             $estudio->cita->update(['estado' => 'en_espera']);
         }
 
-        session(['estudio_activo_id' => $estudio->id]);
+        session([
+            'estudio_activo_id'              => $estudio->id,
+            'ultimo_estudio_completado_id'    => null,
+        ]);
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
@@ -229,9 +232,44 @@ class NuevoEstudioController extends Controller
 
     public function grabando(Request $request)
     {
-        $estudio = $this->resolverEstudio($request, true);
+        /* Resolver sin crear nunca en esta ruta */
+        $estudio = $this->resolverEstudio($request, false);
+
+        if (!$estudio) {
+            $ultimoId = session('ultimo_estudio_completado_id');
+            if ($ultimoId) $estudio = Estudio::find($ultimoId);
+        }
+
+        /* Estudio completado → redirigir a su propia página */
+        if ($estudio && $estudio->estado === 'completado') {
+            return redirect()->route('nuevo-estudio.finalizado', ['estudio_id' => $estudio->id]);
+        }
+
+        /* Sin estudio válido → inicio */
+        if (!$estudio) {
+            return redirect()->route('nuevo-estudio');
+        }
 
         return view('estudios.grabando.index', compact('estudio'));
+    }
+
+    public function finalizado(Request $request)
+    {
+        $estudio = $this->resolverEstudio($request, false);
+
+        if (!$estudio) {
+            $ultimoId = session('ultimo_estudio_completado_id');
+            if ($ultimoId) $estudio = Estudio::find($ultimoId);
+        }
+
+        /* Si no hay estudio completado, redirigir al inicio */
+        if (!$estudio || $estudio->estado !== 'completado') {
+            return redirect()->route('nuevo-estudio');
+        }
+
+        $capturas = $estudio->capturas()->latest()->get();
+
+        return view('estudios.finalizado.index', compact('estudio', 'capturas'));
     }
 
     public function finalizarGrabacion(Request $request)
@@ -269,6 +307,9 @@ class NuevoEstudioController extends Controller
             $estudio->cita->update(['estado' => 'completado']);
         }
 
+        session([
+            'ultimo_estudio_completado_id' => $estudio->id,
+        ]);
         session()->forget('estudio_activo_id');
 
         if ($request->expectsJson() || $request->ajax()) {

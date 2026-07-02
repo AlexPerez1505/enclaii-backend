@@ -1,11 +1,11 @@
 <script>
 (function () {
-  const ESTUDIO_ID  = @json($estudio?->id);
-  const CSRF        = @json(csrf_token());
-  const CAPTURAS_URL = @json(route('nuevo-estudio.capturas.store'));
+  const ESTUDIO_ID    = @json($estudio?->id);
+  const CSRF          = @json(csrf_token());
+  const CAPTURAS_URL  = @json(route('nuevo-estudio.capturas.store'));
   const FINALIZAR_URL = @json(route('nuevo-estudio.finalizar'));
-  const GALERIA_URL = @json($estudio?->paciente_id ? route('galeria.paciente', $estudio->paciente_id) : route('galeria'));
-  const MOSTRAR_FINALIZADO = @json($mostrarFinalizado);
+  const FINALIZADO_URL = @json(route('nuevo-estudio.finalizado', ['estudio_id' => $estudio?->id]));
+  const MOSTRAR_FINALIZADO = false;
 
   let secs = 0, paused = false, fotos = {{ $numCapturas }};
 
@@ -179,14 +179,35 @@
   const sfVideoCenter = document.getElementById('sfVideoCenter');
   const sfCapsStrip = document.getElementById('sfCapsStrip');
 
+  const sfPlayer = document.querySelector('.studio-finalizado-wrap .sf-video-player');
+
+  function showVideo() {
+    if (sfMainImg) sfMainImg.style.display = 'none';
+    if (sfVideoCenter) sfVideoCenter.style.display = '';
+    const sfControls = sfPlayer ? sfPlayer.querySelector('.sf-video-controls') : null;
+    if (sfControls) sfControls.style.display = '';
+    const btnVolver = document.getElementById('sfBtnVolverVideo');
+    if (btnVolver) btnVolver.style.display = 'none';
+  }
+
   function showMainImage(url) {
     if (!sfMainImg || !url) return;
     sfMainImg.src = url;
     sfMainImg.style.display = 'block';
     if (sfVideoCenter) sfVideoCenter.style.display = 'none';
-    const sfPlayer = document.querySelector('.studio-finalizado-wrap .sf-video-player');
     const sfControls = sfPlayer ? sfPlayer.querySelector('.sf-video-controls') : null;
     if (sfControls) sfControls.style.display = 'none';
+    /* Mostrar botón "Ver video" */
+    let btnVolver = document.getElementById('sfBtnVolverVideo');
+    if (!btnVolver && sfPlayer) {
+      btnVolver = document.createElement('button');
+      btnVolver.id = 'sfBtnVolverVideo';
+      btnVolver.className = 'sf-btn-volver-video';
+      btnVolver.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg> Ver video';
+      btnVolver.addEventListener('click', showVideo);
+      sfPlayer.appendChild(btnVolver);
+    }
+    if (btnVolver) btnVolver.style.display = 'flex';
   }
 
   function selectCapItem(item) {
@@ -208,37 +229,10 @@
     if (sel) selectCapItem(sel);
   }
 
-  /* ── Guardar estudio con video ── */
+  /* ── Guardar estudio — el estudio ya fue persistido al pulsar Terminar ── */
   const btnGuardarEstudio = document.getElementById('btnGuardarEstudio');
-  btnGuardarEstudio?.addEventListener('click', async () => {
-    btnGuardarEstudio.disabled = true;
-    const original = btnGuardarEstudio.innerHTML;
-    btnGuardarEstudio.textContent = 'Deteniendo grabación...';
-
-    await stopMediaRecorder();
-    stopWebcam();
-
-    btnGuardarEstudio.textContent = 'Guardando...';
-    const fd = new FormData();
-    if (ESTUDIO_ID) fd.append('estudio_id', ESTUDIO_ID);
-    fd.append('duracion_segundos', secs);
-    if (recordedBlob && recordedBlob.size > 0) {
-      const ext = recordedBlob.type.includes('mp4') ? 'mp4' : 'webm';
-      fd.append('video', recordedBlob, `estudio_${ESTUDIO_ID}_${Date.now()}.${ext}`);
-    }
-    fetch(FINALIZAR_URL, {
-      method: 'POST',
-      headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
-      body: fd
-    })
-    .then(r => r.json().catch(() => ({})))
-    .then(() => { window.location.href = GALERIA_URL; })
-    .catch(err => {
-      console.error('Error guardando el estudio', err);
-      btnGuardarEstudio.disabled = false;
-      btnGuardarEstudio.innerHTML = original;
-      window.location.href = GALERIA_URL;
-    });
+  btnGuardarEstudio?.addEventListener('click', () => {
+    window.location.href = GALERIA_URL;
   });
 
   /* Sube la captura al servidor */
@@ -310,6 +304,17 @@
   if (MOSTRAR_FINALIZADO) {
     clearInterval(iv);
     stopWebcam();
+    /* Duración real desde el servidor */
+    const durSrvSecs = @json($estudio?->duracion_segundos ?? 0);
+    if (durSrvSecs > 0) {
+      const durSrvStr = fmt(durSrvSecs);
+      const elDur = document.getElementById('sfResumenDuracion');
+      if (elDur && elDur.textContent === '--:--:--') elDur.textContent = durSrvStr;
+      const elDurEm = document.getElementById('sfResumenDuracionEm');
+      if (elDurEm && elDurEm.textContent === '--:--:--') elDurEm.textContent = durSrvStr;
+    }
+    /* Inicializar player — el src ya viene del HTML si hay video_path */
+    initFinalPlayer();
     showFirstCapture();
   }
 
@@ -318,18 +323,66 @@
     clearInterval(iv);
     await stopMediaRecorder();
     stopWebcam();
-    /* Conectar video real al reproductor de estudio finalizado */
+
+    /* Poblar duración real en resumen */
+    const durStr = fmt(secs);
+    const elDur = document.getElementById('sfResumenDuracion');
+    if (elDur) elDur.textContent = durStr;
+    const elDurEm = document.getElementById('sfResumenDuracionEm');
+    if (elDurEm) elDurEm.textContent = durStr;
+
+    /* Persistir en servidor y redirigir a página dedicada */
+    const fd = new FormData();
+    if (ESTUDIO_ID) fd.append('estudio_id', ESTUDIO_ID);
+    fd.append('duracion_segundos', secs);
     if (recordedBlob && recordedBlob.size > 0) {
-      const videoUrl = URL.createObjectURL(recordedBlob);
-      const sfVid = document.getElementById('sfVideoEl');
-      if (sfVid) {
-        sfVid.src = videoUrl;
-        sfVid.load();
-      }
+      const ext = recordedBlob.type.includes('mp4') ? 'mp4' : 'webm';
+      fd.append('video', recordedBlob, `estudio_${ESTUDIO_ID}_${Date.now()}.${ext}`);
     }
-    wrapPrincipal.style.display = 'none';
-    wrapFinalizado.classList.add('active');
-    showFirstCapture();
+    fetch(FINALIZAR_URL, {
+      method: 'POST',
+      headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+      body: fd
+    })
+    .then(() => { window.location.href = FINALIZADO_URL; })
+    .catch(err => {
+      console.error('Error al finalizar estudio:', err);
+      window.location.href = FINALIZADO_URL;
+    });
+  });
+
+  /* ── Dropdown Compartir ── */
+  const btnCompartir   = document.getElementById('btnCompartir');
+  const sfShareDropdown = document.getElementById('sfShareDropdown');
+
+  btnCompartir?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    sfShareDropdown?.classList.toggle('open');
+  });
+  document.addEventListener('click', () => sfShareDropdown?.classList.remove('open'));
+
+  /* Descargar video grabado */
+  document.getElementById('sfDownloadVideo')?.addEventListener('click', () => {
+    if (!recordedBlob || recordedBlob.size === 0) return;
+    const ext = recordedBlob.type.includes('mp4') ? 'mp4' : 'webm';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(recordedBlob);
+    a.download = `estudio_{{ $estudio?->folio ?? 'video' }}_${Date.now()}.${ext}`;
+    a.click();
+    sfShareDropdown?.classList.remove('open');
+  });
+
+  /* Descargar imágenes — crea un zip descargando una a una */
+  document.getElementById('sfDownloadImgs')?.addEventListener('click', () => {
+    const imgs = document.querySelectorAll('#sfCapsStrip img');
+    imgs.forEach((img, i) => {
+      const a = document.createElement('a');
+      a.href = img.src;
+      a.download = `captura_${i + 1}.jpg`;
+      a.target = '_blank';
+      a.click();
+    });
+    sfShareDropdown?.classList.remove('open');
   });
 
   /* ── Botón Emergencia ── */
@@ -344,9 +397,13 @@
 
   /* ── Controles del Video Player ── */
   function formatTime(seconds) {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+    if (!isFinite(seconds) || isNaN(seconds)) return '00:00';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    const mm = String(m).padStart(2, '0');
+    const ss = String(s).padStart(2, '0');
+    return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
   }
 
   function setupVideoPlayer(container, playBigId, playBtnId, timeId, speedId, fsId, accent) {
@@ -448,7 +505,14 @@
     });
   }
 
-  setupVideoPlayer('.studio-finalizado-wrap .sf-video-player', 'sfPlayBigFinal', 'sfPlayBtnFinal', 'sfTimeFinal', 'sfSpeedFinal', 'btnExpandirFinal', '#2e7bf6');
+  /* El player del estudio finalizado se inicializa lazy, cuando el blob ya está cargado */
+  let finalPlayerReady = false;
+  function initFinalPlayer() {
+    if (finalPlayerReady) return;
+    finalPlayerReady = true;
+    setupVideoPlayer('.studio-finalizado-wrap .sf-video-player', 'sfPlayBigFinal', 'sfPlayBtnFinal', 'sfTimeFinal', 'sfSpeedFinal', 'btnExpandirFinal', '#2e7bf6');
+  }
+  if (MOSTRAR_FINALIZADO) initFinalPlayer();
   setupVideoPlayer('.studio-emergencia-wrap .sf-video-player', 'sfPlayBigEm', 'sfPlayBtnEm', 'sfTimeEm', 'sfSpeedEm', 'btnExpandirEmergencia', '#dc2626');
 
   /* Cambiar tema desde cualquier botón del estudio */
