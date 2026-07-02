@@ -357,15 +357,6 @@
 }
 @media(hover:hover)and(pointer:fine){.vi-ia-analyze:hover{background:rgba(56,199,244,.18)}}
 
-/* Tags */
-.vi-tags{display:flex;flex-wrap:wrap;gap:7px}
-.vi-tag{
-  padding:4px 12px;border-radius:99px;font-size:12px;font-weight:600;
-  background:var(--panel-2);border:1px solid var(--stroke);color:var(--txt);
-  transition:background-color 150ms ease,border-color 150ms ease;cursor:pointer;
-}
-@media(hover:hover)and(pointer:fine){.vi-tag:hover{background:rgba(46,123,246,.12);border-color:rgba(46,123,246,.4);color:var(--blue)}}
-
 @media(max-width:960px){.vi-wrap{grid-template-columns:1fr}}
 
 /* ===== MODAL DESCARGA ===== */
