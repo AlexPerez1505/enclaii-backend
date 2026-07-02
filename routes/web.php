@@ -12,6 +12,20 @@ use App\Models\Paciente;
 use App\Models\Reporte;
 use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\StripeController;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+
+Route::get('/storage/{path}', function ($path) {
+    if (! Storage::disk('public')->exists($path)) {
+        abort(404);
+    }
+
+    return new StreamedResponse(function () use ($path) {
+        fpassthru(Storage::disk('public')->readStream($path));
+    }, 200, [
+        'Content-Type' => Storage::disk('public')->mimeType($path),
+    ]);
+})->where('path', '.*');
 
 Route::get('/', function () {
     return redirect()->route('login');
