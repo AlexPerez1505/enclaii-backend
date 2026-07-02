@@ -35,6 +35,11 @@ class Paciente extends Model
         'altura' => 'decimal:2',
     ];
 
+    public function estudios(): HasMany
+    {
+        return $this->hasMany(Estudio::class);
+    }
+
     public function whatsappMessages(): HasMany
     {
         return $this->hasMany(WhatsAppMessage::class);
