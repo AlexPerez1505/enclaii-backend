@@ -796,6 +796,18 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   $reportes = $reportes ?? collect();
 @endphp
 
+@if($paciente)
+<div class="np-patient-toolbar rise d1">
+  <a class="np-back-btn" id="npBackToPatientsTop" href="{{ route('pacientes.index') }}">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <line x1="19" y1="12" x2="5" y2="12"/>
+      <polyline points="12 19 5 12 12 5"/>
+    </svg>
+    Volver a pacientes
+  </a>
+</div>
+@endif
+
 {{-- Pestañas --}}
 <div class="np-tabs rise d1">
   <button class="np-tab active" data-tab="pacientes">Pacientes</button>
@@ -860,7 +872,9 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
 
         {{-- Foto --}}
         <div class="np-foto-col">
-          @php($pacFoto = $paciente && $paciente->foto ? asset('storage/'.$paciente->foto) : '')
+          @php
+            $pacFoto = $paciente && $paciente->foto ? asset('storage/'.$paciente->foto) : '';
+          @endphp
           <div class="np-foto-box" id="npFotoBox">
             <img id="npFotoPreview" src="{{ $pacFoto }}" alt="{{ $paciente?->nombre_completo }}" @if($pacFoto) style="display:block;" @endif>
             <div class="np-foto-ph" id="npFotoPh" @if($pacFoto) style="display:none;" @endif>
@@ -1107,12 +1121,14 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
 {{-- Panel Reportes --}}
 <div class="np-tab-panel" id="tab-reportes">
 
-  @php($rptList = $reportes ?? collect())
-  @php($rpt = $rptList->first())
-  @php($rptNombre = $paciente?->nombre_completo ?? $rpt?->estudio?->paciente_nombre ?? '—')
-  @php($rptIni = collect(explode(' ', $rptNombre))->filter()->take(2)->map(fn($x)=>mb_strtoupper(mb_substr($x,0,1)))->implode('') ?: 'NA')
-  @php($rptIdent = $paciente?->identificacion ?? $paciente?->folio ?? '—')
-  @php($rptCritico = $rpt ? (bool) $rpt->contiene_hallazgos_criticos : false)
+  @php
+    $rptList = $reportes ?? collect();
+    $rpt = $rptList->first();
+    $rptNombre = $paciente?->nombre_completo ?? $rpt?->estudio?->paciente_nombre ?? '—';
+    $rptIni = collect(explode(' ', $rptNombre))->filter()->take(2)->map(fn($x) => mb_strtoupper(mb_substr($x, 0, 1)))->implode('') ?: 'NA';
+    $rptIdent = $paciente?->identificacion ?? $paciente?->folio ?? '—';
+    $rptCritico = $rpt ? (bool) $rpt->contiene_hallazgos_criticos : false;
+  @endphp
 
   @if($rpt)
   {{-- Barra de acciones del reporte --}}
@@ -1144,10 +1160,12 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   </div>
 
   {{-- Documento del reporte (mismo formato que el editor / reporte real) --}}
-  @php($rptImgs = ($galImagenes ?? collect())->where('estudio_id', $rpt->estudio_id)->take(8)->values())
-  @php($rptFirma = $rpt->usuario?->name ?? $rpt->estudio?->medico ?? $paciente?->medico ?? 'Dr. Nombre del médico')
-  @php($rptFechaEstudio = optional($rpt->estudio?->fecha)->format('d/m/Y') ?? $rpt->created_at?->format('d/m/Y') ?? '')
-  @php($rptNac = optional($paciente?->fecha_nacimiento)->format('d/m/Y') ?? '')
+  @php
+    $rptImgs = ($galImagenes ?? collect())->where('estudio_id', $rpt->estudio_id)->take(8)->values();
+    $rptFirma = $rpt->usuario?->name ?? $rpt->estudio?->medico ?? $paciente?->medico ?? 'Dr. Nombre del médico';
+    $rptFechaEstudio = optional($rpt->estudio?->fecha)->format('d/m/Y') ?? $rpt->created_at?->format('d/m/Y') ?? '';
+    $rptNac = optional($paciente?->fecha_nacimiento)->format('d/m/Y') ?? '';
+  @endphp
   <div class="rpt-doc-wrap rise d2">
     <div class="rptd-doc" id="rptDoc">
 
@@ -1303,7 +1321,6 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
 @push('scripts')
 <script>
 (function () {
-
 
   /* Fecha por defecto */
   var now  = new Date();
