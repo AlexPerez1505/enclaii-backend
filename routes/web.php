@@ -56,6 +56,21 @@ Route::middleware('auth')->group(function () {
     Route::patch('/configuracion/general', [SettingsController::class, 'update'])
         ->name('configuracion.general.update');
 
+    Route::post('/configuracion/foto-perfil', [SettingsController::class, 'updateFoto'])
+        ->name('configuracion.foto.update');
+
+    Route::delete('/configuracion/foto-perfil', [SettingsController::class, 'deleteFoto'])
+        ->name('configuracion.foto.delete');
+
+    Route::patch('/configuracion/perfil', [SettingsController::class, 'updatePerfil'])
+        ->name('configuracion.perfil.update');
+
+    Route::post('/configuracion/constancia-fiscal', [SettingsController::class, 'uploadConstancia'])
+        ->name('configuracion.constancia.upload');
+
+    Route::delete('/configuracion/constancia-fiscal', [SettingsController::class, 'deleteConstancia'])
+        ->name('configuracion.constancia.delete');
+
     // ===== Stripe (pagos y suscripciones) =====
     Route::post('/stripe/checkout', [StripeController::class, 'checkout'])
         ->name('stripe.checkout');
