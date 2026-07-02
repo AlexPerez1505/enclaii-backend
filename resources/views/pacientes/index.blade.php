@@ -271,6 +271,102 @@
 .filter-btn-apply svg, .filter-btn-cancel svg{
   width:16px; height:16px;
 }
+.filter-row-2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.filter-row-3{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:10px;
+}
+.filter-row-3 .filter-group label{
+  font-size:11px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.filter-row-3 .filter-input{
+  padding:8px 10px;
+  font-size:12px;
+}
+.filter-row-3 .filter-select{
+  background-position:right 8px center;
+  padding-right:26px;
+}
+.filter-count{
+  font-size:13px;
+  font-weight:600;
+  color:var(--cyan);
+  margin-left:4px;
+}
+.filter-clear-all{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:12px;
+  font-weight:600;
+  color:var(--red);
+  background:transparent;
+  border:1px solid var(--stroke);
+  border-radius:var(--r-md);
+  padding:6px 10px;
+  cursor:pointer;
+  transition:all 150ms ease;
+}
+.filter-clear-all:hover{
+  border-color:var(--red);
+  background:rgba(255,90,110,.08);
+}
+.filter-clear-all svg{
+  width:14px;height:14px;
+}
+.filter-apply-count{
+  font-size:12px;
+  font-weight:600;
+  margin-left:2px;
+}
+.filter-toggle-more{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-size:13px;
+  font-weight:600;
+  color:var(--cyan);
+  background:transparent;
+  border:none;
+  padding:0;
+  cursor:pointer;
+  transition:color 150ms ease;
+  margin-top:-4px;
+}
+.filter-toggle-more:hover{color:var(--blue)}
+.filter-toggle-more svg{
+  transition:transform 200ms var(--ease-out);
+}
+.filter-toggle-more.open svg{
+  transform:rotate(180deg);
+}
+@media (max-width:680px){
+  .filter-panel{
+    width:100vw;
+    max-width:100vw;
+    max-height:100vh;
+    border-radius:0;
+    top:0;left:0;
+    transform:translate(0,20px) scale(.96);
+  }
+  .filter-panel.open{
+    transform:translate(0,0) scale(1);
+  }
+  .filter-row-3{
+    grid-template-columns:1fr;
+  }
+  .filter-row-3 .filter-group label{
+    white-space:normal;
+  }
+}
 
 /* Tabla de pacientes */
 .patients-card{
@@ -2396,6 +2492,7 @@ function openFilters() {
   document.getElementById('filterOverlay').classList.add('open');
   document.getElementById('btnFiltros').classList.add('active');
   document.body.style.overflow = 'hidden';
+  updateFilterCounter();
 }
 function closeFilters() {
   document.getElementById('filterPanel').classList.remove('open');
@@ -2432,10 +2529,48 @@ function updateFilterCount() {
 function setDateFilter(btn, val) {
   btn.closest('.filter-date-btns').querySelectorAll('.filter-date-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  updateFilterCounter();
+}
+function updateFilterCounter() {
+  const fields = ['fNombre','fMedico','fRangoEdad','fEstado','fUltimoEstudio','fFechaNacimiento','fTipoEstudio','fEstadoEstudio','fFechaRegistro','fFolio','fEtiquetas'];
+  let count = 0;
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.value.trim() !== '') count++;
+  });
+  const dateActive = document.querySelectorAll('.filter-date-btn.active').length > 0;
+  const moreOpen = document.getElementById('moreFiltersBox')?.style.display === 'block';
+  if (moreOpen) count++;
+
+  const filterCount = document.getElementById('filterCount');
+  const applyCount = document.getElementById('applyCount');
+  const btnLimpiar = document.getElementById('btnLimpiarTodo');
+  if (filterCount) filterCount.textContent = '(' + count + ')';
+  if (applyCount) applyCount.textContent = '(' + count + ')';
+  if (btnLimpiar) btnLimpiar.style.display = count > 0 ? 'inline-flex' : 'none';
 }
 function applyFilters() {
   updateFilterCount();
   closeFilters();
+  // Reutilizar búsqueda principal filtrando por nombre/folio
+  const nombre = document.getElementById('fNombre')?.value.toLowerCase().trim() || '';
+  const folio = document.getElementById('fFolio')?.value.toLowerCase().trim() || '';
+  const medico = document.getElementById('fMedico')?.value.toLowerCase().trim() || '';
+  const estado = document.getElementById('fEstado')?.value.toLowerCase().trim() || '';
+
+  if (!nombre && !folio && !medico && !estado) {
+    patientsDataFiltered = [...patientsData];
+  } else {
+    patientsDataFiltered = patientsData.filter(p => {
+      const matchNombre = !nombre || (p.name && p.name.toLowerCase().includes(nombre));
+      const matchFolio = !folio || (p.folio && p.folio.toLowerCase().includes(folio));
+      const matchMedico = !medico || (p.medico && p.medico.toLowerCase().includes(medico));
+      const matchEstado = !estado || (p.status && p.status.toLowerCase().includes(estado));
+      return matchNombre && matchFolio && matchMedico && matchEstado;
+    });
+  }
+  currentPage = 1;
+  renderPage(1);
 }
 
 function filterPatients() {
@@ -2466,6 +2601,14 @@ function clearFilters() {
   });
   updateFilterCount();
 }
+
+// Actualizar contador cuando cambia cualquier filtro
+['fNombre','fMedico','fRangoEdad','fEstado','fUltimoEstudio','fFechaNacimiento','fTipoEstudio','fEstadoEstudio','fFechaRegistro','fFolio','fEtiquetas'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('change', updateFilterCounter);
+  if (el) el.addEventListener('input', updateFilterCounter);
+});
+
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closeFilters(); });
 
 // Actualizar contador cuando cambia cualquier filtro
