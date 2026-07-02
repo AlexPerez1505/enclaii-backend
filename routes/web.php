@@ -11,6 +11,7 @@ use App\Http\Controllers\NuevoEstudioController;
 use App\Models\Paciente;
 use App\Models\Reporte;
 use App\Http\Controllers\AiAssistantController;
+use App\Http\Controllers\StripeController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -22,6 +23,10 @@ Route::post('/webhooks/whatsapp', [WhatsAppController::class, 'webhook'])
     ->middleware('throttle:120,1')
     ->name('webhooks.whatsapp.receive');
 
+// Webhook de Stripe (ruta publica, sin CSRF: ver bootstrap/app.php)
+Route::post('/webhooks/stripe', [StripeController::class, 'webhook'])
+    ->name('webhooks.stripe');
+
 Route::middleware('guest')->group(function () {
     Route::get('/login', [EndoCareAuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [EndoCareAuthController::class, 'login'])->name('login.post');
@@ -31,6 +36,54 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+
+    // Ruta de configuracion: si no tiene plan, muestra vista plan-only
+    Route::get('/configuracion', function () {
+        if (!auth()->user()->subscribed()) {
+            return view('configuracion.plan-only');
+        }
+        return view('configuracion.index', [
+            'userSettings' => request()->user()->resolvedSettings(),
+        ]);
+    })->name('configuracion');
+
+    // Ruta dedicada para seleccionar plan (sin sidebar ni header)
+    Route::get('/seleccionar-plan', function () {
+        return view('configuracion.plan-only');
+    })->name('plan.only');
+
+    Route::patch('/configuracion/general', [SettingsController::class, 'update'])
+        ->name('configuracion.general.update');
+
+    // ===== Stripe (pagos y suscripciones) =====
+    Route::post('/stripe/checkout', [StripeController::class, 'checkout'])
+        ->name('stripe.checkout');
+    Route::post('/stripe/checkout-embedded', [StripeController::class, 'checkoutEmbedded'])
+        ->name('stripe.checkout.embedded');
+    Route::post('/stripe/subscribe', [StripeController::class, 'createSubscriptionElement'])
+        ->name('stripe.subscribe');
+    Route::post('/stripe/change-plan', [StripeController::class, 'changePlan'])
+        ->name('stripe.change.plan');
+    Route::get('/stripe/invoices', [StripeController::class, 'invoices'])
+        ->name('stripe.invoices');
+    Route::post('/stripe/cancel-subscription', [StripeController::class, 'cancelSubscription'])
+        ->name('stripe.cancel.subscription');
+    Route::post('/stripe/resume-subscription', [StripeController::class, 'resumeSubscription'])
+        ->name('stripe.resume.subscription');
+    Route::get('/stripe/setup-intent', [StripeController::class, 'setupIntent'])
+        ->name('stripe.setup.intent');
+    Route::post('/stripe/payment-method', [StripeController::class, 'updatePaymentMethod'])
+        ->name('stripe.payment.method');
+    Route::get('/stripe/success', [StripeController::class, 'success'])
+        ->name('stripe.success');
+    Route::get('/stripe/cancel', [StripeController::class, 'cancel'])
+        ->name('stripe.cancel');
+
+    Route::post('/logout', [EndoCareAuthController::class, 'logout'])->name('logout');
+
+});
+
+Route::middleware(['auth', 'subscribed'])->group(function () {
 
     Route::get('/dashboard', function () {
         $estudiosSinReporte = \App\Models\Estudio::whereDoesntHave('reportes')->count();
@@ -361,18 +414,9 @@ Route::middleware('auth')->group(function () {
         return view('ia-reportes.analisis');
     })->name('ia-reportes.analisis');
     
-    Route::get('/configuracion', function () {
-        return view('configuracion.index', [
-            'userSettings' => request()->user()->resolvedSettings(),
-        ]);
-    })->name('configuracion');
-
     // Route::get('/finanzas', function () {
     //     return view('finanzas.index');
     // })->name('finanzas');
-
-    Route::patch('/configuracion/general', [SettingsController::class, 'update'])
-        ->name('configuracion.general.update');
 
     Route::get('/mensajes/correo', [WhatsAppController::class, 'index'])
         ->name('mensajes.correo');
@@ -454,8 +498,6 @@ Route::middleware('auth')->group(function () {
 
     Route::delete('/nuevo-estudio/archivos/{archivo}', [NuevoEstudioController::class, 'destroyArchivo'])
         ->name('nuevo-estudio.archivos.destroy');
-
-    Route::post('/logout', [EndoCareAuthController::class, 'logout'])->name('logout');
 
     /* ── Galería ── */
     Route::get('/galeria', function () {

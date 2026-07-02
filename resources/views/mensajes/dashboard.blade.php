@@ -5,6 +5,15 @@
 @section('header-sub') Gestiona tus conversaciones con pacientes @endsection
 
 @section('header-extra')
+@if(request()->query('desde') === 'estudio_terminado' && request()->integer('estudio_id') > 0)
+<a class="btn-return-study" href="{{ route('nuevo-estudio.grabando', ['estudio_id' => request()->integer('estudio_id'), 'vista' => 'finalizado']) }}">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <line x1="19" y1="12" x2="5" y2="12"/>
+    <polyline points="12 19 5 12 12 5"/>
+  </svg>
+  Volver al estudio terminado
+</a>
+@endif
 <button class="btn-ch-toggle" onclick="toggleChPanel()">
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
   Canales de comunicacion
@@ -184,6 +193,8 @@
 .ch-panel-foot{padding:10px 11px 13px;border-top:1px solid var(--stroke);}
 .btn-add-account{display:flex;align-items:center;gap:7px;width:100%;padding:8px 10px;border-radius:9px;border:1.5px dashed var(--stroke);background:transparent;color:var(--blue);font-size:11.5px;font-weight:700;cursor:pointer;font:inherit;transition:background 150ms,border-color 150ms;}
 .btn-add-account:hover{background:rgba(46,123,246,.07);border-color:var(--blue);}
+.btn-return-study{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:10px;border:1px solid var(--stroke-strong);background:var(--panel-2);color:var(--txt);font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;transition:background 150ms,border-color 150ms,color 150ms;}
+.btn-return-study:hover{background:var(--hover-bg);border-color:var(--blue);color:var(--blue);}
 .btn-ch-toggle{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font:inherit;box-shadow:0 3px 14px rgba(46,123,246,.45);transition:all 150ms;white-space:nowrap;}
 .btn-ch-toggle:hover{background:#1a6be0;transform:translateY(-1px);}
 .btn-ch-toggle.active{background:#1a6be0;box-shadow:0 2px 8px rgba(46,123,246,.35);}
@@ -1000,17 +1011,22 @@
 
   function openWhatsAppLaunch(data) {
     const waConvs = Array.from(document.querySelectorAll('.conv-item[data-type="wa"]'));
+    const patientId = Number(data.patient_id || 0);
     const patient = (data.patient || '').toLowerCase();
     const target = waConvs.find(item => {
+      if (patientId && Number(item.dataset.patientId) === patientId) return true;
       const name = item.querySelector('.conv-name')?.textContent.toLowerCase() || '';
       return patient && (name === patient || name.includes(patient.split(' ')[0]));
-    }) || waConvs[0];
+    }) || (!patientId && !patient ? waConvs[0] : null);
 
     if (target) target.click();
 
     const input = document.getElementById('msgInput');
-    if (input) {
+    const hasStudyDraft = data.study || data.video || data.image || data.type || data.date || data.diagnosis;
+    if (input && hasStudyDraft) {
       input.value = buildStudyDraft(data);
+      input.focus();
+    } else if (input && target) {
       input.focus();
     }
   }

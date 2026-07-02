@@ -63,6 +63,7 @@ class WhatsAppController extends Controller
             'whatsappLaunchContext' => [
                 'channel' => $request->query('canal'),
                 'patient' => $request->query('paciente'),
+                'patient_id' => $request->integer('paciente_id') ?: null,
                 'study' => $request->query('estudio'),
                 'video' => $request->query('video'),
                 'image' => $request->query('imagen'),

@@ -1165,8 +1165,9 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
   $capturas = $estudio ? $estudio->capturas()->latest()->get() : collect();
   $numCapturas = $capturas->count();
   $pacienteNombre = $estudio?->paciente?->nombre_completo ?? $estudio?->paciente_nombre ?? 'Sin paciente';
+  $mostrarFinalizado = request()->query('vista') === 'finalizado';
 @endphp
-<div class="studio-wrap">
+<div class="studio-wrap" @if($mostrarFinalizado) style="display:none" @endif>
 
   {{-- ══ TOPBAR ══ --}}
   <div class="studio-topbar">
@@ -1352,7 +1353,7 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
 </div>{{-- /.studio-wrap --}}
 
 {{-- ═══════ INTERFAZ ESTUDIO TERMINADO (tipo galeria) ═══════ --}}
-<div class="studio-finalizado-wrap" id="studioFinalizado">
+<div class="studio-finalizado-wrap{{ $mostrarFinalizado ? ' active' : '' }}" id="studioFinalizado">
 
   {{-- Header --}}
   <div class="studio-finalizado-header">
@@ -1433,7 +1434,7 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
       {{-- Acciones tipo galeria --}}
       <div class="studio-final-actions">
         <button class="studio-final-act-btn guardar" id="btnGuardarEstudio" style="background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.4);color:#22c55e"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Guardar fotos</button>
-        <a class="studio-final-act-btn wa" href="{{ route('mensajes') }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>Enviar mensaje</a>
+        <a class="studio-final-act-btn wa" href="{{ route('mensajes', ['desde' => 'estudio_terminado', 'estudio_id' => $estudio?->id, 'paciente' => $estudio?->paciente_id, 'estudio' => $estudio?->id]) }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>Enviar mensaje</a>
         <a class="studio-final-act-btn" style="background:rgba(56,199,244,.14);border-color:rgba(56,199,244,.4);color:#38c7f4" href="{{ route('ia-reportes.generar', ['estudio' => $estudio?->id]) }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="M9 15l3 3 3-3"/></svg>Generar reporte IA</a>
         <a class="studio-final-act-btn fin" href="{{ route('ia-reportes.redactar', ['paciente' => $estudio?->paciente_id, 'estudio' => $estudio?->id]) }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Finalizar estudio</a>
       </div>
@@ -1717,6 +1718,7 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
   const CAPTURAS_URL = @json(route('nuevo-estudio.capturas.store'));
   const FINALIZAR_URL = @json(route('nuevo-estudio.finalizar'));
   const GALERIA_URL = @json($estudio?->paciente_id ? route('galeria.paciente', $estudio->paciente_id) : route('galeria'));
+  const MOSTRAR_FINALIZADO = @json($mostrarFinalizado);
 
   let secs = 0, paused = false, fotos = {{ $numCapturas }}, clips = 0;
 
@@ -1807,7 +1809,7 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
   function stopWebcam() {
     if (webcamStream) { webcamStream.getTracks().forEach(t => t.stop()); webcamStream = null; }
   }
-  initWebcam();
+  if (!MOSTRAR_FINALIZADO) initWebcam();
 
   /* Quitar mensaje "aún no hay fotos" al agregar la primera */
   function removeEmptyHint() {
@@ -1964,6 +1966,12 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
   const btnTerminar = document.querySelector('.studio-terminar-btn');
   const wrapPrincipal = document.querySelector('.studio-wrap');
   const wrapFinalizado = document.getElementById('studioFinalizado');
+
+  if (MOSTRAR_FINALIZADO) {
+    clearInterval(iv);
+    stopWebcam();
+    showFirstCapture();
+  }
 
   btnTerminar?.addEventListener('click', (e) => {
     e.preventDefault();
