@@ -29,7 +29,7 @@ class NuevoEstudioController extends Controller
             ->latest()
             ->get();
 
-        return view('estudios.dashboard', compact('pacientes', 'estudios'));
+        return view('estudios.dashboard.index', compact('pacientes', 'estudios'));
     }
 
     public function crear(Request $request)
@@ -120,7 +120,7 @@ class NuevoEstudioController extends Controller
             ? $estudio->archivos()->latest()->get()
             : collect();
 
-        return view('estudios.capturas', compact('estudio', 'archivos'));
+        return view('estudios.caputras.index', compact('estudio', 'archivos'));
     }
 
     public function guardarCapturas(Request $request)
@@ -231,7 +231,7 @@ class NuevoEstudioController extends Controller
     {
         $estudio = $this->resolverEstudio($request, true);
 
-        return view('estudios.grabando', compact('estudio'));
+        return view('estudios.grabando.index', compact('estudio'));
     }
 
     public function finalizarGrabacion(Request $request)

@@ -516,7 +516,7 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
                 ->get();
         }
 
-        return view('estudios.crear', [
+        return view('estudios.crear.index', [
             'paciente' => $paciente,
             'pacientes' => $pacientes,
             'galImagenes' => $galImagenes,
@@ -526,25 +526,25 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
     })->name('nuevo-estudio');
 
     Route::get('/nuevo-estudio/crear', function () {
-        return view('estudios.crear');
+        return view('estudios.crear.index');
     })->name('nuevo-estudio.crear');
 
     Route::get('/nuevo-estudio/importar', function () {
-        return view('estudios.importar');
+        return view('estudios.importar.index');
     })->name('nuevo-estudio.importar');
 
     Route::post('/nuevo-estudio', [NuevoEstudioController::class, 'store'])
         ->name('nuevo-estudio.store');
 
     Route::get('/nuevo-estudio/capturas', function () {
-        return view('estudios.capturas');
+        return view('estudios.caputras.index');
     })->name('nuevo-estudio.capturas');
 
     Route::post('/nuevo-estudio/capturas', [NuevoEstudioController::class, 'guardarCapturas'])
         ->name('nuevo-estudio.capturas.store');
 
     Route::get('/nuevo-estudio/configuracion', function () {
-        return view('estudios.configuracion');
+        return view('estudios.configuracion.index');
     })->name('nuevo-estudio.configuracion');
 
     Route::get('/nuevo-estudio/grabando', [NuevoEstudioController::class, 'grabando'])
