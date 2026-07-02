@@ -7,7 +7,7 @@
   const GALERIA_URL = @json($estudio?->paciente_id ? route('galeria.paciente', $estudio->paciente_id) : route('galeria'));
   const MOSTRAR_FINALIZADO = @json($mostrarFinalizado);
 
-  let secs = 0, paused = false, fotos = {{ $numCapturas }}, clips = 0;
+  let secs = 0, paused = false, fotos = {{ $numCapturas }};
 
   function pad(n) { return String(n).padStart(2,'0'); }
   function fmt(s) { return pad(Math.floor(s/3600))+':'+pad(Math.floor((s%3600)/60))+':'+pad(s%60); }
@@ -15,7 +15,6 @@
   const timerEl = document.getElementById('recTimer');
   const sideEl  = document.getElementById('recTimerSide');
   const fotosEl = document.getElementById('recFotos');
-  const clipsEl = document.getElementById('recClips');
   const tl      = document.getElementById('recTimeline');
 
   const iv = setInterval(() => {
@@ -62,6 +61,7 @@
   btnPausa?.addEventListener('click', function () {
     paused = !paused;
     updatePauseButton();
+    if (paused) { pauseMediaRecorder(); } else { resumeMediaRecorder(); }
   });
 
   /* ── Cámara web en vivo ── */
@@ -69,6 +69,51 @@
   const captureCanvas = document.getElementById('captureCanvas');
   const webcamFallback = document.getElementById('webcamFallback');
   let webcamStream = null;
+  let mediaRecorder = null;
+  let recordedChunks = [];
+  let recordedBlob = null;
+
+  /* Elige el mejor formato soportado */
+  function getBestMimeType() {
+    const types = ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4'];
+    return types.find(t => MediaRecorder.isTypeSupported(t)) || '';
+  }
+
+  function startMediaRecorder(stream) {
+    if (!window.MediaRecorder) return;
+    recordedChunks = [];
+    const mimeType = getBestMimeType();
+    const opts = mimeType ? { mimeType } : {};
+    try {
+      mediaRecorder = new MediaRecorder(stream, opts);
+    } catch(e) {
+      mediaRecorder = new MediaRecorder(stream);
+    }
+    mediaRecorder.addEventListener('dataavailable', e => {
+      if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+    });
+    mediaRecorder.addEventListener('stop', () => {
+      const mime = (mediaRecorder.mimeType || 'video/webm').split(';')[0];
+      recordedBlob = new Blob(recordedChunks, { type: mime });
+    });
+    mediaRecorder.start(1000);
+  }
+
+  function pauseMediaRecorder() {
+    if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.pause();
+  }
+
+  function resumeMediaRecorder() {
+    if (mediaRecorder && mediaRecorder.state === 'paused') mediaRecorder.resume();
+  }
+
+  function stopMediaRecorder() {
+    return new Promise(resolve => {
+      if (!mediaRecorder || mediaRecorder.state === 'inactive') { resolve(); return; }
+      mediaRecorder.addEventListener('stop', resolve, { once: true });
+      mediaRecorder.stop();
+    });
+  }
 
   async function initWebcam() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -78,10 +123,11 @@
     try {
       webcamStream = await navigator.mediaDevices.getUserMedia({
         video: { width: { ideal: 1920 }, height: { ideal: 1080 } },
-        audio: false
+        audio: true
       });
       if (webcam) { webcam.srcObject = webcamStream; }
       if (webcamFallback) webcamFallback.style.display = 'none';
+      startMediaRecorder(webcamStream);
     } catch (e) {
       showWebcamError('No se pudo acceder a la cámara: ' + (e && e.message ? e.message : e));
     }
@@ -162,15 +208,24 @@
     if (sel) selectCapItem(sel);
   }
 
-  /* ── Guardar fotos ── */
+  /* ── Guardar estudio con video ── */
   const btnGuardarEstudio = document.getElementById('btnGuardarEstudio');
-  btnGuardarEstudio?.addEventListener('click', () => {
+  btnGuardarEstudio?.addEventListener('click', async () => {
     btnGuardarEstudio.disabled = true;
     const original = btnGuardarEstudio.innerHTML;
+    btnGuardarEstudio.textContent = 'Deteniendo grabación...';
+
+    await stopMediaRecorder();
+    stopWebcam();
+
     btnGuardarEstudio.textContent = 'Guardando...';
     const fd = new FormData();
     if (ESTUDIO_ID) fd.append('estudio_id', ESTUDIO_ID);
     fd.append('duracion_segundos', secs);
+    if (recordedBlob && recordedBlob.size > 0) {
+      const ext = recordedBlob.type.includes('mp4') ? 'mp4' : 'webm';
+      fd.append('video', recordedBlob, `estudio_${ESTUDIO_ID}_${Date.now()}.${ext}`);
+    }
     fetch(FINALIZAR_URL, {
       method: 'POST',
       headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
@@ -235,10 +290,11 @@
 
   /* Detener grabación */
   const btnDetener = document.getElementById('btnDetener');
-  btnDetener?.addEventListener('click', () => {
+  btnDetener?.addEventListener('click', async () => {
     clearInterval(iv);
     paused = true;
     updatePauseButton();
+    await stopMediaRecorder();
     stopWebcam();
     const recText = document.querySelector('.studio-rec-text');
     if (recText) recText.textContent = 'DETENIDO';
@@ -257,12 +313,22 @@
     showFirstCapture();
   }
 
-  btnTerminar?.addEventListener('click', (e) => {
+  btnTerminar?.addEventListener('click', async (e) => {
     e.preventDefault();
+    clearInterval(iv);
+    await stopMediaRecorder();
+    stopWebcam();
+    /* Conectar video real al reproductor de estudio finalizado */
+    if (recordedBlob && recordedBlob.size > 0) {
+      const videoUrl = URL.createObjectURL(recordedBlob);
+      const sfVid = document.getElementById('sfVideoEl');
+      if (sfVid) {
+        sfVid.src = videoUrl;
+        sfVid.load();
+      }
+    }
     wrapPrincipal.style.display = 'none';
     wrapFinalizado.classList.add('active');
-    clearInterval(iv);
-    stopWebcam();
     showFirstCapture();
   });
 
@@ -298,82 +364,79 @@
     const volBtn = player.querySelector('.sf-vol-wrap svg');
     const volFill = player.querySelector('.sf-vol-fill');
 
-    let isPlaying = false;
-    let currentTime = 135;
-    let duration = 942;
-    let isMuted = false;
-    let videoInterval;
+      /* Busca el <video> real dentro del player */
+    const videoEl = player.querySelector('video') || document.getElementById('sfVideoEl');
     const speeds = ['0.5x','0.75x','1.0x','1.25x','1.5x','2.0x'];
     let sIdx = 2;
+    let isMuted = false;
 
     function updateProgress() {
-      const percent = (currentTime / duration) * 100;
+      if (!videoEl || !videoEl.duration) return;
+      const percent = (videoEl.currentTime / videoEl.duration) * 100;
       if (progressFill) progressFill.style.width = percent + '%';
       if (progressThumb) progressThumb.style.left = percent + '%';
-      if (timeDisplay) timeDisplay.textContent = formatTime(currentTime) + ' / ' + formatTime(duration);
+      if (timeDisplay) timeDisplay.textContent = formatTime(videoEl.currentTime) + ' / ' + formatTime(videoEl.duration);
     }
-    updateProgress();
 
-    function togglePlay() {
-      isPlaying = !isPlaying;
+    if (videoEl) {
+      videoEl.addEventListener('timeupdate', updateProgress);
+      videoEl.addEventListener('loadedmetadata', updateProgress);
+    }
+
+    function syncPlayIcons(playing) {
       [playBig, playBtn].forEach(btn => {
         if (!btn) return;
         const p = btn.querySelector('.play-icon');
         const q = btn.querySelector('.pause-icon');
-        if (p) p.style.display = isPlaying ? 'none' : '';
-        if (q) q.style.display = isPlaying ? '' : 'none';
+        if (p) p.style.display = playing ? 'none' : '';
+        if (q) q.style.display = playing ? '' : 'none';
       });
-      if (isPlaying) {
-        videoInterval = setInterval(() => {
-          if (currentTime < duration) {
-            currentTime++;
-            updateProgress();
-          } else {
-            isPlaying = false;
-            togglePlay();
-            clearInterval(videoInterval);
-          }
-        }, 1000);
-      } else {
-        clearInterval(videoInterval);
-      }
     }
+
+    function togglePlay() {
+      if (!videoEl) return;
+      if (videoEl.paused) { videoEl.play(); syncPlayIcons(true); }
+      else { videoEl.pause(); syncPlayIcons(false); }
+    }
+
+    videoEl?.addEventListener('ended', () => syncPlayIcons(false));
 
     playBig?.addEventListener('click', togglePlay);
     playBtn?.addEventListener('click', togglePlay);
 
     rewindBtn?.addEventListener('click', () => {
-      currentTime = Math.max(0, currentTime - 10);
-      updateProgress();
+      if (videoEl) { videoEl.currentTime = Math.max(0, videoEl.currentTime - 10); updateProgress(); }
     });
 
     progressBar?.addEventListener('click', (e) => {
+      if (!videoEl || !videoEl.duration) return;
       const rect = progressBar.getBoundingClientRect();
       const percent = (e.clientX - rect.left) / rect.width;
-      currentTime = Math.max(0, Math.min(duration, percent * duration));
-      updateProgress();
+      videoEl.currentTime = Math.max(0, Math.min(videoEl.duration, percent * videoEl.duration));
     });
 
     let isDragging = false;
     progressThumb?.addEventListener('mousedown', () => isDragging = true);
     document.addEventListener('mouseup', () => isDragging = false);
     document.addEventListener('mousemove', (e) => {
-      if (isDragging && progressBar) {
+      if (isDragging && progressBar && videoEl && videoEl.duration) {
         const rect = progressBar.getBoundingClientRect();
         const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-        currentTime = percent * duration;
-        updateProgress();
+        videoEl.currentTime = percent * videoEl.duration;
       }
     });
 
     volBtn?.addEventListener('click', () => {
+      if (!videoEl) return;
       isMuted = !isMuted;
+      videoEl.muted = isMuted;
       if (volFill) volFill.style.width = isMuted ? '0%' : '70%';
     });
 
     speedBtn?.addEventListener('click', () => {
       sIdx = (sIdx + 1) % speeds.length;
       speedBtn.textContent = speeds[sIdx];
+      if (videoEl) videoEl.playbackRate = parseFloat(speeds[sIdx]);
     });
 
     fsBtn?.addEventListener('click', () => {
@@ -423,6 +486,6 @@
     });
   });
 
-  window.addEventListener('beforeunload', () => { clearInterval(iv); stopWebcam(); });
+  window.addEventListener('beforeunload', () => { clearInterval(iv); stopMediaRecorder(); stopWebcam(); });
 })();
 </script>

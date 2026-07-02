@@ -167,7 +167,7 @@
           </div>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="display:grid;grid-template-columns:1fr;gap:10px">
           <div class="studio-stat-card">
             <div class="studio-stat-header">
               <div class="studio-stat-icon">
@@ -176,15 +176,6 @@
               <div class="studio-stat-label">Fotos Capturadas</div>
             </div>
             <div class="studio-stat-value" id="recFotos">{{ $numCapturas }}</div>
-          </div>
-          <div class="studio-stat-card">
-            <div class="studio-stat-header">
-              <div class="studio-stat-icon orange">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-              </div>
-              <div class="studio-stat-label">Clips Guardados</div>
-            </div>
-            <div class="studio-stat-value" id="recClips">3</div>
           </div>
         </div>
       </div>
@@ -255,6 +246,7 @@
       {{-- Video Player --}}
       <div class="sf-video-player" style="flex:1">
         <div class="sf-video-bg"></div>
+        <video id="sfVideoEl" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;z-index:1;display:block" preload="metadata"></video>
         <img id="sfMainImg" alt="Imagen capturada" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;z-index:2">
         <div class="sf-video-center" id="sfVideoCenter">
           <button class="sf-play-big" id="sfPlayBigFinal">
@@ -362,14 +354,6 @@
             Fotos Capturadas
           </div>
           <div class="studio-resumen-value">30</div>
-        </div>
-
-        <div class="studio-resumen-item">
-          <div class="studio-resumen-label">
-            <div class="studio-resumen-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
-            Clips Guardados
-          </div>
-          <div class="studio-resumen-value">4</div>
         </div>
 
         <div class="studio-resumen-item">
@@ -543,14 +527,6 @@
             Fotos Capturadas
           </div>
           <div class="studio-resumen-value">30</div>
-        </div>
-
-        <div class="studio-resumen-item">
-          <div class="studio-resumen-label">
-            <div class="studio-resumen-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
-            Clips Guardados
-          </div>
-          <div class="studio-resumen-value">4</div>
         </div>
 
         <div class="studio-resumen-item">

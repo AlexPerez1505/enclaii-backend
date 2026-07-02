@@ -547,6 +547,10 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
         return view('estudios.configuracion.index');
     })->name('nuevo-estudio.configuracion');
 
+    Route::get('/nuevo-estudio/videos', function () {
+        return view('estudios.videos.index');
+    })->name('nuevo-estudio.videos');
+
     Route::get('/nuevo-estudio/grabando', [NuevoEstudioController::class, 'grabando'])
         ->name('nuevo-estudio.grabando');
 

@@ -239,7 +239,7 @@ class NuevoEstudioController extends Controller
         $validated = $request->validate([
             'estudio_id' => ['nullable', 'exists:estudios,id'],
             'duracion_segundos' => ['nullable', 'integer', 'min:0'],
-            'video' => ['nullable', 'file', 'mimes:mp4,mov,avi,mkv,webm', 'max:102400'],
+            'video' => ['nullable', 'file', 'mimes:mp4,mov,avi,mkv,webm', 'max:512000'],
         ]);
 
         $estudio = $this->resolverEstudio($request, true);
@@ -248,6 +248,13 @@ class NuevoEstudioController extends Controller
 
         if ($request->hasFile('video')) {
             $videoPath = $request->file('video')->store("estudios/{$estudio->id}/videos", 'public');
+
+            $this->guardarArchivoEstudio(
+                estudio: $estudio,
+                file: $request->file('video'),
+                categoria: 'grabacion',
+                descripcion: 'Grabación del estudio',
+            );
         }
 
         $estudio->update([
