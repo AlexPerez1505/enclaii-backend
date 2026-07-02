@@ -615,9 +615,23 @@
         <p class="vv-obs-txt">Sin complicaciones.<br>Buena tolerancia al procedimiento.</p>
       </div>
 
+      {{-- Etiquetas --}}
+      <div class="vv-info-card">
+        <div class="vv-section-head">
+          <span class="vv-section-lbl">Etiquetas</span>
+          <svg class="vv-edit-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </div>
+        <div class="vv-tags">
+          <span class="vv-tag">Estomago</span>
+          <span class="vv-tag">Prancirias
+          <span class="vv-tag">Antro</span>
+          <span class="vv-tag">Gastritis</span>
+          <span class="vv-tag">Piloro</span>
+          <span class="vv-tag">Duodeno</span>
+        </div>
+      </div>
 
-
-    </div>
+    </div>   
 
   </div>
 </div>
