@@ -2043,7 +2043,11 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
       }
 
       if (index === 1) {
-        iniciarCamaraPaciente();
+        if (cameraStreamAuto) {
+          capturarFotoDesdeCamara();
+        } else {
+          iniciarCamaraPaciente();
+        }
       }
 
       if (index === 2) {
@@ -2070,21 +2074,8 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
 
   if (btnUsarFotoAuto && modalFotoAuto) {
     btnUsarFotoAuto.addEventListener('click', function() {
-      if (cameraStreamAuto) {
-        const capturada = capturarFotoDesdeCamara();
-        if (!capturada) {
-          alert('No se pudo capturar la foto.');
-          return;
-        }
-      }
-
-      if (!currentPhotoDataAuto && inputFileFotoAuto && inputFileFotoAuto.files.length > 0) {
-        modalFotoAuto.classList.remove('active');
-        return;
-      }
-
-      if (!currentPhotoDataAuto && (!inputFileFotoAuto || inputFileFotoAuto.files.length === 0)) {
-        alert('Selecciona una imagen o toma una foto primero.');
+      if (!currentPhotoDataAuto) {
+        showAppAlert('Aviso', 'Selecciona una imagen o toma una foto primero.');
         return;
       }
 

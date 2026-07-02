@@ -12,6 +12,11 @@ use App\Models\Paciente;
 use App\Models\Reporte;
 use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\StripeController;
+use App\Http\Controllers\StorageServeController;
+
+Route::get('/storage/{path}', [StorageServeController::class, 'show'])
+    ->where('path', '.*')
+    ->name('storage.fallback');
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -255,7 +260,7 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
                 ->orderByDesc('capturado_en')
                 ->orderByDesc('id')
                 ->get()
-                ->map(fn ($a) => 'storage/'.$a->path)
+                ->map(fn ($a) => 'storage/'.$a->path.'?v='.($a->updated_at?->timestamp ?? $a->id))
                 ->values();
         }
 
@@ -348,7 +353,7 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
                 ->get()
                 ->map(fn ($a) => [
                     'id' => $a->id,
-                    'url' => asset('storage/'.$a->path),
+                    'url' => asset('storage/'.$a->path).'?v='.($a->updated_at?->timestamp ?? $a->id),
                     'titulo' => $a->nombre_original,
                 ])
                 ->values();
@@ -453,7 +458,7 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
                     ->where('tipo', 'imagen')
                     ->orderByDesc('capturado_en')
                     ->get()
-                    ->map(fn ($a) => ['url' => asset('storage/' . $a->path), 'titulo' => $a->nombre_original]);
+                    ->map(fn ($a) => ['url' => asset('storage/' . $a->path).'?v='.($a->updated_at?->timestamp ?? $a->id), 'titulo' => $a->nombre_original]);
             }
             // Si el reporte no tiene plantilla asignada, cargar la que corresponda al tipo de estudio
             if ($reporte && ! $reporte->plantilla && $reporte->estudio?->tipo) {
@@ -701,7 +706,7 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
                 'n' => $i + 1,
                 'ts' => optional($a->capturado_en)->format('H:i:s') ?? '',
                 'bg' => 'radial-gradient(ellipse at 50% 50%,#1a1208 0%,#0a0610 100%)',
-                'src' => asset('storage/' . $a->path),
+                'src' => asset('storage/' . $a->path).'?v='.($a->updated_at?->timestamp ?? $a->id),
                 'id' => $a->id,
             ];
         })->all();
@@ -750,7 +755,7 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
             'ok' => true,
             'archivo' => [
                 'id' => $archivo->id,
-                'url' => asset('storage/'.$archivo->path),
+                'url' => asset('storage/'.$archivo->path).'?v='.($archivo->updated_at?->timestamp ?? $archivo->id),
                 'path' => $archivo->path,
             ],
         ]);
@@ -783,7 +788,7 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
             'ok' => true,
             'archivo' => [
                 'id' => $copy->id,
-                'url' => asset('storage/'.$copy->path),
+                'url' => asset('storage/'.$copy->path).'?v='.($copy->updated_at?->timestamp ?? $copy->id),
                 'path' => $copy->path,
             ],
         ]);
