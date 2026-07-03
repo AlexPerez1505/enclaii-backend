@@ -183,25 +183,25 @@ html[data-theme="light"] .card-next .meta b{color:#1E3A8A}
 .card-next .btn-line{
   margin-top:auto;
   flex:1 0 auto;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:0.5em;
+  display:flex;align-items:center;justify-content:center;gap:0.5em;
   padding:0.6em 1em;
-  font-size:0.85em;
+  border-radius:var(--r-md);
+  border:1px solid #60A5FA;
+  font-size:0.85em;font-weight:700;color:#fff;
+  background:rgba(96,165,250,.14);
+  transition:background-color 150ms ease, transform 160ms var(--ease-out);
   min-height:2.8em;
-  border-color:#2563EB;
-  color:#60A5FA;
-  background:rgba(37,99,235,.12);
+  box-shadow:0 4px 14px rgba(37,99,235,.25);
 }
-@media (hover:hover) and (pointer:fine){ .card-next .btn-line:hover{background:rgba(37,99,235,.22)} }
+.card-next .btn-line svg{width:1em;height:1em}
+.card-next .btn-line:active{transform:scale(.97)}
+@media (hover:hover) and (pointer:fine){ .card-next .btn-line:hover{background:rgba(96,165,250,.26)} }
 html[data-theme="light"] .card-next .btn-line{
   border-color:#2563EB;
   color:#2563EB;
   background:rgba(37,99,235,.10);
 }
 @media (hover:hover) and (pointer:fine){ html[data-theme="light"] .card-next .btn-line:hover{background:rgba(37,99,235,.18)} }
-.card-next .btn-line svg{width:1em;height:1em}
 .holo{
   position:absolute;
   right:0.9em;top:50%;

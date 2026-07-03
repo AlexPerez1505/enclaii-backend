@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}?v=20260627-2">
 <script>
   /* Aplicar tema guardado antes del primer render (evita parpadeo) */
@@ -19,7 +20,22 @@
 </script>
 <title>@yield('title', 'ENCLAII') — ENCLAII</title>
 @auth
-<script>window.enclaiiSettings = @json(array_merge(auth()->user()->resolvedSettings(), ['user_id' => auth()->id()]));</script>
+@php
+$initialNotifications = \App\Models\Notification::where('user_id', auth()->id())
+    ->orderByDesc('created_at')
+    ->limit(50)
+    ->get()
+    ->map(fn ($n) => array_merge([
+        'id' => $n->id,
+        'tipo' => $n->tipo,
+        'read' => $n->read,
+        'created_at' => $n->created_at?->toDateTimeString(),
+    ], $n->data));
+@endphp
+<script>
+window.enclaiiSettings = @json(array_merge(auth()->user()->resolvedSettings(), ['user_id' => auth()->id()]));
+window._initialNotifications = @json($initialNotifications);
+</script>
 @endauth
 <script defer src="{{ asset('js/i18n.js') }}"></script>
 <script defer src="{{ asset('js/preferences.js') }}"></script>
@@ -378,6 +394,7 @@ html[data-theme="light"] .side-help { background: var(--bg); border:none; }
 .notif-ico.red{background:rgba(239,68,68,.15);color:var(--red)}
 .notif-ico.green{background:rgba(16,185,129,.15);color:var(--green)}
 .notif-ico svg{width:16px;height:16px}
+.notif-item.read{opacity:.55}
 .notif-body{flex:1;min-width:0}
 .notif-body strong{display:block;font-size:13px;font-weight:700;color:var(--txt);line-height:1.3}
 .notif-body span{display:block;font-size:11.5px;color:var(--txt-soft);margin-top:2px;line-height:1.4}
@@ -2335,7 +2352,8 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
   const clearBtn = document.getElementById('notifClear');
   if (!bell || !panel) return;
 
-  let count = 0;
+  let unread = 0;
+  const pendingIds = new Set();
 
   function openPanel(){ panel.classList.add('open'); }
   function closePanel(){ panel.classList.remove('open'); }
@@ -2343,10 +2361,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
   bell.addEventListener('click', (e) => {
     e.stopPropagation();
     panel.classList.toggle('open');
-    if (panel.classList.contains('open')) {
-      count = 0;
-      updateDot();
-    }
+    if (panel.classList.contains('open')) markAllAsRead();
   });
 
   document.addEventListener('click', (e) => {
@@ -2354,15 +2369,28 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
   });
 
   clearBtn?.addEventListener('click', () => {
-    count = 0;
-    updateDot();
+    const ids = Array.from(list.querySelectorAll('.notif-item')).map(el => parseInt(el.dataset.id, 10)).filter(Boolean);
+    if (ids.length) {
+      fetch('/notifications', {
+        method: 'DELETE',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ ids }),
+      }).catch(() => {});
+    }
     list.querySelectorAll('.notif-item').forEach(n => n.remove());
+    pendingIds.clear();
+    unread = 0;
+    updateDot();
     if (empty) empty.style.display = '';
   });
 
   function updateDot(){
     if (!dot) return;
-    if (count > 0){ dot.textContent = count > 99 ? '99+' : count; dot.style.display = ''; }
+    if (unread > 0){ dot.textContent = unread > 99 ? '99+' : unread; dot.style.display = ''; }
     else { dot.style.display = 'none'; }
   }
 
@@ -2374,17 +2402,31 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
     trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>',
   };
 
-  function addNotif({ title, body, type = 'blue', icon = 'bell' }){
-    count++;
-    updateDot();
+  function cfgFor(e) {
+    return {
+      nueva:              { title: 'Nueva cita agendada',     type: 'blue',  icon: 'plus' },
+      pendiente:          { title: 'Cita en espera',          type: 'amber', icon: 'bell' },
+      cancelada:          { title: 'Cita cancelada',          type: 'red',   icon: 'x' },
+      completada:         { title: 'Cita completada',         type: 'green', icon: 'check' },
+      eliminada:          { title: 'Cita eliminada',          type: 'red',   icon: 'trash' },
+      estudio_completado: { title: 'Estudio completado',      type: 'green', icon: 'check' },
+      estado:             { title: 'Estado de cita cambiado', type: 'blue',  icon: 'bell' },
+    }[e.tipo] ?? { title: 'Notificación de cita', type: 'blue', icon: 'bell' };
+  }
+
+  function timeFrom(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return isNaN(d) ? '' : d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function addNotif({ title, body, type = 'blue', icon = 'bell', id = null, read = false, time = null, prepend = true }){
     if (empty) empty.style.display = 'none';
 
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
     const svgPath = NOTIF_ICONS[icon] ?? NOTIF_ICONS.bell;
-
     const item = document.createElement('div');
-    item.className = 'notif-item';
+    item.className = 'notif-item' + (read ? ' read' : '');
+    if (id) item.dataset.id = id;
     item.innerHTML = `
       <div class="notif-ico ${type}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${svgPath}</svg>
@@ -2392,39 +2434,112 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
       <div class="notif-body">
         <strong>${title}</strong>
         <span>${body}</span>
-        <time>${timeStr}</time>
+        <time>${time || timeFrom(new Date())}</time>
       </div>`;
 
-    list.prepend(item);
+    if (prepend) list.prepend(item);
+    else list.appendChild(item);
+
+    if (!read && !pendingIds.has(id)) {
+      unread++;
+      if (id) pendingIds.add(id);
+      updateDot();
+    }
+    return item;
   }
 
-  window.__addNotif = addNotif;
+  function markAllAsRead() {
+    if (!unread && !pendingIds.size) return;
+    fetch('/notifications/read-all', {
+      method: 'PATCH',
+      headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+        'Accept': 'application/json',
+      },
+    }).catch(() => {});
+    pendingIds.clear();
+    unread = 0;
+    updateDot();
+    list.querySelectorAll('.notif-item').forEach(el => el.classList.add('read'));
+  }
+
+  function loadNotifications() {
+    const initial = window._initialNotifications;
+    if (Array.isArray(initial) && initial.length) {
+      renderNotifications(initial);
+    }
+    fetch('/notifications', {
+      headers: { 'Accept': 'application/json' }
+    })
+    .then(r => r.json())
+    .then(items => {
+      list.querySelectorAll('.notif-item').forEach(n => n.remove());
+      pendingIds.clear();
+      unread = 0;
+      updateDot();
+      renderNotifications(items);
+    })
+    .catch(() => {});
+  }
+
+  function renderNotifications(items) {
+    if (!items.length) {
+      if (empty) empty.style.display = '';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+    items.forEach(item => {
+      if (pendingIds.has(item.id)) return;
+      const cfg = cfgFor(item);
+      addNotif({
+        id: item.id,
+        title: cfg.title,
+        body: `${item.paciente} — ${item.fecha} ${item.hora}`,
+        type: cfg.type,
+        icon: cfg.icon,
+        read: item.read,
+        time: timeFrom(item.created_at),
+        prepend: false,
+      });
+      if (!item.read) pendingIds.add(item.id);
+    });
+  }
 
   @auth
   const _notifUserId = @json(auth()->id());
   const _notifEnabled = window.enclaiiSettings?.notif_reminders_screen ?? true;
 
+  loadNotifications();
+
   function _initEchoNotif() {
     if (!window.Echo) { setTimeout(_initEchoNotif, 200); return; }
     if (!_notifUserId || !_notifEnabled) return;
-    window.Echo.private(`App.Models.User.${_notifUserId}`)
-      .listen('.cita.estado-cambio', (e) => {
-        const cfg = {
-          nueva:      { title: 'Nueva cita agendada',     type: 'blue',  icon: 'plus' },
-          pendiente:  { title: 'Cita en espera',          type: 'amber', icon: 'bell' },
-          cancelada:  { title: 'Cita cancelada',          type: 'red',   icon: 'x' },
-          completada: { title: 'Cita completada',         type: 'green', icon: 'check' },
-          eliminada:  { title: 'Cita eliminada',          type: 'red',   icon: 'trash' },
-          estado:     { title: 'Estado de cita cambiado', type: 'blue',  icon: 'bell' },
-        }[e.tipo] ?? { title: 'Notificación de cita', type: 'blue', icon: 'bell' };
+    const _notifChannel = window.Echo.private(`App.Models.User.${_notifUserId}`);
 
+    _notifChannel
+      .listen('.cita.estado-cambio', (e) => {
+        console.log('[NOTIF] Evento recibido:', e);
+        const cfg = cfgFor(e);
         addNotif({
+          id: e.id,
           title: cfg.title,
           body: `${e.paciente} — ${e.fecha} ${e.hora}`,
           type: cfg.type,
           icon: cfg.icon,
         });
-      });
+      })
+      .listen('.estudio.completado', (e) => {
+        console.log('[NOTIF] Estudio completado:', e);
+        const cfg = cfgFor(e);
+        addNotif({
+          id: e.id,
+          title: cfg.title,
+          body: `${e.paciente} — ${e.estudio_tipo ?? e.tipo} (${e.fecha} ${e.hora})`,
+          type: cfg.type,
+          icon: cfg.icon,
+        });
+      })
+      .error((err) => console.error('[NOTIF] Error de canal:', err));
   }
   _initEchoNotif();
   @endauth

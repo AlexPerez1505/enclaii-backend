@@ -3,6 +3,7 @@
 namespace App\Events;
 
 use App\Models\Cita;
+use App\Models\Notification;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -12,6 +13,8 @@ use Illuminate\Queue\SerializesModels;
 class CitaEstadoChanged implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
+
+    public ?int $notificationId = null;
 
     public function __construct(
         public Cita $cita,
@@ -25,6 +28,18 @@ class CitaEstadoChanged implements ShouldBroadcastNow
 
     public function broadcastOn(): array
     {
+        try {
+            $notification = Notification::create([
+                'user_id' => $this->userId,
+                'tipo' => $this->tipo,
+                'data' => $this->broadcastWith(),
+                'read' => false,
+            ]);
+            $this->notificationId = $notification->id;
+        } catch (\Throwable $e) {
+            // No bloquear el broadcast si la BD falla
+        }
+
         return [
             new PrivateChannel('App.Models.User.' . $this->userId),
         ];
@@ -33,6 +48,7 @@ class CitaEstadoChanged implements ShouldBroadcastNow
     public function broadcastWith(): array
     {
         return [
+            'id'               => $this->notificationId,
             'cita_id'          => $this->cita->id,
             'paciente'         => $this->cita->paciente?->nombre_completo ?? $this->cita->paciente_nombre,
             'estado_anterior'  => $this->estadoAnterior,

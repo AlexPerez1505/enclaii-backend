@@ -13,6 +13,7 @@ use App\Models\Reporte;
 use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\StripeController;
 use App\Http\Controllers\StorageServeController;
+use App\Http\Controllers\NotificationController;
 
 Route::get('/storage/{path}', [StorageServeController::class, 'show'])
     ->where('path', '.*')
@@ -83,6 +84,12 @@ Route::middleware('auth')->group(function () {
         ->name('stripe.success');
     Route::get('/stripe/cancel', [StripeController::class, 'cancel'])
         ->name('stripe.cancel');
+
+    // ===== Notificaciones =====
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('/notifications/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::patch('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+    Route::delete('/notifications', [NotificationController::class, 'destroy'])->name('notifications.destroy');
 
     Route::post('/logout', [EndoCareAuthController::class, 'logout'])->name('logout');
 

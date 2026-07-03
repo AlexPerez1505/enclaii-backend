@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\EstudioCompletado;
 use App\Models\Cita;
 use App\Models\Estudio;
 use App\Models\EstudioArchivo;
@@ -306,6 +307,8 @@ class NuevoEstudioController extends Controller
         if ($estudio->cita_id && $estudio->cita) {
             $estudio->cita->update(['estado' => 'completado']);
         }
+
+        broadcast(new EstudioCompletado($estudio->fresh()));
 
         session([
             'ultimo_estudio_completado_id' => $estudio->id,
