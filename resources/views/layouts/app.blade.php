@@ -631,7 +631,7 @@ html[data-theme="light"] #themeToggle .icon-moon{display:block}
       </div>
       <strong>¿Necesitas ayuda?</strong>
       <span>Soporte 24/7</span>
-      <button class="btn-ghost">Contactar soporte</button>
+      <a class="btn-ghost" href="{{ route('soporte') }}" style="text-decoration:none;color:inherit;display:inline-block">Contactar soporte</a>
     </div>
   </aside>
 

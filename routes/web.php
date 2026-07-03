@@ -589,6 +589,19 @@ Route::middleware('auth')->group(function () {
     Route::get('/finanzas', function () {
         return view('finanzas.index');
     })->name('finanzas');
+
+    /* ── Soporte ── */
+    Route::get('/soporte', function () {
+        return view('soporte.index');
+    })->name('soporte');
+
+    Route::get('/soporte/tickets', function () {
+        return view('soporte.tickets');
+    })->name('soporte.tickets');
+
+    Route::get('/soporte/chat', function () {
+        return view('soporte.chat');
+    })->name('soporte.chat');
 });
 
 
