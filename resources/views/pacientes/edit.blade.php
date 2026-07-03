@@ -1362,6 +1362,12 @@ document.addEventListener('DOMContentLoaded', function() {
     pacienteForm.addEventListener('submit', async function(e) {
       e.preventDefault();
 
+      const criticalToken = await window.CriticalSecurity.authorize(
+        'patients',
+        'Confirma tu contraseña para editar la información de este paciente.'
+      );
+      if (criticalToken === null) return;
+
       if (btnGuardarInfo) {
         btnGuardarInfo.disabled = true;
         btnGuardarInfo.style.opacity = '.7';
@@ -1373,7 +1379,8 @@ document.addEventListener('DOMContentLoaded', function() {
           body: new FormData(pacienteForm),
           headers: {
             'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'X-Critical-Authorization': criticalToken
           }
         });
 

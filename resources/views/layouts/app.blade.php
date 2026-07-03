@@ -1,14 +1,22 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="notranslate" translate="no">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="google" content="notranslate">
 <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}?v=20260627-2">
 <script>
   /* Aplicar tema guardado antes del primer render (evita parpadeo) */
   document.documentElement.dataset.theme = localStorage.getItem('enclaii-theme') || 'dark';
   /* Aplicar idioma guardado al atributo lang antes del primer render */
   document.documentElement.lang = localStorage.getItem('enclaii-lang') || 'es';
+  /* El selector interno debe funcionar aunque otro script de la página falle. */
+  window.enclaiiSetLanguage = function (lang) {
+    lang = lang === 'en' ? 'en' : 'es';
+    try { localStorage.setItem('enclaii-lang', lang); } catch (e) {}
+    document.documentElement.lang = lang;
+    window.location.reload();
+  };
   /* Aplicar preferencias de apariencia antes del primer render (evita parpadeo) */
   (function(){
     var pref = function(k, def){ try { var v = localStorage.getItem('enclaii-pref-' + k); return v === null ? def : v; } catch (e) { return def; } };
@@ -21,7 +29,7 @@
 @auth
 <script>window.enclaiiSettings = @json(auth()->user()->resolvedSettings());</script>
 @endauth
-<script defer src="{{ asset('js/i18n.js') }}"></script>
+<script defer src="{{ asset('js/i18n.js') }}?v=20260702-1"></script>
 <script defer src="{{ asset('js/preferences.js') }}"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1085,6 +1093,10 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
 
 </div>
 
+@auth
+  @include('components.critical-password-modal')
+@endauth
+
 {{-- Dashboard Editor Panel --}}
 <div class="db-editor-overlay" id="dbEditorOverlay"></div>
 <div class="db-editor" id="dbEditorPanel" role="dialog" aria-label="Editar Dashboard">
@@ -2069,6 +2081,134 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeEditor(); });
   })();
 </script>
+{{-- Modal genérico de confirmación de eliminación --}}
+<div id="enclaiiConfirmDeleteModal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+  <div style="background:var(--card,#0E1740);border:1px solid var(--stroke-strong);border-radius:16px;padding:28px 24px;max-width:420px;width:90%;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.5);">
+    <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,90,110,.12);border:1px solid rgba(255,90,110,.3);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff5a6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+    </div>
+    <h3 id="enclaiiConfirmDeleteTitle" style="font-size:16px;font-weight:700;color:var(--txt);margin:0 0 8px;">¿Confirmar eliminación?</h3>
+    <p id="enclaiiConfirmDeleteMessage" style="font-size:13px;color:var(--txt-soft);margin:0 0 22px;line-height:1.5;">Esta acción no se puede deshacer.</p>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button id="enclaiiConfirmDeleteCancel" type="button" style="flex:1;padding:10px 0;border-radius:10px;border:1px solid var(--stroke-strong);background:transparent;color:var(--txt);font-size:14px;font-weight:600;cursor:pointer;">Cancelar</button>
+      <button id="enclaiiConfirmDeleteYes" type="button" style="flex:1;padding:10px 0;border-radius:10px;border:none;background:#ff5a6e;color:#fff;font-size:14px;font-weight:600;cursor:pointer;">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const settings = window.enclaiiSettings || {};
+  const enabled = settings.confirm_delete !== false;
+  if (!enabled) return;
+
+  const modal = document.getElementById('enclaiiConfirmDeleteModal');
+  const titleEl = document.getElementById('enclaiiConfirmDeleteTitle');
+  const msgEl = document.getElementById('enclaiiConfirmDeleteMessage');
+  const yesBtn = document.getElementById('enclaiiConfirmDeleteYes');
+  const cancelBtn = document.getElementById('enclaiiConfirmDeleteCancel');
+  let currentResolve = null;
+
+  function openModal(title, message){
+    titleEl.textContent = title || '¿Confirmar eliminación?';
+    msgEl.textContent = message || 'Esta acción no se puede deshacer.';
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal(){
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+    if (currentResolve) { currentResolve(false); currentResolve = null; }
+  }
+  function confirmAction(){ if (currentResolve) { currentResolve(true); currentResolve = null; } closeModal(); }
+  cancelBtn.addEventListener('click', closeModal);
+  yesBtn.addEventListener('click', confirmAction);
+  modal.addEventListener('click', function(e){ if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && modal.style.display === 'flex') closeModal(); });
+
+  function askConfirm(title, message){
+    return new Promise(resolve => {
+      currentResolve = resolve;
+      openModal(title, message);
+    });
+  }
+
+  function isDeleteTrigger(el){
+    if (!el || el.dataset.noConfirm !== undefined || el.dataset.confirmDelete === 'false') return false;
+    // Si el elemento ya tiene un onclick propio, asumimos que maneja su propia confirmación
+    if (el.hasAttribute('onclick')) return false;
+    if (el.dataset.confirmDelete === 'true' || el.dataset.action === 'delete') return true;
+    const text = (el.textContent || '').toLowerCase();
+    const title = (el.title || '').toLowerCase();
+    const ariaLabel = (el.getAttribute('aria-label') || '').toLowerCase();
+    const cls = (el.className || '').toLowerCase();
+    const keywords = ['eliminar', 'borrar', 'quitar', 'retirar'];
+    const hasKeyword = keywords.some(k => text.includes(k) || title.includes(k) || ariaLabel.includes(k));
+    const looksDangerous = cls.includes('danger') || cls.includes('red') || cls.includes('del') || cls.includes('trash');
+    return hasKeyword && looksDangerous;
+  }
+
+  function findTrigger(start){
+    let el = start;
+    while (el && el !== document.body){
+      if (isDeleteTrigger(el)) return el;
+      el = el.parentElement;
+    }
+    return null;
+  }
+
+  function elementLabel(el){
+    return el.dataset.confirmTitle || el.title || el.getAttribute('aria-label') || el.textContent.trim() || 'este elemento';
+  }
+
+  // Interceptar formularios que envían DELETE
+  document.addEventListener('submit', async function(e){
+    const form = e.target;
+    if (form.dataset.deleteConfirmed) return;
+    const method = (form.method || form.getAttribute('method') || '').toUpperCase();
+    const override = form.querySelector('input[name="_method"][value="DELETE"]');
+    if (method !== 'DELETE' && !override) return;
+
+    e.preventDefault();
+    const confirmed = await askConfirm('¿Eliminar?', '¿Estás seguro de que deseas eliminar este elemento? Esta acción no se puede deshacer.');
+    if (!confirmed) return;
+    form.dataset.deleteConfirmed = 'true';
+    form.submit();
+  }, true);
+
+  // Interceptar clics en botones/enlaces de eliminación
+  document.addEventListener('click', async function(e){
+    const el = findTrigger(e.target);
+    if (!el) return;
+    if (el.dataset.deleteConfirmed) return;
+
+    const withinForm = el.form || el.closest('form');
+    if (withinForm) {
+      const method = (withinForm.method || withinForm.getAttribute('method') || '').toUpperCase();
+      const override = withinForm.querySelector('input[name="_method"][value="DELETE"]');
+      if (method === 'DELETE' || override) return; // ya lo maneja submit
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+    const label = elementLabel(el);
+    const confirmed = await askConfirm('¿Eliminar?', `¿Estás seguro de que deseas eliminar ${label}? Esta acción no se puede deshacer.`);
+    if (!confirmed) return;
+
+    el.dataset.deleteConfirmed = 'true';
+    // Restaurar el comportamiento original: si es un enlace con href, navegar; si tiene onclick, ejecutarlo; si es un botón, volver a clicarlo
+    if (el.tagName === 'A' && el.href && el.href !== '#') {
+      window.location.href = el.href;
+    } else if (typeof el.onclick === 'function') {
+      el.onclick.call(el, e);
+    } else {
+      el.click();
+    }
+    el.removeAttribute('data-delete-confirmed');
+  }, true);
+})();
+</script>
+
 @stack('scripts')
 </body>
 </html>

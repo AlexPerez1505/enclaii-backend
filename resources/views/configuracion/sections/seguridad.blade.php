@@ -293,10 +293,11 @@
         <h2>Permisos críticos</h2>
         <p>Confirma solicitudes para acciones sensibles</p>
       </div>
-      <div class="sec-checks">
-        <label class="sec-check"><input type="checkbox" checked> Solicitar contraseña para eliminar o editar estudios</label>
-        <label class="sec-check"><input type="checkbox" checked> Solicitar contraseña para eliminar o editar paciente</label>
-        <label class="sec-check"><input type="checkbox" checked> Registrar todas las acciones en auditoría</label>
+      <div class="sec-checks" id="criticalPermissions" data-update-url="{{ route('configuracion.security-settings.update') }}">
+        <label class="sec-check"><input type="checkbox" data-critical-setting="require_password_for_studies" @checked($securitySettings['require_password_for_studies'])> Solicitar contraseña para eliminar o editar estudios</label>
+        <label class="sec-check"><input type="checkbox" data-critical-setting="require_password_for_patients" @checked($securitySettings['require_password_for_patients'])> Solicitar contraseña para eliminar o editar paciente</label>
+        <label class="sec-check"><input type="checkbox" data-critical-setting="audit_sensitive_actions" @checked($securitySettings['audit_sensitive_actions'])> Registrar todas las acciones en auditoría</label>
+        <span id="criticalPermissionsStatus" style="min-height:16px;font-size:11.5px;color:var(--txt-soft)"></span>
       </div>
     </article>
 
@@ -612,6 +613,62 @@
       closeOtherSessions.disabled = false;
       toast(error.message, true);
     }
+  });
+})();
+
+(function(){
+  const container = document.getElementById('criticalPermissions');
+  const status = document.getElementById('criticalPermissionsStatus');
+  const inputs = Array.from(container?.querySelectorAll('[data-critical-setting]') || []);
+  if (!container || !inputs.length) return;
+
+  const values = () => Object.fromEntries(inputs.map(input => [
+    input.dataset.criticalSetting,
+    input.checked
+  ]));
+
+  inputs.forEach(input => {
+    input.addEventListener('change', async () => {
+      const previous = !input.checked;
+      inputs.forEach(item => { item.disabled = true; });
+      status.textContent = 'Esperando confirmación...';
+
+      try {
+        const token = await window.CriticalSecurity.authorize(
+          'security_settings',
+          'Confirma tu contraseña para modificar tus permisos críticos.'
+        );
+        if (token === null) {
+          input.checked = previous;
+          status.textContent = 'Cambio cancelado.';
+          return;
+        }
+
+        status.textContent = 'Guardando...';
+        const response = await fetch(container.dataset.updateUrl, {
+          method: 'PATCH',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'X-Critical-Authorization': token,
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: JSON.stringify(values())
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.message || 'No se pudieron guardar los permisos.');
+
+        window.CriticalSecurity.setRequirement('studies', data.settings.require_password_for_studies);
+        window.CriticalSecurity.setRequirement('patients', data.settings.require_password_for_patients);
+        status.textContent = data.message;
+      } catch (requestError) {
+        input.checked = previous;
+        status.textContent = requestError.message;
+      } finally {
+        inputs.forEach(item => { item.disabled = false; });
+      }
+    });
   });
 })();
 </script>

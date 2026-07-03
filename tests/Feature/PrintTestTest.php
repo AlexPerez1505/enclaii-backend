@@ -84,6 +84,7 @@ class PrintTestTest extends TestCase
             'name' => 'Doctor Impresión',
             'email' => 'impresion'.uniqid().'@example.com',
             'password' => 'password',
+            'subscription_status' => 'active',
         ]);
     }
 

@@ -1719,6 +1719,10 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
   const FINALIZAR_URL = @json(route('nuevo-estudio.finalizar'));
   const GALERIA_URL = @json($estudio?->paciente_id ? route('galeria.paciente', $estudio->paciente_id) : route('galeria'));
   const MOSTRAR_FINALIZADO = @json($mostrarFinalizado);
+  const SETTINGS = window.enclaiiSettings || {};
+  const AUTO_CAPTURE = SETTINGS.capture_auto_capture !== false;
+  const AUTO_SAVE = SETTINGS.capture_auto_save !== false;
+  const AUTO_INTERVAL = Math.max(5, Math.min(300, parseInt(SETTINGS.capture_auto_interval, 10) || 30)) * 1000;
 
   let secs = 0, paused = false, fotos = {{ $numCapturas }}, clips = 0;
 
@@ -1928,7 +1932,7 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
 
   /* Capturar Foto */
   const btnCapturarFoto = document.getElementById('btnCapturarFoto');
-  btnCapturarFoto?.addEventListener('click', () => {
+  function triggerCapture() {
     const videoScreen = document.getElementById('videoScreen');
     if (videoScreen) {
       const flash = document.createElement('div');
@@ -1947,12 +1951,22 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
     captureCanvas.height = h;
     captureCanvas.getContext('2d').drawImage(webcam, 0, 0, w, h);
     captureCanvas.toBlob((blob) => { if (blob) uploadCapture(blob); }, 'image/jpeg', 0.92);
-  });
+  }
+  btnCapturarFoto?.addEventListener('click', triggerCapture);
+
+  // Autocaptura periódica según la configuración del usuario
+  let autoCaptureInterval = null;
+  if (AUTO_CAPTURE && !MOSTRAR_FINALIZADO) {
+    autoCaptureInterval = setInterval(() => {
+      if (!paused && webcam && webcam.videoWidth) triggerCapture();
+    }, AUTO_INTERVAL);
+  }
 
   /* Detener grabación */
   const btnDetener = document.getElementById('btnDetener');
   btnDetener?.addEventListener('click', () => {
     clearInterval(iv);
+    if (autoCaptureInterval) { clearInterval(autoCaptureInterval); autoCaptureInterval = null; }
     paused = true;
     updatePauseButton();
     stopWebcam();
@@ -1973,8 +1987,18 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
     showFirstCapture();
   }
 
+  function autoSaveIfEnabled() {
+    if (!AUTO_SAVE) return;
+    const guardarBtn = document.getElementById('btnGuardarEstudio');
+    if (guardarBtn && !guardarBtn.disabled) {
+      setTimeout(() => guardarBtn.click(), 800);
+    }
+  }
+
   btnTerminar?.addEventListener('click', (e) => {
     e.preventDefault();
+    // Detener autocaptura
+    if (autoCaptureInterval) { clearInterval(autoCaptureInterval); autoCaptureInterval = null; }
     // Ocultar interfaz de grabación y mostrar interfaz finalizada
     wrapPrincipal.style.display = 'none';
     wrapFinalizado.classList.add('active');
@@ -1982,7 +2006,14 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
     clearInterval(iv);
     stopWebcam();
     showFirstCapture();
+    // Si el usuario tiene activado el guardado automático, guardar el estudio
+    autoSaveIfEnabled();
   });
+
+  // Si la página cargó directamente en vista finalizada y el guardado automático está activo, guardar
+  if (MOSTRAR_FINALIZADO && AUTO_SAVE) {
+    autoSaveIfEnabled();
+  }
 
   /* ── Botón Emergencia ── */
   const btnEmergencia = document.querySelector('.studio-btn-emergency');

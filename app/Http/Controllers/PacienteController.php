@@ -6,6 +6,7 @@ use App\Models\Paciente;
 use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class PacienteController extends Controller
 {
@@ -41,7 +42,13 @@ class PacienteController extends Controller
     {
         try {
             $validated = $request->validate([
-                'folio' => ['required', 'string', 'max:255', 'unique:pacientes,folio'],
+                'folio' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    Rule::unique('pacientes', 'folio')
+                        ->where('clinica_id', $request->user()->clinica_id),
+                ],
                 'nombre_completo' => ['required', 'string', 'max:255'],
                 'identificacion' => ['nullable', 'string', 'max:255'],
                 'fecha_nacimiento' => ['nullable', 'date'],
@@ -62,7 +69,10 @@ class PacienteController extends Controller
             ]);
 
             if ($request->hasFile('foto')) {
-                $validated['foto'] = $request->file('foto')->store('pacientes', 'public');
+                $validated['foto'] = $request->file('foto')->store(
+                    'clinicas/'.$request->user()->clinica_id.'/pacientes',
+                    'public',
+                );
             }
 
             $paciente = Paciente::create($validated);
@@ -113,7 +123,14 @@ class PacienteController extends Controller
     public function update(Request $request, Paciente $paciente)
     {
         $validated = $request->validate([
-            'folio' => ['required', 'string', 'max:255', 'unique:pacientes,folio,' . $paciente->id],
+            'folio' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('pacientes', 'folio')
+                    ->where('clinica_id', $request->user()->clinica_id)
+                    ->ignore($paciente->id),
+            ],
             'nombre_completo' => ['required', 'string', 'max:255'],
             'identificacion' => ['nullable', 'string', 'max:255'],
             'fecha_nacimiento' => ['nullable', 'date'],
@@ -138,7 +155,10 @@ class PacienteController extends Controller
                 Storage::disk('public')->delete($paciente->foto);
             }
 
-            $validated['foto'] = $request->file('foto')->store('pacientes', 'public');
+            $validated['foto'] = $request->file('foto')->store(
+                'clinicas/'.$request->user()->clinica_id.'/pacientes',
+                'public',
+            );
         }
 
         $paciente->update($validated);

@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToClinica;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Paciente extends Model
 {
+    use BelongsToClinica;
+
     protected $fillable = [
+        'clinica_id',
         'folio',
         'nombre_completo',
         'identificacion',

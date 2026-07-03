@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToClinica;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,9 +10,12 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Cita extends Model
 {
+    use BelongsToClinica;
+
     protected $table = 'citas';
 
     protected $fillable = [
+        'clinica_id',
         'paciente_id',
         'paciente_nombre',
         'procedimiento',

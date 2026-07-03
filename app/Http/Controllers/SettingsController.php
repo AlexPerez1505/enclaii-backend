@@ -29,6 +29,9 @@ class SettingsController extends Controller
             'notif_new_studies' => ['sometimes', 'boolean'],
             'notif_reports' => ['sometimes', 'boolean'],
             'notif_reminders' => ['sometimes', 'boolean'],
+            'capture_auto_capture' => ['sometimes', 'boolean'],
+            'capture_auto_save' => ['sometimes', 'boolean'],
+            'capture_auto_interval' => ['sometimes', 'integer', 'min:5', 'max:300'],
         ]);
 
         /** @var User $user */

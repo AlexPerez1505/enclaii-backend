@@ -6,6 +6,7 @@ use App\Models\Cita;
 use App\Models\Paciente;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class AgendaController extends Controller
 {
@@ -82,7 +83,10 @@ class AgendaController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'paciente_id' => ['nullable', 'exists:pacientes,id'],
+            'paciente_id' => [
+                'nullable',
+                Rule::exists('pacientes', 'id')->where('clinica_id', $request->user()->clinica_id),
+            ],
             'paciente_nombre' => ['nullable', 'string', 'max:255'],
             'procedimiento' => ['nullable', 'string', 'max:255'],
             'fecha' => ['required', 'date', 'after_or_equal:today'],
@@ -113,7 +117,10 @@ class AgendaController extends Controller
     public function update(Request $request, Cita $cita)
     {
         $validated = $request->validate([
-            'paciente_id' => ['nullable', 'exists:pacientes,id'],
+            'paciente_id' => [
+                'nullable',
+                Rule::exists('pacientes', 'id')->where('clinica_id', $request->user()->clinica_id),
+            ],
             'paciente_nombre' => ['nullable', 'string', 'max:255'],
             'procedimiento' => ['nullable', 'string', 'max:255'],
             'fecha' => ['required', 'date', 'after_or_equal:today'],

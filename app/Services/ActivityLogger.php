@@ -17,9 +17,14 @@ class ActivityLogger
         array $metadata = [],
         ?User $user = null,
         ?Request $request = null,
-    ): ActivityLog {
+        bool $force = false,
+    ): ?ActivityLog {
         $request ??= request();
         $user ??= $request->user();
+
+        if (! $force && $user && ! $user->auditSensitiveActionsEnabled()) {
+            return null;
+        }
 
         return ActivityLog::create([
             'user_id' => $user?->id,

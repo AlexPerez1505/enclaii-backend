@@ -1,3 +1,14 @@
+@php
+  $planUser = $billingUser ?? auth()->user()->billingUser();
+  $clinicMembers = $clinicMembers ?? collect([auth()->user()]);
+  $clinicInvitations = $clinicInvitations ?? collect();
+  $clinicMemberLimit = $clinicMemberLimit ?? auth()->user()->clinicMemberLimit();
+  $clinicMemberUsed = $clinicMembers->count() + $clinicInvitations->count();
+  $clinicMemberRemaining = max(0, $clinicMemberLimit - $clinicMemberUsed);
+  $clinicMemberPercent = min(100, (int) round(($clinicMemberUsed / max(1, $clinicMemberLimit)) * 100));
+  $isClinicOwner = auth()->user()->clinica_rol === 'propietario';
+@endphp
+
 {{-- ============ PANEL: PLAN Y ALMACENAMIENTO ============ --}}
 <div class="cfg-panel" data-panel="plan">
   <div class="pl-grid">
@@ -14,12 +25,12 @@
         <div class="pl-plan">
           <span class="pl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4 3 5-7 5 7 4-3-2 12H5L3 8z"/></svg></span>
           <div class="pl-info">
-            <b>Plan {{ ucfirst(str_replace('_', ' ', auth()->user()->stripe_plan ?? 'Gratuito')) }}</b>
-            <span class="badge" style="background:{{ auth()->user()->subscription_status === 'active' ? 'rgba(61,220,151,.14)' : 'rgba(255,160,0,.14)' }};color:{{ auth()->user()->subscription_status === 'active' ? 'var(--green)' : 'var(--orange)' }}">
-              {{ ucfirst(auth()->user()->subscription_status ?? 'Inactivo') }}
+            <b>Plan {{ ucfirst(str_replace('_', ' ', $planUser->stripe_plan ?? 'Gratuito')) }}</b>
+            <span class="badge" style="background:{{ $planUser->subscription_status === 'active' ? 'rgba(61,220,151,.14)' : 'rgba(255,160,0,.14)' }};color:{{ $planUser->subscription_status === 'active' ? 'var(--green)' : 'var(--orange)' }}">
+              {{ ucfirst($planUser->subscription_status ?? 'Inactivo') }}
             </span>
-            @if(auth()->user()->subscription_renews_at)
-              <p>Renovación {{ auth()->user()->subscription_renews_at->format('d/m/Y') }}</p>
+            @if($planUser->subscription_renews_at)
+              <p>Renovación {{ $planUser->subscription_renews_at->format('d/m/Y') }}</p>
             @endif
           </div>
           <a href="#" class="pl-btn" id="gpOpen">Gestionar plan</a>
@@ -45,6 +56,7 @@
         </div>
       </article>
 
+      @if($isClinicOwner)
       <article class="card rise d4">
         <div class="cfg-card-head">
           <h2>¿Necesitas más espacio?</h2>
@@ -52,10 +64,10 @@
         </div>
 
         <div class="pl-plans">
-          <div class="pl-card {{ auth()->user()->stripe_plan === 'clinica' ? 'current' : '' }}" data-card="clinica">
+          <div class="pl-card {{ $planUser->stripe_plan === 'clinica' ? 'current' : '' }}" data-card="clinica">
             <div class="pc-top">
               <span class="pc-ico" style="color:var(--green)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg></span>
-              @if(auth()->user()->stripe_plan === 'clinica')
+              @if($planUser->stripe_plan === 'clinica')
                 <span class="pc-badge">Plan actual</span>
               @endif
             </div>
@@ -71,15 +83,15 @@
               <button class="pc-int-btn" data-interval="year" data-price="$85,000" data-label="/año">Anual</button>
             </div>
             <div class="pc-price">$10,000<span> /mes</span></div>
-            <a href="#" class="pc-cta {{ auth()->user()->stripe_plan === 'clinica' ? 'disabled' : '' }}" data-plan="clinica" data-interval="month">
-              {{ auth()->user()->stripe_plan === 'clinica' ? 'Plan actual' : 'Cambiar a Clinica' }}
+            <a href="#" class="pc-cta {{ $planUser->stripe_plan === 'clinica' || !$isClinicOwner ? 'disabled' : '' }}" data-plan="clinica" data-interval="month">
+              {{ $planUser->stripe_plan === 'clinica' ? 'Plan actual' : ($isClinicOwner ? 'Cambiar a Clinica' : 'Solo el propietario') }}
             </a>
           </div>
 
-          <div class="pl-card {{ auth()->user()->stripe_plan === 'hospital' ? 'current' : '' }}" data-card="hospital">
+          <div class="pl-card {{ $planUser->stripe_plan === 'hospital' ? 'current' : '' }}" data-card="hospital">
             <div class="pc-top">
               <span class="pc-ico" style="color:#a47bff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4 3 5-7 5 7 4-3-2 12H5L3 8z"/></svg></span>
-              @if(auth()->user()->stripe_plan === 'hospital')
+              @if($planUser->stripe_plan === 'hospital')
                 <span class="pc-badge">Plan actual</span>
               @endif
             </div>
@@ -96,15 +108,15 @@
               <button class="pc-int-btn" data-interval="year" data-price="$200,000" data-label="/año">Anual</button>
             </div>
             <div class="pc-price">$25,000<span> /mes</span></div>
-            <a href="#" class="pc-cta {{ auth()->user()->stripe_plan === 'hospital' ? 'disabled' : '' }}" data-plan="hospital" data-interval="month">
-              {{ auth()->user()->stripe_plan === 'hospital' ? 'Plan actual' : 'Cambiar a Hospital' }}
+            <a href="#" class="pc-cta {{ $planUser->stripe_plan === 'hospital' || !$isClinicOwner ? 'disabled' : '' }}" data-plan="hospital" data-interval="month">
+              {{ $planUser->stripe_plan === 'hospital' ? 'Plan actual' : ($isClinicOwner ? 'Cambiar a Hospital' : 'Solo el propietario') }}
             </a>
           </div>
 
-          <div class="pl-card {{ auth()->user()->stripe_plan === 'red_medica' ? 'current' : '' }}" data-card="red_medica">
+          <div class="pl-card {{ $planUser->stripe_plan === 'red_medica' ? 'current' : '' }}" data-card="red_medica">
             <div class="pc-top">
               <span class="pc-ico" style="color:var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
-              @if(auth()->user()->stripe_plan === 'red_medica')
+              @if($planUser->stripe_plan === 'red_medica')
                 <span class="pc-badge">Plan actual</span>
               @endif
             </div>
@@ -121,13 +133,14 @@
               <button class="pc-int-btn" data-interval="year" data-price="$385,000" data-label="/año">Anual</button>
             </div>
             <div class="pc-price">$35,000<span> /mes</span></div>
-            <a href="#" class="pc-cta {{ auth()->user()->stripe_plan === 'red_medica' ? 'disabled' : '' }}" data-plan="red_medica" data-interval="month">
-              {{ auth()->user()->stripe_plan === 'red_medica' ? 'Plan actual' : 'Cambiar a Red Médica' }}
+            <a href="#" class="pc-cta {{ $planUser->stripe_plan === 'red_medica' || !$isClinicOwner ? 'disabled' : '' }}" data-plan="red_medica" data-interval="month">
+              {{ $planUser->stripe_plan === 'red_medica' ? 'Plan actual' : ($isClinicOwner ? 'Cambiar a Red Médica' : 'Solo el propietario') }}
             </a>
           </div>
 
         </div>
       </article>
+      @endif
     </div>
 
     {{-- Columna derecha --}}
@@ -136,43 +149,44 @@
         <div class="cfg-card-head"><h2>Resumen de tu plan</h2></div>
         <div class="pl-summary-row">
           <span class="k">Plan actual</span>
-          <span class="v">Plan {{ ucfirst(str_replace('_', ' ', auth()->user()->stripe_plan ?? 'Gratuito')) }}</span>
+          <span class="v">Plan {{ ucfirst(str_replace('_', ' ', $planUser->stripe_plan ?? 'Gratuito')) }}</span>
         </div>
         <div class="pl-summary-row">
           <span class="k">Estado</span>
-          <span class="v" style="color:{{ auth()->user()->subscription_status === 'active' ? 'var(--green)' : 'var(--orange)' }}">
-            {{ ucfirst(auth()->user()->subscription_status ?? 'Inactivo') }}
+          <span class="v" style="color:{{ $planUser->subscription_status === 'active' ? 'var(--green)' : 'var(--orange)' }}">
+            {{ ucfirst($planUser->subscription_status ?? 'Inactivo') }}
           </span>
         </div>
-        @if(auth()->user()->subscription_renews_at)
+        @if($planUser->subscription_renews_at)
         <div class="pl-summary-row">
           <span class="k">Renovación</span>
-          <span class="v">{{ auth()->user()->subscription_renews_at->format('d/m/Y') }}</span>
+          <span class="v">{{ $planUser->subscription_renews_at->format('d/m/Y') }}</span>
         </div>
         @endif
-        @if(auth()->user()->pm_last_four)
+        @if($planUser->pm_last_four)
         <div class="pl-summary-row">
           <span class="k">Método de pago</span>
           <span class="v pl-pay">
-            @if(auth()->user()->pm_brand === 'visa')
+            @if($planUser->pm_brand === 'visa')
               <svg width="26" height="17" viewBox="0 0 48 32" style="display:inline-block;vertical-align:middle;margin-right:6px"><rect width="48" height="32" rx="4" fill="#1434CB"/><text x="24" y="20" fill="white" font-size="14" font-weight="bold" text-anchor="middle">VISA</text></svg>
-            @elseif(auth()->user()->pm_brand === 'mastercard')
+            @elseif($planUser->pm_brand === 'mastercard')
               <span class="pl-mc"></span>
             @else
-              <span style="text-transform:capitalize">{{ auth()->user()->pm_brand }}</span>
+              <span style="text-transform:capitalize">{{ $planUser->pm_brand }}</span>
             @endif
-            ····{{ auth()->user()->pm_last_four }}
+            ····{{ $planUser->pm_last_four }}
           </span>
         </div>
         @endif
       </article>
 
+      @if($isClinicOwner)
       <article class="card rise d4">
         <div class="cfg-card-head"><h2>Facturación y pago</h2></div>
-        @if(auth()->user()->subscription_renews_at)
+        @if($planUser->subscription_renews_at)
           <a href="#" class="pl-link">
             <span>Próxima fecha de cobro</span>
-            <span class="v">{{ auth()->user()->subscription_renews_at->format('d/m/Y') }}</span>
+            <span class="v">{{ $planUser->subscription_renews_at->format('d/m/Y') }}</span>
           </a>
         @endif
         <a href="#" class="pl-link" id="gpOpenBilling">
@@ -181,9 +195,10 @@
         </a>
         <a href="#" class="pl-wide-btn" data-pm-open="1">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-          {{ auth()->user()->pm_last_four ? 'Actualizar método de pago' : 'Agregar método de pago' }}
+          {{ $planUser->pm_last_four ? 'Actualizar método de pago' : 'Agregar método de pago' }}
         </a>
       </article>
+      @endif
 
       <article class="card rise d5">
         <div class="cfg-card-head"><h2>Historial de uso</h2><p>Tu consumo de almacenamiento en los últimos 6 meses</p></div>
@@ -241,7 +256,9 @@
     <div class="gp-tabs">
       <button class="gp-tab active" data-gptab="resumen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Resumen</button>
       <button class="gp-tab" data-gptab="integrantes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Integrantes</button>
-      <button class="gp-tab" data-gptab="facturacion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Facturacion</button>
+      @if($isClinicOwner)
+        <button class="gp-tab" data-gptab="facturacion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Facturacion</button>
+      @endif
     </div>
 
     <div class="gp-body">
@@ -255,16 +272,16 @@
               <span class="gp-crown"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4 3 5-7 5 7 4-3-2 12H5L3 8z"/></svg></span>
               <div class="gp-plan-info">
                 <div class="gp-plan-name">
-                  <b>Plan {{ ucfirst(str_replace('_', ' ', auth()->user()->stripe_plan ?? 'Gratuito')) }}</b>
-                  <span class="gp-badge" style="background:{{ auth()->user()->subscription_status === 'active' ? 'rgba(61,220,151,.14)' : 'rgba(255,160,0,.14)' }};color:{{ auth()->user()->subscription_status === 'active' ? 'var(--green)' : 'var(--orange)' }}">
-                    {{ ucfirst(auth()->user()->subscription_status ?? 'Inactivo') }}
+                  <b>Plan {{ ucfirst(str_replace('_', ' ', $planUser->stripe_plan ?? 'Gratuito')) }}</b>
+                  <span class="gp-badge" style="background:{{ $planUser->subscription_status === 'active' ? 'rgba(61,220,151,.14)' : 'rgba(255,160,0,.14)' }};color:{{ $planUser->subscription_status === 'active' ? 'var(--green)' : 'var(--orange)' }}">
+                    {{ ucfirst($planUser->subscription_status ?? 'Inactivo') }}
                   </span>
                 </div>
-                @if(auth()->user()->subscription_renews_at)
-                  <p>Renovacion {{ auth()->user()->subscription_renews_at->format('d/m/Y') }}</p>
+                @if($planUser->subscription_renews_at)
+                  <p>Renovacion {{ $planUser->subscription_renews_at->format('d/m/Y') }}</p>
                 @endif
-                @if(auth()->user()->pm_last_four)
-                  <p>Tarjeta: {{ ucfirst(auth()->user()->pm_brand) }} ····{{ auth()->user()->pm_last_four }}</p>
+                @if($planUser->pm_last_four)
+                  <p>Tarjeta: {{ ucfirst($planUser->pm_brand) }} ····{{ $planUser->pm_last_four }}</p>
                 @endif
               </div>
               <ul class="gp-feat">
@@ -274,7 +291,7 @@
                     'hospital' => ['100 GB de almacenamiento en la nube', 'IA Reportes avanzada', 'Soporte prioritario', 'Exportacion de reportes'],
                     'red_medica' => ['250 GB de almacenamiento en la nube', 'Integraciones avanzadas', 'Soporte 24/7'],
                   ];
-                  $currentPlan = auth()->user()->stripe_plan;
+                  $currentPlan = $planUser->stripe_plan;
                   $features = $planFeatures[$currentPlan] ?? ['Plan gratuito'];
                 @endphp
                 @foreach($features as $feat)
@@ -298,23 +315,18 @@
           <section class="gp-card">
             <div class="gp-card-row">
               <h3>Integrantes del plan</h3>
-              <a href="#" class="gp-btn-ghost sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Invitar integrante</a>
+              @if($isClinicOwner)
+                <button type="button" class="gp-btn-ghost sm gp-invite-open"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Agregar correo</button>
+              @endif
             </div>
             <p class="gp-soft">Administra los usuarios que forman parte de tu plan</p>
-            <div class="gp-bar gp-mt"><i style="width:80%"></i></div>
-            <div class="gp-mini">4 de 5 usuarios utilizados <span>80%</span></div>
-            <table class="gp-table">
-              <thead><tr><th>Usuario</th><th>Rol</th><th>Estado</th><th>Ultimo acceso</th><th>Acciones</th></tr></thead>
-              <tbody>
-                <tr><td><span class="gp-u">Dr. Victor <span class="gp-you">Tu</span></span></td><td>Administrador</td><td><span class="gp-st">Activo</span></td><td>Hoy, 10:30 AM</td><td><button class="gp-dots" aria-label="Opciones">&#8943;</button></td></tr>
-                <tr><td><span class="gp-u">Dra. Ana Perez</span></td><td>Endoscopista</td><td><span class="gp-st">Activo</span></td><td>Hoy, 09:15 AM</td><td><button class="gp-dots" aria-label="Opciones">&#8943;</button></td></tr>
-                <tr><td><span class="gp-u">Dr. Juan Lopez</span></td><td>Endoscopista</td><td><span class="gp-st">Activo</span></td><td>Ayer, 04:22 PM</td><td><button class="gp-dots" aria-label="Opciones">&#8943;</button></td></tr>
-                <tr><td><span class="gp-u">Lic. Maria Gomez</span></td><td>Recepcionista</td><td><span class="gp-st">Activo</span></td><td>Ayer, 11:08 AM</td><td><button class="gp-dots" aria-label="Opciones">&#8943;</button></td></tr>
-              </tbody>
-            </table>
-            <p class="gp-note">&#9432; Puedes agregar hasta <b>1</b> usuario mas con tu plan actual.</p>
+            <div class="gp-bar gp-mt"><i style="width:{{ $clinicMemberPercent }}%"></i></div>
+            <div class="gp-mini">{{ $clinicMemberUsed }} de {{ $clinicMemberLimit }} lugares utilizados <span>{{ $clinicMemberPercent }}%</span></div>
+            @include('configuracion.partials.plan-members-table')
+            <p class="gp-note">&#9432; Puedes agregar <b>{{ $clinicMemberRemaining }}</b> integrante(s) más con tu plan actual.</p>
           </section>
 
+          @if($isClinicOwner)
           <section class="gp-card">
             <h3>Comprar mas almacenamiento</h3>
             <p class="gp-soft">Aumenta tu espacio en la nube al instante</p>
@@ -332,20 +344,21 @@
             </div>
             <p class="gp-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg> El espacio adicional se a&ntilde;adira a tu plan actual.</p>
           </section>
+          @endif
 
         </div>
 
-        @if(auth()->user()->subscribed() && auth()->user()->cancelScheduled())
+        @if($isClinicOwner && $planUser->subscribed() && $planUser->cancelScheduled())
         {{-- Suscripción ya programada para cancelarse: ofrecer reactivar --}}
         <div class="gp-cancel gp-resume" id="resumeBox">
           <span class="gp-cancel-ico gp-resume-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
           <div class="gp-cancel-txt">
             <b>Plan programado para cancelarse</b>
-            <p>Tu plan permanecerá activo hasta el <b>{{ auth()->user()->subscription_cancel_at->format('d/m/Y') }}</b>. Después perderás el acceso a las funciones premium.</p>
+            <p>Tu plan permanecerá activo hasta el <b>{{ $planUser->subscription_cancel_at->format('d/m/Y') }}</b>. Después perderás el acceso a las funciones premium.</p>
           </div>
           <a href="#" class="gp-cancel-btn gp-resume-btn" id="resumeBtn">Reactivar plan</a>
         </div>
-        @elseif(auth()->user()->subscribed())
+        @elseif($isClinicOwner && $planUser->subscribed())
         <div class="gp-cancel" id="cancelBox">
           <span class="gp-cancel-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
           <div class="gp-cancel-txt"><b>Cancelar plan</b><p>Si cancelas tu plan, perderas acceso a las funciones premium al finalizar el ciclo de facturacion</p></div>
@@ -359,50 +372,45 @@
         <section class="gp-card">
           <div class="gp-card-row">
             <h3>Integrantes del plan</h3>
-            <a href="#" class="gp-btn-ghost sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Invitar integrante</a>
+            @if($isClinicOwner)
+              <button type="button" class="gp-btn-ghost sm gp-invite-open"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Agregar correo</button>
+            @endif
           </div>
-          <p class="gp-soft">4 de 5 usuarios utilizados. Puedes agregar hasta 1 usuario mas con tu plan actual.</p>
-          <table class="gp-table gp-mt">
-            <thead><tr><th>Usuario</th><th>Rol</th><th>Estado</th><th>Ultimo acceso</th><th>Acciones</th></tr></thead>
-            <tbody>
-              <tr><td><span class="gp-u">Dr. Victor <span class="gp-you">Tu</span></span></td><td>Administrador</td><td><span class="gp-st">Activo</span></td><td>Hoy, 10:30 AM</td><td><button class="gp-dots" aria-label="Opciones">&#8943;</button></td></tr>
-              <tr><td><span class="gp-u">Dra. Ana Perez</span></td><td>Endoscopista</td><td><span class="gp-st">Activo</span></td><td>Hoy, 09:15 AM</td><td><button class="gp-dots" aria-label="Opciones">&#8943;</button></td></tr>
-              <tr><td><span class="gp-u">Dr. Juan Lopez</span></td><td>Endoscopista</td><td><span class="gp-st">Activo</span></td><td>Ayer, 04:22 PM</td><td><button class="gp-dots" aria-label="Opciones">&#8943;</button></td></tr>
-              <tr><td><span class="gp-u">Lic. Maria Gomez</span></td><td>Recepcionista</td><td><span class="gp-st">Activo</span></td><td>Ayer, 11:08 AM</td><td><button class="gp-dots" aria-label="Opciones">&#8943;</button></td></tr>
-            </tbody>
-          </table>
+          <p class="gp-soft">{{ $clinicMemberUsed }} de {{ $clinicMemberLimit }} lugares utilizados. Puedes agregar {{ $clinicMemberRemaining }} integrante(s).</p>
+          @include('configuracion.partials.plan-members-table', ['tableClass' => 'gp-mt'])
         </section>
       </div>
 
       {{-- ===== FACTURACION ===== --}}
+      @if($isClinicOwner)
       <div class="gp-panel" data-gppanel="facturacion">
         <section class="gp-card">
           <h3>Facturacion y pago</h3>
           <div class="gp-summary-row">
             <span class="gp-soft">Plan actual</span>
-            <span>Plan {{ ucfirst(str_replace('_', ' ', auth()->user()->stripe_plan ?? 'Gratuito')) }}</span>
+            <span>Plan {{ ucfirst(str_replace('_', ' ', $planUser->stripe_plan ?? 'Gratuito')) }}</span>
           </div>
           <div class="gp-summary-row">
             <span class="gp-soft">Estado</span>
-            <span style="color:{{ auth()->user()->subscription_status === 'active' ? 'var(--green)' : 'var(--orange)' }}">
-              {{ ucfirst(auth()->user()->subscription_status ?? 'Inactivo') }}
+            <span style="color:{{ $planUser->subscription_status === 'active' ? 'var(--green)' : 'var(--orange)' }}">
+              {{ ucfirst($planUser->subscription_status ?? 'Inactivo') }}
             </span>
           </div>
-          @if(auth()->user()->subscription_renews_at)
+          @if($planUser->subscription_renews_at)
           <div class="gp-summary-row">
             <span class="gp-soft">Proxima fecha de cobro</span>
-            <span>{{ auth()->user()->subscription_renews_at->format('d/m/Y') }}</span>
+            <span>{{ $planUser->subscription_renews_at->format('d/m/Y') }}</span>
           </div>
           @endif
-          @if(auth()->user()->pm_last_four)
+          @if($planUser->pm_last_four)
           <div class="gp-summary-row">
             <span class="gp-soft">Metodo de pago</span>
-            <span>{{ ucfirst(auth()->user()->pm_brand) }} ····{{ auth()->user()->pm_last_four }}</span>
+            <span>{{ ucfirst($planUser->pm_brand) }} ····{{ $planUser->pm_last_four }}</span>
           </div>
           @endif
           <a href="#" class="gp-btn-out gp-mt2" data-pm-open="1" style="display:inline-flex;align-items:center;gap:8px">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-            {{ auth()->user()->pm_last_four ? 'Actualizar metodo de pago' : 'Agregar metodo de pago' }}
+            {{ $planUser->pm_last_four ? 'Actualizar metodo de pago' : 'Agregar metodo de pago' }}
           </a>
         </section>
 
@@ -413,6 +421,7 @@
           </div>
         </section>
       </div>
+      @endif
     </div>
 
     <div class="gp-foot">
@@ -420,6 +429,42 @@
     </div>
   </div>
 </div>
+
+@if($isClinicOwner)
+<div class="gp-ov gp-invite-ov" id="gpInviteModal" aria-hidden="true">
+  <div class="gp-modal gp-invite-modal" role="dialog" aria-modal="true" aria-labelledby="gpInviteTitle">
+    <button type="button" class="gp-x" id="gpInviteClose" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div class="gp-head">
+      <h2 id="gpInviteTitle">Agregar integrante por correo</h2>
+      <p>Guarda el correo que la persona utilizará para crear su cuenta y entrar a {{ auth()->user()->clinica->nombre }}.</p>
+    </div>
+
+    <form id="gpInviteForm" class="gp-invite-form">
+      <label>
+        Correo electrónico
+        <input type="email" name="email" placeholder="medico@clinica.com" required>
+      </label>
+      <label>
+        Rol
+        <select name="rol" required>
+          <option value="medico">Médico</option>
+          <option value="administrador">Administrador</option>
+          <option value="recepcionista">Recepcionista</option>
+          <option value="asistente">Asistente</option>
+        </select>
+      </label>
+      <div class="gp-invite-error" id="gpInviteError" hidden></div>
+      <button type="submit" class="gp-invite-submit">Autorizar correo</button>
+    </form>
+
+    <div class="gp-invite-result" id="gpInviteResult" hidden>
+      <strong id="gpInviteResultTitle">Correo autorizado</strong>
+      <p id="gpInviteResultText"></p>
+      <button type="button" class="gp-invite-submit" id="gpInviteDone">Terminar</button>
+    </div>
+  </div>
+</div>
+@endif
 
 @push('styles')
 <style>
@@ -485,8 +530,13 @@
 .gp-u{font-weight:600}
 .gp-you{font-size:9.5px;font-weight:700;color:#fff;background:var(--blue);padding:1px 6px;border-radius:5px;margin-left:5px}
 .gp-st{font-size:10px;font-weight:700;color:var(--green);background:rgba(61,220,151,.14);padding:2px 8px;border-radius:6px}
+.gp-st.pending{color:var(--orange);background:rgba(245,158,45,.14)}
 .gp-dots{color:var(--txt-soft);font-size:16px;padding:0 6px;line-height:1}
 .gp-dots:hover{color:var(--txt)}
+.gp-member-email{display:block;color:var(--txt-soft);font-size:10px;margin-top:3px}
+.gp-member-remove,.gp-invite-revoke{color:var(--red);font-size:11px;font-weight:700;padding:5px 8px;border-radius:7px}
+.gp-member-remove:hover,.gp-invite-revoke:hover{background:rgba(255,90,110,.1)}
+.gp-no-action{color:var(--txt-soft)}
 .gp-note{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--txt-soft);margin-top:12px}
 .gp-note svg{width:14px;height:14px;flex:none}
 /* Comprar almacenamiento */
@@ -513,6 +563,20 @@
 .gp-foot{display:flex;justify-content:flex-end;padding:16px 0 22px;margin-top:6px;border-top:1px solid var(--stroke);position:sticky;bottom:0;background:var(--card)}
 .gp-cerrar{padding:10px 22px;border-radius:10px;background:var(--panel-2);border:1px solid var(--stroke-strong);color:var(--txt);font-weight:600;font-size:13.5px}
 .gp-cerrar:hover{background:var(--hover-bg)}
+
+/* Invitación de integrantes */
+.gp-invite-ov{z-index:1200;align-items:center}
+.gp-invite-modal{max-width:520px;padding-bottom:26px}
+.gp-invite-form{display:grid;gap:16px;margin-top:22px}
+.gp-invite-form label,.gp-invite-result label{display:grid;gap:7px;color:var(--txt-soft);font-size:12px;font-weight:600}
+.gp-invite-form input,.gp-invite-form select,.gp-invite-result input{width:100%;border:1px solid var(--stroke-strong);border-radius:10px;background:var(--panel-2);color:var(--txt);font:inherit;padding:11px 12px;outline:none}
+.gp-invite-form input:focus,.gp-invite-form select:focus{border-color:var(--cyan)}
+.gp-invite-submit{width:100%;padding:11px 16px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff;font-weight:700}
+.gp-invite-submit:disabled{opacity:.6;cursor:not-allowed}
+.gp-invite-error{padding:10px 12px;border-radius:9px;background:rgba(255,90,110,.1);color:var(--red);font-size:12px}
+.gp-invite-result{display:grid;gap:15px;margin-top:22px}
+.gp-invite-result strong{font-family:'Sora',sans-serif;font-size:16px}
+.gp-invite-result p{font-size:12.5px;line-height:1.5;color:var(--txt-soft)}
 
 /* ===== RESPONSIVE: MODAL GESTIONAR PLAN ===== */
 @media (max-width:768px){
@@ -632,6 +696,101 @@
     if (t.dataset.gptab === 'facturacion') loadInvoices();
   }));
 
+  // ===== Integrantes reales de la clínica =====
+  const inviteModal = document.getElementById('gpInviteModal');
+  const inviteForm = document.getElementById('gpInviteForm');
+  const inviteResult = document.getElementById('gpInviteResult');
+  const inviteError = document.getElementById('gpInviteError');
+  let inviteCreated = false;
+
+  function closeInvite(){
+    inviteModal?.classList.remove('open');
+    inviteModal?.setAttribute('aria-hidden', 'true');
+    if (inviteCreated) window.location.reload();
+  }
+
+  document.querySelectorAll('.gp-invite-open').forEach(button => {
+    button.addEventListener('click', () => {
+      if (!inviteModal) return;
+      inviteCreated = false;
+      inviteForm?.reset();
+      inviteForm?.removeAttribute('hidden');
+      inviteResult?.setAttribute('hidden', '');
+      inviteError?.setAttribute('hidden', '');
+      inviteModal.classList.add('open');
+      inviteModal.setAttribute('aria-hidden', 'false');
+    });
+  });
+  document.getElementById('gpInviteClose')?.addEventListener('click', closeInvite);
+  document.getElementById('gpInviteDone')?.addEventListener('click', closeInvite);
+  inviteModal?.addEventListener('click', event => {
+    if (event.target === inviteModal) closeInvite();
+  });
+
+  inviteForm?.addEventListener('submit', async event => {
+    event.preventDefault();
+    const submit = inviteForm.querySelector('[type="submit"]');
+    submit.disabled = true;
+    submit.textContent = 'Enviando...';
+    inviteError.setAttribute('hidden', '');
+
+    try {
+      const response = await fetch("{{ route('configuracion.clinic-invitations.store') }}", {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': "{{ csrf_token() }}",
+        },
+        body: JSON.stringify(Object.fromEntries(new FormData(inviteForm))),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        const firstError = Object.values(data.errors || {}).flat()[0];
+        throw new Error(firstError || data.message || 'No se pudo crear la invitación.');
+      }
+
+      inviteCreated = true;
+      inviteForm.setAttribute('hidden', '');
+      inviteResult.removeAttribute('hidden');
+      document.getElementById('gpInviteResultText').textContent = data.message;
+    } catch (error) {
+      inviteError.textContent = error.message;
+      inviteError.removeAttribute('hidden');
+    } finally {
+      submit.disabled = false;
+      submit.textContent = 'Autorizar correo';
+    }
+  });
+
+  modal.addEventListener('click', async event => {
+    const memberButton = event.target.closest('.gp-member-remove');
+    const invitationButton = event.target.closest('.gp-invite-revoke');
+    if (!memberButton && !invitationButton) return;
+
+    const isMember = Boolean(memberButton);
+    const message = isMember
+      ? `¿Retirar a ${memberButton.dataset.memberName} de la clínica?`
+      : '¿Cancelar esta invitación?';
+    if (!window.confirm(message)) return;
+
+    const url = isMember
+      ? `{{ url('/configuracion/clinica/integrantes') }}/${memberButton.dataset.memberId}`
+      : `{{ url('/configuracion/clinica/invitaciones') }}/${invitationButton.dataset.invitationId}`;
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: { 'Accept':'application/json', 'X-CSRF-TOKEN':"{{ csrf_token() }}" },
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+      window.alert(data.message || 'No se pudo completar la acción.');
+      return;
+    }
+    window.location.reload();
+  });
+
   // ===== Historial de pagos (facturas desde Stripe) =====
   const INVOICES_URL = "{{ url('/stripe/invoices') }}";
   let invoicesLoaded = false;
@@ -691,7 +850,7 @@ document.addEventListener('DOMContentLoaded', function(){
   const CHANGE_PLAN_URL = "{{ url('/stripe/change-plan') }}";
 
   // Estado del usuario: ¿ya tiene suscripción?
-  const hasSubscription = {{ auth()->user()->stripe_subscription_id ? 'true' : 'false' }};
+  const hasSubscription = {{ $planUser->stripe_subscription_id ? 'true' : 'false' }};
 
   console.log('Stripe integration loaded');
   console.log('Has subscription:', hasSubscription);

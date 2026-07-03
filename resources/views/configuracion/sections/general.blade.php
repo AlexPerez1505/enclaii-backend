@@ -19,7 +19,7 @@
         <span class="cfg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20a15 15 0 0 1 0-20z"/></svg></span>
         <div class="cfg-info"><div class="t">Idioma</div><div class="d">Selecciona el idioma de la aplicación</div></div>
         <div class="cfg-select">
-          <select id="cfgLang" data-no-i18n>
+          <select id="cfgLang" data-no-i18n translate="no" onchange="window.enclaiiSetLanguage(this.value)">
             <option value="es">Español</option>
             <option value="en">English</option>
           </select>

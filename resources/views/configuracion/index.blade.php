@@ -356,10 +356,6 @@
     const current = (window.enclaiiI18n && window.enclaiiI18n.get())
       || localStorage.getItem('enclaii-lang') || 'es';
     langSel.value = current;
-    langSel.addEventListener('change', () => {
-      if (window.enclaiiI18n) window.enclaiiI18n.set(langSel.value);
-      else { localStorage.setItem('enclaii-lang', langSel.value); location.reload(); }
-    });
   }
 
   /* ===== Preferencias generales persistentes (base de datos) ===== */

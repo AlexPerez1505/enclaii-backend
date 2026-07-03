@@ -2286,12 +2286,19 @@ async function confirmarEliminar() {
   if (!patient) return;
 
   try {
+    const criticalToken = await window.CriticalSecurity.authorize(
+      'patients',
+      `Confirma tu contraseña para eliminar al paciente ${patient.name}.`
+    );
+    if (criticalToken === null) return;
+
     const response = await fetch(routes.destroy.replace(':id', patient.id), {
       method: 'POST',
       headers: {
         'X-CSRF-TOKEN': '{{ csrf_token() }}',
         'X-Requested-With': 'XMLHttpRequest',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'X-Critical-Authorization': criticalToken
       },
       body: new URLSearchParams({'_method':'DELETE'})
     });

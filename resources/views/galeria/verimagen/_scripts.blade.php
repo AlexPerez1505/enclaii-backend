@@ -285,11 +285,21 @@
       const form = new FormData();
       form.append('image', blob, `${mode === 'copy' ? 'copia_editada' : 'imagen_editada'}_${id}.jpg`);
 
+      const criticalToken = await window.CriticalSecurity.authorize(
+        'studies',
+        'Confirma tu contraseña para guardar cambios en este estudio.'
+      );
+      if(criticalToken === null){
+        restoreButton(button, original);
+        return;
+      }
+
       const response = await fetch(`${imageSaveBaseUrl}/${id}/${mode === 'copy' ? 'guardar-copia' : 'guardar'}`, {
         method: 'POST',
         headers: {
           'X-CSRF-TOKEN': csrfToken,
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'X-Critical-Authorization': criticalToken
         },
         body: form
       });

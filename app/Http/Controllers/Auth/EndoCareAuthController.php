@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Clinica;
+use App\Models\ClinicaInvitation;
 use App\Models\User;
 use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class EndoCareAuthController extends Controller
 {
@@ -43,8 +46,7 @@ class EndoCareAuthController extends Controller
             );
 
             if (!$user->subscribed()) {
-                return redirect()->route('configuracion')
-                    ->with('warning', 'Selecciona un plan para comenzar a usar EndoCare.');
+                return redirect()->route('plan.only');
             }
 
             return redirect()->route($this->defaultRouteFor($user));
@@ -78,11 +80,41 @@ class EndoCareAuthController extends Controller
             'password.min' => 'La contraseña debe tener mínimo 8 caracteres.',
         ]);
 
-        $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => $data['password'],
-        ]);
+        $invitation = ClinicaInvitation::pendingForEmail($data['email']);
+
+        $user = DB::transaction(function () use ($data, $invitation): User {
+            if ($invitation) {
+                $lockedInvitation = ClinicaInvitation::query()
+                    ->whereKey($invitation->id)
+                    ->whereNull('accepted_at')
+                    ->whereNull('revoked_at')
+                    ->where('expires_at', '>', now())
+                    ->lockForUpdate()
+                    ->firstOrFail();
+                $clinica = $lockedInvitation->clinica;
+                $rol = $lockedInvitation->rol;
+            } else {
+                $clinica = Clinica::shared();
+                $rol = 'usuario';
+            }
+
+            $user = User::create([
+                'clinica_id' => $clinica->id,
+                'clinica_rol' => $rol,
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'password' => $data['password'],
+            ]);
+
+            if (isset($lockedInvitation)) {
+                $lockedInvitation->update([
+                    'accepted_by' => $user->id,
+                    'accepted_at' => now(),
+                ]);
+            }
+
+            return $user;
+        });
 
         Auth::login($user);
         $this->activity->record(
@@ -93,8 +125,13 @@ class EndoCareAuthController extends Controller
             request: $request,
         );
 
-        return redirect()->route('configuracion')
-            ->with('warning', 'Selecciona un plan para comenzar a usar EndoCare.');
+        if ($invitation) {
+            return redirect()->route('dashboard')
+                ->with('success', 'Ahora formas parte de '.$invitation->clinica->nombre.'.');
+        }
+
+        return redirect()->route('plan.only')
+            ->with('success', 'Cuenta creada correctamente. Selecciona un plan para acceder al sistema.');
     }
 
     /**

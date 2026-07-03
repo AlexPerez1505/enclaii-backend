@@ -60,8 +60,14 @@ class NuevoEstudioController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'paciente_id' => ['required', 'exists:pacientes,id'],
-            'cita_id' => ['nullable', 'exists:citas,id'],
+            'paciente_id' => [
+                'required',
+                Rule::exists('pacientes', 'id')->where('clinica_id', $request->user()->clinica_id),
+            ],
+            'cita_id' => [
+                'nullable',
+                Rule::exists('citas', 'id')->where('clinica_id', $request->user()->clinica_id),
+            ],
             'tipo' => ['nullable', 'string', 'max:255'],
             'fecha' => ['nullable', 'date'],
             'medico' => ['nullable', 'string', 'max:255'],
@@ -138,7 +144,10 @@ class NuevoEstudioController extends Controller
     public function guardarCapturas(Request $request)
     {
         $validated = $request->validate([
-            'estudio_id' => ['nullable', 'exists:estudios,id'],
+            'estudio_id' => [
+                'nullable',
+                Rule::exists('estudios', 'id')->where('clinica_id', $request->user()->clinica_id),
+            ],
             'files' => ['required', 'array'],
             'files.*' => ['file', 'mimes:jpg,jpeg,png,webp,mp4,mov,avi,mkv,webm', 'max:51200'],
             'categoria' => ['nullable', 'string', 'max:255'],
@@ -175,7 +184,10 @@ class NuevoEstudioController extends Controller
     public function importarStore(Request $request)
     {
         $validated = $request->validate([
-            'estudio_id' => ['nullable', 'exists:estudios,id'],
+            'estudio_id' => [
+                'nullable',
+                Rule::exists('estudios', 'id')->where('clinica_id', $request->user()->clinica_id),
+            ],
             'files' => ['required', 'array'],
             'files.*' => ['file', 'mimes:jpg,jpeg,png,webp,mp4,mov,avi,mkv,webm,pdf', 'max:51200'],
             'categoria' => ['nullable', 'string', 'max:255'],
@@ -218,7 +230,10 @@ class NuevoEstudioController extends Controller
     public function guardarConfiguracion(Request $request)
     {
         $validated = $request->validate([
-            'estudio_id' => ['nullable', 'exists:estudios,id'],
+            'estudio_id' => [
+                'nullable',
+                Rule::exists('estudios', 'id')->where('clinica_id', $request->user()->clinica_id),
+            ],
             'video' => ['nullable', 'array'],
             'audio' => ['nullable', 'array'],
             'texto' => ['nullable', 'array'],
@@ -256,7 +271,10 @@ class NuevoEstudioController extends Controller
     public function finalizarGrabacion(Request $request)
     {
         $validated = $request->validate([
-            'estudio_id' => ['nullable', 'exists:estudios,id'],
+            'estudio_id' => [
+                'nullable',
+                Rule::exists('estudios', 'id')->where('clinica_id', $request->user()->clinica_id),
+            ],
             'duracion_segundos' => ['nullable', 'integer', 'min:0'],
             'video' => ['nullable', 'file', 'mimes:mp4,mov,avi,mkv,webm', 'max:102400'],
         ]);
@@ -266,7 +284,10 @@ class NuevoEstudioController extends Controller
         $videoPath = $estudio->video_path;
 
         if ($request->hasFile('video')) {
-            $videoPath = $request->file('video')->store("estudios/{$estudio->id}/videos", 'public');
+            $videoPath = $request->file('video')->store(
+                "clinicas/{$request->user()->clinica_id}/estudios/{$estudio->id}/videos",
+                'public',
+            );
         }
 
         $estudio->update([
@@ -380,7 +401,10 @@ class NuevoEstudioController extends Controller
 
     private function guardarArchivoEstudio(Estudio $estudio, $file, ?string $categoria = null, ?string $descripcion = null): EstudioArchivo
     {
-        $path = $file->store("estudios/{$estudio->id}/archivos", 'public');
+        $path = $file->store(
+            "clinicas/{$estudio->clinica_id}/estudios/{$estudio->id}/archivos",
+            'public',
+        );
         $mime = $file->getMimeType();
 
         $tipo = match (true) {

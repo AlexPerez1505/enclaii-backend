@@ -20,6 +20,7 @@ class WhatsAppIntegrationTest extends TestCase
             'name' => 'Usuario del panel',
             'email' => 'whatsapp-dashboard@example.com',
             'password' => 'password',
+            'subscription_status' => 'active',
         ]);
         Paciente::create([
             'folio' => 'P-WA-000',
@@ -52,6 +53,7 @@ class WhatsAppIntegrationTest extends TestCase
             'name' => 'Usuario de prueba',
             'email' => 'whatsapp-test@example.com',
             'password' => 'password',
+            'subscription_status' => 'active',
         ]);
         $patient = Paciente::create([
             'folio' => 'P-WA-001',
@@ -97,6 +99,11 @@ class WhatsAppIntegrationTest extends TestCase
     {
         config(['services.whatsapp.app_secret' => 'app-secret']);
 
+        $user = User::create([
+            'name' => 'Usuario Webhook',
+            'email' => 'webhook@example.com',
+            'password' => 'password',
+        ]);
         $patient = Paciente::create([
             'folio' => 'P-WA-002',
             'nombre_completo' => 'Paciente Entrante',
@@ -108,6 +115,7 @@ class WhatsAppIntegrationTest extends TestCase
                 'changes' => [[
                     'field' => 'messages',
                     'value' => [
+                        'metadata' => ['phone_number_id' => '123456789'],
                         'messages' => [[
                             'id' => 'wamid.incoming-123',
                             'from' => '525587654321',
@@ -174,6 +182,11 @@ class WhatsAppIntegrationTest extends TestCase
             ]),
         ]);
 
+        $user = User::create([
+            'name' => 'Usuario Chatbot',
+            'email' => 'chatbot@example.com',
+            'password' => 'password',
+        ]);
         $patient = Paciente::create([
             'folio' => 'P-WA-003',
             'nombre_completo' => 'Paciente Chatbot',
@@ -185,6 +198,7 @@ class WhatsAppIntegrationTest extends TestCase
                 'changes' => [[
                     'field' => 'messages',
                     'value' => [
+                        'metadata' => ['phone_number_id' => '123456789'],
                         'messages' => [[
                             'id' => 'wamid.greeting-123',
                             'from' => '525522223333',

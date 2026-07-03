@@ -154,6 +154,7 @@ class ConfigurationBackupTest extends TestCase
             'name' => 'Doctor Prueba',
             'email' => 'doctor'.uniqid().'@example.com',
             'password' => 'password',
+            'subscription_status' => 'active',
         ], $attributes));
     }
 }

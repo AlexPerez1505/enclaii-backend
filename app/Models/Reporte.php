@@ -2,15 +2,19 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToClinica;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Reporte extends Model
 {
+    use BelongsToClinica;
+
     protected $table = 'reportes';
 
     protected $fillable = [
+        'clinica_id',
         'estudio_id',
         'usuario_id',
         'plantilla_id',

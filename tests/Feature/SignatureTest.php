@@ -102,6 +102,7 @@ class SignatureTest extends TestCase
             'name' => 'Doctor Firma',
             'email' => 'firma'.uniqid().'@example.com',
             'password' => 'password',
+            'subscription_status' => 'active',
         ]);
     }
 

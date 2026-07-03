@@ -618,10 +618,8 @@
     // Atributos del propio elemento
     if (root.nodeType === 1) translateAttrs(root);
     var tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
-    var batch = [];
     var n;
-    while ((n = tw.nextNode())) batch.push(n);
-    for (var i = 0; i < batch.length; i++) translateTextNode(batch[i]);
+    while ((n = tw.nextNode())) translateTextNode(n);
     // Atributos de descendientes
     if (root.querySelectorAll) {
       var els = root.querySelectorAll('[placeholder],[title],[aria-label],[alt]');
@@ -642,22 +640,15 @@
     observer = new MutationObserver(function (mutations) {
       for (var i = 0; i < mutations.length; i++) {
         var m = mutations[i];
-        if (m.type === 'characterData') {
-          translateTextNode(m.target);
-        } else if (m.type === 'attributes' && m.target.nodeType === 1) {
-          translateAttrs(m.target);
-        } else {
-          for (var k = 0; k < m.addedNodes.length; k++) {
-            var node = m.addedNodes[k];
-            if (node.nodeType === 3) translateTextNode(node);
-            else if (node.nodeType === 1) walk(node);
-          }
+        for (var k = 0; k < m.addedNodes.length; k++) {
+          var node = m.addedNodes[k];
+          if (node.nodeType === 3) translateTextNode(node);
+          else if (node.nodeType === 1) walk(node);
         }
       }
     });
     observer.observe(document.body, {
-      childList: true, subtree: true, characterData: true,
-      attributes: true, attributeFilter: ATTRS
+      childList: true, subtree: true
     });
   }
 

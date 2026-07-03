@@ -406,9 +406,18 @@
         <div class="int-dev-t">Captura Multimedia</div>
       </div>
       <div class="int-checks">
-        <label class="int-check"><input type="checkbox" checked> Autocapturas de imágenes</label>
-        <label class="int-check"><input type="checkbox" checked> Guardar imágenes automáticamente</label>
+        <label class="int-check"><input type="checkbox" data-setting="capture_auto_capture" checked> Autocapturas de imágenes</label>
+        <label class="int-check"><input type="checkbox" data-setting="capture_auto_save" checked> Guardar imágenes automáticamente</label>
         <label class="int-check"><input type="checkbox" checked> Capturar imagen con pedal</label>
+      </div>
+      <div class="int-dev-meta" style="margin-top:10px">
+        Intervalo de autocaptura:
+        <select data-setting="capture_auto_interval" style="background:var(--panel-2);border:1px solid var(--stroke-strong);border-radius:8px;color:var(--txt);font:inherit;font-size:12px;padding:4px 8px;margin-left:4px">
+          <option value="10">10 segundos</option>
+          <option value="30">30 segundos</option>
+          <option value="60">1 minuto</option>
+          <option value="120">2 minutos</option>
+        </select>
       </div>
     </article>
 

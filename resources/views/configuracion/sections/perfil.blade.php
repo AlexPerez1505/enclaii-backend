@@ -108,8 +108,8 @@
     <article class="card rise d4">
       <div class="pf-title">3.- Información de la clínica</div>
       <div class="pf-2">
-        <div class="pf-field"><label>Nombre de la clínica</label><input class="pf-input" type="text" value="Medibuy - Centro de endoscopia"></div>
-        <div class="pf-field"><label>Ciudad</label><input class="pf-input" type="text" value="Toluca"></div>
+        <div class="pf-field"><label>Nombre de la clínica</label><input class="pf-input" type="text" value="{{ auth()->user()->clinica?->nombre }}" readonly></div>
+        <div class="pf-field"><label>Rol en la clínica</label><input class="pf-input" type="text" value="{{ ucfirst(auth()->user()->clinica_rol) }}" readonly></div>
         <div class="pf-field"><label>Dirección</label><input class="pf-input" type="text" value="Av. Partidas Las torres 123, Consultorio 121"></div>
         <div class="pf-field"><label>Código postal</label><input class="pf-input" type="text" value="50080"></div>
         <div class="pf-field"><label>Teléfono de la clínica u hospital</label><input class="pf-input" type="tel" value="722 364 4758"></div>

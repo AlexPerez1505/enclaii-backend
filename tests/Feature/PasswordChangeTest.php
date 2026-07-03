@@ -97,6 +97,7 @@ class PasswordChangeTest extends TestCase
             'name' => 'Doctor Seguridad',
             'email' => 'seguridad'.uniqid().'@example.com',
             'password' => 'OldPassword1',
+            'subscription_status' => 'active',
         ], $attributes));
     }
 }

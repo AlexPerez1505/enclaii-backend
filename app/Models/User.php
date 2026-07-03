@@ -3,14 +3,41 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Schema;
 
 class User extends Authenticatable
 {
     use Notifiable;
 
+    protected static function booted(): void
+    {
+        static::creating(function (User $user): void {
+            if (! $user->clinica_id && Schema::hasTable('clinicas')) {
+                $hasPlan = in_array($user->subscription_status, ['active', 'trialing'], true);
+                $clinica = $hasPlan
+                    ? Clinica::create([
+                        'nombre' => 'Clínica de '.$user->name,
+                        'is_shared' => false,
+                    ])
+                    : Clinica::shared();
+
+                $user->clinica_id = $clinica->id;
+                $user->clinica_rol = $hasPlan ? 'propietario' : 'usuario';
+            }
+        });
+
+        static::saved(function (User $user): void {
+            $user->ensurePrivateClinicForPlan();
+        });
+    }
+
     protected $fillable = [
+        'clinica_id',
+        'clinica_rol',
         'name',
         'email',
         'password',
@@ -59,7 +86,59 @@ class User extends Authenticatable
      */
     public function subscribed(): bool
     {
-        return in_array($this->subscription_status, ['active', 'trialing'], true);
+        return in_array($this->billingUser()->subscription_status, ['active', 'trialing'], true);
+    }
+
+    public function billingUser(): self
+    {
+        if (in_array($this->subscription_status, ['active', 'trialing'], true)) {
+            return $this;
+        }
+
+        if (! $this->clinica_id) {
+            return $this;
+        }
+
+        return static::query()
+            ->where('clinica_id', $this->clinica_id)
+            ->where('clinica_rol', 'propietario')
+            ->whereIn('subscription_status', ['active', 'trialing'])
+            ->orderBy('id')
+            ->first() ?? $this;
+    }
+
+    public function clinicMemberLimit(): int
+    {
+        return match ($this->billingUser()->stripe_plan) {
+            'red_medica' => 50,
+            'hospital' => 15,
+            'clinica' => 5,
+            default => 1,
+        };
+    }
+
+    public function ensurePrivateClinicForPlan(): void
+    {
+        if (! in_array($this->subscription_status, ['active', 'trialing'], true)) {
+            return;
+        }
+
+        $clinic = $this->clinica()->first();
+        if (! $clinic?->is_shared) {
+            return;
+        }
+
+        $privateClinic = Clinica::create([
+            'nombre' => 'Clínica de '.$this->name,
+            'is_shared' => false,
+        ]);
+
+        $this->forceFill([
+            'clinica_id' => $privateClinic->id,
+            'clinica_rol' => 'propietario',
+        ])->saveQuietly();
+
+        $this->setRelation('clinica', $privateClinic);
     }
 
     /**
@@ -85,6 +164,50 @@ class User extends Authenticatable
         return $this->hasMany(UserSession::class);
     }
 
+    public function securitySetting(): HasOne
+    {
+        return $this->hasOne(UserSecuritySetting::class);
+    }
+
+    public function securityPreferences(): array
+    {
+        $settings = $this->relationLoaded('securitySetting')
+            ? $this->getRelation('securitySetting')
+            : $this->securitySetting()->first();
+
+        return [
+            'require_password_for_studies' => $settings?->require_password_for_studies ?? true,
+            'require_password_for_patients' => $settings?->require_password_for_patients ?? true,
+            'audit_sensitive_actions' => $settings?->audit_sensitive_actions ?? true,
+        ];
+    }
+
+    public function criticalPasswordRequired(string $scope): bool
+    {
+        $preferences = $this->securityPreferences();
+
+        return match ($scope) {
+            'studies' => $preferences['require_password_for_studies'],
+            'patients' => $preferences['require_password_for_patients'],
+            default => false,
+        };
+    }
+
+    public function auditSensitiveActionsEnabled(): bool
+    {
+        return $this->securityPreferences()['audit_sensitive_actions'];
+    }
+
+    public function clinica(): BelongsTo
+    {
+        return $this->belongsTo(Clinica::class);
+    }
+
+    public function pacientes(): HasMany
+    {
+        return $this->hasMany(Paciente::class, 'clinica_id', 'clinica_id');
+    }
+
     /**
      * Valores por defecto de la configuración general.
      */
@@ -106,6 +229,9 @@ class User extends Authenticatable
             'notif_new_studies' => true,
             'notif_reports' => true,
             'notif_reminders' => false,
+            'capture_auto_capture' => true,
+            'capture_auto_save' => true,
+            'capture_auto_interval' => 30,
         ];
     }
 
