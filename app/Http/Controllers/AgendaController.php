@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\CitaEstadoChanged;
 use App\Models\Cita;
 use App\Models\Paciente;
 use Carbon\Carbon;
@@ -97,6 +98,8 @@ class AgendaController extends Controller
 
         $cita = Cita::create($validated);
 
+        broadcast(new CitaEstadoChanged($cita->fresh(), '', $cita->estado, 'nueva'));
+
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'ok' => true,
@@ -147,7 +150,19 @@ class AgendaController extends Controller
             'estado' => ['required', 'in:completado,en_espera,cancelado,proximo'],
         ]);
 
+        $estadoAnterior = $cita->estado;
+
         $cita->update($validated);
+
+        if ($estadoAnterior !== $cita->estado) {
+            $tipo = match($cita->estado) {
+                'en_espera'  => 'pendiente',
+                'cancelado'  => 'cancelada',
+                'completado' => 'completada',
+                default      => 'estado',
+            };
+            broadcast(new CitaEstadoChanged($cita->fresh(), $estadoAnterior, $cita->estado, $tipo));
+        }
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
@@ -164,7 +179,10 @@ class AgendaController extends Controller
 
     public function destroy(Request $request, Cita $cita)
     {
+        $snapshot = clone $cita;
         $cita->delete();
+
+        broadcast(new CitaEstadoChanged($snapshot, $snapshot->estado, 'eliminada', 'eliminada'));
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([

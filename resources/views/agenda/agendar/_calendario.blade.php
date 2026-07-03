@@ -40,13 +40,26 @@
 .cal-ag-day{position:relative}
 
 /* Horarios arbitrarios */
-.time-section{margin-top:16px}
+.time-section{margin-top:16px;min-width:0;overflow:hidden}
 .time-section-title{font-size:12px;font-weight:700;color:var(--ag-soft);margin-bottom:8px}
 
 /* Línea de tiempo */
-.timeline-wrap{margin-bottom:12px;transition:transform 200ms ease;transform-origin:center}
-.timeline-wrap:hover{transform:scale(1.06)}
-.timeline-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--ag-soft);margin-bottom:5px}
+.timeline-wrap{
+  margin-bottom:12px;
+  width:100%;
+  overflow-x:auto;
+  overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(255,255,255,.2) transparent;
+  box-sizing:border-box;
+}
+.timeline-wrap::-webkit-scrollbar{height:4px}
+.timeline-wrap::-webkit-scrollbar-track{background:transparent}
+.timeline-wrap::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:99px}
+.timeline-inner{width:720px}
+.timeline-labels{display:flex;justify-content:space-between;font-size:9.5px;color:var(--ag-soft);margin-bottom:5px;overflow:visible}
+.timeline-labels span{flex:0 0 auto;text-align:center;white-space:nowrap}
 .timeline-bar{position:relative;height:22px;border-radius:11px;background:rgba(255,255,255,.12);overflow:hidden;display:flex;align-items:stretch;transition:height 200ms ease}
 .timeline-wrap:hover .timeline-bar{height:44px}
 .timeline-segment{flex:1;height:100%;border-right:1.5px solid rgba(255,255,255,.25);position:relative;z-index:0}
@@ -196,12 +209,12 @@ html[data-theme="light"] .reprogram-info{
     <div class="time-section-title" id="timeSectionTitle">Horarios disponibles</div>
 
     <div class="timeline-wrap">
-      <div class="timeline-labels" id="timelineLabels">
-        <span>8:00</span><span>12:00</span><span>16:00</span><span>20:00</span><span>22:00</span>
-      </div>
-      <div class="timeline-bar" id="timelineBar">
-        <div class="timeline-cursor" id="timelineCursor" style="left:0"></div>
-        <div class="timeline-selection" id="timelineSelection"></div>
+      <div class="timeline-inner">
+        <div class="timeline-labels" id="timelineLabels"></div>
+        <div class="timeline-bar" id="timelineBar">
+          <div class="timeline-cursor" id="timelineCursor" style="left:0"></div>
+          <div class="timeline-selection" id="timelineSelection"></div>
+        </div>
       </div>
     </div>
 
@@ -259,9 +272,9 @@ html[data-theme="light"] .reprogram-info{
   const DIAS_FULL = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 
   // Horario operativo del recurso
-  const DAY_START = 8;   // 8:00 AM
-  const DAY_END   = 22;  // 10:00 PM
-  const TIMELINE_SEGMENTS = 28; // 30 min cada segmento
+  const DAY_START = 8;    // 8:00 AM
+  const DAY_END   = 24;   // 23:59 (medianoche)
+  const TIMELINE_SEGMENTS = 32; // 30 min × 32 = 16h (8:00–24:00)
 
   function getEvents() {
     return (typeof window.__AGENDA_EVENTS !== 'undefined') ? window.__AGENDA_EVENTS : {};
@@ -301,17 +314,17 @@ html[data-theme="light"] .reprogram-info{
   }
 
   function getSelectedMinutes() {
-    let hh = parseInt(document.getElementById('timeHour').value, 10) || 8;
+    let hh = parseInt(document.getElementById('timeHour').value, 10) || DAY_START;
     let mm = parseInt(document.getElementById('timeMin').value, 10) || 0;
-    // Forzar rango 08:00 - 23:59
-    hh = Math.max(8, Math.min(23, hh));
+    hh = Math.max(DAY_START, Math.min(23, hh));
     mm = Math.max(0, Math.min(59, mm));
     return Math.max(hh * 60 + mm, getMinSelectableMinutes());
   }
 
   function setSelectedMinutes(minutes) {
     const min = getMinSelectableMinutes();
-    minutes = Math.max(min, Math.min(23 * 60 + 59, minutes));
+    const max = 23 * 60 + 59;
+    minutes = Math.max(min, Math.min(max, minutes));
     const h24 = Math.floor(minutes / 60);
     const mm = minutes % 60;
     document.getElementById('timeHour').value = String(h24).padStart(2, '0');
@@ -319,15 +332,20 @@ html[data-theme="light"] .reprogram-info{
   }
 
   function getDuration() {
+    const start = getSelectedMinutes();
     const d = parseInt(document.getElementById('citaDuracion')?.value, 10);
-    return Math.max(1, Math.min(1440, Number.isFinite(d) && d > 0 ? d : 60));
+    const raw = Number.isFinite(d) && d > 0 ? d : 60;
+    const maxDur = DAY_END * 60 - start;
+    return Math.max(1, Math.min(maxDur, raw));
   }
 
   function changeDuration(delta) {
     const input = document.getElementById('citaDuracion');
     if (!input) return;
+    const start = getSelectedMinutes();
+    const maxDur = DAY_END * 60 - start;
     let val = parseInt(input.value, 10) || 60;
-    val = Math.max(1, Math.min(1440, val + delta));
+    val = Math.max(1, Math.min(maxDur, val + delta));
     input.value = val;
     updateEndTime();
     updateTimelineSelection();
@@ -405,11 +423,26 @@ html[data-theme="light"] .reprogram-info{
     return ranges.some(r => midMinutes >= r.start && midMinutes < r.end) ? 'busy' : 'free';
   }
 
+  function renderTimelineLabels() {
+    const el = document.getElementById('timelineLabels');
+    if (!el) return;
+    el.innerHTML = '';
+    el.style.position = '';
+    el.style.height = '';
+    for (let h = DAY_START; h <= DAY_END; h += 2) {
+      const span = document.createElement('span');
+      span.textContent = h === 24 ? '0:00' : `${h}:00`;
+      el.appendChild(span);
+    }
+  }
+
   function renderTimeline(y, m, d) {
     const bar = document.getElementById('timelineBar');
     const cursor = document.getElementById('timelineCursor');
     if (!bar) return;
     bar.querySelectorAll('.timeline-segment').forEach(el => el.remove());
+
+    renderTimelineLabels();
 
     const ranges = getDayEvents(y, m, d).map(parseEventRange);
     const segmentMinutes = (DAY_END - DAY_START) * 60 / TIMELINE_SEGMENTS;
@@ -629,6 +662,13 @@ html[data-theme="light"] .reprogram-info{
   });
   document.getElementById('durMinus')?.addEventListener('click', () => changeDuration(-5));
   document.getElementById('durPlus')?.addEventListener('click', () => changeDuration(5));
+
+  // Scroll horizontal con rueda del ratón en el timeline
+  document.querySelector('.timeline-wrap')?.addEventListener('wheel', (e) => {
+    if (e.deltaY === 0) return;
+    e.preventDefault();
+    e.currentTarget.scrollLeft += e.deltaY * 1.5;
+  }, { passive: false });
 
   function renderReprogramInfo() {
     const box = document.getElementById('reprogramInfo');

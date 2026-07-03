@@ -58,6 +58,21 @@
 .sw input:checked ~ .track{background:linear-gradient(135deg,var(--blue),var(--cyan))}
 .sw input:checked ~ .knob{transform:translateX(19px)}
 
+/* Opciones de notificación por canal (correo / pantalla) */
+.cfg-notif-opts{display:flex;align-items:center;gap:8px;flex:none}
+.cfg-notif-opt{position:relative;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;cursor:pointer;transition:all .15s}
+.cfg-notif-opt input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+.cfg-notif-opt svg{width:16px;height:16px}
+/* Estado inactivo: rojo para alto contraste visual */
+.cfg-notif-opt.email,.cfg-notif-opt.screen{color:#f87171;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.25)}
+.cfg-notif-opt.email:hover,.cfg-notif-opt.screen:hover{border-color:rgba(239,68,68,.55)}
+/* Correo electrónico activo: azul */
+.cfg-notif-opt.email:has(input:checked){color:#2563eb;background:rgba(59,130,246,.14);border-color:rgba(59,130,246,.5)}
+.cfg-notif-opt.email:has(input:checked):hover{border-color:rgba(59,130,246,.55)}
+/* Aviso en pantalla activo: naranja/campana */
+.cfg-notif-opt.screen:has(input:checked){color:#d97706;background:rgba(245,158,11,.14);border-color:rgba(245,158,11,.5)}
+.cfg-notif-opt.screen:has(input:checked):hover{border-color:rgba(245,158,11,.55)}
+
 /* Almacenamiento (barra reutilizable) */
 .store-box{padding:14px;border-radius:var(--r-md);border:1px solid var(--stroke);background:var(--panel-2);margin-bottom:14px}
 .store-top{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;margin-bottom:11px}

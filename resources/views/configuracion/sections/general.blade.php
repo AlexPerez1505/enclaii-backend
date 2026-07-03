@@ -107,34 +107,91 @@
       </div>
 
       <div class="cfg-row">
-        <span class="cfg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg></span>
-        <div class="cfg-info"><div class="t">Notificaciones por email</div><div class="d">Recibir notificaciones importantes por correo electrónico</div></div>
-        <label class="sw"><input type="checkbox" data-setting="notif_email" checked><span class="track"></span><span class="knob"></span></label>
-      </div>
-
-      <div class="cfg-row">
-        <span class="cfg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></span>
-        <div class="cfg-info"><div class="t">Notificaciones push</div><div class="d">Recibir notificaciones push en el navegador</div></div>
-        <label class="sw"><input type="checkbox" data-setting="notif_push" data-effect="push" checked><span class="track"></span><span class="knob"></span></label>
-      </div>
-
-      <div class="cfg-row">
         <span class="cfg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
-        <div class="cfg-info"><div class="t">Nuevos estudios asignados</div><div class="d">Cuando se te asigna un nuevo estudio</div></div>
-        <label class="sw"><input type="checkbox" data-setting="notif_new_studies" checked><span class="track"></span><span class="knob"></span></label>
-      </div>
-
-      <div class="cfg-row">
-        <span class="cfg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/></svg></span>
-        <div class="cfg-info"><div class="t">Reportes generados</div><div class="d">Cuando la IA genera un nuevo reporte</div></div>
-        <label class="sw"><input type="checkbox" data-setting="notif_reports" checked><span class="track"></span><span class="knob"></span></label>
+        <div class="cfg-info"><div class="t">Anuncios internos</div><div class="d">Noticias, eventos y beneficios exclusivos de Enclaii.</div></div>
+        <div class="cfg-notif-opts">
+          <label class="cfg-notif-opt email" title="Correo electrónico">
+            <input type="checkbox" data-setting="notif_new_studies_email" checked>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+          </label>
+          <label class="cfg-notif-opt screen" title="Aviso en pantalla">
+            <input type="checkbox" data-setting="notif_new_studies_screen" data-effect="push" checked>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          </label>
+        </div>
       </div>
 
       <div class="cfg-row">
         <span class="cfg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
-        <div class="cfg-info"><div class="t">Recordatorios de citas</div><div class="d">Recordatorios de citas y seguimiento</div></div>
-        <label class="sw"><input type="checkbox" data-setting="notif_reminders"><span class="track"></span><span class="knob"></span></label>
+        <div class="cfg-info"><div class="t">Mi agenda y citas</div><div class="d">Recordatorios de próximas citas y seguimientos de pacientes.</div></div>
+        <div class="cfg-notif-opts">
+          <label class="cfg-notif-opt email" title="Correo electrónico">
+            <input type="checkbox" data-setting="notif_reminders_email">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+          </label>
+          <label class="cfg-notif-opt screen" title="Aviso en pantalla">
+            <input type="checkbox" data-setting="notif_reminders_screen" data-effect="push">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          </label>
+        </div>
       </div>
+
+      <div class="cfg-row">
+        <span class="cfg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/></svg></span>
+        <div class="cfg-info"><div class="t">Mejoras en Enclaii</div><div class="d">Nuevas funciones y herramientas para optimizar el diagnóstico.</div></div>
+        <div class="cfg-notif-opts">
+          <label class="cfg-notif-opt email" title="Correo electrónico">
+            <input type="checkbox" data-setting="notif_updates_email">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+          </label>
+          <label class="cfg-notif-opt screen" title="Aviso en pantalla">
+            <input type="checkbox" data-setting="notif_updates_screen" data-effect="push">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          </label>
+        </div>
+      </div>
+
+      <div class="cfg-row">
+        <span class="cfg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
+        <div class="cfg-info"><div class="t">Mantenimiento de la plataforma</div><div class="d">Avisos anticipados sobre pausas programadas del sistema.</div></div>
+        <div class="cfg-notif-opts">
+          <label class="cfg-notif-opt email" title="Correo electrónico">
+            <input type="checkbox" data-setting="notif_maintenance_email">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+          </label>
+          <label class="cfg-notif-opt screen" title="Aviso en pantalla">
+            <input type="checkbox" data-setting="notif_maintenance_screen" data-effect="push">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          </label>
+        </div>
+      </div>
+
+      <div class="cfg-row">
+        <span class="cfg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+        <div class="cfg-info"><div class="t">Privacidad y seguridad de datos</div><div class="d">Cambios importantes en protección de datos y reglas de uso.</div></div>
+        <div class="cfg-notif-opts">
+          <label class="cfg-notif-opt email" title="Correo electrónico">
+            <input type="checkbox" data-setting="notif_privacy_email">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+          </label>
+          <label class="cfg-notif-opt screen" title="Aviso en pantalla">
+            <input type="checkbox" data-setting="notif_privacy_screen" data-effect="push">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          </label>
+        </div>
+      </div>
+
+      <div class="cfg-row">
+        <span class="cfg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+        <div class="cfg-info"><div class="t">Mensajes</div><div class="d">Alertas de nuevos mensajes y respuestas de pacientes.</div></div>
+        <div class="cfg-notif-opts">
+          <label class="cfg-notif-opt screen" title="Aviso en pantalla">
+            <input type="checkbox" data-setting="notif_messages_screen" data-effect="push">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          </label>
+        </div>
+      </div>
+
     </article>
 
   </div>

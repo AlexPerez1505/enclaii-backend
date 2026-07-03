@@ -19,10 +19,11 @@
 </script>
 <title>@yield('title', 'ENCLAII') — ENCLAII</title>
 @auth
-<script>window.enclaiiSettings = @json(auth()->user()->resolvedSettings());</script>
+<script>window.enclaiiSettings = @json(array_merge(auth()->user()->resolvedSettings(), ['user_id' => auth()->id()]));</script>
 @endauth
 <script defer src="{{ asset('js/i18n.js') }}"></script>
 <script defer src="{{ asset('js/preferences.js') }}"></script>
+@vite(['resources/js/app.js'])
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -333,6 +334,54 @@ html[data-theme="light"] .side-help { background: var(--bg); border:none; }
   display:grid;place-items:center;
   box-shadow:0 0 0 3px var(--bg);
 }
+
+/* ===== Panel de notificaciones ===== */
+.notif-wrap{position:relative}
+.notif-panel{
+  position:absolute;top:calc(100% + 10px);right:0;width:320px;max-width:90vw;
+  background:var(--card);border:1px solid var(--stroke);border-radius:var(--r-lg);
+  box-shadow:0 24px 48px rgba(0,0,0,.42);z-index:2100;
+  opacity:0;visibility:hidden;transform:translateY(-10px) scale(.98);transform-origin:top right;
+  transition:opacity .2s var(--ease-out),transform .2s var(--ease-out),visibility .2s;
+  overflow:hidden;
+}
+.notif-panel.open{opacity:1;visibility:visible;transform:translateY(0) scale(1)}
+.notif-panel-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px 10px;border-bottom:1px solid var(--stroke);
+}
+.notif-panel-title{font-family:'Sora',sans-serif;font-size:13.5px;font-weight:700;color:var(--txt)}
+.notif-clear-btn{
+  font-size:11.5px;font-weight:700;color:var(--txt-soft);
+  padding:4px 10px;border-radius:99px;
+  transition:background .15s,color .15s;
+}
+.notif-clear-btn:hover{background:var(--hover-bg);color:var(--blue)}
+.notif-list{max-height:340px;overflow-y:auto}
+.notif-empty{
+  padding:28px 16px;text-align:center;
+  font-size:13px;color:var(--txt-soft);
+}
+.notif-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:12px 16px;border-bottom:1px solid var(--stroke);
+  animation:notif-in .25s var(--ease-out);
+}
+.notif-item:last-child{border-bottom:0}
+@keyframes notif-in{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:none}}
+.notif-ico{
+  width:34px;height:34px;flex:none;border-radius:10px;
+  display:grid;place-items:center;
+  background:rgba(59,130,246,.15);color:var(--blue);
+}
+.notif-ico.amber{background:rgba(245,158,45,.15);color:var(--orange)}
+.notif-ico.red{background:rgba(239,68,68,.15);color:var(--red)}
+.notif-ico.green{background:rgba(16,185,129,.15);color:var(--green)}
+.notif-ico svg{width:16px;height:16px}
+.notif-body{flex:1;min-width:0}
+.notif-body strong{display:block;font-size:13px;font-weight:700;color:var(--txt);line-height:1.3}
+.notif-body span{display:block;font-size:11.5px;color:var(--txt-soft);margin-top:2px;line-height:1.4}
+.notif-body time{display:block;font-size:10.5px;color:var(--txt-soft);margin-top:4px;opacity:.7}
 .profile{
   display:flex;align-items:center;gap:10px;
   padding:6px 14px 6px 6px;
@@ -1133,10 +1182,21 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
           <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
           <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
         </button>
-        <button class="bell" aria-label="Notificaciones">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
-          <span class="dot">3</span>
-        </button>
+        <div class="notif-wrap" id="notifWrap">
+          <button class="bell" id="notifBell" aria-label="Notificaciones" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            <span class="dot" id="notifDot" style="display:none">0</span>
+          </button>
+          <div class="notif-panel" id="notifPanel">
+            <div class="notif-panel-head">
+              <span class="notif-panel-title">Notificaciones</span>
+              <button class="notif-clear-btn" id="notifClear" type="button">Limpiar</button>
+            </div>
+            <div class="notif-list" id="notifList">
+              <div class="notif-empty" id="notifEmpty">Sin notificaciones nuevas</div>
+            </div>
+          </div>
+        </div>
         @php
           $userName = auth()->check() ? trim(auth()->user()->name ?? 'Doctor') : 'Doctor';
           $userParts = preg_split('/\s+/', $userName);
@@ -2264,5 +2324,111 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
 </script>
 
 @stack('scripts')
+
+<script>
+(function(){
+  const bell     = document.getElementById('notifBell');
+  const panel    = document.getElementById('notifPanel');
+  const dot      = document.getElementById('notifDot');
+  const list     = document.getElementById('notifList');
+  const empty    = document.getElementById('notifEmpty');
+  const clearBtn = document.getElementById('notifClear');
+  if (!bell || !panel) return;
+
+  let count = 0;
+
+  function openPanel(){ panel.classList.add('open'); }
+  function closePanel(){ panel.classList.remove('open'); }
+
+  bell.addEventListener('click', (e) => {
+    e.stopPropagation();
+    panel.classList.toggle('open');
+    if (panel.classList.contains('open')) {
+      count = 0;
+      updateDot();
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!document.getElementById('notifWrap')?.contains(e.target)) closePanel();
+  });
+
+  clearBtn?.addEventListener('click', () => {
+    count = 0;
+    updateDot();
+    list.querySelectorAll('.notif-item').forEach(n => n.remove());
+    if (empty) empty.style.display = '';
+  });
+
+  function updateDot(){
+    if (!dot) return;
+    if (count > 0){ dot.textContent = count > 99 ? '99+' : count; dot.style.display = ''; }
+    else { dot.style.display = 'none'; }
+  }
+
+  const NOTIF_ICONS = {
+    bell:  '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
+    plus:  '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+    check: '<polyline points="20 6 9 17 4 12"/>',
+    x:     '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+    trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>',
+  };
+
+  function addNotif({ title, body, type = 'blue', icon = 'bell' }){
+    count++;
+    updateDot();
+    if (empty) empty.style.display = 'none';
+
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+    const svgPath = NOTIF_ICONS[icon] ?? NOTIF_ICONS.bell;
+
+    const item = document.createElement('div');
+    item.className = 'notif-item';
+    item.innerHTML = `
+      <div class="notif-ico ${type}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${svgPath}</svg>
+      </div>
+      <div class="notif-body">
+        <strong>${title}</strong>
+        <span>${body}</span>
+        <time>${timeStr}</time>
+      </div>`;
+
+    list.prepend(item);
+  }
+
+  window.__addNotif = addNotif;
+
+  @auth
+  const _notifUserId = @json(auth()->id());
+  const _notifEnabled = window.enclaiiSettings?.notif_reminders_screen ?? true;
+
+  function _initEchoNotif() {
+    if (!window.Echo) { setTimeout(_initEchoNotif, 200); return; }
+    if (!_notifUserId || !_notifEnabled) return;
+    window.Echo.private(`App.Models.User.${_notifUserId}`)
+      .listen('.cita.estado-cambio', (e) => {
+        const cfg = {
+          nueva:      { title: 'Nueva cita agendada',     type: 'blue',  icon: 'plus' },
+          pendiente:  { title: 'Cita en espera',          type: 'amber', icon: 'bell' },
+          cancelada:  { title: 'Cita cancelada',          type: 'red',   icon: 'x' },
+          completada: { title: 'Cita completada',         type: 'green', icon: 'check' },
+          eliminada:  { title: 'Cita eliminada',          type: 'red',   icon: 'trash' },
+          estado:     { title: 'Estado de cita cambiado', type: 'blue',  icon: 'bell' },
+        }[e.tipo] ?? { title: 'Notificación de cita', type: 'blue', icon: 'bell' };
+
+        addNotif({
+          title: cfg.title,
+          body: `${e.paciente} — ${e.fecha} ${e.hora}`,
+          type: cfg.type,
+          icon: cfg.icon,
+        });
+      });
+  }
+  _initEchoNotif();
+  @endauth
+})();
+</script>
 </body>
 </html>
