@@ -839,7 +839,7 @@
 .lg-st-active{font-size:10px;font-weight:700;color:var(--green);background:rgba(61,220,151,.14);padding:2px 8px;border-radius:6px}
 .lg-st-old{font-size:10px;font-weight:600;color:var(--txt-soft);background:var(--hover-bg);padding:2px 8px;border-radius:6px}
 /* Footer */
-.gp-foot{display:flex;justify-content:flex-end;padding:16px 0 22px;margin-top:6px;border-top:1px solid var(--stroke);position:sticky;bottom:0;background:var(--card)}
+.gp-foot{display:flex;justify-content:flex-end;padding:16px 0 22px;margin-top:6px;border-top:1px solid var(--stroke);background:var(--card)}
 .gp-cerrar{padding:10px 22px;border-radius:10px;background:var(--panel-2);border:1px solid var(--stroke-strong);color:var(--txt);font-weight:600;font-size:13.5px}
 .gp-cerrar:hover{background:var(--hover-bg)}
 
