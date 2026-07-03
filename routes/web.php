@@ -76,6 +76,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/configuracion/constancia-fiscal', [SettingsController::class, 'deleteConstancia'])
         ->name('configuracion.constancia.delete');
 
+    Route::post('/legal/aceptaciones', [SettingsController::class, 'storeLegalAcceptances'])
+        ->name('legal.acceptances.store');
+
     // ===== Stripe (pagos y suscripciones) =====
     Route::post('/stripe/checkout', [StripeController::class, 'checkout'])
         ->name('stripe.checkout');

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LegalAcceptance;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -155,6 +156,32 @@ class SettingsController extends Controller
         }
 
         $user->update(['foto_perfil' => null]);
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function storeLegalAcceptances(Request $request): JsonResponse
+    {
+        $request->validate([
+            'documentos'   => ['required', 'array', 'min:1'],
+            'documentos.*' => ['required', 'string'],
+        ]);
+
+        /** @var User $user */
+        $user = $request->user();
+        $now  = now();
+
+        foreach ($request->documentos as $documento) {
+            LegalAcceptance::create([
+                'user_id'   => $user->id,
+                'documento' => $documento,
+                'version'   => '1.0',
+                'fecha'     => $now->toDateString(),
+                'hora'      => $now->toTimeString(),
+                'ip'        => $request->ip(),
+                'navegador' => $request->userAgent(),
+            ]);
+        }
 
         return response()->json(['ok' => true]);
     }

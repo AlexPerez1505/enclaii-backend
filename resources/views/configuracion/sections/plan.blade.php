@@ -797,11 +797,66 @@ document.addEventListener('DOMContentLoaded', function(){
             el.textContent = el.dataset.originalText || 'Cambiar plan';
           });
       } else {
-        // Usuario sin suscripción: checkout normal (redirección a Stripe)
-        console.log('Sending to checkout:', { plan, interval });
-        postTo(CHECKOUT_URL, { plan, interval });
+        // Usuario sin suscripción: mostrar modal legal antes del checkout
+        console.log('Opening legal modal for:', { plan, interval });
+        pendingCheckout = { plan, interval };
+        openLegalModal();
       }
     });
+  });
+
+  // ===== Modal legal para checkout =====
+  let pendingCheckout = null;
+  const legalModal = document.getElementById('legalModal');
+  const legalCbs = document.querySelectorAll('.sc-legal-cb2');
+  const legalContinueBtn = document.getElementById('legalContinueBtn');
+  const LEGAL_URL = "{{ route('legal.acceptances.store') }}";
+
+  function openLegalModal() {
+    legalCbs.forEach(cb => cb.checked = false);
+    legalContinueBtn.disabled = true;
+    legalModal.style.display = 'flex';
+  }
+
+  window.closeLegalModal = function() {
+    legalModal.style.display = 'none';
+    pendingCheckout = null;
+  };
+
+  legalCbs.forEach(cb => cb.addEventListener('change', () => {
+    legalContinueBtn.disabled = ![...legalCbs].every(c => c.checked);
+  }));
+
+  legalContinueBtn.addEventListener('click', async () => {
+    if (!pendingCheckout) return;
+    legalContinueBtn.disabled = true;
+    legalContinueBtn.textContent = 'Procesando...';
+
+    // Guardar evidencia legal
+    try {
+      const documentos = [...legalCbs].map(cb => cb.dataset.doc);
+      await fetch(LEGAL_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': CSRF,
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ documentos })
+      });
+    } catch(err) {
+      console.error('Error guardando aceptaciones legales:', err);
+    }
+
+    // Continuar al checkout de Stripe
+    postTo(CHECKOUT_URL, pendingCheckout);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && legalModal.style.display === 'flex') {
+      window.closeLegalModal();
+    }
   });
 
   // ===== Cancelar plan (in-app, sin redirección) =====
@@ -877,6 +932,35 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 @endpush
 
+{{-- Modal de aceptación legal (checkout sin suscripción) --}}
+<div id="legalModal" class="sc-modal" style="display:none">
+  <div class="sc-overlay" onclick="closeLegalModal()"></div>
+  <div class="sc-content" style="max-width:440px">
+    <div class="sc-header">
+      <h3>Antes de continuar</h3>
+      <button type="button" onclick="closeLegalModal()" class="sc-close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <p style="font-size:13px;color:var(--txt-soft);margin-bottom:16px">Para suscribirte necesitas aceptar nuestras políticas:</p>
+    <div class="sc-legal">
+      <label class="sc-legal-item">
+        <input type="checkbox" class="sc-legal-cb2" data-doc="Términos y Condiciones">
+        <span>He leído y acepto los <a href="https://stripe.com/mx/privacy" target="_blank" rel="noopener">Términos y Condiciones</a></span>
+      </label>
+      <label class="sc-legal-item">
+        <input type="checkbox" class="sc-legal-cb2" data-doc="Aviso de Privacidad">
+        <span>He leído y acepto el <a href="https://stripe.com/mx/privacy" target="_blank" rel="noopener">Aviso de Privacidad</a></span>
+      </label>
+      <label class="sc-legal-item">
+        <input type="checkbox" class="sc-legal-cb2" data-doc="Políticas del Sistema">
+        <span>Acepto las <a href="https://stripe.com/mx/privacy" target="_blank" rel="noopener">Políticas del Sistema</a></span>
+      </label>
+    </div>
+    <button type="button" id="legalContinueBtn" class="sc-pay-btn" disabled>Continuar al pago</button>
+  </div>
+</div>
+
 {{-- Notificación toast personalizada --}}
 <div id="customToast" class="custom-toast" style="display:none">
   <div class="toast-content">
@@ -907,6 +991,26 @@ document.addEventListener('DOMContentLoaded', function(){
 .toast-close:hover{background:rgba(239,68,68,.1);color:var(--red);border-color:var(--red)}
 .toast-close svg{width:14px;height:14px}
 @media(max-width:600px){.custom-toast{bottom:16px;right:16px;left:16px}.toast-content{min-width:auto}}
+
+/* Modal legal */
+.sc-modal{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center}
+.sc-overlay{position:absolute;inset:0;background:rgba(5,9,20,.7);backdrop-filter:blur(4px)}
+.sc-content{position:relative;width:100%;max-width:480px;background:var(--card);border:1px solid var(--stroke);border-radius:20px;box-shadow:0 30px 80px -20px rgba(0,0,0,.5);padding:24px;max-height:92vh;overflow-y:auto}
+.sc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.sc-header h3{font-family:'Sora',sans-serif;font-size:20px;font-weight:800;margin:0}
+.sc-close{width:36px;height:36px;border-radius:10px;border:1px solid var(--stroke);background:var(--panel-2);color:var(--txt-soft);cursor:pointer;display:grid;place-items:center;transition:all .15s}
+.sc-close:hover{background:rgba(239,68,68,.1);color:var(--red);border-color:var(--red)}
+.sc-close svg{width:18px;height:18px}
+.sc-legal{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;padding:14px 16px;background:var(--panel-2);border:1px solid var(--stroke);border-radius:12px}
+.sc-legal-item{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--txt-soft);cursor:pointer;line-height:1.45}
+.sc-legal-item input[type="checkbox"]{width:16px;height:16px;margin-top:2px;accent-color:#2E7BF6;cursor:pointer;flex-shrink:0}
+.sc-legal-item a{color:#2E7BF6;font-weight:600;text-decoration:none}
+.sc-legal-item a:hover{text-decoration:underline}
+.sc-pay-btn{width:100%;padding:14px;border-radius:12px;border:0;background:linear-gradient(135deg,#0B1A4A 0%,#12266B 55%,#1E5AE8 130%);color:#fff;font-family:'Sora',sans-serif;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:opacity .15s,transform .1s;box-shadow:0 10px 24px -10px rgba(11,26,74,.55)}
+.sc-pay-btn:hover{opacity:.9}
+.sc-pay-btn:active{transform:scale(.97)}
+.sc-pay-btn:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:600px){.sc-content{width:95%;padding:18px}}
 </style>
 @endpush
 
