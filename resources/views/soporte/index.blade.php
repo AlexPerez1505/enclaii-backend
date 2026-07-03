@@ -540,6 +540,7 @@
 
 <script>
 (function(){
+  var CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '';
   var btn = document.getElementById('btnEnviarSolicitud');
   var fbOverlay = document.getElementById('fbOverlay');
   var fbClose = document.getElementById('fbClose');
@@ -582,7 +583,43 @@
       return;
     }
 
-    showFeedback();
+    // Guardar ticket en base de datos
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+
+    fetch("{{ route('soporte.solicitudes.store') }}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': CSRF,
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        category: cat.value,
+        subject: asunto.value,
+        description: desc.value
+      })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      btn.disabled = false;
+      btn.textContent = 'Enviar solicitud';
+      if(data.ok){
+        // Limpiar formulario
+        cat.value = '';
+        asunto.value = '';
+        desc.value = '';
+        [cat, asunto, desc].forEach(function(el){ el.style.borderColor = ''; });
+        showFeedback();
+      } else {
+        alert('No se pudo guardar la solicitud. Intenta de nuevo.');
+      }
+    })
+    .catch(function(){
+      btn.disabled = false;
+      btn.textContent = 'Enviar solicitud';
+      alert('Error de conexion. No se pudo guardar la solicitud.');
+    });
   });
 
   if(fbClose) fbClose.addEventListener('click', closeFeedback);

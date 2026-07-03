@@ -10,7 +10,7 @@
   display:flex;flex-direction:column;
   height:calc(100vh - 160px);min-height:400px;
   background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-lg);
-  overflow:hidden;
+  overflow:hidden;position:relative;
 }
 
 /* Header */
@@ -122,6 +122,59 @@
   transition:background .15s,color .15s;
 }
 .chat-suggestions .sug:hover{background:rgba(110,160,255,.1);color:var(--txt)}
+
+/* Welcome / landing screen */
+.chat-welcome{
+  position:absolute;inset:0;z-index:10;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--panel-2);padding:40px 20px;
+  transition:opacity .3s ease;
+}
+.chat-welcome.hidden{opacity:0;pointer-events:none}
+.chat-welcome .welcome-icon{
+  width:64px;height:64px;border-radius:50%;margin-bottom:20px;
+  background:linear-gradient(135deg,var(--blue),var(--cyan));
+  display:grid;place-items:center;
+}
+.chat-welcome h2{
+  font-size:26px;font-weight:700;color:var(--txt);margin:0 0 6px;
+}
+.chat-welcome .welcome-sub{
+  font-size:14px;color:var(--txt-soft);margin:0 0 32px;
+}
+.chat-welcome .welcome-input-wrap{
+  display:flex;align-items:center;gap:10px;
+  width:100%;max-width:520px;
+  padding:6px 6px 6px 20px;
+  border:1px solid var(--stroke);border-radius:99px;
+  background:var(--panel);transition:border-color .15s;
+}
+.chat-welcome .welcome-input-wrap:focus-within{border-color:var(--blue)}
+.chat-welcome .welcome-input-wrap input{
+  flex:1;border:none;background:transparent;color:var(--txt);
+  font-size:15px;outline:none;
+}
+.chat-welcome .welcome-input-wrap input::placeholder{color:var(--txt-soft)}
+.chat-welcome .welcome-input-wrap .btn-go{
+  width:40px;height:40px;border-radius:50%;border:0;
+  background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff;
+  display:grid;place-items:center;cursor:pointer;flex-shrink:0;
+  transition:opacity .15s;
+}
+.chat-welcome .welcome-input-wrap .btn-go:hover{opacity:.85}
+.chat-welcome .welcome-chips{
+  display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;justify-content:center;
+}
+.chat-welcome .welcome-chips .chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 18px;border-radius:99px;font-size:13px;
+  border:1px solid var(--stroke);color:var(--txt-soft);cursor:pointer;
+  background:transparent;transition:all .15s;
+}
+.chat-welcome .welcome-chips .chip:hover{
+  background:rgba(110,160,255,.1);color:var(--txt);border-color:var(--blue);
+}
+.chat-welcome .welcome-chips .chip svg{opacity:.5}
 </style>
 @endpush
 
@@ -139,30 +192,37 @@
     <a href="{{ route('soporte') }}" class="btn-back">← Volver a soporte</a>
   </div>
 
-  <div class="chat-messages" id="chatMessages">
-    <div class="chat-msg ia">
-      <div class="msg-avatar">IA</div>
-      <div>
-        <div class="msg-bubble">¡Hola! Soy el asistente de IA de ENCLAII. Estoy aquí para ayudarte con cualquier duda o problema que tengas. ¿En qué puedo ayudarte hoy?</div>
-        <div class="msg-time">Ahora</div>
-      </div>
+  {{-- Welcome landing screen --}}
+  <div class="chat-welcome" id="chatWelcome">
+    <div class="welcome-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4v4"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M9 13h.01"/><path d="M15 13h.01"/><path d="M10 17s1 1 2 1 2-1 2-1"/></svg>
+    </div>
+    <h2>¿En que puedo ayudarte?</h2>
+    <p class="welcome-sub">Asistente de soporte ENCLAII · Siempre en linea</p>
+    <div class="welcome-input-wrap">
+      <input type="text" id="welcomeInput" placeholder="Pregunta lo que quieras..." autocomplete="off">
+      <button class="btn-go" id="btnWelcomeSend" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+    <div class="welcome-chips">
+      <span class="chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>No puedo subir archivos</span>
+      <span class="chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Error al iniciar sesion</span>
+      <span class="chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>¿Como exporto datos?</span>
+      <span class="chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>¿Como genero un reporte?</span>
     </div>
   </div>
+
+  <div class="chat-messages" id="chatMessages" style="display:none"></div>
 
   <div class="chat-typing" id="chatTyping">
     <div class="msg-avatar">IA</div>
     <div class="dots"><span></span><span></span><span></span></div>
   </div>
 
-  <div class="chat-suggestions" id="chatSuggestions">
-    <span class="sug">No puedo subir archivos</span>
-    <span class="sug">Error al iniciar sesión</span>
-    <span class="sug">¿Cómo exporto datos?</span>
-    <span class="sug">Problemas de conexión</span>
-    <span class="sug">¿Cómo genero un reporte?</span>
-  </div>
+  <div class="chat-suggestions" id="chatSuggestions" style="display:none"></div>
 
-  <div class="chat-input">
+  <div class="chat-input" id="chatInputBar" style="display:none">
     <input type="text" id="chatInput" placeholder="Escribe tu mensaje..." autocomplete="off">
     <button class="btn-send" id="btnSend" type="button">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -182,6 +242,21 @@
   var typing = document.getElementById('chatTyping');
   var suggestions = document.getElementById('chatSuggestions');
   var chatHistory = [];
+  var welcome = document.getElementById('chatWelcome');
+  var welcomeInput = document.getElementById('welcomeInput');
+  var btnWelcomeSend = document.getElementById('btnWelcomeSend');
+  var chatInputBar = document.getElementById('chatInputBar');
+  var started = false;
+
+  function startChat(){
+    if(started) return;
+    started = true;
+    welcome.classList.add('hidden');
+    messages.style.display = 'flex';
+    chatInputBar.style.display = 'flex';
+    setTimeout(function(){ welcome.style.display = 'none'; }, 300);
+    input.focus();
+  }
 
   function addMessage(text, isUser){
     var div = document.createElement('div');
@@ -245,8 +320,26 @@
     if (e.key === 'Enter') sendMessage(input.value);
   });
 
-  suggestions.querySelectorAll('.sug').forEach(function(s){
-    s.addEventListener('click', function(){ sendMessage(s.textContent); });
+  // Welcome screen handlers
+  btnWelcomeSend.addEventListener('click', function(){
+    var text = welcomeInput.value.trim();
+    if(!text) return;
+    startChat();
+    sendMessage(text);
+  });
+  welcomeInput.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){
+      var text = welcomeInput.value.trim();
+      if(!text) return;
+      startChat();
+      sendMessage(text);
+    }
+  });
+  document.querySelectorAll('.chat-welcome .chip').forEach(function(c){
+    c.addEventListener('click', function(){
+      startChat();
+      sendMessage(c.textContent.trim());
+    });
   });
 })();
 </script>

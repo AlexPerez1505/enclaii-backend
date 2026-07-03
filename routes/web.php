@@ -604,6 +604,10 @@ Route::middleware('auth')->group(function () {
     })->name('soporte.chat');
 
     Route::post('/soporte/chat', [\App\Http\Controllers\SoporteChatController::class, 'send'])->name('soporte.chat.send');
+
+    Route::post('/soporte/solicitudes', [\App\Http\Controllers\SoporteController::class, 'store'])->name('soporte.solicitudes.store');
+
+    Route::post('/soporte/tickets', [\App\Http\Controllers\TicketController::class, 'store'])->name('soporte.tickets.store');
 });
 
 

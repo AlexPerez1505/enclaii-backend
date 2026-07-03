@@ -213,7 +213,7 @@
         <div class="tkt-form-row">
           <div class="tkt-field">
             <label>Categoría</label>
-            <select>
+            <select id="tktCategoria">
               <option value="">Selecciona una categoría</option>
               <option value="facturacion">Facturación</option>
               <option value="tecnico">Problema técnico</option>
@@ -225,7 +225,7 @@
           </div>
           <div class="tkt-field">
             <label>Prioridad</label>
-            <select>
+            <select id="tktPrioridad">
               <option value="media">Media</option>
               <option value="alta">Alta</option>
               <option value="baja">Baja</option>
@@ -236,7 +236,7 @@
         <div class="tkt-form-row full">
           <div class="tkt-field">
             <label>Asunto</label>
-            <input type="text" placeholder="Describe brevemente tu problema">
+            <input type="text" id="tktAsunto" placeholder="Describe brevemente tu problema">
           </div>
         </div>
 
@@ -286,7 +286,7 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
             Adjuntar archivo
             <span>Tamaño máx. de archivo: 10MB</span>
-            <input type="file" style="display:none">
+            <input type="file" id="tktAttachment" style="display:none">
           </label>
           <button class="tkt-btn-enviar" type="button" id="btnEnviarTicket" onclick="window.__enviarTicket()">
             Enviar ticket

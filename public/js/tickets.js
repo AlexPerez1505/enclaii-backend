@@ -1,31 +1,36 @@
 var __tktData = {};
 var __tktOverlay, __tktBody;
 
-window.__enviarTicket = function(){
-  __tktOverlay = document.getElementById('tktModalOverlay');
-  __tktBody = document.getElementById('tktModalBody');
-  var panel = document.getElementById('panelCrear');
-  if(!panel || !__tktOverlay || !__tktBody) { alert('Error: elementos no encontrados'); return; }
+function __tktValor(id, def){
+  var el = document.getElementById(id);
+  return el ? el.value : (def || '');
+}
 
-  var cat = panel.querySelector('select') ? panel.querySelector('select').value : 'Sin categoria';
-  var selects = panel.querySelectorAll('select');
-  var prio = selects.length > 1 ? selects[1].value : 'Media';
-  var asunto = panel.querySelector('input[type="text"]') ? panel.querySelector('input[type="text"]').value : 'Sin asunto';
-  var desc = document.getElementById('tktDescripcion') ? document.getElementById('tktDescripcion').value : 'Sin descripcion';
-  var negocio = document.getElementById('tktNegocio') ? document.getElementById('tktNegocio').value : '-';
-  var operacion = document.getElementById('tktOperacion') ? document.getElementById('tktOperacion').value : '-';
-  var conceptos = document.getElementById('tktConceptos') ? document.getElementById('tktConceptos').value : '-';
-  var totales = document.getElementById('tktTotales') ? document.getElementById('tktTotales').value : '-';
-  var metodo = document.getElementById('tktMetodoPago') ? document.getElementById('tktMetodoPago').value : '-';
-  var ticketId = '#' + (1249 + Math.floor(Math.random() * 100));
+function __tktTexto(id, def){
+  var el = document.getElementById(id);
+  var v = el ? el.value.trim() : '';
+  return v || (def || '-');
+}
+
+function __mostrarResumen(ticket){
   var fecha = new Date().toLocaleDateString('es-MX', {day:'2-digit', month:'short', year:'numeric'});
   var hora = new Date().toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
+  var id = '#' + ticket.id;
+  var cat = __tktTexto('tktCategoria', 'Sin categoria');
+  var prio = __tktTexto('tktPrioridad', 'Media');
+  var asunto = __tktTexto('tktAsunto', 'Sin asunto');
+  var desc = __tktTexto('tktDescripcion', 'Sin descripcion');
+  var negocio = __tktTexto('tktNegocio');
+  var operacion = __tktTexto('tktOperacion');
+  var conceptos = __tktTexto('tktConceptos');
+  var totales = __tktTexto('tktTotales');
+  var metodo = __tktTexto('tktMetodoPago');
 
-  __tktData = {id:ticketId, fecha:fecha, hora:hora, cat:cat, prio:prio, asunto:asunto, desc:desc, negocio:negocio, operacion:operacion, conceptos:conceptos, totales:totales, metodo:metodo};
+  __tktData = {id:id, fecha:fecha, hora:hora, cat:cat, prio:prio, asunto:asunto, desc:desc, negocio:negocio, operacion:operacion, conceptos:conceptos, totales:totales, metodo:metodo};
 
   __tktBody.innerHTML =
     '<div class="tkt-resumen">' +
-    '<div class="row"><span class="lbl">ID del ticket:</span><span class="val">' + ticketId + '</span></div>' +
+    '<div class="row"><span class="lbl">ID del ticket:</span><span class="val">' + id + '</span></div>' +
     '<div class="row"><span class="lbl">Fecha:</span><span class="val">' + fecha + '</span></div>' +
     '<div class="row"><span class="lbl">Categoria:</span><span class="val">' + cat + '</span></div>' +
     '<div class="row"><span class="lbl">Prioridad:</span><span class="val">' + prio + '</span></div>' +
@@ -39,6 +44,77 @@ window.__enviarTicket = function(){
     '</div>';
 
   __tktOverlay.style.display = 'grid';
+}
+
+window.__enviarTicket = function(){
+  __tktOverlay = document.getElementById('tktModalOverlay');
+  __tktBody = document.getElementById('tktModalBody');
+  var btn = document.getElementById('btnEnviarTicket');
+  if(!__tktOverlay || !__tktBody) { alert('Error: elementos no encontrados'); return; }
+
+  var cat = __tktValor('tktCategoria');
+  var asunto = __tktValor('tktAsunto');
+  var desc = __tktValor('tktDescripcion');
+
+  if(!cat || !asunto || !desc){
+    alert('Por favor completa al menos categoria, asunto y descripcion.');
+    return;
+  }
+
+  var csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+  var formData = new FormData();
+  formData.append('category', cat);
+  formData.append('priority', __tktValor('tktPrioridad', 'media'));
+  formData.append('subject', asunto);
+  formData.append('description', desc);
+  formData.append('business_name', __tktValor('tktNegocio'));
+  formData.append('operation_folio', __tktValor('tktOperacion'));
+  formData.append('concepts', __tktValor('tktConceptos'));
+  formData.append('totals', __tktValor('tktTotales'));
+  formData.append('payment_method', __tktValor('tktMetodoPago'));
+
+  var fileInput = document.getElementById('tktAttachment');
+  if(fileInput && fileInput.files[0]){
+    formData.append('attachment', fileInput.files[0]);
+  }
+
+  if(btn){
+    btn.disabled = true;
+    btn.innerHTML = 'Guardando...';
+  }
+
+  fetch('/soporte/tickets', {
+    method: 'POST',
+    headers: {
+      'X-CSRF-TOKEN': csrf,
+      'Accept': 'application/json'
+    },
+    body: formData
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if(btn){
+      btn.disabled = false;
+      btn.innerHTML = 'Enviar ticket <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+    }
+    if(data.ok){
+      __mostrarResumen(data.ticket);
+      // limpiar formulario
+      ['tktCategoria','tktPrioridad','tktAsunto','tktDescripcion','tktNegocio','tktOperacion','tktConceptos','tktTotales','tktMetodoPago','tktAttachment'].forEach(function(id){
+        var el = document.getElementById(id);
+        if(el) el.value = '';
+      });
+    } else {
+      alert('No se pudo guardar el ticket. Intenta de nuevo.');
+    }
+  })
+  .catch(function(err){
+    if(btn){
+      btn.disabled = false;
+      btn.innerHTML = 'Enviar ticket <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+    }
+    alert('Error de conexion. No se pudo guardar el ticket.');
+  });
 };
 
 function __generarTicketHTML(d){
