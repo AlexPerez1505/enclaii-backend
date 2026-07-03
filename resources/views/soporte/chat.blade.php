@@ -230,7 +230,7 @@
         addMessage(data.reply, false);
         chatHistory.push({ role: 'assistant', content: data.reply });
       } else {
-        addMessage('Lo siento, hubo un error al procesar tu mensaje. Por favor intenta de nuevo o crea un ticket de soporte.', false);
+        addMessage('Lo siento, hubo un error al procesar tu mensaje. Por favor intenta de nuevo en unos momentos.', false);
       }
     })
     .catch(function(){

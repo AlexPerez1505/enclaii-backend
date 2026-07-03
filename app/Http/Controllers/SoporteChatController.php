@@ -27,7 +27,7 @@ class SoporteChatController extends Controller
             ], 503);
         }
 
-        $model = config('services.openai.model', 'gpt-4o-mini');
+        $model = 'gpt-4.1-mini';
         $baseUrl = rtrim(config('services.openai.base_url', 'https://api.openai.com/v1'), '/');
 
         $messages = [[
@@ -52,6 +52,8 @@ class SoporteChatController extends Controller
 
         try {
             $response = Http::withToken($apiKey)
+                ->withoutVerifying()
+                ->withOptions(['verify' => false])
                 ->timeout(30)
                 ->acceptJson()
                 ->post("{$baseUrl}/chat/completions", [
