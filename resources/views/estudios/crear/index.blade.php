@@ -220,14 +220,7 @@
 {{-- Panel Galeria --}}
 <div class="np-tab-panel" id="tab-galeria">
 
-  <div class="pa-topbar rise d2">
-    <button class="np-new-study-btn" type="button" id="npNewStudyBtnGal" style="margin-left:auto">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Agregar nuevo estudio
-    </button>
-  </div>
-
-  <div class="pa-shell rise d3">
+  <div class="pa-shell rise d3" style="grid-template-columns:1fr">
     <div>
       <section class="pa-hero">
         <div class="pa-avatar" id="npGalAvatar">{{ $galIni }}</div>
@@ -244,32 +237,74 @@
 
       <div class="pa-empty" id="npGalEmpty">No se encontraron archivos para este paciente.</div>
 
+      @if($paciente)
+      @php
+        $todos = $galVideos->merge($galImagenes)->sortByDesc('capturado_en');
+        $porEstudio = $todos->groupBy(fn($a) => $a->estudio_id ?? 'sin_estudio');
+      @endphp
+      @forelse($porEstudio as $estudioId => $archivos)
+        @php
+          $estudio = $archivos->first()?->estudio;
+          $folio = $estudio?->folio ?? 'Sin folio';
+          $fecha = optional($estudio?->created_at ?? $archivos->first()?->capturado_en)->format('d/m/Y') ?? '—';
+          $tipo = $estudio?->tipo ?? '';
+          $numVideos = $archivos->where('tipo','video')->count();
+          $numImgs = $archivos->where('tipo','imagen')->count();
+        @endphp
+        <section class="pa-section">
+          <div class="pa-section-head">
+            <div style="display:flex;align-items:center;gap:10px">
+              <h2 class="pa-section-title">Estudio {{ $folio }}</h2>
+              @if($tipo)<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:rgba(46,123,246,.12);border:1px solid rgba(46,123,246,.25);color:var(--blue)">{{ ucfirst($tipo) }}</span>@endif
+            </div>
+            <span class="pa-section-count">{{ $fecha }} · {{ $numVideos }} video{{ $numVideos!=1?'s':'' }}, {{ $numImgs }} foto{{ $numImgs!=1?'s':'' }}</span>
+          </div>
+          <div class="pa-grid">
+            @foreach($archivos as $a)
+              @if($a->tipo === 'video')
+                <article class="pa-card" data-kind="video" data-title="{{ strtolower($a->nombre_original ?? 'video') }}">
+                  <div class="pa-thumb">
+                    <video src="{{ asset('storage/'.$a->path) }}" preload="metadata" muted style="width:100%;height:100%;object-fit:cover"></video>
+                    <span class="pa-badge video">VIDEO</span>
+                    <div class="pa-play"><span><svg width="17" height="17" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg></span></div>
+                  </div>
+                  <div class="pa-body">
+                    <div class="pa-name">{{ $a->nombre_original ?? 'Grabación' }}</div>
+                    <div class="pa-meta">{{ optional($a->capturado_en)->format('d/m/Y H:i') }}</div>
+                    <div class="pa-actions">
+                      <a class="pa-btn primary" href="{{ asset('storage/'.$a->path) }}" target="_blank">Ver</a>
+                    </div>
+                  </div>
+                </article>
+              @else
+                <article class="pa-card" data-kind="imagen" data-title="{{ strtolower($a->nombre_original ?? 'captura') }}">
+                  <div class="pa-thumb">
+                    <img src="{{ asset('storage/'.$a->path) }}" alt="{{ $a->nombre_original ?? 'Captura' }}">
+                    <span class="pa-badge image">IMG</span>
+                    <span class="pa-duration">{{ optional($a->capturado_en)->format('H:i') }}</span>
+                  </div>
+                  <div class="pa-body">
+                    <div class="pa-name">{{ $a->nombre_original ?? 'Captura' }}</div>
+                    <div class="pa-meta">{{ optional($a->capturado_en)->format('d/m/Y H:i') }}</div>
+                    <div class="pa-actions">
+                      <a class="pa-btn primary" href="{{ route('galeria.imagen', $a->id) }}">Ver imagen</a>
+                    </div>
+                  </div>
+                </article>
+              @endif
+            @endforeach
+          </div>
+        </section>
+      @empty
+        <p style="color:var(--txt-soft);font-size:13px;padding:20px 0">No hay archivos para este paciente.</p>
+      @endforelse
+      @else
       <section class="pa-section">
         <div class="pa-section-head">
           <h2 class="pa-section-title">Videos</h2>
-          <span class="pa-section-count">{{ $paciente ? $galVideos->count().' archivos' : '2 archivos' }}</span>
+          <span class="pa-section-count">2 archivos</span>
         </div>
         <div class="pa-grid">
-          @if($paciente)
-          @forelse($galVideos as $v)
-          <article class="pa-card" data-kind="video" data-title="{{ strtolower($v->nombre_original ?? 'video') }}">
-            <div class="pa-thumb">
-              <video src="{{ asset('storage/'.$v->path) }}" preload="metadata" muted style="width:100%;height:100%;object-fit:cover"></video>
-              <span class="pa-badge video">VIDEO</span>
-              <div class="pa-play"><span><svg width="17" height="17" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg></span></div>
-            </div>
-            <div class="pa-body">
-              <div class="pa-name">{{ $v->nombre_original ?? 'Video del estudio' }}</div>
-              <div class="pa-meta">Estudio {{ $v->estudio?->folio }}<br>{{ optional($v->capturado_en)->format('d/m/Y H:i') }}</div>
-              <div class="pa-actions">
-                <a class="pa-btn primary" href="{{ asset('storage/'.$v->path) }}" target="_blank">Ver</a>
-              </div>
-            </div>
-          </article>
-          @empty
-          <p style="color:var(--txt-soft);font-size:13px">No hay videos para este paciente.</p>
-          @endforelse
-          @else
           <article class="pa-card" data-kind="video" data-title="video edd-2025-001245 endoscopia digestiva alta">
             <div class="pa-thumb">
               <span class="pa-badge video">VIDEO</span>
@@ -285,36 +320,14 @@
               </div>
             </div>
           </article>
-          @endif
         </div>
       </section>
-
       <section class="pa-section">
         <div class="pa-section-head">
           <h2 class="pa-section-title">Imagenes</h2>
-          <span class="pa-section-count">{{ $paciente ? $galImagenes->count().' archivos' : '4 archivos' }}</span>
+          <span class="pa-section-count">4 archivos</span>
         </div>
         <div class="pa-grid">
-          @if($paciente)
-          @forelse($galImagenes as $img)
-          <article class="pa-card" data-kind="imagen" data-title="{{ strtolower($img->nombre_original ?? 'imagen') }}">
-            <div class="pa-thumb">
-              <img src="{{ asset('storage/'.$img->path) }}" alt="{{ $img->nombre_original ?? 'Captura' }}">
-              <span class="pa-badge image">IMG</span>
-              <span class="pa-duration">{{ optional($img->capturado_en)->format('H:i') }}</span>
-            </div>
-            <div class="pa-body">
-              <div class="pa-name">{{ $img->nombre_original ?? 'Captura' }}</div>
-              <div class="pa-meta">Captura del estudio {{ $img->estudio?->folio }}<br>{{ optional($img->capturado_en)->format('d/m/Y') }}</div>
-              <div class="pa-actions">
-                <a class="pa-btn primary" href="{{ route('galeria.imagen', $img->id) }}">Ver imagen</a>
-              </div>
-            </div>
-          </article>
-          @empty
-          <p style="color:var(--txt-soft);font-size:13px">No hay imágenes capturadas para este paciente.</p>
-          @endforelse
-          @else
           <article class="pa-card" data-kind="imagen" data-title="imagen 1 fotograma 0:01:25">
             <div class="pa-thumb">
               <img src="{{ asset('images/colonoscopia.jpg') }}" alt="Imagen 1">
@@ -329,33 +342,10 @@
               </div>
             </div>
           </article>
-          @endif
         </div>
       </section>
+      @endif
     </div>
-
-    <aside class="pa-side">
-      <section class="pa-panel">
-        <h3 class="pa-panel-title">Informacion del paciente</h3>
-        <div class="pa-info">
-          <div class="pa-info-row"><span>ID</span><strong id="npGalSideId">{{ $galCodigo }}</strong></div>
-          <div class="pa-info-row"><span>Sexo</span><strong id="npGalSideSexo">{{ $galSexo }}</strong></div>
-          <div class="pa-info-row"><span>Edad</span><strong id="npGalSideEdad">{{ $galEdad }}</strong></div>
-          <div class="pa-info-row"><span>Estado</span><strong id="npGalSideEstado" style="color:var(--green)">Activo</strong></div>
-          <div class="pa-info-row"><span>Ultimo estudio</span><strong id="npGalSideUltimo">{{ $galUltimo }}</strong></div>
-        </div>
-      </section>
-
-      <section class="pa-panel">
-        <h3 class="pa-panel-title">Etiquetas frecuentes</h3>
-        <div class="pa-tag-list">
-          <span class="pa-tag">Estomago</span>
-          <span class="pa-tag">Antro</span>
-          <span class="pa-tag">Gastritis</span>
-          <span class="pa-tag">Duodeno</span>
-        </div>
-      </section>
-    </aside>
   </div>
 </div>
 
