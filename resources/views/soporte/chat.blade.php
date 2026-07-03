@@ -175,38 +175,28 @@
 @push('scripts')
 <script>
 (function(){
-  const messages = document.getElementById('chatMessages');
-  const input = document.getElementById('chatInput');
-  const btnSend = document.getElementById('btnSend');
-  const typing = document.getElementById('chatTyping');
-  const suggestions = document.getElementById('chatSuggestions');
-
-  const respuestas = {
-    'subir archivos': 'Para subir archivos, ve a la sección de Estudios y usa el botón "Adjuntar archivo". Asegúrate de que el archivo no supere los 10MB y sea de un formato compatible (JPG, PNG, PDF, MP4).',
-    'iniciar sesión': 'Si tienes problemas para iniciar sesión, prueba lo siguiente:\n1. Verifica que tu correo y contraseña sean correctos.\n2. Limpia la caché de tu navegador.\n3. Si olvidaste tu contraseña, usa la opción "Recuperar contraseña".\nSi el problema persiste, contacta a soporte técnico.',
-    'exporto datos': 'Para exportar datos, dirígete a la sección de Reportes y haz clic en el botón de exportar. Puedes elegir formato PDF o Excel. También puedes exportar desde la Galería seleccionando las imágenes que desees.',
-    'conexión': 'Si experimentas problemas de conexión:\n1. Verifica tu conexión a internet.\n2. Intenta recargar la página.\n3. Limpia la caché del navegador.\n4. Si usas VPN, intenta desactivarla temporalmente.',
-    'reporte': 'Para generar un reporte:\n1. Ve a la sección "Reportes" en el menú lateral.\n2. Selecciona "Generar reporte" y elige el estudio.\n3. Nuestro asistente de IA te ayudará a redactar el informe.\n4. Puedes editar y personalizar el reporte antes de guardarlo.',
-  };
+  var CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '';
+  var messages = document.getElementById('chatMessages');
+  var input = document.getElementById('chatInput');
+  var btnSend = document.getElementById('btnSend');
+  var typing = document.getElementById('chatTyping');
+  var suggestions = document.getElementById('chatSuggestions');
+  var chatHistory = [];
 
   function addMessage(text, isUser){
-    const div = document.createElement('div');
+    var div = document.createElement('div');
     div.className = 'chat-msg ' + (isUser ? 'user' : 'ia');
-    const initials = isUser ? (document.querySelector('.profile strong')?.textContent?.trim()?.split(' ').map(w=>w[0]).join('').slice(0,2) || 'TU') : 'IA';
+    var initials = isUser ? 'TU' : 'IA';
+    try {
+      var profileEl = document.querySelector('.profile strong');
+      if(isUser && profileEl) initials = profileEl.textContent.trim().split(' ').map(function(w){return w[0]}).join('').slice(0,2) || 'TU';
+    } catch(e){}
     div.innerHTML =
       '<div class="msg-avatar">' + initials + '</div>' +
       '<div><div class="msg-bubble">' + text.replace(/\n/g,'<br>') + '</div>' +
       '<div class="msg-time">Ahora</div></div>';
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
-  }
-
-  function getResponse(text){
-    const lower = text.toLowerCase();
-    for (const [key, val] of Object.entries(respuestas)){
-      if (lower.includes(key)) return val;
-    }
-    return 'Gracias por tu mensaje. He registrado tu consulta sobre "' + text + '". Un especialista revisará tu caso. Mientras tanto, ¿puedo ayudarte con algo más?\n\nTambién puedes consultar nuestra sección de preguntas frecuentes o crear un ticket de soporte para seguimiento.';
   }
 
   function sendMessage(text){
@@ -218,11 +208,36 @@
     typing.style.display = 'flex';
     messages.scrollTop = messages.scrollHeight;
 
-    setTimeout(function(){
+    chatHistory.push({ role: 'user', content: text });
+
+    fetch('/soporte/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': CSRF,
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        message: text,
+        history: chatHistory.slice(-16)
+      })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
       typing.style.display = 'none';
-      addMessage(getResponse(text), false);
       btnSend.disabled = false;
-    }, 1000 + Math.random() * 1000);
+      if(data.ok){
+        addMessage(data.reply, false);
+        chatHistory.push({ role: 'assistant', content: data.reply });
+      } else {
+        addMessage('Lo siento, hubo un error al procesar tu mensaje. Por favor intenta de nuevo o crea un ticket de soporte.', false);
+      }
+    })
+    .catch(function(){
+      typing.style.display = 'none';
+      btnSend.disabled = false;
+      addMessage('Error de conexion. Verifica tu internet e intenta de nuevo.', false);
+    });
   }
 
   btnSend.addEventListener('click', function(){ sendMessage(input.value); });

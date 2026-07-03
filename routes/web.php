@@ -602,6 +602,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/soporte/chat', function () {
         return view('soporte.chat');
     })->name('soporte.chat');
+
+    Route::post('/soporte/chat', [\App\Http\Controllers\SoporteChatController::class, 'send'])->name('soporte.chat.send');
 });
 
 
