@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SupportRequest;
+use App\Models\SoporteRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -16,7 +16,7 @@ class SoporteController extends Controller
             'description' => ['required', 'string', 'max:4000'],
         ]);
 
-        $request = SupportRequest::create([
+        $request = SoporteRequest::create([
             'user_id' => auth()->id(),
             'category' => $validated['category'],
             'subject' => $validated['subject'],
