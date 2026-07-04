@@ -6,6 +6,13 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreAnuncioRequest extends FormRequest
 {
+    public const TIPOS = [
+        'anuncios_internos',
+        'mejoras',
+        'mantenimiento',
+        'politicas',
+    ];
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -24,9 +31,16 @@ class StoreAnuncioRequest extends FormRequest
         return [
             'titulo' => ['required', 'string', 'max:255'],
             'contenido' => ['required', 'string'],
-            'tipo' => ['required', 'string', 'max:100'],
+            'tipo' => ['required', 'string', 'in:' . implode(',', self::TIPOS)],
             'fecha_publicacion' => ['nullable', 'date'],
             'activo' => ['boolean'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'tipo.in' => 'El tipo de anuncio no es válido.',
         ];
     }
 

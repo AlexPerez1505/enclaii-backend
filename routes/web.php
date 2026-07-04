@@ -13,6 +13,7 @@ use App\Models\Reporte;
 use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\CustomerSuccess\AnuncioDashboardController;
 use App\Http\Controllers\CustomerSuccess\DashboardController;
+use App\Http\Controllers\CustomerSuccess\RolesController;
 use App\Http\Controllers\StripeController;
 use App\Http\Controllers\StorageServeController;
 use App\Http\Controllers\NotificationController;
@@ -869,3 +870,7 @@ Route::middleware(['auth', 'customer.success'])
 Route::middleware(['auth', 'customer.success'])
     ->get('/customer-success/anuncios', [AnuncioDashboardController::class, 'index'])
     ->name('customer-success.anuncios');
+
+Route::middleware(['auth', 'customer.success'])
+    ->get('/customer-success/gestion-usuarios', [RolesController::class, 'index'])
+    ->name('customer-success.gestion-usuarios');

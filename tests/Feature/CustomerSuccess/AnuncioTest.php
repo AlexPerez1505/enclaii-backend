@@ -7,7 +7,6 @@ use App\Models\CustomerSuccessAuditLog;
 use App\Models\User;
 use Database\Seeders\CustomerSuccessRolesSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class AnuncioTest extends TestCase
@@ -47,12 +46,12 @@ class AnuncioTest extends TestCase
     {
         $user = $this->customerSuccessUser();
 
-        Sanctum::actingAs($user);
+        $this->actingAs($user);
 
         $response = $this->postJson(route('api.customer-success.anuncios.store'), [
             'titulo' => 'Aviso de mantenimiento',
             'contenido' => '<p>El sistema estará en mantenimiento el domingo.</p>',
-            'tipo' => 'general',
+            'tipo' => 'anuncios_internos',
             'activo' => true,
         ]);
 
@@ -75,12 +74,12 @@ class AnuncioTest extends TestCase
     {
         $user = $this->regularUser();
 
-        Sanctum::actingAs($user);
+        $this->actingAs($user);
 
         $response = $this->postJson(route('api.customer-success.anuncios.store'), [
             'titulo' => 'Aviso no autorizado',
             'contenido' => '<p>Contenido</p>',
-            'tipo' => 'general',
+            'tipo' => 'anuncios_internos',
         ]);
 
         $response->assertForbidden();
@@ -95,7 +94,7 @@ class AnuncioTest extends TestCase
         $response = $this->postJson(route('api.customer-success.anuncios.store'), [
             'titulo' => 'Aviso sin sesión',
             'contenido' => '<p>Contenido</p>',
-            'tipo' => 'general',
+            'tipo' => 'anuncios_internos',
         ]);
 
         $response->assertUnauthorized();
@@ -105,12 +104,12 @@ class AnuncioTest extends TestCase
     {
         $user = $this->customerSuccessUser();
 
-        Sanctum::actingAs($user);
+        $this->actingAs($user);
 
         $response = $this->postJson(route('api.customer-success.anuncios.store'), [
             'titulo' => 'XSS test',
             'contenido' => '<script>alert("xss")</script><p>Texto limpio</p>',
-            'tipo' => 'general',
+            'tipo' => 'anuncios_internos',
         ]);
 
         $response->assertCreated();
@@ -140,6 +139,17 @@ class AnuncioTest extends TestCase
             ->get(route('customer-success.anuncios'))
             ->assertOk()
             ->assertSee('Customer Success');
+    }
+
+    public function test_customer_success_can_view_gestion_usuarios_page(): void
+    {
+        $user = $this->customerSuccessUser();
+
+        $this->actingAs($user)
+            ->get(route('customer-success.gestion-usuarios'))
+            ->assertOk()
+            ->assertSee('Gestión de roles')
+            ->assertSee('Usuarios del sistema');
     }
 
     public function test_regular_user_cannot_view_customer_success_dashboard(): void
@@ -179,12 +189,68 @@ class AnuncioTest extends TestCase
             ->assertRedirect('/configuracion');
     }
 
+    public function test_creating_anuncio_notifies_other_users(): void
+    {
+        $csUser = $this->customerSuccessUser();
+        $otherUser = $this->regularUser();
+
+        $this->actingAs($csUser);
+
+        $this->postJson(route('api.customer-success.anuncios.store'), [
+            'titulo' => 'Aviso general',
+            'contenido' => '<p>Contenido</p>',
+            'tipo' => 'anuncios_internos',
+        ])->assertCreated();
+
+        $this->assertDatabaseCount('notifications', 1);
+        $this->assertDatabaseHas('notifications', [
+            'user_id' => $otherUser->id,
+            'tipo' => 'anuncio',
+        ]);
+
+        $notification = $otherUser->notifications()->first();
+        $this->assertEquals('Aviso general', $notification->data['titulo'] ?? null);
+    }
+
+    public function test_anuncio_notifications_are_not_in_doctor_panel(): void
+    {
+        $csUser = $this->customerSuccessUser();
+        $doctor = $this->regularUser();
+
+        $this->actingAs($csUser);
+        $this->postJson(route('api.customer-success.anuncios.store'), [
+            'titulo' => 'Aviso para doctor',
+            'contenido' => '<p>Contenido</p>',
+            'tipo' => 'anuncios_internos',
+        ])->assertCreated();
+
+        $this->actingAs($doctor);
+        $this->getJson(route('notifications.index'))
+            ->assertOk()
+            ->assertJsonCount(0);
+    }
+
+    public function test_invalid_anuncio_type_is_rejected(): void
+    {
+        $user = $this->customerSuccessUser();
+
+        $this->actingAs($user);
+
+        $this->postJson(route('api.customer-success.anuncios.store'), [
+            'titulo' => 'Aviso inválido',
+            'contenido' => '<p>Contenido</p>',
+            'tipo' => 'general',
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['tipo']);
+    }
+
     public function test_customer_success_can_assign_role(): void
     {
         $admin = $this->customerSuccessUser();
         $target = $this->regularUser();
 
-        Sanctum::actingAs($admin, ['*']);
+        $this->actingAs($admin);
 
         $this->postJson(route('api.customer-success.users.assign-role', $target), [
             'role' => 'Customer Success',
@@ -201,7 +267,7 @@ class AnuncioTest extends TestCase
         $target = $this->regularUser();
         $target->assignRole('Customer Success');
 
-        Sanctum::actingAs($admin, ['*']);
+        $this->actingAs($admin);
 
         $this->postJson(route('api.customer-success.users.remove-role', $target), [
             'role' => 'Customer Success',
@@ -217,7 +283,7 @@ class AnuncioTest extends TestCase
         $user = $this->regularUser();
         $target = $this->customerSuccessUser();
 
-        Sanctum::actingAs($user, ['*']);
+        $this->actingAs($user);
 
         $this->postJson(route('api.customer-success.users.assign-role', $target), [
             'role' => 'Customer Success',

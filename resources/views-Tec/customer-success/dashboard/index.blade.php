@@ -59,6 +59,30 @@
   </div>
 
   <div class="cs-card">
+    <div class="cs-card-title">Notificaciones</div>
+    @if($notifications->isEmpty())
+      <div class="cs-empty">No tienes notificaciones nuevas.</div>
+    @else
+      <table class="cs-table">
+        <thead>
+          <tr>
+            <th>Mensaje</th>
+            <th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach($notifications as $notification)
+          <tr>
+            <td>{{ $notification->data['message'] ?? 'Nueva notificación' }}</td>
+            <td>{{ $notification->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
+          </tr>
+          @endforeach
+        </tbody>
+      </table>
+    @endif
+  </div>
+
+  <div class="cs-card">
     <div class="cs-card-title" id="auditoria">Últimas acciones de auditoría</div>
     @if($auditLogs->isEmpty())
       <div class="cs-empty">No hay registros de auditoría.</div>

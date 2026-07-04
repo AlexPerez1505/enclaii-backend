@@ -74,7 +74,12 @@
       <div class="cs-row">
         <div class="cs-field" style="flex:1">
           <label class="cs-label">Tipo</label>
-          <input class="cs-input" type="text" id="csTipo" value="general" required>
+          <select class="cs-input" id="csTipo" required>
+            <option value="anuncios_internos">Anuncios internos</option>
+            <option value="mejoras">Mejoras en Enclaii</option>
+            <option value="mantenimiento">Mantenimiento de la plataforma</option>
+            <option value="politicas">Políticas</option>
+          </select>
         </div>
         <div class="cs-field" style="flex:1">
           <label class="cs-label">Fecha de publicación</label>
@@ -90,6 +95,15 @@
       </div>
     </form>
   </div>
+
+  @php
+    $tipoLabels = [
+        'anuncios_internos' => 'Anuncios internos',
+        'mejoras' => 'Mejoras en Enclaii',
+        'mantenimiento' => 'Mantenimiento de la plataforma',
+        'politicas' => 'Políticas',
+    ];
+  @endphp
 
   <div class="cs-card">
     <div class="cs-card-title">Anuncios publicados</div>
@@ -111,7 +125,7 @@
           @foreach($anuncios as $anuncio)
           <tr data-id="{{ $anuncio->id }}">
             <td>{{ $anuncio->titulo }}</td>
-            <td>{{ $anuncio->tipo }}</td>
+            <td>{{ $tipoLabels[$anuncio->tipo] ?? $anuncio->tipo }}</td>
             <td>{{ $anuncio->user->name ?? '—' }}</td>
             <td>{{ $anuncio->fecha_publicacion?->format('d/m/Y H:i') ?? '—' }}</td>
             <td>{{ $anuncio->activo ? 'Activo' : 'Inactivo' }}</td>
@@ -126,33 +140,6 @@
         {{ $anuncios->links() }}
       </div>
     @endif
-  </div>
-
-  <div class="cs-card">
-    <div class="cs-card-title">Gestión de roles</div>
-    <div class="cs-alert" id="csRoleAlert"></div>
-    <div class="cs-form" id="csRoleForm">
-      <div class="cs-field">
-        <label class="cs-label">Usuario</label>
-        <select class="cs-input" id="csUserSelect">
-          <option value="">Selecciona un usuario</option>
-        </select>
-      </div>
-      <div class="cs-row">
-        <button class="cs-btn cs-btn-primary" type="button" id="csAssignRole">Asignar rol Customer Success</button>
-        <button class="cs-btn cs-btn-danger" type="button" id="csRemoveRole">Quitar rol Customer Success</button>
-      </div>
-    </div>
-    <table class="cs-table" style="margin-top:16px" id="csUsersTable">
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Email</th>
-          <th>Roles</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
   </div>
 
 </div>
@@ -194,7 +181,7 @@
       });
 
       if (res.ok) {
-        showAlert('Anuncio publicado correctamente.', 'success');
+        showAlert('Anuncio enviado correctamente.', 'success');
         form.reset();
         setTimeout(() => location.reload(), 800);
       } else {
@@ -233,81 +220,6 @@
       }
     });
   });
-
-  // Gestión de roles
-  const roleAlert = document.getElementById('csRoleAlert');
-  const userSelect = document.getElementById('csUserSelect');
-  const usersTableBody = document.querySelector('#csUsersTable tbody');
-
-  function showRoleAlert(msg, type){
-    roleAlert.textContent = msg;
-    roleAlert.className = 'cs-alert ' + type;
-    roleAlert.style.display = 'block';
-    setTimeout(() => { roleAlert.style.display = 'none'; }, 4000);
-  }
-
-  async function loadUsers(){
-    try {
-      const res = await fetch('/api/customer-success/users', {
-        headers: { 'Accept': 'application/json' },
-      });
-      if (!res.ok) throw new Error('Error al cargar usuarios');
-      const users = await res.json();
-
-      userSelect.innerHTML = '<option value="">Selecciona un usuario</option>';
-      usersTableBody.innerHTML = '';
-
-      users.forEach(user => {
-        const option = document.createElement('option');
-        option.value = user.id;
-        option.textContent = user.name + ' (' + user.email + ')';
-        userSelect.appendChild(option);
-
-        const roles = user.roles.map(r => r.name).join(', ') || '—';
-        const tr = document.createElement('tr');
-        tr.innerHTML = '<td>' + user.name + '</td><td>' + user.email + '</td><td>' + roles + '</td>';
-        usersTableBody.appendChild(tr);
-      });
-    } catch (err) {
-      showRoleAlert('Error al cargar usuarios.', 'error');
-    }
-  }
-
-  async function changeRole(action){
-    const userId = userSelect.value;
-    if (!userId) {
-      showRoleAlert('Selecciona un usuario primero.', 'error');
-      return;
-    }
-
-    const url = '/api/customer-success/users/' + userId + '/' + action;
-    try {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-        },
-        body: JSON.stringify({ role: 'Customer Success' }),
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        showRoleAlert(data.message, 'success');
-        loadUsers();
-      } else {
-        showRoleAlert(data.message || 'Error al cambiar el rol.', 'error');
-      }
-    } catch (err) {
-      showRoleAlert('Error de conexión.', 'error');
-    }
-  }
-
-  document.getElementById('csAssignRole').addEventListener('click', () => changeRole('assign-role'));
-  document.getElementById('csRemoveRole').addEventListener('click', () => changeRole('remove-role'));
-
-  loadUsers();
 })();
 </script>
 @endpush

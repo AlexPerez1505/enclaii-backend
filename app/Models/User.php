@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -55,6 +56,11 @@ class User extends Authenticatable
     /**
      * Indica si el usuario tiene una suscripción activa en Stripe.
      */
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
+
     public function subscribed(): bool
     {
         return in_array($this->subscription_status, ['active', 'trialing'], true);

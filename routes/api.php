@@ -5,7 +5,7 @@ use App\Http\Controllers\Api\CustomerSuccess\UserRoleController;
 use Illuminate\Support\Facades\Route;
 
 // Customer Success: gestión de anuncios y políticas
-Route::middleware(['auth:sanctum', 'customer.success'])->prefix('customer-success')->group(function () {
+Route::middleware(['web', 'auth', 'customer.success'])->prefix('customer-success')->group(function () {
     Route::apiResource('anuncios', AnuncioController::class)
         ->names([
             'index' => 'api.customer-success.anuncios.index',

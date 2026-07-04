@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\CustomerSuccess;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CustomerSuccess\StoreAnuncioRequest;
 use App\Models\Anuncio;
+use App\Models\Notification;
+use App\Models\User;
 use App\Services\HtmlPurifierService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -38,6 +40,29 @@ class AnuncioController extends Controller
         $validated['user_id'] = $request->user()->id;
 
         $anuncio = Anuncio::create($validated);
+
+        // Notificar a todos los usuarios (excepto al creador)
+        $now = now();
+        $notifications = User::whereKeyNot($request->user()->id)
+            ->get(['id'])
+            ->map(fn ($user) => [
+                'user_id' => $user->id,
+                'tipo' => 'anuncio',
+                'data' => json_encode([
+                    'anuncio_id' => $anuncio->id,
+                    'titulo' => $anuncio->titulo,
+                    'message' => 'Se publicó un nuevo anuncio: ' . $anuncio->titulo,
+                ]),
+                'read' => false,
+                'read_at' => null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ])
+            ->all();
+
+        if (!empty($notifications)) {
+            Notification::insert($notifications);
+        }
 
         return response()->json($anuncio, 201);
     }
