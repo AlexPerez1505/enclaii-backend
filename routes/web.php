@@ -13,6 +13,7 @@ use App\Models\Reporte;
 use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\StripeController;
 use App\Http\Controllers\StorageServeController;
+use App\Http\Controllers\CapturePairingCodeController;
 
 Route::get('/storage/{path}', [StorageServeController::class, 'show'])
     ->where('path', '.*')
@@ -783,4 +784,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/ia/chat', [AiAssistantController::class, 'chat'])->name('ia.chat');
     Route::get('/ia/history', [AiAssistantController::class, 'history'])->name('ia.history');
     Route::post('/ia/reset', [AiAssistantController::class, 'reset'])->name('ia.reset');
+});
+
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::post('/capture/pairing-code', [CapturePairingCodeController::class, 'store'])
+        ->name('capture.pairing-code.store');
 });
