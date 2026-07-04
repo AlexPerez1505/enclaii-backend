@@ -84,6 +84,41 @@ class SettingsController extends Controller
         return response()->json(['ok' => true]);
     }
 
+    /**
+     * Consulta datos fiscales por RFC.
+     * En producción debe conectarse a un proveedor oficial (SAT, Facturama, SW Sapien, etc.)
+     */
+    public function lookupRfc(Request $request): JsonResponse
+    {
+        $rfc = strtoupper($request->input('rfc', ''));
+
+        if (!preg_match('/^([A-ZÑ&]{3,4})(\d{6})([A-Z\d]{3})$/', $rfc)) {
+            return response()->json(['ok' => false, 'message' => 'El RFC no tiene un formato válido.'], 422);
+        }
+
+        // Datos de prueba para validar el flujo. Reemplazar por integración real.
+        $mockData = [
+            'ABCD010101XYZ' => ['razon_social' => 'Empresa de Prueba SA de CV', 'regimen_fiscal' => '601 - General de Ley Personas Morales'],
+            'EFGH020202ABC' => ['razon_social' => 'Juan Pérez García', 'regimen_fiscal' => '605 - Sueldos y Salarios e Ingresos Asimilados'],
+            'IJKL030303DEF' => ['razon_social' => 'Servicios Médicos del Norte SC', 'regimen_fiscal' => '626 - Régimen Simplificado de Confianza (RESICO)'],
+        ];
+
+        if (isset($mockData[$rfc])) {
+            return response()->json(['ok' => true, 'data' => $mockData[$rfc]]);
+        }
+
+        /** @var User $user */
+        $user = $request->user();
+        if ($user->rfc === $rfc && $user->razon_social) {
+            return response()->json(['ok' => true, 'data' => [
+                'razon_social' => $user->razon_social,
+                'regimen_fiscal' => $user->regimen_fiscal,
+            ]]);
+        }
+
+        return response()->json(['ok' => false, 'message' => 'No se encontraron datos para ese RFC en el catálogo de prueba.']);
+    }
+
     public function updateFoto(Request $request): JsonResponse
     {
         $request->validate([

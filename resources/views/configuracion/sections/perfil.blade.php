@@ -30,6 +30,12 @@
 .pf-input[type="date"]{color-scheme:dark}
 html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
 .pf-input[type="date"]::-webkit-calendar-picker-indicator{opacity:0;position:absolute;right:0;top:0;width:100%;height:100%;cursor:pointer}
+.pf-input.rfc-valid{border-color:var(--green)!important;box-shadow:0 0 0 3px rgba(61,220,151,.15)}
+.pf-input.rfc-invalid{border-color:var(--red)!important;box-shadow:0 0 0 3px rgba(239,68,68,.15)}
+.pf-rfc-msg{font-size:11px;margin-top:5px;min-height:15px}
+.pf-rfc-msg.ok{color:var(--green)}
+.pf-rfc-msg.err{color:var(--red)}
+.pf-rfc-msg.info{color:var(--txt-soft)}
 
 .pf-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media (max-width:520px){.pf-2{grid-template-columns:1fr}}
@@ -203,13 +209,17 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
     <article class="card rise d5">
       <div class="pf-title">4.- Información fiscal <small>(opcional)</small></div>
       <div class="pf-2">
-        <div class="pf-field"><label>RFC</label><input class="pf-input" type="text" name="rfc" value="{{ $u->rfc }}"></div>
-        <div class="pf-field"><label>Razón social</label><input class="pf-input" type="text" name="razon_social" value="{{ $u->razon_social }}"></div>
+        <div class="pf-field">
+          <label>RFC</label>
+          <input class="pf-input" id="pfRfc" type="text" name="rfc" maxlength="13" value="{{ $u->rfc }}" placeholder="Ingresa tu RFC">
+          <div id="pfRfcMsg" class="pf-rfc-msg"></div>
+        </div>
+        <div class="pf-field"><label>Razón social</label><input class="pf-input" id="pfRazon" type="text" name="razon_social" value="{{ $u->razon_social }}"></div>
       </div>
       <div class="pf-field" style="margin-top:14px">
         <label>Régimen fiscal</label>
         <div class="pf-select">
-          <select name="regimen_fiscal">
+          <select name="regimen_fiscal" id="pfRegimen">
             <option value="" {{ !$u->regimen_fiscal ? 'selected' : '' }}>-- Selecciona tu régimen --</option>
             <option value="601 - General de Ley Personas Morales"                             {{ $u->regimen_fiscal === '601 - General de Ley Personas Morales' ? 'selected' : '' }}>601 - General de Ley Personas Morales</option>
             <option value="605 - Sueldos y Salarios e Ingresos Asimilados"                    {{ $u->regimen_fiscal === '605 - Sueldos y Salarios e Ingresos Asimilados' ? 'selected' : '' }}>605 - Sueldos y Salarios e Ingresos Asimilados</option>
@@ -255,6 +265,7 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
             <span>PDF, JPG o PNG · máx. 8 MB</span>
           </div>
           {{-- Botones acción --}}
+          <div id="csfExtractMsg" class="csf-status" style="display:none;margin-top:8px"></div>
           <div id="csfActions" class="csf-actions" style="{{ $constancia ? '' : 'display:none' }}">
             <button type="button" id="csfChangeBtn" class="csf-action-btn">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -429,6 +440,76 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
 })();
 
 (function(){
+  const rfcInput = document.getElementById('pfRfc');
+  const rfcMsg   = document.getElementById('pfRfcMsg');
+  const razonIn  = document.getElementById('pfRazon');
+  const regimenIn= document.getElementById('pfRegimen');
+  if (!rfcInput) return;
+
+  const RFC_REGEX = /^([A-ZÑ&]{3,4})(\d{6})([A-Z\d]{3})$/;
+
+  function validarRFC(rfc) {
+    const limpio = rfc.trim().toUpperCase();
+    if (!limpio) return { ok: false, msg: '' };
+    if (!RFC_REGEX.test(limpio)) return { ok: false, msg: 'RFC inválido: debe tener 12 (moral) o 13 (física) caracteres.' };
+    return { ok: true, msg: 'RFC válido', rfc: limpio };
+  }
+
+  function setRfcState(ok, msg) {
+    rfcInput.classList.remove('rfc-valid', 'rfc-invalid');
+    rfcMsg.className = 'pf-rfc-msg' + (ok ? ' ok' : msg ? ' err' : ' info');
+    rfcMsg.textContent = msg;
+    if (ok) rfcInput.classList.add('rfc-valid');
+    else if (msg) rfcInput.classList.add('rfc-invalid');
+  }
+
+  let rfcLookupTimeout = null;
+  async function buscarPorRFC(rfc) {
+    if (!rfc) return;
+    try {
+      const res = await fetch('{{ route("configuracion.rfc.lookup") }}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': '{{ csrf_token() }}',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ rfc })
+      });
+      const json = await res.json();
+      if (json.ok && json.data) {
+        if (razonIn && json.data.razon_social && !razonIn.value.trim()) {
+          razonIn.value = json.data.razon_social;
+        }
+        if (regimenIn && json.data.regimen_fiscal && !regimenIn.value) {
+          regimenIn.value = json.data.regimen_fiscal;
+        }
+        rfcMsg.textContent = 'RFC válido · datos completados';
+      }
+    } catch(e) { console.error('RFC lookup error:', e); }
+  }
+
+  rfcInput.addEventListener('input', function() {
+    rfcInput.value = rfcInput.value.toUpperCase().replace(/[^A-Z0-9Ñ&]/gi, '');
+    const rfc = rfcInput.value;
+    const val = validarRFC(rfc);
+    setRfcState(val.ok, val.msg);
+    clearTimeout(rfcLookupTimeout);
+    if (val.ok) rfcLookupTimeout = setTimeout(() => buscarPorRFC(val.rfc), 500);
+  });
+
+  rfcInput.addEventListener('blur', function() {
+    const val = validarRFC(rfcInput.value);
+    setRfcState(val.ok, val.msg);
+    if (val.ok) buscarPorRFC(val.rfc);
+  });
+
+  // Validar valor inicial
+  const valInicial = validarRFC(rfcInput.value);
+  setRfcState(valInicial.ok, valInicial.msg);
+})();
+
+(function(){
   const modal      = document.getElementById('pfModalFoto');
   const ava        = document.getElementById('pfAva');
   const empty      = document.getElementById('pfEmpty');
@@ -497,7 +578,16 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
 
   function openModal() {
     modal.classList.add('active');
-    if (avatarPrev && !photoData) { avatarPrev.style.backgroundImage=''; avatarPrev.textContent='👤'; }
+    // Refrescar photoData desde la imagen actual por si cambió o no se cargó al inicio
+    if (ava && ava.src && ava.style.display !== 'none') photoData = ava.src;
+    console.log('Abriendo modal foto. photoData:', photoData);
+    if (avatarPrev) {
+      if (photoData) {
+        setPreview(photoData);
+      } else {
+        avatarPrev.style.backgroundImage=''; avatarPrev.textContent='👤';
+      }
+    }
   }
   function closeModal() { stopCamera(); modal.classList.remove('active'); }
 
@@ -603,14 +693,24 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
   const changeBtn  = document.getElementById('csfChangeBtn');
   const deleteBtn  = document.getElementById('csfDeleteBtn');
   const status     = document.getElementById('csfStatus');
+  const extractMsg = document.getElementById('csfExtractMsg');
+  const rfcInput   = document.getElementById('pfRfc');
+  const razonIn    = document.getElementById('pfRazon');
+  const regimenIn  = document.getElementById('pfRegimen');
   if (!uploadArea || !input) return;
 
   function showStatus(msg, type) {
     status.textContent = msg;
     status.className = 'csf-status ' + type;
     status.style.display = 'block';
-    setTimeout(function(){ status.style.display = 'none'; }, 3500);
+    setTimeout(function(){ status.style.display = 'none'; }, 5000);
   }
+  function showExtract(msg, type) {
+    extractMsg.textContent = msg;
+    extractMsg.className = 'csf-status ' + type;
+    extractMsg.style.display = 'block';
+  }
+  function hideExtract(){ extractMsg.style.display = 'none'; }
 
   function showPreviewFromData(url, ext, name) {
     preview.innerHTML = '';
@@ -627,9 +727,142 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
     actions.style.display = 'flex';
   }
 
+  // ====== Carga dinámica de librerías de extracción ======
+  let pdfLibLoaded = false, tesseractLoaded = false;
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src; s.async = true; s.onload = resolve; s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+  async function loadPdfJS() {
+    if (pdfLibLoaded) return window.pdfjsLib;
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    pdfLibLoaded = true;
+    return window.pdfjsLib;
+  }
+  async function loadTesseract() {
+    if (tesseractLoaded) return window.Tesseract;
+    await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');
+    tesseractLoaded = true;
+    return window.Tesseract;
+  }
+
+  async function extractTextFromPDF(file) {
+    const pdfjsLib = await loadPdfJS();
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    let text = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      text += content.items.map(item => item.str).join(' ') + '\n';
+    }
+    return text;
+  }
+  async function extractTextFromImage(file) {
+    const Tesseract = await loadTesseract();
+    const result = await Tesseract.recognize(file, 'spa', { logger: () => {} });
+    return result.data.text;
+  }
+  async function extractTextFromFile(file) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (ext === 'pdf') return extractTextFromPDF(file);
+    return extractTextFromImage(file);
+  }
+
+  function parseDatosFiscales(text) {
+    const raw = (text || '').replace(/\r/g, '\n').replace(/\n+/g, '\n');
+    const t = raw.toUpperCase().normalize('NFD').replace(/[\u0300-\u036F]/g, '');
+    const rfcMatch = t.match(/([A-ZÑ&]{3,4})\s*[-.]?\s*(\d{6})\s*[-.]?\s*([A-Z\d]{3})/);
+    const rfc = rfcMatch ? (rfcMatch[1] + rfcMatch[2] + rfcMatch[3]).toUpperCase() : null;
+
+    let razonSocial = null;
+    const rsPatterns = [
+      /(?:RAZ[OÓ]N\s+SOCIAL|NOMBRE\s+O\s+RAZ[OÓ]N\s+SOCIAL|DENOMINACI[OÓ]N\s+O\s+RAZ[OÓ]N\s+SOCIAL|DENOMINACI[OÓ]N\s+SOCIAL|NOMBRE,?\s*DENOMINACI[OÓ]N\s+O\s+RAZ[OÓ]N\s+SOCIAL)\s*[:;\s]+([A-ZÑ0-9&\s.,'\-()]+?)(?=\n|\s{2,}|CURP|RFC|REGIMEN|C\.?\s*P\.?|Calle|DOMICILIO|$)/i,
+      /(?:NOMBRE|CONTRIBUYENTE)\s*[:;\s]+([A-ZÑ0-9&\s.,'\-()]+?)(?=\n|\s{2,}|CURP|RFC|REGIMEN|C\.?\s*P\.?|Calle|DOMICILIO|$)/i,
+    ];
+    for (const pat of rsPatterns) {
+      const m = raw.match(pat);
+      if (m) {
+        razonSocial = m[1].replace(/\s+/g, ' ').replace(/\s*[-\s]*$/g, '').trim();
+        if (razonSocial.length > 3) break;
+      }
+    }
+
+    // Si no encontró razón social, intentar tomar la línea que aparece antes del RFC
+    if (!razonSocial && rfc) {
+      const idx = raw.toUpperCase().indexOf(rfc);
+      if (idx > 0) {
+        const before = raw.substring(0, idx).trim();
+        const lines = before.split('\n').filter(l => l.trim());
+        const candidate = lines.slice(-3).find(l => l.trim().length > 4 && !/RFC|REGIMEN|CURP|C\.?\s*P\.?|Calle/i.test(l));
+        if (candidate) razonSocial = candidate.trim().replace(/\s+/g, ' ');
+      }
+    }
+
+    const regimenes = [
+      { keys: ['RESICO', 'REGIMEN SIMPLIFICADO DE CONFIANZA', '626'], value: '626 - Régimen Simplificado de Confianza (RESICO)' },
+      { keys: ['GENERAL DE LEY', 'PERSONAS MORALES', '601'], value: '601 - General de Ley Personas Morales' },
+      { keys: ['SUELDOS Y SALARIOS', 'INGRESOS ASIMILADOS', '605'], value: '605 - Sueldos y Salarios e Ingresos Asimilados' },
+      { keys: ['ARRENDAMIENTO', '606'], value: '606 - Arrendamiento' },
+      { keys: ['DEMAS INGRESOS', 'DEMÁS INGRESOS', '608'], value: '608 - Demás Ingresos' },
+      { keys: ['ACTIVIDADES EMPRESARIALES', 'PROFESIONALES', '612'], value: '612 - Personas Físicas con Actividades Empresariales y Profesionales' },
+      { keys: ['SIN OBLIGACIONES FISCALES', '616'], value: '616 - Sin Obligaciones Fiscales' },
+      { keys: ['INCORPORACION FISCAL', 'INCORPORACIÓN FISCAL', '621'], value: '621 - Incorporación Fiscal' },
+    ];
+    let regimen = null;
+    for (const r of regimenes) {
+      if (r.keys.some(k => t.includes(k))) { regimen = r.value; break; }
+    }
+
+    return { rfc, razonSocial, regimen };
+  }
+
+  async function extraerYMostrar(file) {
+    showExtract('Analizando constancia, espera un momento...', 'ok');
+    try {
+      const text = await extractTextFromFile(file);
+      console.log('=== TEXTO EXTRAÍDO DE LA CONSTANCIA ===');
+      console.log(text);
+      const datos = parseDatosFiscales(text);
+      console.log('=== DATOS PARSEADOS ===', datos);
+      let mensajes = [];
+      if (datos.rfc && rfcInput) {
+        rfcInput.value = datos.rfc;
+        rfcInput.dispatchEvent(new Event('input'));
+        mensajes.push('RFC: ' + datos.rfc);
+      }
+      if (datos.razonSocial && razonIn) {
+        razonIn.value = datos.razonSocial;
+        mensajes.push('Razón social: ' + datos.razonSocial);
+      }
+      if (datos.regimen && regimenIn) {
+        regimenIn.value = datos.regimen;
+        mensajes.push('Régimen: ' + datos.regimen);
+      }
+      if (mensajes.length) {
+        showExtract('Datos encontrados y completados: ' + mensajes.join(' · '), 'ok');
+      } else {
+        showExtract('No se pudieron leer automáticamente los datos del archivo. Verifica que sea una constancia clara.', 'err');
+      }
+    } catch (e) {
+      console.error('Extracción constancia:', e);
+      showExtract('No se pudo analizar el archivo. Puedes llenar los datos manualmente.', 'err');
+    }
+  }
+
   async function uploadFile(file) {
     const ext = file.name.split('.').pop().toLowerCase();
     showStatus('Subiendo...', 'ok');
+
+    // Iniciar extracción en paralelo con la subida
+    if (['pdf', 'jpg', 'jpeg', 'png'].includes(ext)) {
+      extraerYMostrar(file).catch(() => {});
+    }
+
     const fd = new FormData();
     fd.append('constancia', file);
     fd.append('_token', '{{ csrf_token() }}');
@@ -678,6 +911,12 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
         preview.style.display = 'none';
         actions.style.display = 'none';
         uploadArea.style.display = '';
+        hideExtract();
+        // Limpiar datos fiscales autocompletados
+        if (rfcInput) { rfcInput.value = ''; rfcInput.dispatchEvent(new Event('input')); rfcInput.classList.remove('rfc-valid', 'rfc-invalid'); }
+        if (razonIn) razonIn.value = '';
+        if (regimenIn) regimenIn.value = '';
+        if (document.getElementById('pfRfcMsg')) document.getElementById('pfRfcMsg').textContent = '';
         showStatus('Constancia eliminada', 'ok');
       }
     } catch(e) { showStatus('Error de conexión', 'err'); }

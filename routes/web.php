@@ -70,6 +70,9 @@ Route::middleware('auth')->group(function () {
     Route::patch('/configuracion/perfil', [SettingsController::class, 'updatePerfil'])
         ->name('configuracion.perfil.update');
 
+    Route::post('/configuracion/rfc-lookup', [SettingsController::class, 'lookupRfc'])
+        ->name('configuracion.rfc.lookup');
+
     Route::post('/configuracion/constancia-fiscal', [SettingsController::class, 'uploadConstancia'])
         ->name('configuracion.constancia.upload');
 

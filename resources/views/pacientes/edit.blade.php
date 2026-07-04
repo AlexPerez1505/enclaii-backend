@@ -1675,9 +1675,21 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!modalFoto) return;
     modalFoto.classList.add('active');
 
-    if (avatarPreview && !currentPhotoData) {
-      avatarPreview.textContent = '👤';
-      avatarPreview.style.backgroundImage = '';
+    // Cargar la foto actual del paciente en el preview si existe
+    if (patientPhoto && patientPhoto.src && patientPhoto.style.display !== 'none') {
+      currentPhotoData = patientPhoto.src;
+    }
+
+    if (avatarPreview) {
+      if (currentPhotoData) {
+        avatarPreview.style.backgroundImage = `url(${currentPhotoData})`;
+        avatarPreview.style.backgroundSize = 'cover';
+        avatarPreview.style.backgroundPosition = 'center';
+        avatarPreview.textContent = '';
+      } else {
+        avatarPreview.textContent = '👤';
+        avatarPreview.style.backgroundImage = '';
+      }
     }
   };
 

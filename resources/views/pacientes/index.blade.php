@@ -900,26 +900,29 @@
   line-height:1.5;
 }
 
-/* Sección de Historial */
+/* Sección de Historial y Estudios */
 .tab-content{
   display:none;
 }
 .tab-content.active{
   display:block;
 }
-.historial-section h4{
+.historial-section h4,
+.estudios-section h4{
   font-size:14px;
   font-weight:600;
   margin-bottom:16px;
   color:var(--txt);
 }
-.historial-list{
+.historial-list,
+.estudios-list{
   display:flex;
   flex-direction:column;
   gap:12px;
   margin-bottom:20px;
 }
-.historial-item{
+.historial-item,
+.estudios-item{
   display:flex;
   align-items:flex-start;
   gap:12px;
@@ -929,11 +932,13 @@
   border-radius:var(--r-md);
   transition:all 150ms ease;
 }
-.historial-item:hover{
+.historial-item:hover,
+.estudios-item:hover{
   border-color:var(--stroke-strong);
   background:var(--card);
 }
-.historial-icon{
+.historial-icon,
+.estudios-icon{
   width:36px;
   height:36px;
   border-radius:50%;
@@ -942,49 +947,61 @@
   place-items:center;
   flex:none;
 }
-.historial-icon svg{
+.historial-icon svg,
+.estudios-icon svg{
   width:18px;
   height:18px;
   color:var(--cyan);
 }
-.historial-icon.green{
+.historial-icon.green,
+.estudios-icon.green{
   background:rgba(61,220,151,.15);
 }
-.historial-icon.green svg{
+.historial-icon.green svg,
+.estudios-icon.green svg{
   color:var(--green);
 }
-.historial-icon.orange{
+.historial-icon.orange,
+.estudios-icon.orange{
   background:rgba(245,158,45,.15);
 }
-.historial-icon.orange svg{
+.historial-icon.orange svg,
+.estudios-icon.orange svg{
   color:var(--orange);
 }
-.historial-icon.purple{
+.historial-icon.purple,
+.estudios-icon.purple{
   background:rgba(139,92,246,.15);
 }
-.historial-icon.purple svg{
+.historial-icon.purple svg,
+.estudios-icon.purple svg{
   color:#8b5cf6;
 }
-.historial-info{
+.historial-info,
+.estudios-info{
   flex:1;
 }
-.historial-title{
+.historial-title,
+.estudios-title{
   font-size:13px;
   font-weight:600;
   color:var(--txt);
   margin-bottom:4px;
 }
-.historial-doctor{
+.historial-doctor,
+.estudios-doctor{
   font-size:12px;
   color:var(--txt-soft);
 }
-.historial-right{
+.historial-right,
+.estudios-right{
   display:flex;
   flex-direction:column;
   align-items:flex-end;
   gap:6px;
 }
-.historial-date{
+.historial-date,
+.estudios-date{
   font-size:12px;
   color:var(--txt-soft);
 }
@@ -1893,6 +1910,7 @@
 
     <div class="panel-tabs">
       <button class="tab-btn active" onclick="showTab('resumen')">Resumen</button>
+      <button class="tab-btn" onclick="showTab('estudios')">Estudios</button>
       <button class="tab-btn" onclick="showTab('historial')">Historial</button>
       <button class="tab-btn" onclick="showTab('reportes')">Reportes IA</button>
     </div>
@@ -1963,6 +1981,23 @@
           <div class="mini-card-value" id="panelProximaCitaFecha">—</div>
           <div class="mini-card-sub" id="panelProximaCitaHora">—</div>
         </div>
+      </div>
+    </div>
+
+    {{-- Contenido Tab Estudios --}}
+    <div id="tab-estudios" class="tab-content">
+      <div class="estudios-section">
+        <h4>Estudios</h4>
+        <div class="estudios-list" id="estudiosList">
+          {{-- Se llena dinámicamente con JavaScript --}}
+        </div>
+        <div class="estudios-empty" id="estudiosEmpty" style="display:none;">
+          <p style="color:var(--txt-soft);font-size:13px;text-align:center;padding:24px 0;">Este paciente aún no tiene estudios registrados.</p>
+        </div>
+        <a href="#" id="btnVerTodosEstudios" class="btn-view-all">
+          Ver todos los estudios
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
       </div>
     </div>
 
@@ -2084,6 +2119,17 @@
           ];
       })->toArray();
 
+      $documentosLista = $paciente->documentos->map(function($doc) {
+          return [
+              'id' => $doc->id,
+              'nombre' => $doc->nombre_original ?? $doc->nombre ?? 'Archivo',
+              'url' => $doc->path ? asset('storage/' . $doc->path) : null,
+              'tipo' => $doc->mime_type ?? 'application/octet-stream',
+              'size' => $doc->size_bytes ?? 0,
+              'fecha' => $doc->created_at ? $doc->created_at->format('d/m/Y') : 'Sin fecha',
+          ];
+      })->toArray();
+
       $edad = $paciente->edad;
       if (!$edad && $paciente->fecha_nacimiento) {
           $edad = $paciente->fecha_nacimiento->age;
@@ -2106,6 +2152,7 @@
           'status' => $ultimoEstudio ? ($ultimoEstudio->estado ?? 'completed') : '',
           'tiene_estudios' => $tieneEstudios,
           'estudios' => $estudiosLista,
+          'documentos' => $documentosLista,
           'foto_url' => $paciente->foto ? asset('storage/' . $paciente->foto) : null,
           'proxima_cita' => $proximaCita ? [
               'fecha' => $proximaCita->fecha->format('d M Y'),
@@ -2757,6 +2804,7 @@ function openPanel(index) {
     btnVerTodoHistorial.href = `${routes.nuevoEstudio}?paciente=${encodeURIComponent(patient.id)}`;
   }
 
+  updateEstudiosTab(patient);
   updateReportesIATab(patient);
 
   document.getElementById('contentWrapper').classList.add('panel-open');
@@ -2770,6 +2818,52 @@ function closePanel() {
   document.getElementById('contentWrapper').classList.remove('panel-open');
   document.querySelectorAll('.patient-row').forEach(row => row.classList.remove('active'));
   _currentPanelIndex = null;
+}
+
+function updateEstudiosTab(patient) {
+  if (!patient) return;
+  const estudiosList = document.getElementById('estudiosList');
+  const estudiosEmpty = document.getElementById('estudiosEmpty');
+  const btnVerTodosEstudios = document.getElementById('btnVerTodosEstudios');
+  if (estudiosList && estudiosEmpty) {
+    estudiosList.innerHTML = '';
+    const documentos = patient.documentos || [];
+    if (documentos.length > 0) {
+      estudiosEmpty.style.display = 'none';
+      documentos.forEach(doc => {
+        const size = doc.size ? formatBytes(doc.size) : '';
+        const item = document.createElement('div');
+        item.className = 'estudios-item';
+        item.innerHTML = `
+          <div class="estudios-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          <div class="estudios-info">
+            <div class="estudios-title">${doc.nombre || 'Archivo'}</div>
+            <div class="estudios-doctor">${size ? size + ' · ' : ''}${doc.fecha || 'Sin fecha'}</div>
+          </div>
+          <div class="estudios-right">
+            ${doc.url ? `<a href="${doc.url}" target="_blank" class="estudios-date" style="text-decoration:none;color:var(--cyan);font-weight:600">Ver</a>` : '<div class="estudios-date">—</div>'}
+          </div>
+        `;
+        estudiosList.appendChild(item);
+      });
+    } else {
+      estudiosEmpty.style.display = 'block';
+    }
+  }
+  if (btnVerTodosEstudios) {
+    btnVerTodosEstudios.href = `${routes.nuevoEstudio}?paciente=${encodeURIComponent(patient.id)}`;
+  }
+}
+
+function formatBytes(bytes, decimals = 1) {
+  if (!bytes || bytes === 0) return '0 B';
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
 function updateReportesIATab(patient) {
@@ -2819,6 +2913,10 @@ function showTab(tabName) {
   // Actualizar datos de la pestaña de Reportes IA
   if (tabName === 'reportes' && _currentPanelIndex !== null) {
     updateReportesIATab(patientsData[_currentPanelIndex]);
+  }
+  // Actualizar datos de la pestaña de Estudios
+  if (tabName === 'estudios' && _currentPanelIndex !== null) {
+    updateEstudiosTab(patientsData[_currentPanelIndex]);
   }
 }
 

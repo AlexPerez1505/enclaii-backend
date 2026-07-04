@@ -10,7 +10,7 @@ class PacienteController extends Controller
 {
     public function index()
     {
-        $pacientes = Paciente::latest()->get();
+        $pacientes = Paciente::with('documentos')->latest()->get();
 
         return view('pacientes.index', compact('pacientes'));
     }
