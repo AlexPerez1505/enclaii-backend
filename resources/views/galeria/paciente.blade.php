@@ -106,7 +106,7 @@ $totalFotos = $imagenes->count();
 $totalVideos = $videos->count();
 $totalEstudios = $imagenes->pluck('estudio_id')->merge($videos->pluck('estudio_id'))->filter()->unique()->count();
 $ultimoArchivo = $imagenes->first() ?? $videos->first();
-$ultimaFecha = optional($ultimoArchivo?->capturado_en)->format('d/m/Y') ?? '—';
+$ultimaFecha = format_user_date($ultimoArchivo?->capturado_en) ?: '—';
 @endphp
 
 <div class="pa-topbar rise d2">
@@ -152,7 +152,7 @@ $ultimaFecha = optional($ultimoArchivo?->capturado_en)->format('d/m/Y') ?? '—'
             </div>
             <div class="pa-body">
               <div class="pa-name">{{ $v->nombre_original ?? 'Video del estudio' }}</div>
-              <div class="pa-meta">Estudio {{ $v->estudio?->folio }}<br>{{ optional($v->capturado_en)->format('d/m/Y H:i') }}</div>
+              <div class="pa-meta">Estudio {{ $v->estudio?->folio }}<br>{{ format_user_date($v->capturado_en) }}</div>
               <div class="pa-actions">
                 <a class="pa-btn primary" href="{{ route('galeria.video', ['id' => $v['id'], 'paciente' => $id]) }}">Ver</a>
                 <a class="pa-btn" href="{{ route('galeria.video.editar', ['id' => $v['id'], 'paciente' => $id]) }}">Editar</a>
@@ -176,11 +176,11 @@ $ultimaFecha = optional($ultimoArchivo?->capturado_en)->format('d/m/Y') ?? '—'
             <div class="pa-thumb">
               <img src="{{ asset('storage/'.$img->path) }}" alt="{{ $img->nombre_original ?? 'Captura' }}">
               <span class="pa-badge image">IMG</span>
-              <span class="pa-duration">{{ optional($img->capturado_en)->format('H:i') }}</span>
+              <span class="pa-duration">{{ format_user_time($img->capturado_en) }}</span>
             </div>
             <div class="pa-body">
               <div class="pa-name">{{ $img->nombre_original ?? 'Captura' }}</div>
-              <div class="pa-meta">Captura del estudio {{ $img->estudio?->folio }}<br>{{ optional($img->capturado_en)->format('d/m/Y') }}</div>
+              <div class="pa-meta">Captura del estudio {{ $img->estudio?->folio }}<br>{{ format_user_date($img->capturado_en) }}</div>
               <div class="pa-actions">
                 <a class="pa-btn primary" href="{{ route('galeria.imagen', ['id' => $img['id'], 'paciente' => $id]) }}">Ver imagen</a>
               </div>

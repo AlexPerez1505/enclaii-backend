@@ -15,7 +15,7 @@
       <div class="name">{{ $nombreCita }}</div>
       <div class="meta">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <b>{{ $proximaCita->fecha?->format('d/m/Y') }} · {{ \Carbon\Carbon::parse($proximaCita->hora ?? '00:00')->format('g:i A') }}</b>
+        <b>{{ format_user_date($proximaCita->fecha) }} · {{ format_user_time(\Carbon\Carbon::parse($proximaCita->hora ?? '00:00')) }}</b>
       </div>
       <div class="meta"><b>{{ $proximaCita->procedimiento ?? 'Procedimiento por definir' }}</b></div>
       <a class="btn-line" href="{{ $pacCita ? route('pacientes.index', ['paciente_id' => $pacCita->id]) : route('pacientes.index') }}">

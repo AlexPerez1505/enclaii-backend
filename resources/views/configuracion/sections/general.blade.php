@@ -31,7 +31,14 @@
         <span class="cfg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
         <div class="cfg-info"><div class="t">Zona horaria</div><div class="d">Configura tu zona horaria local</div></div>
         <div class="cfg-select">
-          <select data-setting="timezone"><option>(GMT-06:00) Ciudad de México</option><option>(GMT-05:00) Bogotá</option><option>(GMT-03:00) Buenos Aires</option></select>
+          <select data-setting="timezone">
+            <option value="America/Mexico_City">(GMT-06:00) Ciudad de México</option>
+            <option value="America/Bogota">(GMT-05:00) Bogotá</option>
+            <option value="America/Lima">(GMT-05:00) Lima</option>
+            <option value="America/New_York">(GMT-04:00) Nueva York</option>
+            <option value="America/Argentina/Buenos_Aires">(GMT-03:00) Buenos Aires</option>
+            <option value="Europe/Madrid">(GMT+02:00) Madrid</option>
+          </select>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
       </div>

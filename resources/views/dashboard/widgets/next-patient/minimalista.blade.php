@@ -4,7 +4,7 @@
   $nombreMinCita   = $pacMinCita?->nombre_completo ?? $proximaCita?->paciente_nombre ?? 'Sin citas próximas';
   $partesMinNombre = preg_split('/\s+/', trim($nombreMinCita), 3);
   $nombreMinCita   = trim(($partesMinNombre[0] ?? '') . ' ' . ($partesMinNombre[1] ?? ''));
-  $horaMinCita     = $proximaCita ? \Carbon\Carbon::parse($proximaCita->hora ?? '00:00')->format('g:i A') : '';
+  $horaMinCita     = $proximaCita ? format_user_time(\Carbon\Carbon::parse($proximaCita->hora ?? '00:00')) : '';
   $procMinCita     = $proximaCita?->procedimiento ?? 'Procedimiento por definir';
   $urlMinCita      = $pacMinCita ? route('pacientes.index', ['paciente_id' => $pacMinCita->id]) : route('pacientes.index');
 @endphp

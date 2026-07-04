@@ -14,9 +14,9 @@ class SettingsController extends Controller
     public function update(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'timezone' => ['sometimes', 'string', 'max:100'],
+            'timezone' => ['sometimes', 'timezone', 'max:50'],
             'date_format' => ['sometimes', 'string', 'max:20'],
-            'time_format' => ['sometimes', 'string', 'max:30'],
+            'time_format' => ['sometimes', 'in:12 horas (AM/PM),24 horas', 'max:30'],
             'autosave' => ['sometimes', 'boolean'],
             'confirm_delete' => ['sometimes', 'boolean'],
             'default_view' => ['sometimes', 'string', 'max:50'],

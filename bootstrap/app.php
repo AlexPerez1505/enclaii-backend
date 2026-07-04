@@ -16,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'webhooks/stripe',
         ]);
 
+        $middleware->web(\App\Http\Middleware\UserTimezone::class);
+
         $middleware->alias([
             'subscribed' => \App\Http\Middleware\EnsureSubscribed::class,
             'clinic.owner' => \App\Http\Middleware\EnsureClinicaOwner::class,

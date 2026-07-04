@@ -151,7 +151,7 @@
           <div class="t">Contraseña</div>
           <div class="d" id="secPasswordUpdated">
             Última actualización:
-            {{ auth()->user()->password_changed_at?->format('d/m/Y H:i') ?? 'sin registro' }}
+            {{ format_user_date_time(auth()->user()->password_changed_at) ?: 'sin registro' }}
           </div>
         </div>
         <button type="button" class="sec-btn" id="secPasswordOpen">Cambiar contraseña</button>
@@ -197,7 +197,7 @@
                   </span>
                 </td>
                 <td>{{ $connectedSession->locationLabel() }}</td>
-                <td>{{ $connectedSession->lastActivityAt()->format('d/m/Y H:i') }}</td>
+                <td>{{ format_user_date_time($connectedSession->lastActivityAt()) }}</td>
                 <td><span class="sec-on {{ $isCurrentSession ? 'current' : '' }}">{{ $isCurrentSession ? 'Este dispositivo' : 'Activo' }}</span></td>
                 <td>
                   <button
@@ -259,7 +259,7 @@
                 };
               @endphp
               <tr>
-                <td>{{ $log->created_at->format('d/m/Y H:i') }}</td>
+                <td>{{ format_user_date_time($log->created_at) }}</td>
                 <td>{{ $log->user?->name ?? 'Cuenta eliminada' }}</td>
                 <td><span class="sec-act"><i class="{{ $dotClass }}"></i>{{ $log->description }}</span></td>
                 <td>{{ $log->deviceLabel() }}</td>

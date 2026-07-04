@@ -52,7 +52,7 @@
       <h4>Próximos estudios</h4>
       @forelse($pendientesHoy ?? [] as $cita)
         @php
-          $hora = \Carbon\Carbon::parse($cita->hora)->format('g:i A');
+          $hora = format_user_time(\Carbon\Carbon::parse($cita->hora));
           $chip = $cita->estado === 'proximo' ? 'wait' : 'urgent';
           $chipText = $cita->estado === 'proximo' ? 'Próxima' : 'En espera';
         @endphp

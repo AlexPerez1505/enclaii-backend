@@ -258,7 +258,7 @@ class User extends Authenticatable
     public static function defaultSettings(): array
     {
         return [
-            'timezone' => '(GMT-06:00) Ciudad de México',
+            'timezone' => 'America/Mexico_City',
             'date_format' => 'DD/MM/YYYY',
             'time_format' => '12 horas (AM/PM)',
             'autosave' => true,

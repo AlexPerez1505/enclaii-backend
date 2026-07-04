@@ -10,7 +10,7 @@
         @php
           $nombreList = $cita->paciente?->nombre_completo ?? $cita->paciente_nombre ?? 'Paciente';
           $urlList = $cita->paciente ? route('pacientes.index', ['paciente_id' => $cita->paciente->id]) : route('agenda');
-          $horaList = \Carbon\Carbon::parse($cita->hora ?? '00:00')->format('g:i A');
+          $horaList = format_user_time(\Carbon\Carbon::parse($cita->hora ?? '00:00'));
           $procList = $cita->procedimiento ?? 'Sin procedimiento';
         @endphp
         <li style="flex:none">

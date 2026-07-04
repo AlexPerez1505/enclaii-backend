@@ -94,7 +94,7 @@
   @php
     $paciente = $reporte?->estudio?->paciente;
     $nombrePaciente = $paciente?->nombre_completo ?? $reporte?->estudio?->paciente_nombre ?? 'Paciente no registrado';
-    $fechaEstudio = $reporte?->estudio?->fecha?->format('d/m/Y') ?? $reporte?->created_at?->format('d/m/Y') ?? '—';
+    $fechaEstudio = format_user_date($reporte?->estudio?->fecha ?? $reporte?->created_at) ?: '—';
     $horaEstudio = $reporte?->estudio?->hora_inicio ?? '';
     $tipoEstudio = $reporte?->estudio?->tipo ?? 'Endoscopia';
     $medicoNombre = $reporte?->usuario?->name ?? auth()->user()?->name ?? '—';
@@ -131,7 +131,7 @@
 
   <div class="vw-status">
     <span class="chip done">Completado</span>
-    <span>Generado el {{ $reporte?->created_at?->format('d/m/Y h:i A') ?? '—' }}</span>
+    <span>Generado el {{ format_user_date_time($reporte?->created_at) ?: '—' }}</span>
   </div>
 
   <article class="card vw-doc rise d2">
@@ -155,7 +155,7 @@
 
     <div class="doc-meta">
       <span class="k">Paciente:</span><span>{{ $nombrePaciente }}</span>
-      <span class="k">Fecha de nacimiento:</span><span>{{ $paciente?->fecha_nacimiento?->format('d/m/Y') ?? '—' }}</span>
+      <span class="k">Fecha de nacimiento:</span><span>{{ format_user_date($paciente?->fecha_nacimiento) ?: '—' }}</span>
       <span class="k">Edad:</span><span>{{ $paciente?->edad ?? '—' }} años</span>
       <span class="k">Médico solicitante:</span><span>{{ $medicoNombre }}</span>
       <span class="k">Fecha del estudio:</span><span>{{ $fechaEstudio }} {{ $horaEstudio }}</span>

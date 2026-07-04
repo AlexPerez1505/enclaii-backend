@@ -789,7 +789,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
     ? $galImagenes->pluck('estudio_id')->merge($galVideos->pluck('estudio_id'))->filter()->unique()->count()
     : 15;
   $galUltimoArchivo = $galImagenes->first() ?? $galVideos->first();
-  $galUltimo = $paciente ? (optional($galUltimoArchivo?->capturado_en)->format('d/m/Y') ?? '—') : '15/07/2025';
+  $galUltimo = $paciente ? (format_user_date($galUltimoArchivo?->capturado_en) ?: '—') : '15/07/2025';
   $galSexo = $paciente?->sexo ?? 'Femenino';
   $galEdad = $paciente ? ($paciente->edad ? $paciente->edad.' años' : '—') : '38 años';
   $galCodigo = $paciente ? ($paciente->folio ?? $paciente->identificacion ?? '—') : '00012345';
@@ -905,7 +905,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
           
           <div class="np-info-box">
             <label>Fecha nacimiento</label>
-            <div class="np-field-value" id="fecha_nac">{{ $paciente?->fecha_nacimiento?->format('Y-m-d') ?? '—' }}</div>
+            <div class="np-field-value" id="fecha_nac">{{ format_user_date($paciente?->fecha_nacimiento) ?: '—' }}</div>
           </div>
           
           <div class="np-info-box">
@@ -940,7 +940,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
           
           <div class="np-info-box">
             <label>Fecha de registro</label>
-            <div class="np-field-value" id="fecha_registro">{{ $paciente?->created_at?->format('Y-m-d') ?? '—' }}</div>
+            <div class="np-field-value" id="fecha_registro">{{ format_user_date($paciente?->created_at) ?: '—' }}</div>
           </div>
           
           <div class="np-info-box np-wide">
@@ -1019,7 +1019,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
             </div>
             <div class="pa-body">
               <div class="pa-name">{{ $v->nombre_original ?? 'Video del estudio' }}</div>
-              <div class="pa-meta">Estudio {{ $v->estudio?->folio }}<br>{{ optional($v->capturado_en)->format('d/m/Y H:i') }}</div>
+              <div class="pa-meta">Estudio {{ $v->estudio?->folio }}<br>{{ format_user_date($v->capturado_en) }}</div>
               <div class="pa-actions">
                 <a class="pa-btn primary" href="{{ asset('storage/'.$v->path) }}" target="_blank">Ver</a>
               </div>
@@ -1060,11 +1060,11 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
             <div class="pa-thumb">
               <img src="{{ asset('storage/'.$img->path) }}" alt="{{ $img->nombre_original ?? 'Captura' }}">
               <span class="pa-badge image">IMG</span>
-              <span class="pa-duration">{{ optional($img->capturado_en)->format('H:i') }}</span>
+              <span class="pa-duration">{{ format_user_time($img->capturado_en) }}</span>
             </div>
             <div class="pa-body">
               <div class="pa-name">{{ $img->nombre_original ?? 'Captura' }}</div>
-              <div class="pa-meta">Captura del estudio {{ $img->estudio?->folio }}<br>{{ optional($img->capturado_en)->format('d/m/Y') }}</div>
+              <div class="pa-meta">Captura del estudio {{ $img->estudio?->folio }}<br>{{ format_user_date($img->capturado_en) }}</div>
               <div class="pa-actions">
                 <a class="pa-btn primary" href="{{ route('galeria.imagen', $img->id) }}">Ver imagen</a>
               </div>
@@ -1163,8 +1163,8 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   @php
     $rptImgs = ($galImagenes ?? collect())->where('estudio_id', $rpt->estudio_id)->take(8)->values();
     $rptFirma = $rpt->usuario?->name ?? $rpt->estudio?->medico ?? $paciente?->medico ?? 'Dr. Nombre del médico';
-    $rptFechaEstudio = optional($rpt->estudio?->fecha)->format('d/m/Y') ?? $rpt->created_at?->format('d/m/Y') ?? '';
-    $rptNac = optional($paciente?->fecha_nacimiento)->format('d/m/Y') ?? '';
+    $rptFechaEstudio = format_user_date($rpt->estudio?->fecha ?? $rpt->created_at) ?: '';
+    $rptNac = format_user_date($paciente?->fecha_nacimiento) ?: '';
   @endphp
   <div class="rpt-doc-wrap rise d2">
     <div class="rptd-doc" id="rptDoc">

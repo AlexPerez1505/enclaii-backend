@@ -950,6 +950,11 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
       <span class="nav-label">Pacientes</span>
     </a>
 
+    <a class="nav-item {{ $active === 'qr' ? 'active' : '' }}" href="{{ route('qr.index') }}" title="QR">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20h1"/></svg>
+      <span class="nav-label">QR</span>
+    </a>
+
     <a class="nav-item {{ $active === 'ia-reportes' ? 'active' : '' }}" href="{{ url('/ia-reportes') }}" title="Reportes">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><path d="M12.5 12.5 14 11l1.5 1.5"/><path d="M14 16a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
       <span class="nav-label">Reportes</span>

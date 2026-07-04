@@ -14,12 +14,13 @@ use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\StripeController;
 use App\Http\Controllers\ConfigurationBackupController;
 use App\Http\Controllers\SignatureController;
-use App\Http\Controllers\PrintTestController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\UserSessionController;
 use App\Http\Controllers\ClinicaMemberController;
 use App\Http\Controllers\CriticalSecurityController;
 use App\Http\Controllers\SecuritySettingsController;
+use App\Http\Controllers\QrRegistrationController;
+use App\Http\Controllers\PublicPatientPreregistrationController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -34,6 +35,18 @@ Route::post('/webhooks/whatsapp', [WhatsAppController::class, 'webhook'])
 // Webhook de Stripe (ruta publica, sin CSRF: ver bootstrap/app.php)
 Route::post('/webhooks/stripe', [StripeController::class, 'webhook'])
     ->name('webhooks.stripe');
+
+Route::get('/registro-paciente/completado', [PublicPatientPreregistrationController::class, 'success'])
+    ->name('qr.public.success');
+Route::get('/registro-paciente/expirado', [PublicPatientPreregistrationController::class, 'expired'])
+    ->name('qr.public.expired');
+Route::get('/registro-paciente/{token}', [PublicPatientPreregistrationController::class, 'show'])
+    ->where('token', '[A-Za-z0-9]{64}')
+    ->name('qr.public.show');
+Route::post('/registro-paciente/{token}', [PublicPatientPreregistrationController::class, 'store'])
+    ->where('token', '[A-Za-z0-9]{64}')
+    ->middleware('throttle:5,1')
+    ->name('qr.public.store');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [EndoCareAuthController::class, 'showLogin'])->name('login');
@@ -120,9 +133,6 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
         ->name('configuracion.signature.store');
     Route::delete('/configuracion/firma', [SignatureController::class, 'destroy'])
         ->name('configuracion.signature.destroy');
-
-    Route::get('/configuracion/prueba-impresion', [PrintTestController::class, 'show'])
-        ->name('configuracion.print-test');
 
     Route::patch('/configuracion/seguridad/contrasena', [PasswordController::class, 'update'])
         ->name('configuracion.password.update');
@@ -838,6 +848,16 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
 Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     Route::resource('pacientes', PacienteController::class)
         ->middlewareFor(['update', 'destroy'], 'critical.password:patients');
+
+    Route::get('/qr', [QrRegistrationController::class, 'index'])->name('qr.index');
+    Route::post('/qr/enlaces', [QrRegistrationController::class, 'store'])->name('qr.links.store');
+    Route::get('/qr/enlaces/{link}/imagen', [QrRegistrationController::class, 'image'])->name('qr.links.image');
+    Route::delete('/qr/enlaces/{link}', [QrRegistrationController::class, 'destroy'])->name('qr.links.destroy');
+    Route::delete('/qr/enlaces/{link}/eliminar', [QrRegistrationController::class, 'archive'])->name('qr.links.archive');
+    Route::post('/qr/preregistros/{preregistration}/aceptar', [QrRegistrationController::class, 'accept'])
+        ->name('qr.preregistrations.accept');
+    Route::post('/qr/preregistros/{preregistration}/rechazar', [QrRegistrationController::class, 'reject'])
+        ->name('qr.preregistrations.reject');
 
     Route::get('/agenda', [AgendaController::class, 'index'])->name('agenda');
     Route::get('/agendar', [AgendaController::class, 'create'])->name('agendar');
