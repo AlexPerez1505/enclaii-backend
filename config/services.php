@@ -78,6 +78,11 @@ return [
             'storage_50' => env('STRIPE_PRICE_STORAGE_50'),
             'storage_100' => env('STRIPE_PRICE_STORAGE_100'),
         ],
+
+        // Cuenta adicional para Red Médica: $5,000 MXN al mes.
+        'member_addon' => [
+            'amount' => 500000,
+        ],
     ],
 
     'whatsapp' => [

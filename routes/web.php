@@ -156,6 +156,9 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
         ->name('stripe.subscribe');
     Route::post('/stripe/change-plan', [StripeController::class, 'changePlan'])
         ->name('stripe.change.plan');
+    Route::post('/stripe/member-addon/checkout', [StripeController::class, 'memberAddonCheckout'])
+        ->middleware('clinic.owner')
+        ->name('stripe.member-addon.checkout');
     Route::get('/stripe/invoices', [StripeController::class, 'invoices'])
         ->name('stripe.invoices');
     Route::post('/stripe/cancel-subscription', [StripeController::class, 'cancelSubscription'])

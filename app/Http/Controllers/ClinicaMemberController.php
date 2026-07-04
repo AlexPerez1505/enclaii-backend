@@ -38,8 +38,17 @@ class ClinicaMemberController extends Controller
         $memberCount = $user->clinica->usuarios()->count();
 
         if (($memberCount + $pendingCount) >= $user->clinicMemberLimit()) {
+            $offer = $user->clinicMemberUpgradeOffer();
+            $message = $offer['type'] === 'member_addon'
+                ? 'Tu Red Médica alcanzó su límite. Compra una cuenta adicional por $5,000 MXN al mes.'
+                : 'Tu plan alcanzó su límite. Cambia al Plan '.$offer['target_label'].' para agregar más cuentas.';
+
             return response()->json([
-                'message' => 'Tu plan ya alcanzó el límite de integrantes e invitaciones pendientes.',
+                'message' => $message,
+                'code' => 'member_limit_reached',
+                'member_limit' => $user->clinicMemberLimit(),
+                'member_usage' => $memberCount + $pendingCount,
+                'upgrade_offer' => $offer,
             ], 422);
         }
 

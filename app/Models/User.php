@@ -109,12 +109,56 @@ class User extends Authenticatable
 
     public function clinicMemberLimit(): int
     {
+        $billingUser = $this->billingUser();
+
+        return $billingUser->baseClinicMemberLimit()
+            + $billingUser->memberAddons()
+                ->whereIn('status', ['active', 'trialing'])
+                ->sum('quantity');
+    }
+
+    public function baseClinicMemberLimit(): int
+    {
         return match ($this->billingUser()->stripe_plan) {
             'red_medica' => 50,
             'hospital' => 15,
             'clinica' => 5,
             default => 1,
         };
+    }
+
+    public function clinicMemberUpgradeOffer(): array
+    {
+        return match ($this->billingUser()->stripe_plan) {
+            'clinica' => [
+                'type' => 'plan_upgrade',
+                'target_plan' => 'hospital',
+                'target_label' => 'Hospital',
+                'new_limit' => 15,
+            ],
+            'hospital' => [
+                'type' => 'plan_upgrade',
+                'target_plan' => 'red_medica',
+                'target_label' => 'Red Médica',
+                'new_limit' => 50,
+            ],
+            'red_medica' => [
+                'type' => 'member_addon',
+                'price_mxn' => 5000,
+                'additional_slots' => 1,
+            ],
+            default => [
+                'type' => 'plan_upgrade',
+                'target_plan' => 'clinica',
+                'target_label' => 'Clínica',
+                'new_limit' => 5,
+            ],
+        };
+    }
+
+    public function memberAddons(): HasMany
+    {
+        return $this->hasMany(ClinicMemberAddon::class);
     }
 
     public function ensurePrivateClinicForPlan(): void

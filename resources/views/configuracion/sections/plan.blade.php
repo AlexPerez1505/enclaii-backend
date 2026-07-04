@@ -6,6 +6,7 @@
   $clinicMemberUsed = $clinicMembers->count() + $clinicInvitations->count();
   $clinicMemberRemaining = max(0, $clinicMemberLimit - $clinicMemberUsed);
   $clinicMemberPercent = min(100, (int) round(($clinicMemberUsed / max(1, $clinicMemberLimit)) * 100));
+  $clinicMemberUpgradeOffer = auth()->user()->clinicMemberUpgradeOffer();
   $isClinicOwner = auth()->user()->clinica_rol === 'propietario';
 @endphp
 
@@ -462,6 +463,14 @@
       <p id="gpInviteResultText"></p>
       <button type="button" class="gp-invite-submit" id="gpInviteDone">Terminar</button>
     </div>
+
+    <div class="gp-invite-limit" id="gpInviteLimit" hidden>
+      <span class="gp-limit-icon">!</span>
+      <strong>Límite de cuentas alcanzado</strong>
+      <p id="gpInviteLimitText"></p>
+      <button type="button" class="gp-invite-submit" id="gpInviteUpgrade"></button>
+      <button type="button" class="gp-limit-cancel" id="gpInviteLimitCancel">Ahora no</button>
+    </div>
   </div>
 </div>
 @endif
@@ -577,6 +586,12 @@
 .gp-invite-result{display:grid;gap:15px;margin-top:22px}
 .gp-invite-result strong{font-family:'Sora',sans-serif;font-size:16px}
 .gp-invite-result p{font-size:12.5px;line-height:1.5;color:var(--txt-soft)}
+.gp-invite-limit{display:grid;gap:13px;margin-top:22px;text-align:center}
+.gp-invite-limit[hidden]{display:none}
+.gp-limit-icon{width:44px;height:44px;margin:0 auto;border-radius:50%;display:grid;place-items:center;background:rgba(245,158,45,.14);border:1px solid rgba(245,158,45,.35);color:var(--orange);font-size:22px;font-weight:800}
+.gp-invite-limit strong{font-family:'Sora',sans-serif;font-size:17px}
+.gp-invite-limit p{font-size:12.5px;line-height:1.6;color:var(--txt-soft)}
+.gp-limit-cancel{padding:9px;border:1px solid var(--stroke-strong);border-radius:10px;color:var(--txt-soft);font-size:12px;font-weight:700}
 
 /* ===== RESPONSIVE: MODAL GESTIONAR PLAN ===== */
 @media (max-width:768px){
@@ -701,7 +716,32 @@
   const inviteForm = document.getElementById('gpInviteForm');
   const inviteResult = document.getElementById('gpInviteResult');
   const inviteError = document.getElementById('gpInviteError');
+  const inviteLimit = document.getElementById('gpInviteLimit');
+  const inviteLimitText = document.getElementById('gpInviteLimitText');
+  const inviteUpgrade = document.getElementById('gpInviteUpgrade');
+  const serverLimitOffer = @json($clinicMemberUpgradeOffer);
+  const memberLimit = {{ $clinicMemberLimit }};
+  const memberUsage = {{ $clinicMemberUsed }};
   let inviteCreated = false;
+  let activeLimitOffer = null;
+
+  function showInviteLimit(payload){
+    const offer = payload.upgrade_offer || serverLimitOffer;
+    const limit = payload.member_limit || memberLimit;
+    activeLimitOffer = offer;
+    inviteForm?.setAttribute('hidden', '');
+    inviteResult?.setAttribute('hidden', '');
+    inviteError?.setAttribute('hidden', '');
+    inviteLimit?.removeAttribute('hidden');
+
+    if (offer.type === 'member_addon') {
+      inviteLimitText.textContent = `Ya utilizaste ${limit} de ${limit} lugares. Agrega una cuenta por $${Number(offer.price_mxn).toLocaleString('es-MX')} MXN al mes.`;
+      inviteUpgrade.textContent = `Comprar 1 cuenta adicional · $${Number(offer.price_mxn).toLocaleString('es-MX')}/mes`;
+    } else {
+      inviteLimitText.textContent = `Ya utilizaste ${limit} de ${limit} lugares. Cambia al Plan ${offer.target_label} para disponer de hasta ${offer.new_limit} cuentas.`;
+      inviteUpgrade.textContent = `Ver Plan ${offer.target_label}`;
+    }
+  }
 
   function closeInvite(){
     inviteModal?.classList.remove('open');
@@ -714,15 +754,25 @@
       if (!inviteModal) return;
       inviteCreated = false;
       inviteForm?.reset();
-      inviteForm?.removeAttribute('hidden');
+      inviteLimit?.setAttribute('hidden', '');
       inviteResult?.setAttribute('hidden', '');
       inviteError?.setAttribute('hidden', '');
       inviteModal.classList.add('open');
       inviteModal.setAttribute('aria-hidden', 'false');
+      if (memberUsage >= memberLimit) {
+        showInviteLimit({
+          member_limit: memberLimit,
+          member_usage: memberUsage,
+          upgrade_offer: serverLimitOffer,
+        });
+      } else {
+        inviteForm?.removeAttribute('hidden');
+      }
     });
   });
   document.getElementById('gpInviteClose')?.addEventListener('click', closeInvite);
   document.getElementById('gpInviteDone')?.addEventListener('click', closeInvite);
+  document.getElementById('gpInviteLimitCancel')?.addEventListener('click', closeInvite);
   inviteModal?.addEventListener('click', event => {
     if (event.target === inviteModal) closeInvite();
   });
@@ -747,6 +797,10 @@
       const data = await response.json();
 
       if (!response.ok) {
+        if (data.code === 'member_limit_reached') {
+          showInviteLimit(data);
+          return;
+        }
         const firstError = Object.values(data.errors || {}).flat()[0];
         throw new Error(firstError || data.message || 'No se pudo crear la invitación.');
       }
@@ -761,6 +815,29 @@
     } finally {
       submit.disabled = false;
       submit.textContent = 'Autorizar correo';
+    }
+  });
+
+  inviteUpgrade?.addEventListener('click', () => {
+    if (!activeLimitOffer) return;
+
+    if (activeLimitOffer.type === 'member_addon') {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = "{{ route('stripe.member-addon.checkout') }}";
+      form.innerHTML = `<input type="hidden" name="_token" value="{{ csrf_token() }}">`;
+      document.body.appendChild(form);
+      form.submit();
+      return;
+    }
+
+    const targetCard = document.querySelector(`[data-card="${activeLimitOffer.target_plan}"]`);
+    closeInvite();
+    close();
+    targetCard?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (targetCard) {
+      targetCard.style.boxShadow = '0 0 0 3px rgba(14,165,233,.35)';
+      setTimeout(() => { targetCard.style.boxShadow = ''; }, 2500);
     }
   });
 

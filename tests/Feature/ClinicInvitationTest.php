@@ -4,9 +4,12 @@ namespace Tests\Feature;
 
 use App\Models\Clinica;
 use App\Models\ClinicaInvitation;
+use App\Models\ClinicMemberAddon;
 use App\Models\Paciente;
 use App\Models\User;
+use App\Services\StripeService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Mockery;
 use Tests\TestCase;
 
 class ClinicInvitationTest extends TestCase
@@ -111,7 +114,83 @@ class ClinicInvitationTest extends TestCase
                 'rol' => 'medico',
             ])
             ->assertUnprocessable()
-            ->assertJsonPath('message', 'Tu plan ya alcanzó el límite de integrantes e invitaciones pendientes.');
+            ->assertJsonPath('code', 'member_limit_reached')
+            ->assertJsonPath('member_limit', 5)
+            ->assertJsonPath('upgrade_offer.type', 'plan_upgrade')
+            ->assertJsonPath('upgrade_offer.target_plan', 'hospital')
+            ->assertJsonPath('upgrade_offer.new_limit', 15);
+    }
+
+    public function test_hospital_limit_offers_red_medica(): void
+    {
+        [$hospital, $hospitalOwner] = $this->clinicOwner('hospital');
+        $this->pendingInvitations($hospital, $hospitalOwner, 14, 'hospital');
+
+        $this->actingAs($hospitalOwner)
+            ->postJson(route('configuracion.clinic-invitations.store'), [
+                'email' => 'hospital-overflow@example.com',
+                'rol' => 'medico',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonPath('upgrade_offer.target_plan', 'red_medica')
+            ->assertJsonPath('upgrade_offer.new_limit', 50);
+    }
+
+    public function test_red_medica_limit_offers_paid_seat(): void
+    {
+        [$network, $networkOwner] = $this->clinicOwner('red_medica');
+        $this->pendingInvitations($network, $networkOwner, 49, 'network');
+
+        $this->actingAs($networkOwner)
+            ->postJson(route('configuracion.clinic-invitations.store'), [
+                'email' => 'network-overflow@example.com',
+                'rol' => 'medico',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonPath('upgrade_offer.type', 'member_addon')
+            ->assertJsonPath('upgrade_offer.price_mxn', 5000)
+            ->assertJsonPath('upgrade_offer.additional_slots', 1);
+    }
+
+    public function test_active_member_addon_adds_a_real_slot_to_red_medica(): void
+    {
+        [$clinic, $owner] = $this->clinicOwner('red_medica');
+        $this->pendingInvitations($clinic, $owner, 49, 'addon');
+        ClinicMemberAddon::create([
+            'user_id' => $owner->id,
+            'stripe_subscription_id' => 'sub_member_addon_active',
+            'quantity' => 1,
+            'status' => 'active',
+        ]);
+
+        $this->assertSame(51, $owner->clinicMemberLimit());
+
+        $this->actingAs($owner)
+            ->postJson(route('configuracion.clinic-invitations.store'), [
+                'email' => 'seat-51@example.com',
+                'rol' => 'medico',
+            ])
+            ->assertCreated();
+    }
+
+    public function test_red_medica_owner_can_start_member_addon_checkout_at_the_limit(): void
+    {
+        [$clinic, $owner] = $this->clinicOwner('red_medica');
+        $this->pendingInvitations($clinic, $owner, 49, 'checkout');
+        $checkout = \Stripe\Checkout\Session::constructFrom([
+            'id' => 'cs_member_addon',
+            'url' => 'https://checkout.stripe.test/member-addon',
+        ]);
+        $stripe = Mockery::mock(StripeService::class);
+        $stripe->shouldReceive('createMemberAddonCheckout')
+            ->once()
+            ->withArgs(fn (User $user) => $user->is($owner))
+            ->andReturn($checkout);
+        $this->app->instance(StripeService::class, $stripe);
+
+        $this->actingAs($owner)
+            ->post(route('stripe.member-addon.checkout'))
+            ->assertRedirect('https://checkout.stripe.test/member-addon');
     }
 
     public function test_unlisted_email_must_select_a_plan_before_accessing_the_system(): void
@@ -200,7 +279,7 @@ class ClinicInvitationTest extends TestCase
         $this->assertSame([$firstPatient->id], Paciente::query()->pluck('id')->all());
     }
 
-    private function clinicOwner(): array
+    private function clinicOwner(string $plan = 'clinica'): array
     {
         $clinic = Clinica::create(['nombre' => 'Clínica Compartida']);
         $owner = User::create([
@@ -209,10 +288,28 @@ class ClinicInvitationTest extends TestCase
             'name' => 'Propietario',
             'email' => 'owner'.uniqid().'@example.com',
             'password' => 'SecurePassword1',
-            'stripe_plan' => 'clinica',
+            'stripe_plan' => $plan,
             'subscription_status' => 'active',
         ]);
 
         return [$clinic, $owner];
+    }
+
+    private function pendingInvitations(
+        Clinica $clinic,
+        User $owner,
+        int $count,
+        string $prefix,
+    ): void {
+        for ($i = 1; $i <= $count; $i++) {
+            ClinicaInvitation::create([
+                'clinica_id' => $clinic->id,
+                'invited_by' => $owner->id,
+                'email' => "{$prefix}{$i}@example.com",
+                'rol' => 'medico',
+                'token_hash' => hash('sha256', $prefix.'-'.$i),
+                'expires_at' => now()->addDays(7),
+            ]);
+        }
     }
 }
