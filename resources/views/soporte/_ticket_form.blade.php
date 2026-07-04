@@ -9,7 +9,13 @@
 .tkt-field textarea{
   width:100%;padding:10px 14px;border-radius:var(--r-md);
   border:1px solid var(--stroke);background:var(--panel);color:var(--txt);
-  font-size:14px;resize:vertical;
+  font-size:14px;resize:vertical;transition:border-color .15s,box-shadow .15s;
+}
+.tkt-field select:focus,
+.tkt-field input:focus,
+.tkt-field textarea:focus{
+  outline:none;border-color:var(--blue);
+  box-shadow:0 0 0 2px rgba(110,160,255,.25);
 }
 .tkt-field textarea{min-height:100px}
 .tkt-form-footer{display:flex;align-items:center;justify-content:space-between;margin-top:16px}

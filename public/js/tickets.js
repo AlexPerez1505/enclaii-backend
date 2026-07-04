@@ -129,10 +129,10 @@ function __generarTicketHTML(d){
     'body{font-family:"Segoe UI","Helvetica Neue",Arial,sans-serif;margin:0;padding:40px;color:#1a1a2e;background:#fff;font-size:13px;line-height:1.5}' +
     '.ticket{max-width:600px;margin:0 auto;border:1px solid #e0e0e0;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06)}' +
     '.ticket-header{background:linear-gradient(135deg,#1e3a5f 0%,#2e7bf6 100%);padding:32px 30px 24px;text-align:center;color:#fff}' +
-    '.ticket-header .logo-wrap{width:48px;height:48px;background:rgba(255,255,255,0.15);border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center}' +
-    '.ticket-header .logo-wrap svg{width:28px;height:28px}' +
-    '.ticket-header h1{font-size:20px;font-weight:700;margin:0 0 4px;letter-spacing:2px}' +
-    '.ticket-header p{font-size:11px;margin:0;opacity:0.8;text-transform:uppercase;letter-spacing:1.5px}' +
+    '.ticket-header .logo-wrap{width:150px;height:auto;margin:0 auto 10px;display:flex;align-items:center;justify-content:center}' +
+    '.ticket-header .logo-wrap img{width:100%;height:auto;display:block}' +
+    '.ticket-header .brand-name{font-size:20px;font-weight:700;margin:0;letter-spacing:2px}' +
+    '.ticket-header p{font-size:11px;margin:6px 0 0;opacity:0.8;text-transform:uppercase;letter-spacing:1.5px}' +
     '.ticket-id{text-align:center;padding:18px;background:#f8fafc;border-bottom:1px solid #e8ecf0}' +
     '.ticket-id span{font-size:28px;font-weight:800;color:#1e3a5f;letter-spacing:1px}' +
     '.ticket-id .date{font-size:11px;color:#6b7280;margin-top:4px;display:block}' +
@@ -153,8 +153,8 @@ function __generarTicketHTML(d){
     '</style></head><body>' +
     '<div class="ticket">' +
     '<div class="ticket-header">' +
-    '<div class="logo-wrap"><svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="42" stroke="#fff" stroke-width="3"/><text x="50" y="60" text-anchor="middle" font-family="Arial" font-weight="bold" font-size="28" fill="#fff">E</text></svg></div>' +
-    '<h1>ENCLAII</h1>' +
+    '<div class="logo-wrap"><img src="' + window.location.origin + '/images/logo-dark.png" alt="ENCLAII"></div>' +
+    '<div class="brand-name">ENCLAII</div>' +
     '<p>Ticket de Soporte</p>' +
     '</div>' +
     '<div class="ticket-id"><span>' + d.id + '</span><span class="date">' + d.fecha + ' - ' + d.hora + '</span></div>' +
@@ -237,37 +237,25 @@ function __generarTicketHTML(d){
   if(guardarBtn) guardarBtn.addEventListener('click', function(){
     if (!__tktData.id) return;
     var html = __generarTicketHTML(__tktData);
+    var win = window.open('', '_blank', 'width=700,height=900');
+    win.document.write(html);
+    win.document.close();
 
     function doDownload(){
-      var container = document.createElement('div');
-      container.style.position = 'fixed';
-      container.style.left = '-9999px';
-      container.style.top = '0';
-      container.style.width = '700px';
-      container.innerHTML = html.replace(/^.*<body>/,'').replace(/<\/body>.*$/,'');
-      document.body.appendChild(container);
-
-      var style = document.createElement('style');
-      var cssMatch = html.match(/<style>([\s\S]*?)<\/style>/);
-      if(cssMatch) style.textContent = cssMatch[1];
-      container.prepend(style);
-
-      html2pdf().set({
+      win.html2pdf().set({
         margin: 10,
         filename: 'ticket-' + __tktData.id.replace('#','') + '.pdf',
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      }).from(container).save().then(function(){
-        document.body.removeChild(container);
-      });
+      }).from(win.document.body).save();
     }
 
-    if(typeof html2pdf === 'undefined'){
-      var script = document.createElement('script');
+    if(typeof win.html2pdf === 'undefined'){
+      var script = win.document.createElement('script');
       script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
       script.onload = doDownload;
-      document.head.appendChild(script);
+      win.document.head.appendChild(script);
     } else {
       doDownload();
     }

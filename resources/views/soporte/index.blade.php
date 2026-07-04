@@ -261,7 +261,7 @@
           <span class="canal-arrow">›</span>
         </div>
 
-        <p style="font-size:12px;color:var(--txt-soft);margin-top:6px">Lun – Vie de 8am a 6pm</p>
+        <p style="font-size:12px;color:var(--txt-soft);margin-top:6px">Lun – Vie de 9am a 6pm</p>
       </div>
     </div>
 
