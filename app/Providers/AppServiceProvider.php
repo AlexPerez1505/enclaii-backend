@@ -2,10 +2,13 @@
 
 namespace App\Providers;
 
+use App\Models\Anuncio;
 use App\Models\Estudio;
 use App\Models\EstudioArchivo;
+use App\Observers\AnuncioObserver;
 use App\Observers\EstudioObserver;
 use App\Observers\EstudioArchivoObserver;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -23,7 +26,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Anuncio::observe(AnuncioObserver::class);
         Estudio::observe(EstudioObserver::class);
         EstudioArchivo::observe(EstudioArchivoObserver::class);
+
+        // Vistas exclusivas de Customer Success (módulo TEC)
+        View::addLocation(resource_path('views-Tec'));
     }
 }

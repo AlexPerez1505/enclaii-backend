@@ -1104,7 +1104,8 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
 
 <div class="dash">
 
-  {{-- ============ SIDEBAR (compartido) ============ --}}
+  {{-- ============ SIDEBAR (sobrescribible) ============ --}}
+  @section('sidebar')
   <aside class="side">
     <div class="side-top">
       <div class="side-brand-row">
@@ -1178,6 +1179,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
       <button class="btn-ghost">Contactar soporte</button>
     </div>
   </aside>
+  @show
 
   {{-- ============ MAIN ============ --}}
   <main class="main">
@@ -1272,7 +1274,8 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
 
   </main>
 
-  {{-- Bottom nav para móvil --}}
+  {{-- Bottom nav para móvil (sobrescribible) --}}
+  @section('bottom-nav')
   <nav class="mobile-nav">
     <a class="mobile-nav-item {{ $active === 'dashboard' ? 'active' : '' }}" href="{{ url('/dashboard') }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
@@ -1295,6 +1298,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
       Config
     </a>
   </nav>
+  @show
 
 </div>
 

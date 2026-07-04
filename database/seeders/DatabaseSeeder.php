@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             PlantillaSeeder::class,
+            CustomerSuccessRolesSeeder::class,
         ]);
     }
 }

@@ -11,6 +11,8 @@ use App\Http\Controllers\NuevoEstudioController;
 use App\Models\Paciente;
 use App\Models\Reporte;
 use App\Http\Controllers\AiAssistantController;
+use App\Http\Controllers\CustomerSuccess\AnuncioDashboardController;
+use App\Http\Controllers\CustomerSuccess\DashboardController;
 use App\Http\Controllers\StripeController;
 use App\Http\Controllers\StorageServeController;
 use App\Http\Controllers\NotificationController;
@@ -858,3 +860,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/ia/history', [AiAssistantController::class, 'history'])->name('ia.history');
     Route::post('/ia/reset', [AiAssistantController::class, 'reset'])->name('ia.reset');
 });
+
+// Customer Success: dashboard principal y panel de anuncios (vistas Blade protegidas)
+Route::middleware(['auth', 'customer.success'])
+    ->get('/customer-success/dashboard', [DashboardController::class, 'index'])
+    ->name('customer-success.dashboard');
+
+Route::middleware(['auth', 'customer.success'])
+    ->get('/customer-success/anuncios', [AnuncioDashboardController::class, 'index'])
+    ->name('customer-success.anuncios');
