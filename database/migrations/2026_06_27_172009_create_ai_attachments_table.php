@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('ai_attachments')) { return; }
         Schema::create('ai_attachments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('ai_message_id')->constrained('ai_messages')->cascadeOnDelete();
