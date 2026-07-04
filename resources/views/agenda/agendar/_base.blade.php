@@ -24,8 +24,8 @@
 
 /* Grid layout - más compacto y sin espacios vacíos */
 .ag-grid-main{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:stretch}
-.ag-grid-main > div{display:flex;flex-direction:column}
-.ag-grid-main .ag-card{flex:1;display:flex;flex-direction:column}
+.ag-grid-main > div{display:flex;flex-direction:column;min-width:0}
+.ag-grid-main .ag-card{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
 .ag-grid-bottom{display:grid;grid-template-columns:1fr 320px;gap:14px;align-items:stretch}
 
 /* Input */

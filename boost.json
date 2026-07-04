@@ -5,6 +5,7 @@
     "cloud": false,
     "skills": [
         "laravel-best-practices",
+        "echo-development",
         "tailwindcss-development"
     ]
 }

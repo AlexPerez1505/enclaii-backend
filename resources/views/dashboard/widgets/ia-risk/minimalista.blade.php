@@ -1,5 +1,5 @@
 {{-- Widget: IA Predictiva (minimalista) --}}
-<div class="widget widget-minimal mode-hidden d7" data-widget-id="ia-risk-min" data-w="13">
+<div class="widget widget-minimal d7" data-widget-id="ia-risk-min" data-w="13">
   <span class="widget-drag-handle" aria-hidden="true">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="19" r="1"/></svg>
   </span>
@@ -26,6 +26,6 @@
         <div class="risk-rec" style="font-size:clamp(0.75em,3.5cqi,1em);font-weight:500;color:var(--txt-soft)">Revisar historial<br>de biopsias previas</div>
       </div>
     </div>
+    <span class="widget-resize-handle"></span>
   </article>
-  <span class="widget-resize-handle"></span>
 </div>

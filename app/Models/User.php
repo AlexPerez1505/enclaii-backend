@@ -4,9 +4,13 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
+    use HasApiTokens;
+    use HasRoles;
     use Notifiable;
 
     protected $fillable = [
@@ -100,6 +104,17 @@ class User extends Authenticatable
             'reading_mode' => false,
             'notif_email' => true,
             'notif_push' => true,
+            'notif_new_studies_email' => true,
+            'notif_new_studies_screen' => true,
+            'notif_reminders_email' => false,
+            'notif_reminders_screen' => true,
+            'notif_updates_email' => false,
+            'notif_updates_screen' => true,
+            'notif_maintenance_email' => false,
+            'notif_maintenance_screen' => true,
+            'notif_privacy_email' => false,
+            'notif_privacy_screen' => true,
+            'notif_messages_screen' => true,
             'notif_new_studies' => true,
             'notif_reports' => true,
             'notif_reminders' => false,
