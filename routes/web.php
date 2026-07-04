@@ -419,7 +419,6 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
         return view('ia-reportes.analisis');
     })->name('ia-reportes.analisis');
     
-
     Route::get('/mensajes/correo', [WhatsAppController::class, 'index'])
         ->name('mensajes.correo');
 
@@ -738,7 +737,6 @@ Route::resource('pacientes', PacienteController::class);
 
 Route::get('/agenda', [AgendaController::class, 'index'])->name('agenda');
 Route::get('/agendar', [AgendaController::class, 'create'])->name('agendar');
-
 Route::post('/agenda/citas', [AgendaController::class, 'store'])->name('agenda.citas.store');
 Route::put('/agenda/citas/{cita}', [AgendaController::class, 'update'])->name('agenda.citas.update');
 Route::patch('/agenda/citas/{cita}/estado', [AgendaController::class, 'cambiarEstado'])->name('agenda.citas.estado');
