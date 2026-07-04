@@ -25,6 +25,8 @@ class Paciente extends Model
         'referido_por',
         'equipo_utilizado',
         'diagnostico_preliminar',
+        'enfermedad',
+        'alergias',
         'foto',
     ];
 

@@ -1731,29 +1731,15 @@
           <label>Médico</label>
           <select class="filter-input filter-select" id="fMedico">
             <option value="">Seleccionar médico</option>
-            <option>Ricardo Martínez</option>
-            <option>Dr. Victor</option>
-            <option>Dra. López</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label>Rango de edad</label>
-          <select class="filter-input filter-select" id="fRangoEdad">
-            <option value="">Seleccionar rango</option>
-            <option>0-18</option>
-            <option>19-35</option>
-            <option>36-50</option>
-            <option>51-65</option>
-            <option>65+</option>
           </select>
         </div>
         <div class="filter-group">
           <label>Estado</label>
           <select class="filter-input filter-select" id="fEstado">
-            <option value="">Seleccionar estado</option>
-            <option>En tratamiento</option>
-            <option>Activo</option>
-            <option>Inactivo</option>
+            <option value="">Todos</option>
+            <option>Completado</option>
+            <option>En espera</option>
+            <option>Cancelado</option>
           </select>
         </div>
         <div class="filter-group">
@@ -1766,54 +1752,13 @@
             <option>Este año</option>
           </select>
         </div>
-      </div>
-      <button type="button" class="filter-more-link" id="btnMoreLink" onclick="toggleMoreFilters()">
-        <span id="btnMoreLinkTxt">Más filtros</span>
-        <svg class="filter-more-icon" id="btnMoreLinkIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div class="filter-more-box" id="moreFiltersBox" style="display:none">
-        <p class="filter-more-title">Más filtros</p>
-        <div class="filter-grid">
-          <div class="filter-group">
-            <label>Fecha de nacimiento</label>
-            <input type="date" class="filter-input" id="fFechaNacimiento">
-          </div>
-          <div class="filter-group">
-            <label>Tipo de estudio</label>
-            <select class="filter-input filter-select" id="fTipoEstudio">
-              <option value="">Seleccionar tipo</option>
-              <option>Endoscopia diagnóstica</option>
-              <option>Endoscopia alta</option>
-              <option>Colonoscopia</option>
-              <option>CPRE</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label>Estado del estudio</label>
-            <select class="filter-input filter-select" id="fEstadoEstudio">
-              <option value="">Seleccionar estado</option>
-              <option>Completado</option>
-              <option>Pendiente</option>
-              <option>En proceso</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label>Fecha de registro</label>
-            <input type="date" class="filter-input" id="fFechaRegistro">
-          </div>
-          <div class="filter-group">
-            <label>Número de folio</label>
-            <input type="text" class="filter-input" placeholder="Ej. P-001" id="fFolio">
-          </div>
-          <div class="filter-group">
-            <label>Etiquetas</label>
-            <select class="filter-input filter-select" id="fEtiquetas">
-              <option value="">Seleccionar etiquetas</option>
-              <option>Urgente</option>
-              <option>Seguimiento</option>
-              <option>Nuevo</option>
-            </select>
-          </div>
+        <div class="filter-group">
+          <label>Fecha de nacimiento</label>
+          <input type="date" class="filter-input" id="fFechaNacimiento">
+        </div>
+        <div class="filter-group">
+          <label>Número de folio</label>
+          <input type="text" class="filter-input" placeholder="Ej. P-001" id="fFolio">
         </div>
       </div>
     </div>
@@ -2195,6 +2140,19 @@ const patientsData = @json($pacientesJs);
 let patientsDataFiltered = [...patientsData];
 const statusTexts = {completed:'Completado',waiting:'En espera',cancelled:'Cancelado'};
 
+/* Poblar select de médicos con valores reales */
+(function(){
+  const medicoSelect = document.getElementById('fMedico');
+  if (!medicoSelect) return;
+  const medicos = [...new Set(patientsData.map(p => p.medico).filter(m => m && m !== 'Sin médico'))].sort();
+  medicos.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m;
+    opt.textContent = m;
+    medicoSelect.appendChild(opt);
+  });
+})();
+
 // ============ PAGINACIÓN ============
 const PAGE_SIZE = 15;
 let currentPage = 1;
@@ -2512,7 +2470,7 @@ function toggleMoreFilters() {
   if (icon) icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
 }
 function updateFilterCount() {
-  const ids = ['fNombre','fMedico','fRangoEdad','fEstado','fUltimoEstudio','fFechaNacimiento','fTipoEstudio','fEstadoEstudio','fFechaRegistro','fFolio','fEtiquetas'];
+  const ids = ['fNombre','fMedico','fEstado','fUltimoEstudio','fFechaNacimiento','fFolio'];
   let count = 0;
   ids.forEach(id => {
     const el = document.getElementById(id);
@@ -2532,7 +2490,7 @@ function setDateFilter(btn, val) {
   updateFilterCounter();
 }
 function updateFilterCounter() {
-  const fields = ['fNombre','fMedico','fRangoEdad','fEstado','fUltimoEstudio','fFechaNacimiento','fTipoEstudio','fEstadoEstudio','fFechaRegistro','fFolio','fEtiquetas'];
+  const fields = ['fNombre','fMedico','fEstado','fUltimoEstudio','fFechaNacimiento','fFolio'];
   let count = 0;
   fields.forEach(id => {
     const el = document.getElementById(id);
@@ -2552,23 +2510,83 @@ function updateFilterCounter() {
 function applyFilters() {
   updateFilterCount();
   closeFilters();
-  // Reutilizar búsqueda principal filtrando por nombre/folio
-  const nombre = document.getElementById('fNombre')?.value.toLowerCase().trim() || '';
-  const folio = document.getElementById('fFolio')?.value.toLowerCase().trim() || '';
-  const medico = document.getElementById('fMedico')?.value.toLowerCase().trim() || '';
-  const estado = document.getElementById('fEstado')?.value.toLowerCase().trim() || '';
 
-  if (!nombre && !folio && !medico && !estado) {
-    patientsDataFiltered = [...patientsData];
-  } else {
-    patientsDataFiltered = patientsData.filter(p => {
-      const matchNombre = !nombre || (p.name && p.name.toLowerCase().includes(nombre));
-      const matchFolio = !folio || (p.folio && p.folio.toLowerCase().includes(folio));
-      const matchMedico = !medico || (p.medico && p.medico.toLowerCase().includes(medico));
-      const matchEstado = !estado || (p.status && p.status.toLowerCase().includes(estado));
-      return matchNombre && matchFolio && matchMedico && matchEstado;
-    });
-  }
+  const nombre        = document.getElementById('fNombre')?.value.toLowerCase().trim() || '';
+  const medico        = document.getElementById('fMedico')?.value.toLowerCase().trim() || '';
+  const estado        = document.getElementById('fEstado')?.value.toLowerCase().trim() || '';
+  const ultimoEstudio = document.getElementById('fUltimoEstudio')?.value.toLowerCase().trim() || '';
+  const fechaNac      = document.getElementById('fFechaNacimiento')?.value || '';
+  const folio         = document.getElementById('fFolio')?.value.toLowerCase().trim() || '';
+
+  /* Calcular rango de fechas para "Último estudio" */
+  const hoy = new Date();
+  hoy.setHours(0,0,0,0);
+
+  const statusMap = {
+    'completado': ['completado','completed','completo'],
+    'en espera':  ['en espera','waiting','pendiente'],
+    'cancelado':  ['cancelado','cancelled','canceled'],
+  };
+
+  patientsDataFiltered = patientsData.filter(p => {
+    /* Nombre */
+    if (nombre && !(p.name && p.name.toLowerCase().includes(nombre))) return false;
+
+    /* Médico */
+    if (medico && !(p.medico && p.medico.toLowerCase() === medico)) return false;
+
+    /* Folio */
+    if (folio && !(p.folio && p.folio.toLowerCase().includes(folio))) return false;
+
+    /* Estado */
+    if (estado) {
+      const variants = statusMap[estado] || [estado];
+      const pStatus = (p.status || '').toLowerCase();
+      const matches = variants.some(v => pStatus.includes(v));
+      if (!matches) return false;
+    }
+
+    /* Último estudio (periodo) */
+    if (ultimoEstudio && p.study_date) {
+      /* study_date viene como "15 Jul 2025" */
+      const studyDate = new Date(p.study_date);
+      studyDate.setHours(0,0,0,0);
+      if (isNaN(studyDate)) return false;
+
+      let desde = new Date(hoy);
+      if (ultimoEstudio === 'hoy') {
+        if (studyDate.getTime() !== hoy.getTime()) return false;
+      } else if (ultimoEstudio === 'esta semana') {
+        desde.setDate(hoy.getDate() - hoy.getDay());
+        if (studyDate < desde || studyDate > hoy) return false;
+      } else if (ultimoEstudio === 'este mes') {
+        desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+        if (studyDate < desde || studyDate > hoy) return false;
+      } else if (ultimoEstudio === 'este año') {
+        desde = new Date(hoy.getFullYear(), 0, 1);
+        if (studyDate < desde || studyDate > hoy) return false;
+      }
+    } else if (ultimoEstudio && !p.study_date) {
+      return false;
+    }
+
+    /* Fecha de nacimiento (input date → yyyy-mm-dd, dob → dd/mm/yyyy) */
+    if (fechaNac && p.dob) {
+      /* Convertir dob "dd/mm/yyyy" a "yyyy-mm-dd" para comparar */
+      const parts = p.dob.split('/');
+      if (parts.length === 3) {
+        const dobNorm = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        if (dobNorm !== fechaNac) return false;
+      } else {
+        return false;
+      }
+    } else if (fechaNac && !p.dob) {
+      return false;
+    }
+
+    return true;
+  });
+
   currentPage = 1;
   renderPage(1);
 }
@@ -2592,7 +2610,7 @@ function filterPatients() {
   renderPage(1);
 }
 function clearFilters() {
-  ['fNombre','fMedico','fRangoEdad','fEstado','fUltimoEstudio','fFechaNacimiento','fTipoEstudio','fEstadoEstudio','fFechaRegistro','fFolio','fEtiquetas'].forEach(id => {
+  ['fNombre','fMedico','fEstado','fUltimoEstudio','fFechaNacimiento','fFolio'].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
       if (el.tagName === 'SELECT') el.selectedIndex = 0;
@@ -2603,7 +2621,7 @@ function clearFilters() {
 }
 
 // Actualizar contador cuando cambia cualquier filtro
-['fNombre','fMedico','fRangoEdad','fEstado','fUltimoEstudio','fFechaNacimiento','fTipoEstudio','fEstadoEstudio','fFechaRegistro','fFolio','fEtiquetas'].forEach(id => {
+['fNombre','fMedico','fEstado','fUltimoEstudio','fFechaNacimiento','fFolio'].forEach(id => {
   const el = document.getElementById(id);
   if (el) el.addEventListener('change', updateFilterCounter);
   if (el) el.addEventListener('input', updateFilterCounter);
@@ -2612,7 +2630,7 @@ function clearFilters() {
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closeFilters(); });
 
 // Actualizar contador cuando cambia cualquier filtro
-['fNombre','fMedico','fRangoEdad','fEstado','fUltimoEstudio','fFechaNacimiento','fTipoEstudio','fEstadoEstudio','fFechaRegistro','fFolio','fEtiquetas'].forEach(id => {
+['fNombre','fMedico','fEstado','fUltimoEstudio','fFechaNacimiento','fFolio'].forEach(id => {
   const el = document.getElementById(id);
   if (el) el.addEventListener('change', updateFilterCount);
 });

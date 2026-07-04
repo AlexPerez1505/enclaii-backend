@@ -53,14 +53,30 @@ class PacienteController extends Controller
                 'referido_por' => ['nullable', 'string', 'max:255'],
                 'equipo_utilizado' => ['nullable', 'string', 'max:255'],
                 'diagnostico_preliminar' => ['nullable', 'string'],
+                'enfermedad' => ['nullable', 'string'],
+                'alergias' => ['nullable', 'string'],
                 'foto' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+                'estudios_archivos.*' => ['nullable', 'file', 'max:20480'],
             ]);
 
             if ($request->hasFile('foto')) {
                 $validated['foto'] = $request->file('foto')->store('pacientes', 'public');
             }
 
-            $paciente = Paciente::create($validated);
+            $paciente = Paciente::create(collect($validated)->except('estudios_archivos')->toArray());
+
+            if ($request->hasFile('estudios_archivos')) {
+                foreach ($request->file('estudios_archivos') as $archivo) {
+                    $path = $archivo->store('paciente_docs/' . $paciente->id, 'public');
+                    \App\Models\PacienteDocumento::create([
+                        'paciente_id' => $paciente->id,
+                        'path' => $path,
+                        'nombre_original' => $archivo->getClientOriginalName(),
+                        'mime_type' => $archivo->getMimeType(),
+                        'size_bytes' => $archivo->getSize(),
+                    ]);
+                }
+            }
 
             if ($request->ajax() || $request->expectsJson()) {
                 return response()->json([
@@ -118,7 +134,10 @@ class PacienteController extends Controller
             'referido_por' => ['nullable', 'string', 'max:255'],
             'equipo_utilizado' => ['nullable', 'string', 'max:255'],
             'diagnostico_preliminar' => ['nullable', 'string'],
+            'enfermedad' => ['nullable', 'string'],
+            'alergias' => ['nullable', 'string'],
             'foto' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'estudios_archivos.*' => ['nullable', 'file', 'max:20480'],
         ]);
 
         if ($request->hasFile('foto')) {
@@ -129,7 +148,28 @@ class PacienteController extends Controller
             $validated['foto'] = $request->file('foto')->store('pacientes', 'public');
         }
 
-        $paciente->update($validated);
+        $paciente->update(collect($validated)->except('estudios_archivos')->toArray());
+
+        \Log::info('PACIENTE UPDATE - hasFile estudios_archivos: ' . ($request->hasFile('estudios_archivos') ? 'SI' : 'NO'));
+        \Log::info('PACIENTE UPDATE - allFiles: ' . json_encode(array_keys($request->allFiles())));
+
+        if ($request->hasFile('estudios_archivos')) {
+            foreach ($request->file('estudios_archivos') as $archivo) {
+                \Log::info('Guardando archivo: ' . $archivo->getClientOriginalName());
+                $path = $archivo->store('paciente_docs/' . $paciente->id, 'public');
+                \App\Models\PacienteDocumento::create([
+                    'paciente_id' => $paciente->id,
+                    'path' => $path,
+                    'nombre_original' => $archivo->getClientOriginalName(),
+                    'mime_type' => $archivo->getMimeType(),
+                    'size_bytes' => $archivo->getSize(),
+                ]);
+            }
+        }
+
+        if ($request->ajax() || $request->expectsJson() || $request->hasHeader('X-Requested-With')) {
+            return response()->json(['success' => true]);
+        }
 
         return redirect()
             ->route('pacientes.index')

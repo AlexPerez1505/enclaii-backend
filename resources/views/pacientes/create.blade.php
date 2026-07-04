@@ -1196,6 +1196,56 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
       </div>
     </div>
 
+    <hr style="border:none;border-top:1px solid var(--stroke);margin:28px 0;">
+
+    {{-- Enfermedad, Alergias y Estudios --}}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
+      <div class="form-group">
+        <label>Enfermedad</label>
+        <textarea name="enfermedad" placeholder="Describe la enfermedad o padecimiento del paciente" style="min-height:110px;width:100%;">{{ old('enfermedad') }}</textarea>
+      </div>
+      <div class="form-group">
+        <label>Alergias</label>
+        <textarea name="alergias" placeholder="Especifica las alergias del paciente (medicamentos, alimentos, etc.)" style="min-height:110px;width:100%;">{{ old('alergias') }}</textarea>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:24px;">
+      <label>Estudios (archivos)</label>
+      <div style="border-radius:var(--r-md);padding:20px;background:var(--panel-2);border:1px solid var(--stroke);">
+        <input type="file" name="estudios_archivos[]" id="estudiosArchivos" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.mp4,.mov,.avi" style="display:none;">
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:4px;">
+          <button type="button" onclick="document.getElementById('estudiosArchivos').click()" style="display:flex;align-items:center;gap:8px;padding:9px 18px;border-radius:var(--r-md);border:1px solid var(--stroke);background:var(--card);color:var(--txt);font:inherit;font-size:13px;font-weight:600;cursor:pointer;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Subir archivos
+          </button>
+          <span style="font-size:12.5px;color:var(--txt-soft);">PDF, imágenes, Word — múltiples archivos permitidos</span>
+        </div>
+        <div id="estudiosArchivosList" style="display:none;margin-top:16px;">
+          <p style="font-size:12px;font-weight:700;color:var(--txt-soft);margin:0 0 10px;text-transform:uppercase;letter-spacing:.5px;">Por subir</p>
+          <div id="estudiosArchivosGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;"></div>
+        </div>
+        {{-- Modal visor --}}
+        <div id="visorArchivoOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);align-items:center;justify-content:center;">
+          <div style="background:var(--card);border:1px solid var(--stroke);border-radius:16px;width:min(960px,95vw);max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.6);">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--stroke);flex-shrink:0;">
+              <span id="visorArchivoNombre" style="font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60%;"></span>
+              <div style="display:flex;gap:8px;flex-shrink:0;">
+                <a id="visorArchivoDescarga" href="#" download style="display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;background:var(--panel-2);border:1px solid var(--stroke);font-size:12px;font-weight:600;color:var(--txt);text-decoration:none;">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Descargar
+                </a>
+                <button type="button" onclick="cerrarVisorArchivo()" style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;border:1px solid var(--stroke);background:var(--panel-2);cursor:pointer;color:var(--txt);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+            </div>
+            <div id="visorArchivoContenido" style="flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;min-height:400px;background:var(--panel-2);"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     {{-- Botón guardar --}}
     <div style="display:flex;justify-content:flex-end;margin-top:28px;">
       <button type="submit" class="btn-save" id="btnGuardarPaciente">
@@ -1779,6 +1829,98 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
   window.addAnestesiologo     = function() { window.abrirMiniModal('anestesiologoSelect','Agregar anestesiólogo','Escribe el nombre del anestesiólogo'); };
   window.addReferidoMed       = function() { window.abrirMiniModal('referidoSelectMed','Agregar referido','Escribe el nombre del referido'); };
   window.addEquipo            = function() { window.abrirMiniModal('equipoSelect','Agregar equipo','Escribe el nombre del equipo'); };
+
+  // ===== ARCHIVOS DE ESTUDIOS =====
+  function makeFileCard(nombre, url, tipo, size) {
+    const ext = nombre.split('.').pop().toUpperCase();
+    const colors = { imagen:{bg:'#f59e0b22',color:'#f59e0b'}, pdf:{bg:'#ef444422',color:'#ef4444'}, video:{bg:'#f9731622',color:'#f97316'} };
+    const c = colors[tipo] || {bg:'#6b728022',color:'#6b7280'};
+    const iconSvg = tipo==='imagen'
+      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="'+c.color+'" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>'
+      : tipo==='pdf'
+      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="'+c.color+'" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>'
+      : tipo==='video'
+      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="'+c.color+'" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>'
+      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="'+c.color+'" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+    const sizeStr = size>=1048576?(size/1048576).toFixed(1)+' MB':size>=1024?(size/1024).toFixed(1)+' KB':size+' B';
+    const card = document.createElement('div');
+    card.style.cssText = 'position:relative;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--card);border:1px solid var(--stroke);cursor:pointer;transition:border-color 150ms;';
+    card.onmouseenter = function(){ this.style.borderColor='var(--blue)'; };
+    card.onmouseleave = function(){ this.style.borderColor='var(--stroke)'; };
+    card.onclick = function(){ abrirVisorArchivo(url, nombre, tipo); };
+    card.innerHTML =
+      '<div style="width:38px;height:44px;border-radius:6px;background:'+c.bg+';display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">'
+        +iconSvg
+        +'<span style="font-size:7px;font-weight:800;color:'+c.color+';margin-top:2px;">'+ext+'</span>'
+      +'</div>'
+      +'<div style="flex:1;min-width:0;">'
+        +'<p style="margin:0;font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+nombre+'">'+nombre+'</p>'
+        +'<p style="margin:3px 0 0;font-size:11px;color:var(--txt-soft);">'+sizeStr+' &bull; pendiente</p>'
+      +'</div>';
+    return card;
+  }
+
+  document.getElementById('estudiosArchivos')?.addEventListener('change', function(){
+    const wrapper = document.getElementById('estudiosArchivosList');
+    const grid = document.getElementById('estudiosArchivosGrid');
+    grid.innerHTML = '';
+    if (this.files.length === 0) { wrapper.style.display='none'; return; }
+    wrapper.style.display = 'block';
+    Array.from(this.files).forEach(function(f){
+      const ext = f.name.split('.').pop().toLowerCase();
+      const isImg = ['jpg','jpeg','png','webp','gif'].includes(ext);
+      const isPdf = ext === 'pdf';
+      const isVideo = ['mp4','mov','avi','mkv','webm'].includes(ext);
+      const url = URL.createObjectURL(f);
+      const tipo = isImg?'imagen':isPdf?'pdf':isVideo?'video':'otro';
+      grid.appendChild(makeFileCard(f.name, url, tipo, f.size));
+    });
+  });
+
+  // ===== VISOR DE ARCHIVOS =====
+  window.abrirVisorArchivo = function(url, nombre, tipo) {
+    const overlay = document.getElementById('visorArchivoOverlay');
+    const contenido = document.getElementById('visorArchivoContenido');
+    if (!overlay) return;
+    document.getElementById('visorArchivoNombre').textContent = nombre;
+    const descarga = document.getElementById('visorArchivoDescarga');
+    descarga.href = url; descarga.download = nombre;
+    contenido.innerHTML = '';
+    if (tipo === 'imagen') {
+      const img = document.createElement('img');
+      img.src = url;
+      img.style.cssText = 'max-width:100%;max-height:calc(92vh - 70px);object-fit:contain;display:block;padding:16px;';
+      contenido.appendChild(img);
+    } else if (tipo === 'pdf') {
+      const iframe = document.createElement('iframe');
+      iframe.src = url;
+      iframe.style.cssText = 'width:100%;height:calc(92vh - 70px);border:none;';
+      contenido.appendChild(iframe);
+    } else if (tipo === 'video') {
+      const video = document.createElement('video');
+      video.src = url; video.controls = true;
+      video.style.cssText = 'max-width:100%;max-height:calc(92vh - 70px);display:block;';
+      contenido.appendChild(video);
+    } else {
+      contenido.innerHTML = '<div style="text-align:center;padding:48px;color:var(--txt-soft);">'
+        +'<svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="margin:0 auto 16px;display:block;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
+        +'<p style="font-size:14px;margin:0 0 20px;">Vista previa no disponible para este tipo de archivo.</p>'
+        +'<a href="'+url+'" download="'+nombre+'" style="padding:10px 22px;border-radius:8px;background:#3b82f6;color:#fff;text-decoration:none;font-size:13px;font-weight:600;">Descargar archivo</a>'
+        +'</div>';
+    }
+    overlay.style.display = 'flex';
+  };
+  window.cerrarVisorArchivo = function() {
+    const o = document.getElementById('visorArchivoOverlay');
+    if (o) o.style.display = 'none';
+    document.getElementById('visorArchivoContenido').innerHTML = '';
+  };
+  document.getElementById('visorArchivoOverlay')?.addEventListener('click', function(e){
+    if (e.target === this) window.cerrarVisorArchivo();
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') window.cerrarVisorArchivo();
+  });
 
   // ===== AGENDAR CITA =====
   var _citaData = {};
