@@ -103,11 +103,15 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
         id: el.dataset.citaId || el.dataset.id || '',
         pacienteId: el.dataset.pacienteId || el.dataset.paciente_id || '',
         reprogramar_url: el.dataset.reprogramarUrl || '',
+        deleteUrl: el.dataset.deleteUrl || '',
+        estado: el.dataset.estado || '',
+        estadoUrl: el.dataset.estadoUrl || '',
         fullName,
         displayName,
         initials,
         proc,
         time,
+        duration: el.dataset.duration || '60',
         cls
       };
     }
@@ -168,9 +172,13 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
           initials: el.dataset.inits || displayName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),
           proc:     el.dataset.proc || 'Procedimiento',
           time:     el.dataset.time || '00:00',
+          duration: el.dataset.duration || '60',
           cls:      el.dataset.evcls || 'ev-done',
           id:       el.dataset.citaId || el.dataset.id || '',
           pacienteId: el.dataset.pacienteId || el.dataset.paciente_id || '',
+          deleteUrl: el.dataset.deleteUrl || '',
+          estado: el.dataset.estado || '',
+          estadoUrl: el.dataset.estadoUrl || '',
           reprogramar_url: el.dataset.reprogramarUrl || '',
         };
       } else {
@@ -178,12 +186,15 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
       }
       const td = el.closest('td');
       let fechaTxt = el.dataset.fechatxt || '';
-      if (!fechaTxt && td) {
+      let dayNum = null;
+      if (fechaTxt) {
+        const m = fechaTxt.match(/(\d+)/);
+        if (m) dayNum = parseInt(m[1]);
+      }
+      if (dayNum === null && td) {
         const dn = td.querySelector('.day-num');
         if (dn) {
-          const dayNum = parseInt(dn.textContent);
-          const dateObj = new Date(cur_ref.y, cur_ref.m, dayNum);
-          fechaTxt = `${DIAS_ES[dateObj.getDay()]} ${dayNum} de ${MESES[dateObj.getMonth()]}`;
+          dayNum = parseInt(dn.textContent);
         } else if (td.classList.contains('wk-cell')) {
           const tr = td.closest('tr');
           const colIdx = Array.from(tr.children).indexOf(td) - 1;
@@ -191,25 +202,54 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
           if (ths[colIdx + 1]) {
             const txt = ths[colIdx + 1].textContent.trim();
             const parts = txt.split(' ');
-            const dayNum = parseInt(parts[1]);
-            const dateObj = new Date(cur_ref.y, cur_ref.m, dayNum);
-            fechaTxt = `${DIAS_ES[dateObj.getDay()]} ${dayNum} de ${MESES[dateObj.getMonth()]}`;
+            dayNum = parseInt(parts[1]);
           }
         }
       }
+      if (dayNum !== null && !fechaTxt) {
+        const dateObj = new Date(cur_ref.y, cur_ref.m, dayNum);
+        fechaTxt = `${DIAS_ES[dateObj.getDay()]} ${dayNum} de ${MESES[dateObj.getMonth()]}`;
+      }
+
+      let liveCls = d.cls;
+      const recompute = window.__recomputeClass;
+      if (typeof recompute === 'function' && dayNum !== null) {
+        const dateKey = `${cur_ref.y}-${cur_ref.m + 1}-${dayNum}`;
+        const [h] = String(d.time || '00:00').split(':').map(Number);
+        liveCls = recompute({ cls: d.cls, estado: d.estado, hora: d.time, h: h || 0 }, dateKey);
+      }
+
+      function minutesTo12h(min) {
+        const h = Math.floor(min / 60);
+        const m = min % 60;
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const h12 = h % 12 === 0 ? 12 : h % 12;
+        return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+      }
+      function time24To12h(time24) {
+        const [h, m] = String(time24 || '00:00').split(':').map(Number);
+        return minutesTo12h((h || 0) * 60 + (m || 0));
+      }
+      const startMin = (() => {
+        const [h, m] = String(d.time || '00:00').split(':').map(Number);
+        return (h || 0) * 60 + (m || 0);
+      })();
+      const duration = parseInt(d.duration || '60', 10) || 60;
+      const endMin = startMin + duration;
+      const timeRange = `${time24To12h(d.time)} – ${minutesTo12h(endMin)}`;
       evPopAvatar.textContent = d.initials;
       evPopName.textContent   = d.displayName || d.fullName;
       evPopDate.innerHTML     = fechaTxt ? `<b>Fecha:</b> ${fechaTxt}` : '';
       evPopInfo.innerHTML =
         `<b>Motivo:</b> ${d.proc}<br>` +
-        `<b>Tiempo:</b> ${d.time} AM – ${parseInt(d.time)+1}:00 PM<br>` +
+        `<b>Tiempo:</b> ${timeRange}<br>` +
         `<b>Habitación:</b> Sala 3`;
-      const badgeCls = STATUS_BADGE_CLS[d.cls] || 'done';
+      const badgeCls = STATUS_BADGE_CLS[liveCls] || 'done';
       evPopBadge.className = 'ev-pop-badge ' + badgeCls;
-      evPopBadge.textContent = STATUS_LABELS[d.cls] || '';
+      evPopBadge.textContent = STATUS_LABELS[liveCls] || '';
       evPopBadge.style.display = 'inline-flex';
       evPopBtns.innerHTML = '';
-      (STATUS_BUTTONS[d.cls] || STATUS_BUTTONS['ev-wait']).forEach(b => {
+      (STATUS_BUTTONS[liveCls] || STATUS_BUTTONS['ev-wait']).forEach(b => {
         const btn = document.createElement('button');
         btn.className = 'ev-pop-btn ' + b.cls;
         btn.textContent = b.label;
@@ -255,14 +295,16 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
       });
       const delBtn = document.createElement('button');
       delBtn.className = 'ev-pop-btn danger';
-      delBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>Borrar cita`;
+      const puedeEliminar = ['cancelado', 'completado'].includes(d.estado);
+      delBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>${puedeEliminar ? 'Eliminar cita' : 'Cancelar cita'}`;
       delBtn.addEventListener('click', e => {
         e.stopPropagation();
         const evEl = popupAnchoredEl;
-        const deleteUrl = evEl && evEl.dataset.deleteUrl;
+        if (!evEl) return;
+        const isEliminar = ['cancelado', 'completado'].includes(evEl.dataset.estado);
         hidePopup();
         if (window.showDelConfirmGlobal) {
-          window.showDelConfirmGlobal(evEl, deleteUrl);
+          window.showDelConfirmGlobal(evEl, isEliminar ? evEl.dataset.deleteUrl : evEl.dataset.estadoUrl);
         }
       });
       evPopBtns.appendChild(delBtn);

@@ -67,6 +67,7 @@
 
     document.getElementById('citaFecha').value = `${d}/${m}/${y}`;
     document.getElementById('cfmFecha').textContent = `${d}/${m}/${y}`;
+    window.__agSelectedDate = date;
   };
 
   window.__agOnSlotSelect = function(slot) {
@@ -239,6 +240,16 @@
     if (!payload.fecha) {
       alert('Selecciona una fecha válida.');
       return;
+    }
+
+    const selectedDate = window.__agSelectedDate;
+    if (selectedDate) {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      if (selectedDate < today) {
+        alert('No puedes agendar citas en días que ya pasaron.');
+        return;
+      }
     }
 
     if (!payload.hora) {

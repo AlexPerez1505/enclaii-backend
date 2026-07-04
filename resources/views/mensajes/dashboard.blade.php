@@ -5,6 +5,15 @@
 @section('header-sub') Gestiona tus conversaciones con pacientes @endsection
 
 @section('header-extra')
+@if(request()->query('desde') === 'estudio_terminado' && request()->integer('estudio_id') > 0)
+<a class="btn-return-study" href="{{ route('nuevo-estudio.grabando', ['estudio_id' => request()->integer('estudio_id'), 'vista' => 'finalizado']) }}">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <line x1="19" y1="12" x2="5" y2="12"/>
+    <polyline points="12 19 5 12 12 5"/>
+  </svg>
+  Volver al estudio terminado
+</a>
+@endif
 <button class="btn-ch-toggle" onclick="toggleChPanel()">
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
   Canales de comunicacion
@@ -184,6 +193,8 @@
 .ch-panel-foot{padding:10px 11px 13px;border-top:1px solid var(--stroke);}
 .btn-add-account{display:flex;align-items:center;gap:7px;width:100%;padding:8px 10px;border-radius:9px;border:1.5px dashed var(--stroke);background:transparent;color:var(--blue);font-size:11.5px;font-weight:700;cursor:pointer;font:inherit;transition:background 150ms,border-color 150ms;}
 .btn-add-account:hover{background:rgba(46,123,246,.07);border-color:var(--blue);}
+.btn-return-study{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:10px;border:1px solid var(--stroke-strong);background:var(--panel-2);color:var(--txt);font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;transition:background 150ms,border-color 150ms,color 150ms;}
+.btn-return-study:hover{background:var(--hover-bg);border-color:var(--blue);color:var(--blue);}
 .btn-ch-toggle{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font:inherit;box-shadow:0 3px 14px rgba(46,123,246,.45);transition:all 150ms;white-space:nowrap;}
 .btn-ch-toggle:hover{background:#1a6be0;transform:translateY(-1px);}
 .btn-ch-toggle.active{background:#1a6be0;box-shadow:0 2px 8px rgba(46,123,246,.35);}
@@ -267,106 +278,52 @@
     <div class="msg-list" id="convList">
 
       <div class="conv-item" data-tab="todas" data-type="wa" data-contact="soporte"
-        onclick="openConv(this,'ST','Soporte Tecnico','teal','wa','Hola, soy del equipo de soporte tecnico de ENCLAII. ¿En que puedo ayudarte?','En linea',[])">
+        onclick="openConv(this,'ST','Soporte Tecnico','teal','wa','Hola, soy del equipo de soporte tecnico de ENCLAII. En que puedo ayudarte?','En linea',[])">
         <div style="position:relative;flex:none">
           <div class="conv-avatar teal">ST</div>
           <span style="position:absolute;bottom:1px;right:1px;width:8px;height:8px;border-radius:50%;background:#25d366;border:2px solid var(--panel);"></span>
         </div>
         <div class="conv-body">
           <div class="conv-name">Soporte Tecnico</div>
-          <div class="conv-preview">¿En que puedo ayudarte?</div>
+          <div class="conv-preview">En que puedo ayudarte?</div>
         </div>
         <div class="conv-meta">
           <span class="conv-time">En linea</span>
         </div>
       </div>
 
-      <div class="conv-item active" data-tab="todas" data-type="wa"
-        onclick="openConv(this,'MG','Maria Gonzalez','blue','wa','Hola Dr. Victor, tengo una duda sobre los resultados de mi ultimo estudio.','10:30 AM',[])">
-        <div style="position:relative;flex:none">
-          <div class="conv-avatar blue">MG</div>
-          <span style="position:absolute;bottom:1px;right:1px;width:8px;height:8px;border-radius:50%;background:#25d366;border:2px solid var(--panel);"></span>
+      @php($contactColors = ['blue', 'purple', 'teal', 'orange', 'red', 'green'])
+      @forelse($whatsappContacts as $contact)
+        @php($contactColor = $contactColors[$loop->index % count($contactColors)])
+        <div
+          class="conv-item"
+          data-tab="{{ $contact['unread'] > 0 ? 'todas noleidos' : 'todas' }}"
+          data-type="wa"
+          data-patient-id="{{ $contact['id'] }}"
+          data-name="{{ $contact['name'] }}"
+          data-initials="{{ $contact['initials'] }}"
+          data-color="{{ $contactColor }}"
+          data-messages-url="{{ route('mensajes.whatsapp.messages', $contact['id']) }}"
+          onclick="openWhatsAppPatient(this)">
+          <div class="conv-avatar {{ $contactColor }}">{{ $contact['initials'] }}</div>
+          <div class="conv-body">
+            <div class="conv-name">{{ $contact['name'] }}</div>
+            <div class="conv-preview">{{ Str::limit($contact['preview'], 46) }}</div>
+          </div>
+          <div class="conv-meta">
+            <div class="conv-time">{{ $contact['time'] }}</div>
+            @if($contact['unread'] > 0)
+              <div class="conv-badge">{{ min($contact['unread'], 99) }}</div>
+            @endif
+            <span class="conv-ch-dot wa" title="WhatsApp"></span>
+          </div>
         </div>
-        <div class="conv-body">
-          <div class="conv-name">Maria Gonzalez</div>
-          <div class="conv-preview">Le envio los resultados...</div>
+      @empty
+      @empty
+        <div style="padding:18px;color:var(--txt-soft);font-size:13px;line-height:1.5">
+          No hay pacientes con teléfono registrado.
         </div>
-        <div class="conv-meta">
-          <div class="conv-time">10:30 AM</div>
-          <span class="conv-ch-dot wa" title="WhatsApp"></span>
-        </div>
-      </div>
-
-      <div class="conv-item" data-tab="todas noleidos" data-type="wa"
-        onclick="openConv(this,'JP','Juan Perez','purple','wa','Buenos dias doctor, cuando es mi proxima cita?','9:25 AM',[])">
-        <div class="conv-avatar purple">JP</div>
-        <div class="conv-body">
-          <div class="conv-name">Juan Perez</div>
-          <div class="conv-preview">Hola Dr. Victor, tengo una...</div>
-        </div>
-        <div class="conv-meta">
-          <div class="conv-time">9:25 AM</div>
-          <div class="conv-badge">1</div>
-          <span class="conv-ch-dot wa" title="WhatsApp"></span>
-        </div>
-      </div>
-
-      <div class="conv-item" data-tab="todas noleidos" data-type="wa"
-        onclick="openConv(this,'LC','Luis Cortez','teal','wa','Hola Dr. Victor, gracias por la atencion.','Ayer',[])">
-        <div style="position:relative;flex:none">
-          <div class="conv-avatar teal">LC</div>
-          <span style="position:absolute;bottom:1px;right:1px;width:8px;height:8px;border-radius:50%;background:#25d366;border:2px solid var(--panel);"></span>
-        </div>
-        <div class="conv-body">
-          <div class="conv-name">Luis Cortez</div>
-          <div class="conv-preview">Hola Dr. Victor, gracias</div>
-        </div>
-        <div class="conv-meta">
-          <div class="conv-time">Ayer</div>
-          <div class="conv-badge">1</div>
-          <span class="conv-ch-dot wa" title="WhatsApp"></span>
-        </div>
-      </div>
-
-      <div class="conv-item" data-tab="todas" data-type="email"
-        onclick="openConv(this,'AS','Ana Sanchez','orange','email','Hola Dr. Victor,\nle envio resultados de mis estudios de laboratorio que me indico en la ultima cita.\nQuedo atenta a sus comentarios.\nSaludos,\nAna Sanchez','Ayer',['Resultados_Lab.pdf|1.2 MB|pdf','Perfil_Lipidico.png|820 KB|img'])">
-        <div class="conv-avatar orange">AS</div>
-        <div class="conv-body">
-          <div class="conv-name">Ana Sanchez</div>
-          <div class="conv-preview">Perfecto, muchas gracias</div>
-        </div>
-        <div class="conv-meta">
-          <div class="conv-time">Ayer</div>
-          <span class="conv-ch-dot email" title="Correo"></span>
-        </div>
-      </div>
-
-      <div class="conv-item" data-tab="todas" data-type="email"
-        onclick="openConv(this,'CR','Carlos Ramirez','red','email','Dr. Victor,\nLe escribo para reportar que me encuentro bien despues del procedimiento.\nEntendido, quedo atento.','31/05/26',[])">
-        <div class="conv-avatar red">CR</div>
-        <div class="conv-body">
-          <div class="conv-name">Carlos Ramirez</div>
-          <div class="conv-preview">Entendido, quedo atento</div>
-        </div>
-        <div class="conv-meta">
-          <div class="conv-time">31/05/26</div>
-          <span class="conv-ch-dot email" title="Correo"></span>
-        </div>
-      </div>
-
-      <div class="conv-item" data-tab="todas archivados" data-type="email"
-        onclick="openConv(this,'CR','Carla Rodriguez','green','email','Buenas tardes,\nMe gustaria agendar una cita para revision.\nMuchas gracias Dr.','28/05/26',[])">
-        <div class="conv-avatar green">CR</div>
-        <div class="conv-body">
-          <div class="conv-name">Carla Rodriguez</div>
-          <div class="conv-preview">Muchas gracias Dr.</div>
-        </div>
-        <div class="conv-meta">
-          <div class="conv-time">28/05/26</div>
-          <span class="conv-ch-dot email" title="Correo"></span>
-        </div>
-      </div>
-
+      @endforelse
     </div>
     <div class="msg-load-more">
       <button class="btn-load-more">Cargar mas
@@ -390,11 +347,11 @@
 
       {{-- Header --}}
       <div class="mch">
-        <div class="mch-av blue" id="mchAv">MG
+        <div class="mch-av blue" id="mchAv">PX
           <span class="mch-online" id="mchOnline"></span>
         </div>
         <div class="mch-info">
-          <div class="mch-name" id="mchName">Maria Gonzalez</div>
+          <div class="mch-name" id="mchName">Selecciona un paciente</div>
           <div class="mch-sub" id="mchSub"><span class="dot"></span><span>En linea</span> <span class="mch-channel-badge wa" id="mchBadge"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" fill="#25d366"/></svg>WhatsApp</span></div>
         </div>
         <div class="mch-actions">
@@ -441,37 +398,7 @@
 
       {{-- Mensajes WhatsApp --}}
       <div class="chat-messages" id="chatMessages" style="display:flex;">
-        <div class="chat-date-div"><span>Hoy</span></div>
-        <div class="bubble-row received" id="waMessageRow">
-          <div class="bubble-mini-av blue" id="miniAv1">MG</div>
-          <div class="bubble received" id="waMessageText">
-            Hola Dr. Victor, tengo una duda sobre los resultados de mi ultimo estudio.
-            <div class="bubble-time" id="waMessageTime">10:05</div>
-          </div>
-        </div>
-        <div class="bubble-row sent">
-          <div class="bubble sent">
-            Hola Maria, claro, con gusto te ayudo. Cual es tu duda especifica?
-            <div class="bubble-time">10:20
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-          </div>
-        </div>
-        <div class="bubble-row received">
-          <div class="bubble-mini-av blue" id="miniAv2">MG</div>
-          <div class="bubble received">
-            Es sobre el valor del colesterol. No entiendo si esta alto o bajo.
-            <div class="bubble-time">10:28</div>
-          </div>
-        </div>
-        <div class="bubble-row sent">
-          <div class="bubble sent">
-            El valor de 185 mg/dL es optimo para tu perfil. Esta dentro del rango normal.
-            <div class="bubble-time">10:30
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-          </div>
-        </div>
+        <div style="margin:auto;color:var(--txt-soft);font-size:13px">Selecciona un paciente para cargar sus mensajes.</div>
       </div>
 
       {{-- Cuerpo email --}}
@@ -533,54 +460,22 @@
           </div>
           WhatsApp
         </div>
-        <div class="ch-item active-wa" onclick="selectChannel(this)">
+        <div class="ch-item active-wa">
           <div class="ch-av wa-av">W</div>
           <div class="ch-info">
-            <div class="ch-name">WhatsApp Principal</div>
-            <div class="ch-sub">+57 300 123 4567</div>
+            <div class="ch-name">WhatsApp Cloud API</div>
+            <div class="ch-sub">{{ $whatsappBusinessPhone }}</div>
           </div>
-          <div class="ch-badge green">12</div>
-        </div>
-        <div class="ch-item" onclick="selectChannel(this)">
-          <div class="ch-av wa-av">W</div>
-          <div class="ch-info">
-            <div class="ch-name">WhatsApp Consultas</div>
-            <div class="ch-sub">+57 310 987 6543</div>
+          <div class="ch-badge {{ $whatsappConfigured && $whatsappWebhookConfigured ? 'green' : '' }}">
+            {{ ! $whatsappConfigured ? 'Falta configurar' : ($whatsappWebhookConfigured ? 'Activo' : 'Falta App Secret') }}
           </div>
-          <div class="ch-badge green">5</div>
-        </div>
-      </div>
-
-      <div class="ch-group">
-        <div class="ch-group-title">
-          <div class="ch-icon em">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-          </div>
-          Correo Electronico
-        </div>
-        <div class="ch-item" onclick="selectChannel(this)">
-          <div class="ch-av gm-av">G</div>
-          <div class="ch-info">
-            <div class="ch-name">dr.victor@gmail.com</div>
-            <div class="ch-sub">Principal</div>
-          </div>
-          <div class="ch-badge">9</div>
-        </div>
-        <div class="ch-item" onclick="selectChannel(this)">
-          <div class="ch-av cl-av">O</div>
-          <div class="ch-info">
-            <div class="ch-name">dr.victor@clinica.com</div>
-            <div class="ch-sub">Trabajo</div>
-          </div>
-          <div class="ch-badge">3</div>
         </div>
       </div>
 
     </div>
     <div class="ch-panel-foot">
-      <button class="btn-add-account" onclick="openModal()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Agregar cuenta
+      <button class="btn-add-account" type="button" disabled>
+        Administrado desde Meta
       </button>
     </div>
   </div>
@@ -707,24 +602,17 @@
 @endsection
 
 @push('scripts')
-@php
-  $launchContext = [
-    'channel' => request('canal'),
-    'patient' => request('paciente'),
-    'study' => request('estudio'),
-    'video' => request('video'),
-    'image' => request('imagen'),
-    'frame' => request('fotograma'),
-    'type' => request('tipo'),
-    'date' => request('fecha'),
-    'diagnosis' => request('diagnostico'),
-  ];
-@endphp
 <script>
 (function(){
   let activeTab = 'todas';
   let activeType = 'wa';
-  const launchContext = @json($launchContext);
+  let activePatientId = null;
+  let activePatientElement = null;
+  const loadedMessageIds = new Set();
+  const launchContext = @json($whatsappLaunchContext);
+  const csrfToken = @json(csrf_token());
+  const whatsappSendUrl = @json(route('mensajes.whatsapp.send'));
+  const whatsappConfigured = @json($whatsappConfigured);
 
   window.toggleChPanel = function() {
     const page = document.getElementById('msgPage');
@@ -870,22 +758,176 @@
     }
   };
 
-  window.sendMsg = function() {
+  function appendWhatsAppMessage(message, initials, color) {
+    const msgs = document.getElementById('chatMessages');
+    const row = document.createElement('div');
+    const received = message.direction === 'inbound';
+    row.className = 'bubble-row ' + (received ? 'received' : 'sent');
+    if (message.id !== undefined && message.id !== null) {
+      loadedMessageIds.add(String(message.id));
+      row.dataset.messageId = String(message.id);
+    }
+
+    if (received) {
+      const miniAvatar = document.createElement('div');
+      miniAvatar.className = 'bubble-mini-av ' + color;
+      miniAvatar.textContent = initials;
+      row.appendChild(miniAvatar);
+    }
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble ' + (received ? 'received' : 'sent');
+    bubble.appendChild(document.createTextNode(message.body || ''));
+
+    const time = document.createElement('div');
+    time.className = 'bubble-time';
+    time.textContent = message.time || '';
+
+    if (!received) {
+      const state = document.createElement('span');
+      state.textContent = message.status === 'read' ? ' ✓✓' : ' ✓';
+      state.title = message.status || 'enviado';
+      time.appendChild(state);
+    }
+
+    bubble.appendChild(time);
+    row.appendChild(bubble);
+    msgs.appendChild(row);
+  }
+
+  async function loadWhatsAppMessages(el, silent = false) {
+    const msgs = document.getElementById('chatMessages');
+    if (!silent) {
+      loadedMessageIds.clear();
+      msgs.innerHTML = '<div class="chat-placeholder" style="margin:auto;color:var(--txt-soft);font-size:13px">Cargando mensajes...</div>';
+    }
+
+    try {
+      const response = await fetch(el.dataset.messagesUrl, {
+        headers: {'Accept': 'application/json'}
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.message || 'No se pudieron cargar los mensajes.');
+      }
+
+      if (activePatientElement !== el) return;
+
+      if (!silent) {
+        msgs.innerHTML = '';
+      }
+
+      if (!payload.messages.length) {
+        if (!silent) {
+          msgs.innerHTML = '<div class="chat-placeholder" style="margin:auto;color:var(--txt-soft);font-size:13px">Todavía no hay mensajes con este paciente.</div>';
+        }
+        return;
+      }
+
+      const newMessages = payload.messages.filter(message => !loadedMessageIds.has(String(message.id)));
+
+      if (newMessages.length && msgs.querySelector('.chat-placeholder')) {
+        msgs.innerHTML = '';
+      }
+
+      newMessages.forEach(message => {
+        appendWhatsAppMessage(message, el.dataset.initials, el.dataset.color);
+      });
+
+      if (newMessages.length) {
+        const latest = newMessages[newMessages.length - 1];
+        const preview = el.querySelector('.conv-preview');
+        if (preview) {
+          preview.textContent = latest.body.length > 46 ? latest.body.slice(0, 46) + '…' : latest.body;
+        }
+        msgs.scrollTop = msgs.scrollHeight;
+      }
+    } catch (error) {
+      if (silent || activePatientElement !== el) return;
+      msgs.innerHTML = '';
+      const notice = document.createElement('div');
+      notice.style.cssText = 'margin:auto;color:var(--red);font-size:13px';
+      notice.textContent = error.message;
+      msgs.appendChild(notice);
+    }
+  }
+
+  window.openWhatsAppPatient = function(el) {
+    activePatientId = Number(el.dataset.patientId);
+    activePatientElement = el;
+    loadedMessageIds.clear();
+    openConv(
+      el,
+      el.dataset.initials,
+      el.dataset.name,
+      el.dataset.color,
+      'wa',
+      '',
+      '',
+      []
+    );
+    loadWhatsAppMessages(el);
+  };
+
+  window.sendMsg = async function() {
     const input = document.getElementById('msgInput');
     const text = input.value.trim();
     if (!text) return;
-    const now = new Date();
-    const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
 
     if (activeType === 'wa') {
-      const msgs = document.getElementById('chatMessages');
-      const row = document.createElement('div');
-      row.className = 'bubble-row sent';
-      row.innerHTML = `<div class="bubble sent">${text}<div class="bubble-time">${time}<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div></div>`;
-      msgs.appendChild(row);
-      msgs.scrollTop = msgs.scrollHeight;
+      if (!whatsappConfigured) {
+        alert('La cuenta de WhatsApp todavía no está configurada completamente.');
+        return;
+      }
+      if (!activePatientId || !activePatientElement) {
+        alert('Selecciona un paciente antes de enviar.');
+        return;
+      }
+
+      const sendButton = document.querySelector('.btn-send');
+      sendButton.disabled = true;
+      input.disabled = true;
+
+      try {
+        const response = await fetch(whatsappSendUrl, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+          },
+          body: JSON.stringify({
+            paciente_id: activePatientId,
+            message: text
+          })
+        });
+        const payload = await response.json();
+
+        if (!response.ok) {
+          throw new Error(payload.message || 'WhatsApp rechazó el mensaje.');
+        }
+
+        const msgs = document.getElementById('chatMessages');
+        if (msgs.querySelector('.chat-placeholder')) {
+          msgs.innerHTML = '';
+        }
+        appendWhatsAppMessage(payload.data, activePatientElement.dataset.initials, activePatientElement.dataset.color);
+        msgs.scrollTop = msgs.scrollHeight;
+        input.value = '';
+
+        const preview = activePatientElement.querySelector('.conv-preview');
+        if (preview) {
+          preview.textContent = text.length > 46 ? text.slice(0, 46) + '…' : text;
+        }
+      } catch (error) {
+        alert(error.message);
+      } finally {
+        sendButton.disabled = false;
+        input.disabled = false;
+        input.focus();
+      }
     }
-    input.value = '';
   };
 
   window.closeMsg = function() {
@@ -986,17 +1028,22 @@
 
   function openWhatsAppLaunch(data) {
     const waConvs = Array.from(document.querySelectorAll('.conv-item[data-type="wa"]'));
+    const patientId = Number(data.patient_id || 0);
     const patient = (data.patient || '').toLowerCase();
     const target = waConvs.find(item => {
+      if (patientId && Number(item.dataset.patientId) === patientId) return true;
       const name = item.querySelector('.conv-name')?.textContent.toLowerCase() || '';
       return patient && (name === patient || name.includes(patient.split(' ')[0]));
-    }) || waConvs[0];
+    }) || (!patientId && !patient ? waConvs[0] : null);
 
     if (target) target.click();
 
     const input = document.getElementById('msgInput');
-    if (input) {
+    const hasStudyDraft = data.study || data.video || data.image || data.type || data.date || data.diagnosis;
+    if (input && hasStudyDraft) {
       input.value = buildStudyDraft(data);
+      input.focus();
+    } else if (input && target) {
       input.focus();
     }
   }
@@ -1015,45 +1062,23 @@
   window.__createOrOpenChat = function(name, message) {
     const convList = document.getElementById('convList');
     if (!convList) return;
-    const existing = Array.from(convList.querySelectorAll('.conv-item')).find(item => {
+    const item = Array.from(convList.querySelectorAll('.conv-item')).find(item => {
       const n = item.querySelector('.conv-name');
       return n && n.textContent.trim().toLowerCase() === name.trim().toLowerCase();
     });
-    let item = existing;
+
     if (!item) {
-      const words = name.trim().split(/\s+/);
-      const initials = words.slice(0,2).map(w => w[0].toUpperCase()).join('');
-      const colors = ['blue','purple','teal','orange','red','green'];
-      const color = colors[convList.querySelectorAll('.conv-item').length % colors.length];
-      item = document.createElement('div');
-      item.className = 'conv-item';
-      item.dataset.tab = 'todas';
-      item.dataset.type = 'wa';
-      item.setAttribute('onclick', `openConv(this,'${initials}','${name.replace(/'/g, "\\'")}','${color}','wa','','Ahora',[])`);
-      item.innerHTML = `
-        <div class="conv-avatar ${color}">${initials}</div>
-        <div class="conv-body">
-          <div class="conv-name">${name}</div>
-          <div class="conv-preview">Nuevo chat</div>
-        </div>
-        <div class="conv-meta"><span class="conv-time">Ahora</span></div>`;
-      convList.insertBefore(item, convList.firstChild);
+      alert('No se encontró un paciente con teléfono registrado para iniciar este chat.');
+      return;
     }
+
     item.click();
 
     if (message) {
       setTimeout(() => {
-        const msgs = document.getElementById('chatMessages');
-        if (!msgs) return;
-        const now = new Date();
-        const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-        const row = document.createElement('div');
-        row.className = 'bubble-row sent';
-        row.innerHTML = `<div class="bubble sent">${message.replace(/\n/g, '<br>')}<div class="bubble-time">${time}<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div></div>`;
-        msgs.appendChild(row);
-        msgs.scrollTop = msgs.scrollHeight;
-        const preview = item.querySelector('.conv-preview');
-        if (preview) preview.textContent = message.slice(0, 40) + (message.length > 40 ? '...' : '');
+        const input = document.getElementById('msgInput');
+        input.value = message;
+        input.focus();
       }, 100);
     }
   };
@@ -1084,8 +1109,11 @@
     }
   })();
 
-  const first = document.querySelector('.conv-item[data-type="wa"]');
-  if (first) first.click();
+  window.setInterval(function() {
+    if (activePatientElement && document.visibilityState === 'visible') {
+      loadWhatsAppMessages(activePatientElement, true);
+    }
+  }, 5000);
 
 })();
 </script>

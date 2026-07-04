@@ -17,7 +17,17 @@
 .vi-btn:active{transform:scale(.97)}
 .vi-btn.back{background:transparent;border:1px solid var(--stroke);color:var(--txt-soft)}
 @media(hover:hover)and(pointer:fine){.vi-btn.back:hover{background:rgba(110,160,255,.08);color:var(--txt)}}
-.vi-topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.vi-topbar-right{
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  max-width:100%;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.vi-topbar-right::-webkit-scrollbar{display:none}
+.vi-topbar-right .vi-btn{flex:0 0 auto}
 .vi-btn.save-copy{background:rgba(61,220,151,.12);border:1px solid rgba(61,220,151,.35);color:var(--green)}
 @media(hover:hover)and(pointer:fine){.vi-btn.save-copy:hover{background:rgba(61,220,151,.22)}}
 .vi-btn.report{background:rgba(46,123,246,.14);border:1px solid rgba(46,123,246,.35);color:var(--blue)}
@@ -346,15 +356,6 @@
   transition:background-color 150ms ease;cursor:pointer;
 }
 @media(hover:hover)and(pointer:fine){.vi-ia-analyze:hover{background:rgba(56,199,244,.18)}}
-
-/* Tags */
-.vi-tags{display:flex;flex-wrap:wrap;gap:7px}
-.vi-tag{
-  padding:4px 12px;border-radius:99px;font-size:12px;font-weight:600;
-  background:var(--panel-2);border:1px solid var(--stroke);color:var(--txt);
-  transition:background-color 150ms ease,border-color 150ms ease;cursor:pointer;
-}
-@media(hover:hover)and(pointer:fine){.vi-tag:hover{background:rgba(46,123,246,.12);border-color:rgba(46,123,246,.4);color:var(--blue)}}
 
 @media(max-width:960px){.vi-wrap{grid-template-columns:1fr}}
 

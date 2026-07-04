@@ -34,6 +34,8 @@
 .cal-ag-day.today{color:#5AB4F7;font-weight:700}
 .cal-ag-day.selected{background:linear-gradient(135deg,#1668D9,#0040A0);color:#fff;font-weight:700;box-shadow:0 4px 14px -4px rgba(22,104,217,.55)}
 .cal-ag-day.other-month{opacity:.35;color:#fff}
+.cal-ag-day.past{opacity:.45;cursor:not-allowed;color:#fff}
+.cal-ag-day.past:disabled{pointer-events:none;background:transparent}
 .cal-ag-day.has-events::after{content:'';display:block;width:4px;height:4px;border-radius:50%;background:var(--ag-blue);margin:1px auto 0;position:absolute;bottom:3px;left:50%;transform:translateX(-50%)}
 .cal-ag-day{position:relative}
 
@@ -286,6 +288,15 @@ html[data-theme="light"] .reprogram-info{
     return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
   }
 
+  function formatTime12(minutes) {
+    let h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12;
+    if (h === 0) h = 12;
+    return `${h}:${String(m).padStart(2,'0')} ${ampm}`;
+  }
+
   function getSelectedMinutes() {
     let hh = parseInt(document.getElementById('timeHour').value, 10) || 8;
     let mm = parseInt(document.getElementById('timeMin').value, 10) || 0;
@@ -404,11 +415,18 @@ html[data-theme="light"] .reprogram-info{
   }
 
   const __reprogramFecha = window.__CITA_EDITAR_FECHA || null;
-  const __reprogramDate = __reprogramFecha ? new Date(__reprogramFecha + 'T00:00:00') : new Date();
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlDia = parseInt(urlParams.get('dia'), 10);
+  const urlMes = parseInt(urlParams.get('mes'), 10);
+  const urlAnio = parseInt(urlParams.get('anio'), 10);
+  const hasUrlDate = urlDia && urlMes && urlAnio;
+  const __reprogramDate = __reprogramFecha
+    ? new Date(__reprogramFecha + 'T00:00:00')
+    : (hasUrlDate ? new Date(urlAnio, urlMes - 1, urlDia) : new Date());
 
   let agY = __reprogramDate.getFullYear();
   let agM = __reprogramDate.getMonth();
-  let agSelected = window.__CITA_EDITAR_FECHA
+  let agSelected = (window.__CITA_EDITAR_FECHA || hasUrlDate)
     ? { y: __reprogramDate.getFullYear(), m: __reprogramDate.getMonth(), d: __reprogramDate.getDate() }
     : null;
   let selectedTime = null;
@@ -440,8 +458,14 @@ html[data-theme="light"] .reprogram-info{
       const b = document.createElement('button');
       b.className = 'cal-ag-day';
       b.textContent = d;
-      if (today.getFullYear()===agY && today.getMonth()===agM && today.getDate()===d)
-        b.classList.add('today');
+      const isToday = today.getFullYear()===agY && today.getMonth()===agM && today.getDate()===d;
+      const isPast = new Date(agY, agM, d) < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      if (isToday) b.classList.add('today');
+      if (isPast) {
+        b.classList.add('past');
+        b.disabled = true;
+        b.title = 'No puedes agendar en días pasados';
+      }
       if (agSelected && agSelected.y===agY && agSelected.m===agM && agSelected.d===d)
         b.classList.add('selected');
       b.addEventListener('click', () => {
@@ -449,6 +473,12 @@ html[data-theme="light"] .reprogram-info{
         renderCalAg();
         renderTimeSection(d);
         if (window.__agOnDateSelect) window.__agOnDateSelect(new Date(agY, agM, d));
+        // Reflejar fecha seleccionada en la URL para conservarla al recargar
+        const url = new URL(window.location.href);
+        url.searchParams.set('dia', d);
+        url.searchParams.set('mes', agM + 1);
+        url.searchParams.set('anio', agY);
+        window.history.replaceState({}, '', url);
       });
       grid.appendChild(b);
     }
@@ -472,7 +502,7 @@ html[data-theme="light"] .reprogram-info{
     if (!selectedTime) {
       const horaInput = document.getElementById('citaHora');
       if (horaInput && horaInput.value) {
-        const m = parseTime24ToMinutes(horaInput.value);
+        const m = parseTime12ToMinutes(horaInput.value);
         if (m !== null) selectedTime = m;
       }
     }
@@ -484,13 +514,16 @@ html[data-theme="light"] .reprogram-info{
     syncTimeToForm();
   }
 
-  function parseTime24ToMinutes(text) {
-    const m = String(text || '').trim().match(/^(\d{1,2}):(\d{2})$/);
+  function parseTime12ToMinutes(text) {
+    const m = String(text || '').trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
     if (!m) return null;
     let h = parseInt(m[1], 10);
     const min = parseInt(m[2], 10);
-    if (h < 0 || h > 23 || min < 0 || min > 59) return null;
-    return h * 60 + min;
+    const ampm = m[3].toUpperCase();
+    if (h < 1 || h > 12 || min < 0 || min > 59) return null;
+    let h24 = h % 12;
+    if (ampm === 'PM') h24 += 12;
+    return h24 * 60 + min;
   }
 
   function onTimeChanged() {
@@ -508,7 +541,7 @@ html[data-theme="light"] .reprogram-info{
   }
 
   function syncTimeToForm() {
-    const label = formatTime24(selectedTime);
+    const label = formatTime12(selectedTime);
     if (window.__agOnSlotSelect) window.__agOnSlotSelect(label);
   }
 
@@ -538,7 +571,7 @@ html[data-theme="light"] .reprogram-info{
   document.getElementById('timeHour')?.addEventListener('blur', () => { clampTimeInputs(); onTimeChanged(); });
   document.getElementById('timeMin')?.addEventListener('blur', () => { clampTimeInputs(); onTimeChanged(); });
   document.getElementById('citaHora')?.addEventListener('input', () => {
-    const m = parseTime24ToMinutes(document.getElementById('citaHora')?.value);
+    const m = parseTime12ToMinutes(document.getElementById('citaHora')?.value);
     if (m !== null) {
       selectedTime = m;
       setSelectedMinutes(m);
