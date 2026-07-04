@@ -17,16 +17,8 @@ class Ticket extends Model
         'status',
         'priority',
         'business_name',
-        'tax_address',
-        'rfc',
         'operation_folio',
-        'operation_datetime',
-        'concepts',
-        'subtotal',
-        'tax',
-        'total',
         'payment_method',
-        'totals',
         'attachment_path',
     ];
 }

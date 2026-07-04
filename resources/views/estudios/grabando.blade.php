@@ -1752,11 +1752,7 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
     document.body.classList.toggle('studio-expanded');
   }
 
-  // Click en botón para modo expandido
-  btnFullscreen?.addEventListener('click', toggleExpanded);
 
-  /* Pausa/Continuar */
-  const btnPausa = document.getElementById('btnPausa');
 
   function updatePauseButton() {
     if (paused) {

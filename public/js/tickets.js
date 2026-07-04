@@ -22,11 +22,12 @@ function __mostrarResumen(ticket){
   var desc = __tktTexto('tktDescripcion', 'Sin descripcion');
   var negocio = __tktTexto('tktNegocio');
   var operacion = __tktTexto('tktOperacion');
-  var conceptos = __tktTexto('tktConceptos');
-  var totales = __tktTexto('tktTotales');
   var metodo = __tktTexto('tktMetodoPago');
 
-  __tktData = {id:id, fecha:fecha, hora:hora, cat:cat, prio:prio, asunto:asunto, desc:desc, negocio:negocio, operacion:operacion, conceptos:conceptos, totales:totales, metodo:metodo};
+  __tktData = {
+    id:id, fecha:fecha, hora:hora, cat:cat, prio:prio, asunto:asunto, desc:desc,
+    negocio:negocio, operacion:operacion, metodo:metodo
+  };
 
   __tktBody.innerHTML =
     '<div class="tkt-resumen">' +
@@ -38,8 +39,6 @@ function __mostrarResumen(ticket){
     '<div class="row"><span class="lbl">Descripcion:</span><span class="val">' + desc + '</span></div>' +
     '<div class="row"><span class="lbl">Datos del negocio:</span><span class="val">' + negocio + '</span></div>' +
     '<div class="row"><span class="lbl">Datos de operacion:</span><span class="val">' + operacion + '</span></div>' +
-    '<div class="row"><span class="lbl">Conceptos:</span><span class="val">' + conceptos + '</span></div>' +
-    '<div class="row"><span class="lbl">Totales:</span><span class="val">' + totales + '</span></div>' +
     '<div class="row"><span class="lbl">Metodo de pago:</span><span class="val">' + metodo + '</span></div>' +
     '</div>';
 
@@ -61,6 +60,11 @@ window.__enviarTicket = function(){
     return;
   }
 
+  if(cat === 'facturacion' && !__tktValor('tktMetodoPago')){
+    alert('Por favor selecciona un método de pago para la categoría Facturación.');
+    return;
+  }
+
   var csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
   var formData = new FormData();
   formData.append('category', cat);
@@ -69,8 +73,6 @@ window.__enviarTicket = function(){
   formData.append('description', desc);
   formData.append('business_name', __tktValor('tktNegocio'));
   formData.append('operation_folio', __tktValor('tktOperacion'));
-  formData.append('concepts', __tktValor('tktConceptos'));
-  formData.append('totals', __tktValor('tktTotales'));
   formData.append('payment_method', __tktValor('tktMetodoPago'));
 
   var fileInput = document.getElementById('tktAttachment');
@@ -100,10 +102,12 @@ window.__enviarTicket = function(){
     if(data.ok){
       __mostrarResumen(data.ticket);
       // limpiar formulario
-      ['tktCategoria','tktPrioridad','tktAsunto','tktDescripcion','tktNegocio','tktOperacion','tktConceptos','tktTotales','tktMetodoPago','tktAttachment'].forEach(function(id){
+      ['tktCategoria','tktPrioridad','tktAsunto','tktDescripcion','tktMetodoPago','tktAttachment'].forEach(function(id){
         var el = document.getElementById(id);
         if(el) el.value = '';
       });
+      var paymentRow = document.getElementById('tktPaymentMethodRow');
+      if(paymentRow) paymentRow.style.display = 'none';
     } else {
       alert('No se pudo guardar el ticket. Intenta de nuevo.');
     }
@@ -164,8 +168,6 @@ function __generarTicketHTML(d){
     '<div class="section"><div class="section-title">Datos de la Operacion</div>' +
     '<div class="row"><span class="lbl">Negocio</span><span class="val">' + d.negocio + '</span></div>' +
     '<div class="row"><span class="lbl">Operacion</span><span class="val">' + d.operacion + '</span></div>' +
-    '<div class="row"><span class="lbl">Conceptos</span><span class="val">' + d.conceptos + '</span></div>' +
-    '<div class="row"><span class="lbl">Totales</span><span class="val">' + d.totales + '</span></div>' +
     '<div class="row"><span class="lbl">Metodo de Pago</span><span class="val">' + d.metodo + '</span></div>' +
     '</div>' +
     '</div>' +
@@ -280,48 +282,4 @@ function __generarTicketHTML(d){
     setTimeout(function(){ win.print(); }, 500);
   });
 
-  var aiMessages = document.getElementById('tktAiMessages');
-  var aiInput = document.getElementById('tktAiInput');
-  var aiSend = document.getElementById('tktAiSend');
-
-  var aiResponses = {
-    'categoria': 'Selecciona la categoria que mejor describa tu problema: Facturacion, Problema tecnico, API & Integraciones, Solicitud de funcion, Como hacer, u Otro.',
-    'prioridad': 'Usa prioridad Alta si tu problema impide trabajar, Media si afecta parcialmente, y Baja para sugerencias o mejoras.',
-    'archivo': 'Puedes adjuntar archivos de hasta 10MB. Formatos admitidos: JPG, PNG, PDF, ZIP.',
-    'tiempo': 'El tiempo promedio de respuesta es de 2 a 4 horas para tickets de prioridad alta, y hasta 24 horas para prioridad media o baja.',
-    'estado': 'Los estados posibles son: Abierto (recibido), En progreso (siendo atendido) y Resuelto (solucionado).',
-    'datos': 'En "Datos del negocio" incluye nombre o razon social, domicilio fiscal y RFC. En "Datos de la operacion" incluye el numero de folio, fecha y hora.',
-    'conceptos': 'En Conceptos describe los productos o servicios, la cantidad y el precio unitario de cada uno.',
-    'totales': 'En Totales indica el subtotal, los impuestos desglosados (IVA) y el importe total a pagar.',
-    'pago': 'Selecciona el metodo de pago utilizado: efectivo, tarjeta o transferencia.',
-  };
-
-  function addAiMsg(text, isUser){
-    var div = document.createElement('div');
-    div.className = 'tkt-ai-msg ' + (isUser ? 'user' : 'bot');
-    div.innerHTML = '<div class="tkt-ai-bubble">' + text.replace(/\n/g,'<br>') + '</div>';
-    aiMessages.appendChild(div);
-    aiMessages.scrollTop = aiMessages.scrollHeight;
-  }
-
-  function getAiResponse(text){
-    var lower = text.toLowerCase();
-    for (var key in aiResponses){
-      if (lower.includes(key)) return aiResponses[key];
-    }
-    return 'Puedo ayudarte con informacion sobre categorias, prioridades, archivos adjuntos, tiempos de respuesta, estados de tickets, datos del negocio, conceptos, totales y metodos de pago. Sobre que necesitas ayuda?';
-  }
-
-  function sendAiMsg(){
-    var text = aiInput.value.trim();
-    if (!text) return;
-    addAiMsg(text, true);
-    aiInput.value = '';
-    setTimeout(function(){
-      addAiMsg(getAiResponse(text), false);
-    }, 600 + Math.random() * 600);
-  }
-
-  if(aiSend) aiSend.addEventListener('click', sendAiMsg);
-  if(aiInput) aiInput.addEventListener('keydown', function(e){ if(e.key==='Enter') sendAiMsg(); });
 })();

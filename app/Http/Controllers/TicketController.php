@@ -6,9 +6,19 @@ use App\Models\Ticket;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
 
 class TicketController extends Controller
 {
+    public function tickets(): View
+    {
+        $tickets = Ticket::where('user_id', auth()->id())
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        return view('soporte.tickets', compact('tickets'));
+    }
+
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -18,8 +28,6 @@ class TicketController extends Controller
             'description' => ['required', 'string', 'max:4000'],
             'business_name' => ['nullable', 'string', 'max:500'],
             'operation_folio' => ['nullable', 'string', 'max:500'],
-            'concepts' => ['nullable', 'string', 'max:2000'],
-            'totals' => ['nullable', 'string', 'max:500'],
             'payment_method' => ['nullable', 'string', 'max:100'],
             'attachment' => ['nullable', 'file', 'max:10240'],
         ]);
@@ -37,7 +45,6 @@ class TicketController extends Controller
             'priority' => $validated['priority'],
             'business_name' => $validated['business_name'] ?? null,
             'operation_folio' => $validated['operation_folio'] ?? null,
-            'concepts' => $validated['concepts'] ?? null,
             'payment_method' => $validated['payment_method'] ?? null,
             'attachment_path' => $attachmentPath,
             'status' => 'abierto',

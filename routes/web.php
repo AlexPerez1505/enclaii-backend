@@ -591,21 +591,9 @@ Route::middleware('auth')->group(function () {
     })->name('finanzas');
 
     /* ── Soporte ── */
-    Route::get('/soporte', function () {
-        return view('soporte.index');
-    })->name('soporte');
+    Route::get('/soporte', [\App\Http\Controllers\SoporteController::class, 'index'])->name('soporte');
 
-    Route::get('/soporte/tickets', function () {
-        return view('soporte.tickets');
-    })->name('soporte.tickets');
-
-    Route::get('/soporte/chat', function () {
-        return view('soporte.chat');
-    })->name('soporte.chat');
-
-    Route::post('/soporte/chat', [\App\Http\Controllers\SoporteChatController::class, 'send'])->name('soporte.chat.send');
-
-    Route::post('/soporte/solicitudes', [\App\Http\Controllers\SoporteController::class, 'store'])->name('soporte.solicitudes.store');
+    Route::get('/soporte/tickets', [\App\Http\Controllers\TicketController::class, 'tickets'])->name('soporte.tickets');
 
     Route::post('/soporte/tickets', [\App\Http\Controllers\TicketController::class, 'store'])->name('soporte.tickets.store');
 });

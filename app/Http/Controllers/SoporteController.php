@@ -2,31 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SoporteRequest;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use App\Models\Ticket;
+use Illuminate\View\View;
 
 class SoporteController extends Controller
 {
-    public function store(Request $request): JsonResponse
+    public function index(): View
     {
-        $validated = $request->validate([
-            'category' => ['required', 'string', 'max:100'],
-            'subject' => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string', 'max:4000'],
-        ]);
+        $latestTicket = Ticket::where('user_id', auth()->id())
+            ->latest()
+            ->first();
 
-        $request = SoporteRequest::create([
-            'user_id' => auth()->id(),
-            'category' => $validated['category'],
-            'subject' => $validated['subject'],
-            'description' => $validated['description'],
-            'status' => 'abierto',
-        ]);
-
-        return response()->json([
-            'ok' => true,
-            'request' => $request,
-        ], 201);
+        return view('soporte.index', compact('latestTicket'));
     }
 }
