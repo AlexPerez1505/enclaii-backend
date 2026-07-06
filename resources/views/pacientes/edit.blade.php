@@ -1089,6 +1089,142 @@ textarea{
       </div>
     </div>
 
+    <hr style="border:none;border-top:1px solid var(--stroke);margin:28px 0;">
+
+    {{-- Enfermedad, Alergias y Estudios --}}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
+      <div class="form-group">
+        <label>Enfermedad</label>
+        <textarea name="enfermedad" placeholder="Describe la enfermedad o padecimiento del paciente" style="min-height:110px;width:100%;">{{ old('enfermedad', $paciente->enfermedad) }}</textarea>
+      </div>
+      <div class="form-group">
+        <label>Alergias</label>
+        <textarea name="alergias" placeholder="Especifica las alergias del paciente (medicamentos, alimentos, etc.)" style="min-height:110px;width:100%;">{{ old('alergias', $paciente->alergias) }}</textarea>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:24px;">
+      <label>Estudios (archivos)</label>
+      <div style="border-radius:var(--r-md);padding:20px;background:var(--panel-2);border:1px solid var(--stroke);">
+
+        {{-- Barra superior --}}
+        <input type="file" name="estudios_archivos[]" id="estudiosArchivos" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.mp4,.mov,.avi" style="display:none;">
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:4px;">
+          <button type="button" onclick="document.getElementById('estudiosArchivos').click()" style="display:flex;align-items:center;gap:8px;padding:9px 18px;border-radius:var(--r-md);border:1px solid var(--stroke);background:var(--card);color:var(--txt);font:inherit;font-size:13px;font-weight:600;cursor:pointer;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Subir archivos
+          </button>
+          <span style="font-size:12.5px;color:var(--txt-soft);">PDF, imágenes, Word — múltiples archivos permitidos</span>
+        </div>
+
+        {{-- Preview de archivos recién seleccionados (antes de guardar) --}}
+        <div id="estudiosArchivosList" style="display:none;margin-top:16px;">
+          <p style="font-size:12px;font-weight:700;color:var(--txt-soft);margin:0 0 10px;text-transform:uppercase;letter-spacing:.5px;">Por subir</p>
+          <div id="estudiosArchivosGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;"></div>
+        </div>
+
+        {{-- Archivos ya guardados --}}
+        @php
+          $docsGuardados = \App\Models\PacienteDocumento::where('paciente_id', $paciente->id)
+            ->orderByDesc('created_at')
+            ->get();
+        @endphp
+
+        @if($docsGuardados->count() > 0)
+        <div style="margin-top:20px;" id="docsGuardadosSection">
+          <p style="font-size:12px;font-weight:700;color:var(--txt-soft);margin:0 0 12px;text-transform:uppercase;letter-spacing:.5px;">Archivos cargados ({{ $docsGuardados->count() }})</p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;">
+            @foreach($docsGuardados as $doc)
+            @php
+              $ext = strtolower(pathinfo($doc->nombre_original ?? $doc->path, PATHINFO_EXTENSION));
+              $isImg = in_array($ext, ['jpg','jpeg','png','webp','gif']);
+              $isPdf = $ext === 'pdf';
+              $isVideo = in_array($ext, ['mp4','mov','avi','mkv','webm']);
+              $isDoc = in_array($ext, ['doc','docx']);
+              $url = asset('storage/'.$doc->path);
+              $nombre = $doc->nombre_original ?? basename($doc->path);
+              $tipo = $isImg ? 'imagen' : ($isPdf ? 'pdf' : ($isVideo ? 'video' : 'otro'));
+              $kb = $doc->size_bytes ?? 0;
+              if ($kb >= 1073741824) $size = round($kb/1073741824,1).' GB';
+              elseif ($kb >= 1048576) $size = round($kb/1048576,1).' MB';
+              elseif ($kb >= 1024) $size = round($kb/1024,1).' KB';
+              else $size = $kb.' B';
+              if($isImg) { $iconBg='#f59e0b22'; $iconColor='#f59e0b'; $iconLabel='JPG'; }
+              elseif($isPdf) { $iconBg='#ef444422'; $iconColor='#ef4444'; $iconLabel='PDF'; }
+              elseif($isVideo) { $iconBg='#f9731622'; $iconColor='#f97316'; $iconLabel='MP4'; }
+              elseif($isDoc) { $iconBg='#3b82f622'; $iconColor='#3b82f6'; $iconLabel='DOC'; }
+              else { $iconBg='#6b728022'; $iconColor='#6b7280'; $iconLabel=strtoupper($ext) ?: 'FILE'; }
+            @endphp
+            <div class="doc-card" style="position:relative;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--card);border:1px solid var(--stroke);cursor:pointer;transition:border-color 150ms;"
+                 onclick="abrirVisorArchivo('{{ $url }}','{{ addslashes($nombre) }}','{{ $tipo }}')"
+                 onmouseenter="this.style.borderColor='var(--blue)'" onmouseleave="this.style.borderColor='var(--stroke)'">
+              {{-- Icono tipo badge --}}
+              <div style="width:38px;height:44px;border-radius:6px;background:{{ $iconBg }};display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">
+                @if($isImg)
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ $iconColor }}" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                @elseif($isPdf)
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ $iconColor }}" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                @elseif($isVideo)
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ $iconColor }}" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                @else
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ $iconColor }}" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                @endif
+                <span style="font-size:7px;font-weight:800;color:{{ $iconColor }};margin-top:2px;letter-spacing:.3px;">{{ $iconLabel }}</span>
+              </div>
+              {{-- Info --}}
+              <div style="flex:1;min-width:0;">
+                <p style="margin:0;font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ $nombre }}">{{ $nombre }}</p>
+                <p style="margin:3px 0 0;font-size:11px;color:var(--txt-soft);">{{ $size }} &bull; {{ $doc->created_at->format('d M Y') }}</p>
+              </div>
+              {{-- Menú 3 puntos --}}
+              <div style="position:relative;flex-shrink:0;" onclick="event.stopPropagation()">
+                <button type="button" class="doc-menu-btn"
+                  onclick="toggleDocMenu(this)"
+                  style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:var(--txt-soft);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                </button>
+                <div class="doc-menu-dropdown" style="display:none;position:absolute;right:0;top:32px;background:var(--card);border:1px solid var(--stroke);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:200;min-width:140px;overflow:hidden;">
+                  <button type="button" onclick="abrirVisorArchivo('{{ $url }}','{{ addslashes($nombre) }}','{{ $tipo }}')" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:transparent;color:var(--txt);font-size:13px;cursor:pointer;text-align:left;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    Ver archivo
+                  </button>
+                  <a href="{{ $url }}" download="{{ $nombre }}" style="display:flex;align-items:center;gap:8px;padding:10px 14px;color:var(--txt);font-size:13px;text-decoration:none;" onclick="cerrarTodosMenus()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Descargar
+                  </a>
+                  <button type="button" onclick="eliminarDocumento({{ $doc->id }}, this)" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:transparent;color:#ef4444;font-size:13px;cursor:pointer;text-align:left;border-top:1px solid var(--stroke);">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            </div>
+            @endforeach
+          </div>
+        </div>
+        @endif
+
+        {{-- Modal visor de archivos --}}
+        <div id="visorArchivoOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);align-items:center;justify-content:center;">
+          <div style="background:var(--card);border:1px solid var(--stroke);border-radius:16px;width:min(960px,95vw);max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.6);">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--stroke);flex-shrink:0;">
+              <span id="visorArchivoNombre" style="font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60%;"></span>
+              <div style="display:flex;gap:8px;flex-shrink:0;">
+                <a id="visorArchivoDescarga" href="#" download style="display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;background:var(--panel-2);border:1px solid var(--stroke);font-size:12px;font-weight:600;color:var(--txt);text-decoration:none;">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Descargar
+                </a>
+                <button type="button" onclick="cerrarVisorArchivo()" style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;border:1px solid var(--stroke);background:var(--panel-2);cursor:pointer;color:var(--txt);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+            </div>
+            <div id="visorArchivoContenido" style="flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;min-height:400px;background:var(--panel-2);"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     {{-- Sección Estudios del paciente --}}
     <hr style="border:none;border-top:1px solid var(--stroke);margin:28px 0;">
     
@@ -1362,6 +1498,13 @@ document.addEventListener('DOMContentLoaded', function() {
     pacienteForm.addEventListener('submit', async function(e) {
       e.preventDefault();
 
+      const archivoInput = document.getElementById('estudiosArchivos');
+      const numArchivos = archivoInput ? archivoInput.files.length : 0;
+      console.log('[Guardar] Archivos en input:', numArchivos);
+
+      const formData = new FormData(pacienteForm);
+      console.log('[Guardar] FormData keys:', [...formData.keys()]);
+
       if (btnGuardarInfo) {
         btnGuardarInfo.disabled = true;
         btnGuardarInfo.style.opacity = '.7';
@@ -1370,17 +1513,25 @@ document.addEventListener('DOMContentLoaded', function() {
       try {
         const response = await fetch(pacienteForm.action, {
           method: 'POST',
-          body: new FormData(pacienteForm),
+          body: formData,
           headers: {
             'X-Requested-With': 'XMLHttpRequest',
             'Accept': 'application/json'
           }
         });
 
+        console.log('[Guardar] Response status:', response.status);
+        const data = await response.json().catch(() => null);
+        console.log('[Guardar] Response data:', data);
+
         if (!response.ok && response.status !== 302) {
-          const data = await response.json().catch(() => null);
           const message = data?.message || 'No se pudieron guardar los cambios. Revisa los campos.';
           alert(message);
+          return;
+        }
+
+        if (numArchivos > 0) {
+          window.location.reload();
           return;
         }
 
@@ -1390,6 +1541,7 @@ document.addEventListener('DOMContentLoaded', function() {
           window.location.href = '{{ route('pacientes.index') }}';
         }
       } catch (error) {
+        console.error('[Guardar] Error:', error);
         alert('Ocurrió un error al actualizar el paciente.');
       } finally {
         if (btnGuardarInfo) {
@@ -1624,7 +1776,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const guardados = localStorage.getItem('medicosPersonalizados');
     if (guardados) {
       const lista = JSON.parse(guardados);
-      const select = document.getElementById('medicoSelect');
+      const select = document.getElementById('medicoSelect') || document.getElementById('medicoSelectMed');
+      if (!select) return;
       lista.forEach(med => {
         let existe = false;
         for (let i = 0; i < select.options.length; i++) {
@@ -1721,7 +1874,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const guardados = localStorage.getItem('referidosPersonalizados');
     if (guardados) {
       const lista = JSON.parse(guardados);
-      const select = document.getElementById('referidoSelect');
+      const select = document.getElementById('referidoSelect') || document.getElementById('referidoSelectMed');
+      if (!select) return;
       lista.forEach(ref => {
         let existe = false;
         for (let i = 0; i < select.options.length; i++) {
@@ -1817,6 +1971,136 @@ document.addEventListener('DOMContentLoaded', function() {
   window.addAnestesiologo     = function() { window.abrirMiniModal('anestesiologoSelect','Agregar anestesiólogo','Escribe el nombre del anestesiólogo'); };
   window.addReferidoMed       = function() { window.abrirMiniModal('referidoSelectMed','Agregar referido','Escribe el nombre del referido'); };
   window.addEquipo            = function() { window.abrirMiniModal('equipoSelect','Agregar equipo','Escribe el nombre del equipo'); };
+
+  // ===== ARCHIVOS DE ESTUDIOS =====
+  function makeFileCard(nombre, url, tipo, size) {
+    const ext = nombre.split('.').pop().toUpperCase();
+    const colors = {
+      imagen: {bg:'#f59e0b22', color:'#f59e0b'},
+      pdf:    {bg:'#ef444422', color:'#ef4444'},
+      video:  {bg:'#f9731622', color:'#f97316'},
+    };
+    const c = colors[tipo] || {bg:'#6b728022', color:'#6b7280'};
+    const iconSvg = tipo === 'imagen'
+      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="'+c.color+'" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>'
+      : tipo === 'pdf'
+      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="'+c.color+'" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>'
+      : tipo === 'video'
+      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="'+c.color+'" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>'
+      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="'+c.color+'" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+    const sizeStr = size >= 1048576 ? (size/1048576).toFixed(1)+' MB' : size >= 1024 ? (size/1024).toFixed(1)+' KB' : size+' B';
+    const card = document.createElement('div');
+    card.style.cssText = 'position:relative;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--card);border:1px solid var(--stroke);cursor:pointer;transition:border-color 150ms;';
+    card.onmouseenter = function(){ this.style.borderColor='var(--blue)'; };
+    card.onmouseleave = function(){ this.style.borderColor='var(--stroke)'; };
+    card.onclick = function(){ abrirVisorArchivo(url, nombre, tipo); };
+    card.innerHTML =
+      '<div style="width:38px;height:44px;border-radius:6px;background:'+c.bg+';display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">'
+        + iconSvg
+        + '<span style="font-size:7px;font-weight:800;color:'+c.color+';margin-top:2px;">'+ext+'</span>'
+      +'</div>'
+      +'<div style="flex:1;min-width:0;">'
+        +'<p style="margin:0;font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+nombre+'">'+nombre+'</p>'
+        +'<p style="margin:3px 0 0;font-size:11px;color:var(--txt-soft);">'+sizeStr+' &bull; pendiente</p>'
+      +'</div>';
+    return card;
+  }
+
+  document.getElementById('estudiosArchivos')?.addEventListener('change', function(){
+    const wrapper = document.getElementById('estudiosArchivosList');
+    const grid = document.getElementById('estudiosArchivosGrid');
+    grid.innerHTML = '';
+    if (this.files.length === 0) { wrapper.style.display='none'; return; }
+    wrapper.style.display = 'block';
+    Array.from(this.files).forEach(function(f){
+      const ext = f.name.split('.').pop().toLowerCase();
+      const isImg = ['jpg','jpeg','png','webp','gif'].includes(ext);
+      const isPdf = ext === 'pdf';
+      const isVideo = ['mp4','mov','avi','mkv','webm'].includes(ext);
+      const url = URL.createObjectURL(f);
+      const tipo = isImg ? 'imagen' : isPdf ? 'pdf' : isVideo ? 'video' : 'otro';
+      grid.appendChild(makeFileCard(f.name, url, tipo, f.size));
+    });
+  });
+
+  // ===== VISOR DE ARCHIVOS =====
+  window.abrirVisorArchivo = function(url, nombre, tipo) {
+    cerrarTodosMenus();
+    const overlay = document.getElementById('visorArchivoOverlay');
+    const contenido = document.getElementById('visorArchivoContenido');
+    if (!overlay) return;
+    document.getElementById('visorArchivoNombre').textContent = nombre;
+    const descarga = document.getElementById('visorArchivoDescarga');
+    descarga.href = url; descarga.download = nombre;
+    contenido.innerHTML = '';
+    if (tipo === 'imagen') {
+      const img = document.createElement('img');
+      img.src = url;
+      img.style.cssText = 'max-width:100%;max-height:calc(92vh - 70px);object-fit:contain;display:block;padding:16px;';
+      contenido.appendChild(img);
+    } else if (tipo === 'pdf') {
+      const iframe = document.createElement('iframe');
+      iframe.src = url;
+      iframe.style.cssText = 'width:100%;height:calc(92vh - 70px);border:none;';
+      contenido.appendChild(iframe);
+    } else if (tipo === 'video') {
+      const video = document.createElement('video');
+      video.src = url; video.controls = true;
+      video.style.cssText = 'max-width:100%;max-height:calc(92vh - 70px);display:block;';
+      contenido.appendChild(video);
+    } else {
+      contenido.innerHTML = '<div style="text-align:center;padding:48px;color:var(--txt-soft);">'
+        +'<svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="margin:0 auto 16px;display:block;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
+        +'<p style="font-size:14px;margin:0 0 20px;">Vista previa no disponible para este tipo de archivo.</p>'
+        +'<a href="'+url+'" download="'+nombre+'" style="padding:10px 22px;border-radius:8px;background:#3b82f6;color:#fff;text-decoration:none;font-size:13px;font-weight:600;">Descargar archivo</a>'
+        +'</div>';
+    }
+    overlay.style.display = 'flex';
+  };
+
+  window.cerrarVisorArchivo = function() {
+    const o = document.getElementById('visorArchivoOverlay');
+    if (o) o.style.display = 'none';
+    document.getElementById('visorArchivoContenido').innerHTML = '';
+  };
+
+  // ===== MENÚ 3 PUNTOS =====
+  window.cerrarTodosMenus = function() {
+    document.querySelectorAll('.doc-menu-dropdown').forEach(function(d){ d.style.display='none'; });
+  };
+  window.toggleDocMenu = function(btn) {
+    const dropdown = btn.nextElementSibling;
+    const isOpen = dropdown.style.display === 'block';
+    cerrarTodosMenus();
+    if (!isOpen) dropdown.style.display = 'block';
+  };
+  document.addEventListener('click', function(e){
+    if (!e.target.closest('.doc-menu-btn') && !e.target.closest('.doc-menu-dropdown')) cerrarTodosMenus();
+  });
+
+  // ===== ELIMINAR DOCUMENTO =====
+  window.eliminarDocumento = function(id, btn) {
+    cerrarTodosMenus();
+    if (!confirm('¿Eliminar este archivo? Esta acción no se puede deshacer.')) return;
+    fetch('/paciente-documentos/' + id, {
+      method: 'DELETE',
+      headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' }
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if (d.success) {
+        const card = btn.closest('.doc-card');
+        card.style.opacity = '0';
+        card.style.transition = 'opacity 250ms';
+        setTimeout(function(){ card.remove(); }, 260);
+      }
+    }).catch(function(){ alert('Error al eliminar el archivo.'); });
+  };
+
+  document.getElementById('visorArchivoOverlay')?.addEventListener('click', function(e){
+    if (e.target === this) window.cerrarVisorArchivo();
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') { window.cerrarVisorArchivo(); cerrarTodosMenus(); }
+  });
 
   // ===== AGENDAR CITA =====
   var _citaData = {};

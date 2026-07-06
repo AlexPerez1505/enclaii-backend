@@ -7,6 +7,7 @@ use App\Http\Controllers\WhatsAppController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\PacienteController;
+use App\Http\Controllers\PacienteDocumentoController;
 use App\Http\Controllers\NuevoEstudioController;
 use App\Models\Paciente;
 use App\Models\Reporte;
@@ -16,7 +17,6 @@ use App\Http\Controllers\CustomerSuccess\DashboardController;
 use App\Http\Controllers\CustomerSuccess\RolesController;
 use App\Http\Controllers\StripeController;
 use App\Http\Controllers\StorageServeController;
-use App\Http\Controllers\NotificationController;
 
 Route::get('/storage/{path}', [StorageServeController::class, 'show'])
     ->where('path', '.*')
@@ -63,6 +63,24 @@ Route::middleware('auth')->group(function () {
 
     Route::patch('/configuracion/general', [SettingsController::class, 'update'])
         ->name('configuracion.general.update');
+
+    Route::post('/configuracion/foto-perfil', [SettingsController::class, 'updateFoto'])
+        ->name('configuracion.foto.update');
+
+    Route::delete('/configuracion/foto-perfil', [SettingsController::class, 'deleteFoto'])
+        ->name('configuracion.foto.delete');
+
+    Route::patch('/configuracion/perfil', [SettingsController::class, 'updatePerfil'])
+        ->name('configuracion.perfil.update');
+
+    Route::post('/configuracion/constancia-fiscal', [SettingsController::class, 'uploadConstancia'])
+        ->name('configuracion.constancia.upload');
+
+    Route::delete('/configuracion/constancia-fiscal', [SettingsController::class, 'deleteConstancia'])
+        ->name('configuracion.constancia.delete');
+
+    Route::post('/legal/aceptaciones', [SettingsController::class, 'storeLegalAcceptances'])
+        ->name('legal.acceptances.store');
 
     // ===== Stripe (pagos y suscripciones) =====
     Route::post('/stripe/checkout', [StripeController::class, 'checkout'])
@@ -815,6 +833,7 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
 
 
 Route::resource('pacientes', PacienteController::class);
+Route::delete('/paciente-documentos/{pacienteDocumento}', [PacienteDocumentoController::class, 'destroy'])->name('paciente-documentos.destroy');
 
 Route::get('/agenda', [AgendaController::class, 'index'])->name('agenda');
 Route::get('/agendar', [AgendaController::class, 'create'])->name('agendar');
@@ -861,16 +880,3 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/ia/history', [AiAssistantController::class, 'history'])->name('ia.history');
     Route::post('/ia/reset', [AiAssistantController::class, 'reset'])->name('ia.reset');
 });
-
-// Customer Success: dashboard principal y panel de anuncios (vistas Blade protegidas)
-Route::middleware(['auth', 'customer.success'])
-    ->get('/customer-success/dashboard', [DashboardController::class, 'index'])
-    ->name('customer-success.dashboard');
-
-Route::middleware(['auth', 'customer.success'])
-    ->get('/customer-success/anuncios', [AnuncioDashboardController::class, 'index'])
-    ->name('customer-success.anuncios');
-
-Route::middleware(['auth', 'customer.success'])
-    ->get('/customer-success/gestion-usuarios', [RolesController::class, 'index'])
-    ->name('customer-success.gestion-usuarios');

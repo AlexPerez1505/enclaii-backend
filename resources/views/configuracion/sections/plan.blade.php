@@ -242,6 +242,7 @@
       <button class="gp-tab active" data-gptab="resumen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Resumen</button>
       <button class="gp-tab" data-gptab="integrantes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Integrantes</button>
       <button class="gp-tab" data-gptab="facturacion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Facturacion</button>
+      <button class="gp-tab" data-gptab="legal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Legal</button>
     </div>
 
     <div class="gp-body">
@@ -413,6 +414,275 @@
           </div>
         </section>
       </div>
+
+      {{-- ===== LEGAL ===== --}}
+      <div class="gp-panel" data-gppanel="legal">
+
+        {{-- === VISTA PRINCIPAL: lista de documentos === --}}
+        <div id="lgMain">
+          <div class="lg-grid">
+            <div class="lg-col-main">
+
+              <div class="lg-head">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <div>
+                  <h3>Legal</h3>
+                  <p class="gp-soft">Administra los documentos legales de la plataforma y consulta los registros de aceptación.</p>
+                </div>
+              </div>
+
+              <div class="lg-doc" data-lg-view="terminos">
+                <span class="lg-doc-ico lg-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+                <div class="lg-doc-info">
+                  <b>Términos y Condiciones</b>
+                  <p>Establece las reglas y condiciones de uso de la plataforma</p>
+                  <span class="lg-version">Versión actual: 1.2</span>
+                  <span class="lg-date">Última actualización: 15 May 2026</span>
+                </div>
+                <svg class="lg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+
+              <div class="lg-doc" data-lg-view="privacidad">
+                <span class="lg-doc-ico lg-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+                <div class="lg-doc-info">
+                  <b>Aviso de Privacidad</b>
+                  <p>Información sobre el tratamiento y protección de datos personales</p>
+                  <span class="lg-version">Versión actual: 2.0</span>
+                  <span class="lg-date">Última actualización: 10 May 2026</span>
+                </div>
+                <svg class="lg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+
+              <div class="lg-doc" data-lg-view="politicas">
+                <span class="lg-doc-ico lg-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+                <div class="lg-doc-info">
+                  <b>Políticas del Sistema</b>
+                  <p>Políticas y lineamientos de uso de la plataforma y servicios</p>
+                  <span class="lg-version">Versión actual: 1.5</span>
+                  <span class="lg-date">Última actualización: 12 May 2026</span>
+                </div>
+                <svg class="lg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+
+              <div class="lg-doc" data-lg-view="versiones">
+                <span class="lg-doc-ico lg-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+                <div class="lg-doc-info">
+                  <b>Control de Versiones</b>
+                  <p>Historial de versiones de todos los documentos legales</p>
+                </div>
+                <svg class="lg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+
+              <div class="lg-doc" data-lg-view="aceptaciones">
+                <span class="lg-doc-ico lg-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg></span>
+                <div class="lg-doc-info">
+                  <b>Registro de Aceptaciones</b>
+                  <p>Consulta quién ha aceptado los documentos y cuándo</p>
+                </div>
+                <svg class="lg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+
+              <div class="lg-compliance">
+                <span class="lg-doc-ico lg-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 12 15 16 10"/></svg></span>
+                <div>
+                  <b>Cumplimiento y seguridad</b>
+                  <p class="gp-soft">ENCLAII cumple con la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP) y las mejores prácticas de seguridad de la información.</p>
+                  <a href="https://stripe.com/mx/privacy" target="_blank" rel="noopener" class="lg-link">Conocer más sobre cumplimiento</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="lg-col-side">
+              <section class="gp-card">
+                <h3>Resumen de versiones</h3>
+                <div class="lg-ver-row"><span>Términos y Condiciones</span><span class="lg-ver-badge">v1.2</span></div>
+                <div class="lg-ver-row"><span>Aviso de Privacidad</span><span class="lg-ver-badge">v2.0</span></div>
+                <div class="lg-ver-row"><span>Políticas del Sistema</span><span class="lg-ver-badge">v1.5</span></div>
+              </section>
+            </div>
+          </div>
+        </div>
+
+        {{-- === SUB-VISTA: Términos y Condiciones === --}}
+        <div class="lg-subview" id="lgView-terminos" style="display:none">
+          <button class="lg-back" data-lg-back><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg> Volver</button>
+          <div class="lg-sv-head">
+            <span class="lg-doc-ico lg-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+            <div>
+              <h3>Términos y Condiciones</h3>
+              <span class="lg-version">Versión 1.2</span>
+              <span class="lg-date">Última actualización: 15 May 2026</span>
+            </div>
+          </div>
+          <div class="lg-sv-body">
+            <h4>1. Aceptación de los Términos</h4>
+            <p>Al acceder y utilizar la plataforma ENCLAII, usted acepta estar sujeto a estos Términos y Condiciones de uso. Si no está de acuerdo con alguno de estos términos, no debe utilizar la plataforma.</p>
+
+            <h4>2. Descripción del Servicio</h4>
+            <p>ENCLAII es una plataforma de gestión médica especializada en endoscopia que permite a los profesionales de la salud gestionar estudios, generar reportes asistidos por inteligencia artificial, almacenar imágenes y videos médicos, y administrar información de pacientes.</p>
+
+            <h4>3. Registro y Cuenta</h4>
+            <p>Para utilizar la plataforma, el usuario debe registrarse proporcionando información veraz y completa. El usuario es responsable de mantener la confidencialidad de sus credenciales de acceso y de todas las actividades que ocurran bajo su cuenta.</p>
+
+            <h4>4. Uso Aceptable</h4>
+            <p>El usuario se compromete a utilizar la plataforma exclusivamente para fines médicos legítimos, conforme a la legislación aplicable en materia de salud, protección de datos y ejercicio profesional. Queda prohibido el uso de la plataforma para fines ilegales o no autorizados.</p>
+
+            <h4>5. Propiedad Intelectual</h4>
+            <p>Todo el contenido de la plataforma, incluyendo software, algoritmos de IA, diseños, logotipos y documentación, es propiedad exclusiva de ENCLAII. Los datos clínicos generados por el usuario permanecen como propiedad del usuario y sus pacientes.</p>
+
+            <h4>6. Planes y Facturación</h4>
+            <p>Los planes de suscripción se facturan de acuerdo al período seleccionado (mensual, trimestral o anual). Los cambios de plan se aplican de forma prorrateada. La cancelación se efectúa al final del período vigente.</p>
+
+            <h4>7. Limitación de Responsabilidad</h4>
+            <p>ENCLAII no sustituye el criterio médico profesional. Los reportes generados por IA son herramientas de apoyo y no constituyen un diagnóstico médico definitivo. El profesional de la salud es el único responsable de las decisiones clínicas.</p>
+
+            <h4>8. Modificaciones</h4>
+            <p>ENCLAII se reserva el derecho de modificar estos términos en cualquier momento. Las modificaciones serán notificadas a los usuarios y entrarán en vigor a partir de su publicación en la plataforma.</p>
+          </div>
+        </div>
+
+        {{-- === SUB-VISTA: Aviso de Privacidad === --}}
+        <div class="lg-subview" id="lgView-privacidad" style="display:none">
+          <button class="lg-back" data-lg-back><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg> Volver</button>
+          <div class="lg-sv-head">
+            <span class="lg-doc-ico lg-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+            <div>
+              <h3>Aviso de Privacidad</h3>
+              <span class="lg-version">Versión 2.0</span>
+              <span class="lg-date">Última actualización: 10 May 2026</span>
+            </div>
+          </div>
+          <div class="lg-sv-body">
+            <h4>1. Responsable del Tratamiento</h4>
+            <p>ENCLAII, con domicilio en Ciudad de México, es responsable del tratamiento de los datos personales que usted proporcione, los cuales serán protegidos conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP).</p>
+
+            <h4>2. Datos Personales Recabados</h4>
+            <p>Para la prestación de nuestros servicios, recabamos los siguientes datos: nombre completo, correo electrónico, información de contacto, datos de facturación, y en el contexto clínico, datos de pacientes proporcionados por el profesional de la salud.</p>
+
+            <h4>3. Datos Sensibles</h4>
+            <p>La plataforma puede contener datos personales sensibles relacionados con el estado de salud de los pacientes. Estos datos son proporcionados exclusivamente por el profesional de la salud responsable y se tratan con las medidas de seguridad más estrictas.</p>
+
+            <h4>4. Finalidades del Tratamiento</h4>
+            <p>Sus datos personales serán utilizados para: proveer acceso a la plataforma, gestionar su cuenta y suscripción, generar reportes médicos asistidos por IA, almacenar estudios e imágenes médicas, y enviar comunicaciones relacionadas con el servicio.</p>
+
+            <h4>5. Medidas de Seguridad</h4>
+            <p>ENCLAII implementa medidas de seguridad administrativas, técnicas y físicas para proteger sus datos contra daño, pérdida, alteración, destrucción o uso no autorizado. Esto incluye cifrado de datos en tránsito y en reposo, control de acceso basado en roles y auditorías periódicas.</p>
+
+            <h4>6. Derechos ARCO</h4>
+            <p>Usted tiene derecho a Acceder, Rectificar, Cancelar u Oponerse al tratamiento de sus datos personales (Derechos ARCO). Para ejercer estos derechos, puede enviar una solicitud a través de la plataforma o al correo electrónico de contacto.</p>
+
+            <h4>7. Transferencia de Datos</h4>
+            <p>ENCLAII no realizará transferencias de datos personales a terceros sin su consentimiento, salvo las excepciones previstas en la LFPDPPP. Los datos se almacenan en servidores seguros con infraestructura certificada.</p>
+
+            <h4>8. Modificaciones al Aviso</h4>
+            <p>ENCLAII se reserva el derecho de efectuar modificaciones al presente aviso de privacidad. Cualquier cambio será notificado a través de la plataforma.</p>
+          </div>
+        </div>
+
+        {{-- === SUB-VISTA: Políticas del Sistema === --}}
+        <div class="lg-subview" id="lgView-politicas" style="display:none">
+          <button class="lg-back" data-lg-back><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg> Volver</button>
+          <div class="lg-sv-head">
+            <span class="lg-doc-ico lg-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+            <div>
+              <h3>Políticas del Sistema</h3>
+              <span class="lg-version">Versión 1.5</span>
+              <span class="lg-date">Última actualización: 12 May 2026</span>
+            </div>
+          </div>
+          <div class="lg-sv-body">
+            <h4>1. Política de Uso de la Plataforma</h4>
+            <p>La plataforma ENCLAII debe ser utilizada exclusivamente por profesionales de la salud autorizados. Cada usuario es responsable de las acciones realizadas bajo su cuenta, incluyendo la creación, modificación y eliminación de registros clínicos.</p>
+
+            <h4>2. Política de Almacenamiento</h4>
+            <p>El almacenamiento en la nube está sujeto a los límites del plan contratado. Los archivos médicos (imágenes, videos, documentos) se almacenan de forma cifrada. El usuario es responsable de gestionar su espacio de almacenamiento y eliminar archivos innecesarios.</p>
+
+            <h4>3. Política de Contraseñas y Acceso</h4>
+            <p>Las contraseñas deben cumplir con los requisitos mínimos de seguridad: 8 caracteres, incluyendo mayúsculas, minúsculas y números. Se recomienda habilitar la autenticación de dos factores. Las sesiones inactivas se cierran automáticamente.</p>
+
+            <h4>4. Política de Respaldos</h4>
+            <p>ENCLAII realiza respaldos automáticos diarios de toda la información almacenada. Los respaldos se conservan por un período mínimo de 30 días. El usuario puede solicitar la exportación de sus datos en cualquier momento.</p>
+
+            <h4>5. Política de Uso de IA</h4>
+            <p>Los reportes generados por inteligencia artificial son herramientas de apoyo diagnóstico y no reemplazan el juicio clínico del profesional. El médico es responsable de revisar, validar y aprobar todo reporte antes de su uso clínico o entrega al paciente.</p>
+
+            <h4>6. Política de Integrantes</h4>
+            <p>El administrador del plan puede invitar integrantes de acuerdo a los límites de su suscripción. Cada integrante tiene un rol asignado con permisos específicos. El administrador es responsable de gestionar los accesos de su equipo.</p>
+
+            <h4>7. Política de Cancelación</h4>
+            <p>La cancelación del servicio puede solicitarse en cualquier momento. Al cancelar, el acceso se mantiene hasta el final del período facturado. Los datos del usuario se conservan por 90 días después de la cancelación, tras lo cual son eliminados permanentemente.</p>
+          </div>
+        </div>
+
+        {{-- === SUB-VISTA: Control de Versiones === --}}
+        <div class="lg-subview" id="lgView-versiones" style="display:none">
+          <button class="lg-back" data-lg-back><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg> Volver</button>
+          <div class="lg-sv-head">
+            <span class="lg-doc-ico lg-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+            <div>
+              <h3>Control de Versiones</h3>
+              <p class="gp-soft">Historial de todas las versiones publicadas de los documentos legales.</p>
+            </div>
+          </div>
+          <div class="lg-sv-body">
+            <table class="lg-table">
+              <thead>
+                <tr><th>Documento</th><th>Versión</th><th>Fecha de publicación</th><th>Estado</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Términos y Condiciones</td><td><span class="lg-ver-badge">v1.2</span></td><td>15 May 2026</td><td><span class="lg-st-active">Vigente</span></td></tr>
+                <tr><td>Términos y Condiciones</td><td><span class="lg-ver-badge lg-ver-old">v1.1</span></td><td>10 Ene 2026</td><td><span class="lg-st-old">Anterior</span></td></tr>
+                <tr><td>Términos y Condiciones</td><td><span class="lg-ver-badge lg-ver-old">v1.0</span></td><td>01 Sep 2025</td><td><span class="lg-st-old">Anterior</span></td></tr>
+                <tr><td>Aviso de Privacidad</td><td><span class="lg-ver-badge">v2.0</span></td><td>10 May 2026</td><td><span class="lg-st-active">Vigente</span></td></tr>
+                <tr><td>Aviso de Privacidad</td><td><span class="lg-ver-badge lg-ver-old">v1.0</span></td><td>01 Sep 2025</td><td><span class="lg-st-old">Anterior</span></td></tr>
+                <tr><td>Políticas del Sistema</td><td><span class="lg-ver-badge">v1.5</span></td><td>12 May 2026</td><td><span class="lg-st-active">Vigente</span></td></tr>
+                <tr><td>Políticas del Sistema</td><td><span class="lg-ver-badge lg-ver-old">v1.0</span></td><td>01 Sep 2025</td><td><span class="lg-st-old">Anterior</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {{-- === SUB-VISTA: Registro de Aceptaciones === --}}
+        <div class="lg-subview" id="lgView-aceptaciones" style="display:none">
+          <button class="lg-back" data-lg-back><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg> Volver</button>
+          <div class="lg-sv-head">
+            <span class="lg-doc-ico lg-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg></span>
+            <div>
+              <h3>Registro de Aceptaciones</h3>
+              <p class="gp-soft">Consulta quién ha aceptado los documentos legales y cuándo.</p>
+            </div>
+          </div>
+          <div class="lg-sv-body">
+            <table class="lg-table">
+              <thead>
+                <tr><th>Usuario</th><th>Documento</th><th>Versión</th><th>Fecha</th><th>Hora</th><th>IP</th></tr>
+              </thead>
+              <tbody id="lgAcceptRows">
+                @php
+                  $acceptances = \App\Models\LegalAcceptance::with('user')
+                    ->orderByDesc('created_at')
+                    ->limit(50)
+                    ->get();
+                @endphp
+                @forelse($acceptances as $acc)
+                <tr>
+                  <td>{{ $acc->user->name ?? 'N/A' }}</td>
+                  <td>{{ $acc->documento }}</td>
+                  <td><span class="lg-ver-badge">{{ $acc->version }}</span></td>
+                  <td>{{ $acc->fecha }}</td>
+                  <td>{{ $acc->hora }}</td>
+                  <td><code style="font-size:10px;color:var(--txt-soft)">{{ $acc->ip }}</code></td>
+                </tr>
+                @empty
+                <tr><td colspan="6" style="text-align:center;color:var(--txt-soft);padding:20px">No hay registros de aceptación aún.</td></tr>
+                @endforelse
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
     </div>
 
     <div class="gp-foot">
@@ -509,8 +779,67 @@
 .gp-summary-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid rgba(110,160,255,.08);font-size:13px}
 .gp-summary-row:last-of-type{border-bottom:0}
 .gp-link{color:var(--cyan);font-weight:600}
+/* Legal panel */
+.lg-grid{display:grid;grid-template-columns:1fr 300px;gap:20px}
+@media(max-width:760px){.lg-grid{grid-template-columns:1fr}}
+.lg-col-main{display:flex;flex-direction:column;gap:12px}
+.lg-col-side{display:flex;flex-direction:column}
+.lg-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:6px}
+.lg-head svg{color:var(--cyan);flex-shrink:0;margin-top:2px}
+.lg-head h3{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;margin-bottom:3px}
+.lg-doc{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--stroke);border-radius:12px;background:var(--panel-2);text-decoration:none;color:var(--txt);transition:border-color .15s,background .15s,transform .15s;cursor:pointer}
+.lg-doc:hover{border-color:rgba(46,123,246,.4);background:rgba(46,123,246,.04);transform:translateX(3px)}
+.lg-doc-static{cursor:default}
+.lg-doc-static:hover{transform:none}
+.lg-doc-ico{width:36px;height:36px;flex-shrink:0;border-radius:10px;display:grid;place-items:center}
+.lg-doc-ico svg{width:18px;height:18px}
+.lg-blue{background:rgba(46,123,246,.12);color:#2E7BF6}
+.lg-green{background:rgba(61,220,151,.12);color:var(--green)}
+.lg-purple{background:rgba(164,123,255,.12);color:#a47bff}
+.lg-amber{background:rgba(255,160,0,.12);color:#FFA000}
+.lg-teal{background:rgba(38,199,188,.12);color:#26C7BC}
+.lg-doc-info{flex:1;min-width:0}
+.lg-doc-info b{display:block;font-family:'Sora',sans-serif;font-size:12.5px;font-weight:700}
+.lg-doc-info p{font-size:11px;color:var(--txt-soft);margin-top:2px;line-height:1.4}
+.lg-version{display:inline-block;margin-top:5px;font-size:9.5px;font-weight:700;color:#2E7BF6;background:rgba(46,123,246,.12);padding:2px 8px;border-radius:5px}
+.lg-date{display:block;font-size:10px;color:var(--txt-soft);margin-top:3px}
+.lg-chevron{width:16px;height:16px;flex-shrink:0;color:var(--txt-soft);transition:transform .15s}
+.lg-doc:hover .lg-chevron{transform:translateX(3px);color:var(--txt)}
+.lg-compliance{display:flex;align-items:flex-start;gap:12px;padding:14px;border:1px solid var(--stroke);border-radius:12px;background:var(--panel-2);margin-top:4px}
+.lg-compliance b{display:block;font-family:'Sora',sans-serif;font-size:12.5px;font-weight:700;margin-bottom:4px}
+.lg-compliance .gp-soft{line-height:1.5}
+.lg-link{display:inline-block;margin-top:6px;font-size:11.5px;font-weight:600;color:#2E7BF6;text-decoration:none}
+.lg-link:hover{text-decoration:underline}
+.lg-action-btn{display:block;width:100%;padding:10px;border-radius:10px;text-align:center;font-weight:700;font-size:12.5px;color:#fff;background:linear-gradient(135deg,#0B1A4A 0%,#12266B 55%,#1E5AE8 130%);box-shadow:0 8px 20px -8px rgba(11,26,74,.5);text-decoration:none;transition:opacity .15s}
+.lg-action-btn:hover{opacity:.9}
+.lg-action-row{display:flex;align-items:flex-start;gap:10px;padding:11px;border:1px solid var(--stroke);border-radius:10px;margin-top:10px;text-decoration:none;color:var(--txt);transition:background .15s}
+.lg-action-row:hover{background:var(--hover-bg)}
+.lg-action-row svg{flex-shrink:0;margin-top:2px;color:var(--txt-soft)}
+.lg-action-row b{display:block;font-size:12px;font-weight:700}
+.lg-action-row span{display:block;font-size:10.5px;color:var(--txt-soft);margin-top:2px}
+.lg-ver-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(110,160,255,.08);font-size:12px}
+.lg-ver-row:last-of-type{border-bottom:0}
+.lg-ver-badge{font-size:10px;font-weight:700;color:#2E7BF6;background:rgba(46,123,246,.12);padding:2px 7px;border-radius:5px}
+.lg-ver-old{color:var(--txt-soft);background:var(--hover-bg)}
+/* Sub-views */
+.lg-subview{animation:lgFadeIn .2s ease}
+@keyframes lgFadeIn{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:none}}
+.lg-back{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;border:1px solid var(--stroke);background:var(--panel-2);color:var(--txt-soft);font-size:12px;font-weight:600;cursor:pointer;margin-bottom:14px;transition:all .15s}
+.lg-back:hover{background:var(--hover-bg);color:var(--txt)}
+.lg-sv-head{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--stroke)}
+.lg-sv-head h3{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;margin-bottom:3px}
+.lg-sv-body{max-height:420px;overflow-y:auto;padding-right:4px}
+.lg-sv-body h4{font-family:'Sora',sans-serif;font-size:12.5px;font-weight:700;color:var(--txt);margin:16px 0 6px}
+.lg-sv-body h4:first-child{margin-top:0}
+.lg-sv-body p{font-size:12px;color:var(--txt-soft);line-height:1.6}
+.lg-table{width:100%;border-collapse:collapse;font-size:11.5px}
+.lg-table th{text-align:left;font-weight:600;color:var(--txt-soft);font-size:10.5px;padding:8px 10px;border-bottom:1px solid var(--stroke);white-space:nowrap}
+.lg-table td{padding:9px 10px;border-bottom:1px solid rgba(110,160,255,.08)}
+.lg-table tr:last-child td{border-bottom:0}
+.lg-st-active{font-size:10px;font-weight:700;color:var(--green);background:rgba(61,220,151,.14);padding:2px 8px;border-radius:6px}
+.lg-st-old{font-size:10px;font-weight:600;color:var(--txt-soft);background:var(--hover-bg);padding:2px 8px;border-radius:6px}
 /* Footer */
-.gp-foot{display:flex;justify-content:flex-end;padding:16px 0 22px;margin-top:6px;border-top:1px solid var(--stroke);position:sticky;bottom:0;background:var(--card)}
+.gp-foot{display:flex;justify-content:flex-end;padding:16px 0 22px;margin-top:6px;border-top:1px solid var(--stroke);background:var(--card)}
 .gp-cerrar{padding:10px 22px;border-radius:10px;background:var(--panel-2);border:1px solid var(--stroke-strong);color:var(--txt);font-weight:600;font-size:13.5px}
 .gp-cerrar:hover{background:var(--hover-bg)}
 
@@ -684,6 +1013,34 @@
 </script>
 
 <script>
+/* ===== Navegación sub-vistas Legal ===== */
+(function(){
+  const lgMain = document.getElementById('lgMain');
+  if (!lgMain) return;
+
+  // Click en cada card para abrir su sub-vista
+  document.querySelectorAll('[data-lg-view]').forEach(card => {
+    card.addEventListener('click', (e) => {
+      e.preventDefault();
+      const viewId = card.dataset.lgView;
+      const subview = document.getElementById('lgView-' + viewId);
+      if (!subview) return;
+      lgMain.style.display = 'none';
+      subview.style.display = 'block';
+    });
+  });
+
+  // Botones "Volver"
+  document.querySelectorAll('[data-lg-back]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.closest('.lg-subview').style.display = 'none';
+      lgMain.style.display = 'block';
+    });
+  });
+})();
+</script>
+
+<script>
 /* ===== Integración de pagos con Stripe ===== */
 document.addEventListener('DOMContentLoaded', function(){
   const CSRF = "{{ csrf_token() }}";
@@ -797,11 +1154,66 @@ document.addEventListener('DOMContentLoaded', function(){
             el.textContent = el.dataset.originalText || 'Cambiar plan';
           });
       } else {
-        // Usuario sin suscripción: checkout normal (redirección a Stripe)
-        console.log('Sending to checkout:', { plan, interval });
-        postTo(CHECKOUT_URL, { plan, interval });
+        // Usuario sin suscripción: mostrar modal legal antes del checkout
+        console.log('Opening legal modal for:', { plan, interval });
+        pendingCheckout = { plan, interval };
+        openLegalModal();
       }
     });
+  });
+
+  // ===== Modal legal para checkout =====
+  let pendingCheckout = null;
+  const legalModal = document.getElementById('legalModal');
+  const legalCbs = document.querySelectorAll('.sc-legal-cb2');
+  const legalContinueBtn = document.getElementById('legalContinueBtn');
+  const LEGAL_URL = "{{ route('legal.acceptances.store') }}";
+
+  function openLegalModal() {
+    legalCbs.forEach(cb => cb.checked = false);
+    legalContinueBtn.disabled = true;
+    legalModal.style.display = 'flex';
+  }
+
+  window.closeLegalModal = function() {
+    legalModal.style.display = 'none';
+    pendingCheckout = null;
+  };
+
+  legalCbs.forEach(cb => cb.addEventListener('change', () => {
+    legalContinueBtn.disabled = ![...legalCbs].every(c => c.checked);
+  }));
+
+  legalContinueBtn.addEventListener('click', async () => {
+    if (!pendingCheckout) return;
+    legalContinueBtn.disabled = true;
+    legalContinueBtn.textContent = 'Procesando...';
+
+    // Guardar evidencia legal
+    try {
+      const documentos = [...legalCbs].map(cb => cb.dataset.doc);
+      await fetch(LEGAL_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': CSRF,
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ documentos })
+      });
+    } catch(err) {
+      console.error('Error guardando aceptaciones legales:', err);
+    }
+
+    // Continuar al checkout de Stripe
+    postTo(CHECKOUT_URL, pendingCheckout);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && legalModal.style.display === 'flex') {
+      window.closeLegalModal();
+    }
   });
 
   // ===== Cancelar plan (in-app, sin redirección) =====
@@ -877,6 +1289,35 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 @endpush
 
+{{-- Modal de aceptación legal (checkout sin suscripción) --}}
+<div id="legalModal" class="sc-modal" style="display:none">
+  <div class="sc-overlay" onclick="closeLegalModal()"></div>
+  <div class="sc-content" style="max-width:440px">
+    <div class="sc-header">
+      <h3>Antes de continuar</h3>
+      <button type="button" onclick="closeLegalModal()" class="sc-close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <p style="font-size:13px;color:var(--txt-soft);margin-bottom:16px">Para suscribirte necesitas aceptar nuestras políticas:</p>
+    <div class="sc-legal">
+      <label class="sc-legal-item">
+        <input type="checkbox" class="sc-legal-cb2" data-doc="Términos y Condiciones">
+        <span>He leído y acepto los <a href="https://stripe.com/mx/privacy" target="_blank" rel="noopener">Términos y Condiciones</a></span>
+      </label>
+      <label class="sc-legal-item">
+        <input type="checkbox" class="sc-legal-cb2" data-doc="Aviso de Privacidad">
+        <span>He leído y acepto el <a href="https://stripe.com/mx/privacy" target="_blank" rel="noopener">Aviso de Privacidad</a></span>
+      </label>
+      <label class="sc-legal-item">
+        <input type="checkbox" class="sc-legal-cb2" data-doc="Políticas del Sistema">
+        <span>Acepto las <a href="https://stripe.com/mx/privacy" target="_blank" rel="noopener">Políticas del Sistema</a></span>
+      </label>
+    </div>
+    <button type="button" id="legalContinueBtn" class="sc-pay-btn" disabled>Continuar al pago</button>
+  </div>
+</div>
+
 {{-- Notificación toast personalizada --}}
 <div id="customToast" class="custom-toast" style="display:none">
   <div class="toast-content">
@@ -907,6 +1348,26 @@ document.addEventListener('DOMContentLoaded', function(){
 .toast-close:hover{background:rgba(239,68,68,.1);color:var(--red);border-color:var(--red)}
 .toast-close svg{width:14px;height:14px}
 @media(max-width:600px){.custom-toast{bottom:16px;right:16px;left:16px}.toast-content{min-width:auto}}
+
+/* Modal legal */
+.sc-modal{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center}
+.sc-overlay{position:absolute;inset:0;background:rgba(5,9,20,.7);backdrop-filter:blur(4px)}
+.sc-content{position:relative;width:100%;max-width:480px;background:var(--card);border:1px solid var(--stroke);border-radius:20px;box-shadow:0 30px 80px -20px rgba(0,0,0,.5);padding:24px;max-height:92vh;overflow-y:auto}
+.sc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.sc-header h3{font-family:'Sora',sans-serif;font-size:20px;font-weight:800;margin:0}
+.sc-close{width:36px;height:36px;border-radius:10px;border:1px solid var(--stroke);background:var(--panel-2);color:var(--txt-soft);cursor:pointer;display:grid;place-items:center;transition:all .15s}
+.sc-close:hover{background:rgba(239,68,68,.1);color:var(--red);border-color:var(--red)}
+.sc-close svg{width:18px;height:18px}
+.sc-legal{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;padding:14px 16px;background:var(--panel-2);border:1px solid var(--stroke);border-radius:12px}
+.sc-legal-item{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--txt-soft);cursor:pointer;line-height:1.45}
+.sc-legal-item input[type="checkbox"]{width:16px;height:16px;margin-top:2px;accent-color:#2E7BF6;cursor:pointer;flex-shrink:0}
+.sc-legal-item a{color:#2E7BF6;font-weight:600;text-decoration:none}
+.sc-legal-item a:hover{text-decoration:underline}
+.sc-pay-btn{width:100%;padding:14px;border-radius:12px;border:0;background:linear-gradient(135deg,#0B1A4A 0%,#12266B 55%,#1E5AE8 130%);color:#fff;font-family:'Sora',sans-serif;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:opacity .15s,transform .1s;box-shadow:0 10px 24px -10px rgba(11,26,74,.55)}
+.sc-pay-btn:hover{opacity:.9}
+.sc-pay-btn:active{transform:scale(.97)}
+.sc-pay-btn:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:600px){.sc-content{width:95%;padding:18px}}
 </style>
 @endpush
 

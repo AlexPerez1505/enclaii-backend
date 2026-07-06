@@ -1221,10 +1221,13 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
           $userParts = preg_split('/\s+/', $userName);
           $userInitials = collect($userParts)->take(2)->map(fn($p) => mb_substr($p, 0, 1))->join('');
           $userInitials = mb_strtoupper($userInitials ?: mb_substr($userName, 0, 2));
+          $userFoto = auth()->check() && auth()->user()->foto_perfil
+              ? asset('storage/' . auth()->user()->foto_perfil)
+              : null;
         @endphp
         <div class="profile-wrap">
           <button type="button" class="profile" id="profileBtn" aria-haspopup="true" aria-expanded="false">
-            <div class="avatar">{{ $userInitials }}</div>
+            <div class="avatar" id="headerAvatar" data-initials="{{ $userInitials }}" style="{{ $userFoto ? 'background-image:url('.e($userFoto).');background-size:cover;background-position:center;font-size:0;' : '' }}">{{ $userFoto ? '' : $userInitials }}</div>
             <div class="profile-meta">
               <strong>{{ $userName }}</strong>
             </div>
