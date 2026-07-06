@@ -13,6 +13,18 @@ class StoreAnuncioRequest extends FormRequest
         'politicas',
     ];
 
+    public const PUBLICOS = [
+        'todos',
+        'doctores',
+        'administradores',
+    ];
+
+    public const CANALES = [
+        'web',
+        'email',
+        'push',
+    ];
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -32,6 +44,9 @@ class StoreAnuncioRequest extends FormRequest
             'titulo' => ['required', 'string', 'max:255'],
             'contenido' => ['required', 'string'],
             'tipo' => ['required', 'string', 'in:' . implode(',', self::TIPOS)],
+            'publico_objetivo' => ['required', 'string', 'in:' . implode(',', self::PUBLICOS)],
+            'canales' => ['nullable', 'array'],
+            'canales.*' => ['string', 'in:' . implode(',', self::CANALES)],
             'fecha_publicacion' => ['nullable', 'date'],
             'activo' => ['boolean'],
         ];
@@ -41,6 +56,8 @@ class StoreAnuncioRequest extends FormRequest
     {
         return [
             'tipo.in' => 'El tipo de anuncio no es válido.',
+            'publico_objetivo.in' => 'El público objetivo no es válido.',
+            'canales.*.in' => 'Uno de los canales seleccionados no es válido.',
         ];
     }
 

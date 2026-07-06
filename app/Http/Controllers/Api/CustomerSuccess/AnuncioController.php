@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers\Api\CustomerSuccess;
 
+use App\Events\AnuncioPublicado as AnuncioPublicadoEvent;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CustomerSuccess\StoreAnuncioRequest;
+use App\Mail\AnuncioPublicado;
 use App\Models\Anuncio;
 use App\Models\Notification;
 use App\Models\User;
 use App\Services\HtmlPurifierService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class AnuncioController extends Controller
 {
@@ -49,27 +52,56 @@ class AnuncioController extends Controller
 
         $validated['contenido'] = $this->purifier->clean($validated['contenido']);
         $validated['user_id'] = $request->user()->id;
+        $validated['canales'] = $validated['canales'] ?? ['web'];
 
         $anuncio = Anuncio::create($validated);
 
-        // Notificar a usuarios que tengan activada la categoría correspondiente
+        $targetUsers = $this->targetUsersFor($anuncio, $request->user());
+
+        if (in_array('web', $anuncio->canales ?? [], true)) {
+            $this->dispatchWebNotifications($anuncio, $targetUsers);
+        }
+
+        if (in_array('email', $anuncio->canales ?? [], true)) {
+            $this->dispatchEmailNotifications($anuncio, $targetUsers);
+        }
+
+        broadcast(new AnuncioPublicadoEvent($anuncio, $targetUsers->pluck('id')->all()));
+
+        return response()->json($anuncio, 201);
+    }
+
+    /**
+     * Filtra usuarios según el público objetivo del anuncio.
+     */
+    private function targetUsersFor(Anuncio $anuncio, User $creator): \Illuminate\Support\Collection
+    {
+        $query = User::whereKeyNot($creator->id);
+
+        return match ($anuncio->publico_objetivo) {
+            'doctores' => $query->get()->filter(fn (User $u) => ! $u->hasRole('Customer Success')),
+            'administradores' => $query->role('Customer Success')->get(),
+            default => $query->get(),
+        };
+    }
+
+    /**
+     * Crea notificaciones en la base de datos para el canal web.
+     */
+    private function dispatchWebNotifications(Anuncio $anuncio, \Illuminate\Support\Collection $users): void
+    {
         $now = now();
         $settingKey = self::CATEGORY_SETTING_MAP[$anuncio->tipo] ?? null;
 
-        $users = User::whereKeyNot($request->user()->id)
-            ->get(['id', 'settings']);
-
         $notifications = $users
-            ->filter(function ($user) use ($settingKey) {
+            ->filter(function (User $user) use ($settingKey) {
                 if ($settingKey === null) {
                     return true;
                 }
 
-                $settings = $user->resolvedSettings();
-
-                return $settings[$settingKey] ?? true;
+                return $user->resolvedSettings()[$settingKey] ?? true;
             })
-            ->map(fn ($user) => [
+            ->map(fn (User $user) => [
                 'user_id' => $user->id,
                 'tipo' => 'anuncio',
                 'data' => json_encode([
@@ -88,8 +120,14 @@ class AnuncioController extends Controller
         if (!empty($notifications)) {
             Notification::insert($notifications);
         }
+    }
 
-        return response()->json($anuncio, 201);
+    /**
+     * Envía el anuncio por correo electrónico.
+     */
+    private function dispatchEmailNotifications(Anuncio $anuncio, \Illuminate\Support\Collection $users): void
+    {
+        $users->each(fn (User $user) => Mail::to($user->email)->queue(new AnuncioPublicado($anuncio)));
     }
 
     /**

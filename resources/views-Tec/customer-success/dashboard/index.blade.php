@@ -58,35 +58,6 @@
     </div>
   </div>
 
-  <div class="cs-card" id="csNotificationsCard">
-    <div class="cs-card-title" style="display:flex;justify-content:space-between;align-items:center">
-      <span>Notificaciones</span>
-      <button class="cs-btn cs-btn-secondary" type="button" id="csMarkReadAll" style="{{ $notifications->isEmpty() ? 'display:none' : '' }}">Marcar como leídas</button>
-    </div>
-    <div id="csNotificationsContent">
-    @if($notifications->isEmpty())
-      <div class="cs-empty">No tienes notificaciones nuevas.</div>
-    @else
-      <table class="cs-table">
-        <thead>
-          <tr>
-            <th>Mensaje</th>
-            <th>Fecha</th>
-          </tr>
-        </thead>
-        <tbody>
-          @foreach($notifications as $notification)
-          <tr>
-            <td>{{ $notification->data['message'] ?? 'Nueva notificación' }}</td>
-            <td>{{ $notification->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
-          </tr>
-          @endforeach
-        </tbody>
-      </table>
-    @endif
-    </div>
-  </div>
-
   <div class="cs-card">
     <div class="cs-card-title" id="auditoria">Últimas acciones de auditoría</div>
     @if($auditLogs->isEmpty())
@@ -117,58 +88,3 @@
 
 </div>
 @endsection
-
-@push('scripts')
-<script>
-(function(){
-  const content = document.getElementById('csNotificationsContent');
-  const markBtn = document.getElementById('csMarkReadAll');
-  if (!content) return;
-
-  function renderNotifications(items) {
-    if (!items.length) {
-      content.innerHTML = '<div class="cs-empty">No tienes notificaciones nuevas.</div>';
-      if (markBtn) markBtn.style.display = 'none';
-      return;
-    }
-
-    let rows = items.map(n => '<tr><td>' + (n.message || 'Nueva notificación') + '</td><td>' + (n.formatted_date || '—') + '</td></tr>').join('');
-    content.innerHTML = '<table class="cs-table"><thead><tr><th>Mensaje</th><th>Fecha</th></tr></thead><tbody>' + rows + '</tbody></table>';
-    if (markBtn) markBtn.style.display = '';
-  }
-
-  async function loadNotifications() {
-    try {
-      const res = await fetch('/api/customer-success/notifications', {
-        headers: { 'Accept': 'application/json' }
-      });
-      if (!res.ok) return;
-      const items = await res.json();
-      renderNotifications(items);
-    } catch (err) {
-      // Silencioso: no interrumpir la experiencia si falla el polling
-    }
-  }
-
-  if (markBtn) {
-    markBtn.addEventListener('click', async function() {
-      try {
-        const res = await fetch('/api/customer-success/notifications/read-all', {
-          method: 'PATCH',
-          headers: {
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
-          },
-        });
-        if (res.ok) {
-          renderNotifications([]);
-        }
-      } catch (err) {}
-    });
-  }
-
-  // Polling cada 30 segundos
-  setInterval(loadNotifications, 30000);
-})();
-</script>
-@endpush

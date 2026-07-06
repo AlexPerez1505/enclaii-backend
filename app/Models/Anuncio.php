@@ -15,6 +15,8 @@ class Anuncio extends Model
         'titulo',
         'contenido',
         'tipo',
+        'publico_objetivo',
+        'canales',
         'fecha_publicacion',
         'activo',
     ];
@@ -24,6 +26,7 @@ class Anuncio extends Model
         return [
             'fecha_publicacion' => 'datetime',
             'activo' => 'boolean',
+            'canales' => 'array',
         ];
     }
 

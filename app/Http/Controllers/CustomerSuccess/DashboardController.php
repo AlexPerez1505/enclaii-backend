@@ -5,7 +5,6 @@ namespace App\Http\Controllers\CustomerSuccess;
 use App\Http\Controllers\Controller;
 use App\Models\Anuncio;
 use App\Models\CustomerSuccessAuditLog;
-use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -24,16 +23,8 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        $notifications = Notification::query()
-            ->where('user_id', $request->user()->id)
-            ->where('tipo', 'anuncio')
-            ->where('read', false)
-            ->orderByDesc('created_at')
-            ->limit(10)
-            ->get();
-
         return view('customer-success.dashboard.index', compact(
-            'anunciosCount', 'usuariosCs', 'auditLogs', 'notifications'
+            'anunciosCount', 'usuariosCs', 'auditLogs'
         ));
     }
 }

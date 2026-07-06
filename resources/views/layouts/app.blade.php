@@ -2411,14 +2411,15 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
 
   function cfgFor(e) {
     return {
-      nueva:              { title: 'Nueva cita agendada',     type: 'blue',  icon: 'plus' },
-      pendiente:          { title: 'Cita en espera',          type: 'amber', icon: 'bell' },
-      cancelada:          { title: 'Cita cancelada',          type: 'red',   icon: 'x' },
-      completada:         { title: 'Cita completada',         type: 'green', icon: 'check' },
-      eliminada:          { title: 'Cita eliminada',          type: 'red',   icon: 'trash' },
-      estudio_completado: { title: 'Estudio completado',      type: 'green', icon: 'check' },
-      estado:             { title: 'Estado de cita cambiado', type: 'blue',  icon: 'bell' },
-    }[e.tipo] ?? { title: 'Notificación de cita', type: 'blue', icon: 'bell' };
+      anuncio:            { title: e.titulo || 'Nuevo anuncio', type: 'blue',  icon: 'bell' },
+      nueva:              { title: 'Nueva cita agendada',      type: 'blue',  icon: 'plus' },
+      pendiente:          { title: 'Cita en espera',           type: 'amber', icon: 'bell' },
+      cancelada:          { title: 'Cita cancelada',           type: 'red',   icon: 'x' },
+      completada:         { title: 'Cita completada',          type: 'green', icon: 'check' },
+      eliminada:          { title: 'Cita eliminada',           type: 'red',   icon: 'trash' },
+      estudio_completado: { title: 'Estudio completado',       type: 'green', icon: 'check' },
+      estado:             { title: 'Estado de cita cambiado',  type: 'blue',  icon: 'bell' },
+    }[e.tipo] ?? { title: 'Notificación', type: 'blue', icon: 'bell' };
   }
 
   function timeFrom(dateStr) {
@@ -2498,10 +2499,13 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
     items.forEach(item => {
       if (pendingIds.has(item.id)) return;
       const cfg = cfgFor(item);
+      const body = item.tipo === 'anuncio'
+        ? (item.message || item.titulo || 'Nuevo anuncio')
+        : `${item.paciente ?? '—'} — ${item.fecha ?? '—'} ${item.hora ?? ''}`;
       addNotif({
         id: item.id,
         title: cfg.title,
-        body: `${item.paciente} — ${item.fecha} ${item.hora}`,
+        body: body,
         type: cfg.type,
         icon: cfg.icon,
         read: item.read,
@@ -2514,17 +2518,19 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
 
   @auth
   const _notifUserId = @json(auth()->id());
-  const _notifEnabled = window.enclaiiSettings?.notif_reminders_screen ?? true;
+  const _remindersEnabled = window.enclaiiSettings?.notif_reminders_screen ?? true;
 
   loadNotifications();
 
   function _initEchoNotif() {
     if (!window.Echo) { setTimeout(_initEchoNotif, 200); return; }
-    if (!_notifUserId || !_notifEnabled) return;
+    if (!_notifUserId) return;
+
     const _notifChannel = window.Echo.private(`App.Models.User.${_notifUserId}`);
 
     _notifChannel
       .listen('.cita.estado-cambio', (e) => {
+        if (!_remindersEnabled) return;
         console.log('[NOTIF] Evento recibido:', e);
         const cfg = cfgFor(e);
         addNotif({
@@ -2542,6 +2548,17 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
           id: e.id,
           title: cfg.title,
           body: `${e.paciente} — ${e.estudio_tipo ?? e.tipo} (${e.fecha} ${e.hora})`,
+          type: cfg.type,
+          icon: cfg.icon,
+        });
+      })
+      .listen('.anuncio.publicado', (e) => {
+        console.log('[NOTIF] Anuncio publicado:', e);
+        const cfg = cfgFor(e);
+        addNotif({
+          id: e.id,
+          title: cfg.title,
+          body: e.message || e.titulo || 'Nuevo anuncio',
           type: cfg.type,
           icon: cfg.icon,
         });

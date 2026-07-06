@@ -12,9 +12,13 @@ use App\Http\Controllers\NuevoEstudioController;
 use App\Models\Paciente;
 use App\Models\Reporte;
 use App\Http\Controllers\AiAssistantController;
+use App\Http\Controllers\Api\CustomerSuccess\AnuncioController;
+use App\Http\Controllers\Api\CustomerSuccess\NotificationController as CsNotificationController;
+use App\Http\Controllers\Api\CustomerSuccess\UserRoleController;
 use App\Http\Controllers\CustomerSuccess\AnuncioDashboardController;
 use App\Http\Controllers\CustomerSuccess\DashboardController;
 use App\Http\Controllers\CustomerSuccess\RolesController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\StripeController;
 use App\Http\Controllers\StorageServeController;
 
@@ -879,4 +883,30 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/ia/chat', [AiAssistantController::class, 'chat'])->name('ia.chat');
     Route::get('/ia/history', [AiAssistantController::class, 'history'])->name('ia.history');
     Route::post('/ia/reset', [AiAssistantController::class, 'reset'])->name('ia.reset');
+});
+
+// Customer Success panel
+Route::middleware(['auth', 'customer.success'])->prefix('customer-success')->name('customer-success.')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/anuncios', [AnuncioDashboardController::class, 'index'])->name('anuncios');
+    Route::get('/gestion-usuarios', [RolesController::class, 'index'])->name('gestion-usuarios');
+});
+
+// Customer Success API (web session + CSRF, usada por el panel TEC)
+Route::middleware(['auth', 'customer.success'])->prefix('api/customer-success')->name('api.customer-success.')->group(function () {
+    Route::apiResource('anuncios', AnuncioController::class)
+        ->names([
+            'index' => 'anuncios.index',
+            'store' => 'anuncios.store',
+            'show' => 'anuncios.show',
+            'update' => 'anuncios.update',
+            'destroy' => 'anuncios.destroy',
+        ]);
+
+    Route::get('users', [UserRoleController::class, 'index'])->name('users.index');
+    Route::post('users/{user}/assign-role', [UserRoleController::class, 'assign'])->name('users.assign-role');
+    Route::post('users/{user}/remove-role', [UserRoleController::class, 'remove'])->name('users.remove-role');
+
+    Route::get('notifications', [CsNotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('notifications/read-all', [CsNotificationController::class, 'markAllRead'])->name('notifications.read-all');
 });
