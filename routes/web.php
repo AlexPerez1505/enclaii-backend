@@ -42,6 +42,7 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+    Route::delete('/paciente-documentos/{pacienteDocumento}', [PacienteDocumentoController::class, 'destroy'])->name('paciente-documentos.destroy');
 
     // Ruta de configuracion: si no tiene plan, muestra vista plan-only
     Route::get('/configuracion', function () {
@@ -756,11 +757,11 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
     // Route::get('/finanzas', function () {
     //     return view('finanzas.index');
     // })->name('finanzas');
+
 });
 
 
 Route::resource('pacientes', PacienteController::class);
-Route::delete('/paciente-documentos/{pacienteDocumento}', [PacienteDocumentoController::class, 'destroy'])->name('paciente-documentos.destroy');
 
 Route::get('/agenda', [AgendaController::class, 'index'])->name('agenda');
 Route::get('/agendar', [AgendaController::class, 'create'])->name('agendar');

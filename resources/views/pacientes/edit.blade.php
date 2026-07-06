@@ -1131,7 +1131,7 @@ textarea{
         @endphp
 
         @if($docsGuardados->count() > 0)
-        <div style="margin-top:20px;" id="docsGuardadosSection">
+        <div style="margin-top:20px;">
           <p style="font-size:12px;font-weight:700;color:var(--txt-soft);margin:0 0 12px;text-transform:uppercase;letter-spacing:.5px;">Archivos cargados ({{ $docsGuardados->count() }})</p>
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;">
             @foreach($docsGuardados as $doc)
@@ -1203,6 +1203,7 @@ textarea{
           </div>
         </div>
         @endif
+
 
         {{-- Modal visor de archivos --}}
         <div id="visorArchivoOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);align-items:center;justify-content:center;">
@@ -2018,22 +2019,32 @@ document.addEventListener('DOMContentLoaded', function() {
     return card;
   }
 
-  document.getElementById('estudiosArchivos')?.addEventListener('change', function(){
-    const wrapper = document.getElementById('estudiosArchivosList');
-    const grid = document.getElementById('estudiosArchivosGrid');
-    grid.innerHTML = '';
-    if (this.files.length === 0) { wrapper.style.display='none'; return; }
-    wrapper.style.display = 'block';
-    Array.from(this.files).forEach(function(f){
-      const ext = f.name.split('.').pop().toLowerCase();
-      const isImg = ['jpg','jpeg','png','webp','gif'].includes(ext);
-      const isPdf = ext === 'pdf';
-      const isVideo = ['mp4','mov','avi','mkv','webm'].includes(ext);
-      const url = URL.createObjectURL(f);
-      const tipo = isImg ? 'imagen' : isPdf ? 'pdf' : isVideo ? 'video' : 'otro';
-      grid.appendChild(makeFileCard(f.name, url, tipo, f.size));
+  (function(){
+    const inputEl = document.getElementById('estudiosArchivos');
+    if (!inputEl) return;
+    let acumulados = new DataTransfer();
+    inputEl.addEventListener('change', function(){
+      const wrapper = document.getElementById('estudiosArchivosList');
+      const grid = document.getElementById('estudiosArchivosGrid');
+      Array.from(this.files).forEach(function(f){
+        const yaExiste = Array.from(acumulados.files).some(function(a){ return a.name === f.name && a.size === f.size; });
+        if (!yaExiste) acumulados.items.add(f);
+      });
+      inputEl.files = acumulados.files;
+      grid.innerHTML = '';
+      if (acumulados.files.length === 0) { wrapper.style.display='none'; return; }
+      wrapper.style.display = 'block';
+      Array.from(acumulados.files).forEach(function(f){
+        const ext = f.name.split('.').pop().toLowerCase();
+        const isImg = ['jpg','jpeg','png','webp','gif'].includes(ext);
+        const isPdf = ext === 'pdf';
+        const isVideo = ['mp4','mov','avi','mkv','webm'].includes(ext);
+        const url = URL.createObjectURL(f);
+        const tipo = isImg?'imagen':isPdf?'pdf':isVideo?'video':'otro';
+        grid.appendChild(makeFileCard(f.name, url, tipo, f.size));
+      });
     });
-  });
+  })();
 
   // ===== VISOR DE ARCHIVOS =====
   window.abrirVisorArchivo = function(url, nombre, tipo) {
@@ -2096,7 +2107,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!confirm('¿Eliminar este archivo? Esta acción no se puede deshacer.')) return;
     fetch('/paciente-documentos/' + id, {
       method: 'DELETE',
-      headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' }
+      headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '', 'Accept': 'application/json' }
     }).then(function(r){ return r.json(); }).then(function(d){
       if (d.success) {
         const card = btn.closest('.doc-card');
