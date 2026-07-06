@@ -393,8 +393,10 @@ html[data-theme="light"] .side-help { background: var(--bg); border:none; }
 .notif-ico.amber{background:rgba(245,158,45,.15);color:var(--orange)}
 .notif-ico.red{background:rgba(239,68,68,.15);color:var(--red)}
 .notif-ico.green{background:rgba(16,185,129,.15);color:var(--green)}
+.notif-ico.gray{background:rgba(148,163,184,.15);color:#94a3b8}
 .notif-ico svg{width:16px;height:16px}
-.notif-item.read{opacity:.55}
+.notif-item.read{opacity:.75}
+.notif-item:not(.read){border-left:2px solid var(--blue);padding-left:10px}
 .notif-body{flex:1;min-width:0}
 .notif-body strong{display:block;font-size:13px;font-weight:700;color:var(--txt);line-height:1.3}
 .notif-body span{display:block;font-size:11.5px;color:var(--txt-soft);margin-top:2px;line-height:1.4}
@@ -1020,6 +1022,63 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
 .db-editor-btn.reset{background:transparent;border:1px solid var(--stroke-strong);color:var(--txt-soft)}
 .db-editor-btn.reset:hover{border-color:var(--txt);color:var(--txt)}
 
+/* Modal de anuncio */
+.anuncio-ov{
+  position:fixed;inset:0;z-index:9990;
+  background:rgba(0,0,0,.65);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;padding:16px;
+  opacity:0;visibility:hidden;transition:opacity 220ms ease,visibility 220ms ease;
+}
+.anuncio-ov.open{opacity:1;visibility:visible}
+.anuncio-modal{
+  position:relative;width:100%;max-width:620px;max-height:85vh;overflow-y:auto;
+  border-radius:16px;padding:32px 28px 28px;
+  transform:scale(.95) translateY(8px);
+  transition:transform 220ms var(--ease-out,cubic-bezier(.16,1,.3,1));
+}
+.anuncio-ov.open .anuncio-modal{transform:scale(1) translateY(0)}
+.anuncio-close{
+  position:absolute;top:14px;right:14px;
+  width:30px;height:30px;border-radius:8px;border:none;cursor:pointer;
+  display:grid;place-items:center;background:rgba(255,255,255,.1);
+  color:inherit;transition:background 150ms;
+}
+.anuncio-close:hover{background:rgba(255,255,255,.2)}
+.anuncio-ico-wrap{font-size:32px;margin-bottom:12px;line-height:1}
+.anuncio-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  border-radius:20px;font-size:11px;font-weight:700;
+  padding:3px 12px;margin-bottom:14px;
+}
+.anuncio-title{font-size:20px;font-weight:800;margin:0 0 8px;padding-bottom:10px}
+.anuncio-meta{font-size:12px;font-weight:500;margin-bottom:16px}
+.anuncio-body{font-size:13px;line-height:1.75}
+.anuncio-body ul,.anuncio-body ol{padding-left:20px}
+.anuncio-body p{margin:8px 0}
+/* temas */
+.anuncio-modal.t-blue{background:linear-gradient(135deg,#071025,#030712);border:1px solid #3b82f6;color:#e2e8f0}
+.anuncio-modal.t-blue .anuncio-title{color:#f8fafc;border-bottom:2px solid #3b82f6}
+.anuncio-modal.t-blue .anuncio-meta{color:#60a5fa}
+.anuncio-modal.t-blue .anuncio-body{color:#dbeafe}
+.anuncio-modal.t-blue .anuncio-badge{background:rgba(59,130,246,.2);color:#93c5fd;border:1px solid rgba(59,130,246,.4)}
+.anuncio-modal.t-green{background:linear-gradient(135deg,#022c22,#022c22);border:1px solid #10b981;color:#d1fae5}
+.anuncio-modal.t-green .anuncio-title{color:#ecfdf5;border-bottom:2px solid #10b981}
+.anuncio-modal.t-green .anuncio-meta{color:#34d399}
+.anuncio-modal.t-green .anuncio-body{color:#a7f3d0}
+.anuncio-modal.t-green .anuncio-badge{background:rgba(16,185,129,.2);color:#6ee7b7;border:1px solid rgba(16,185,129,.4)}
+.anuncio-modal.t-amber{background:linear-gradient(135deg,#281b02,#1a1200);border:1px solid #f59e0b;color:#fef3c7}
+.anuncio-modal.t-amber .anuncio-title{color:#fffbeb;border-bottom:2px solid #f59e0b}
+.anuncio-modal.t-amber .anuncio-meta{color:#fbbf24}
+.anuncio-modal.t-amber .anuncio-body{color:#fde68a}
+.anuncio-modal.t-amber .anuncio-badge{background:rgba(245,158,11,.2);color:#fcd34d;border:1px solid rgba(245,158,11,.4)}
+.anuncio-modal.t-gray{background:#fff;border:1px solid #1f2937;color:#1f2937}
+.anuncio-modal.t-gray .anuncio-close{background:rgba(0,0,0,.07);color:#374151}
+.anuncio-modal.t-gray .anuncio-close:hover{background:rgba(0,0,0,.15)}
+.anuncio-modal.t-gray .anuncio-title{color:#030712;border-bottom:2px solid #030712}
+.anuncio-modal.t-gray .anuncio-meta{color:#374151}
+.anuncio-modal.t-gray .anuncio-body{color:#1f2937}
+.anuncio-modal.t-gray .anuncio-badge{background:#f3f4f6;color:#111827;border:1px solid #374151}
+
 /* Modal de alerta genérico */
 .app-alert-overlay{
   position:fixed;
@@ -1193,10 +1252,14 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
       </div>
       <div class="head-right">
         @yield('header-extra')
+        @auth
+        @unless(auth()->user()->hasRole('Customer Success'))
         <button class="btn-ai" id="openAiAssistantBtn" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/></svg>
           <span>Asistente IA</span>
         </button>
+        @endunless
+        @endauth
         <button class="bell" id="themeToggle" aria-label="Cambiar tema">
           <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
           <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
@@ -2308,6 +2371,20 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
   })();
 </script>
 
+{{-- Modal de anuncio --}}
+<div class="anuncio-ov" id="anuncioModalOv" onclick="if(event.target===this)closeAnuncioModal()">
+  <div class="anuncio-modal" id="anuncioModal" role="dialog" aria-modal="true">
+    <button class="anuncio-close" id="anuncioClose" type="button" onclick="closeAnuncioModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="anuncio-ico-wrap" id="anuncioIcoWrap"></div>
+    <span class="anuncio-badge" id="anuncioBadge"></span>
+    <h2 class="anuncio-title" id="anuncioTitle"></h2>
+    <div class="anuncio-meta" id="anuncioMeta"></div>
+    <div class="anuncio-body" id="anuncioBody"></div>
+  </div>
+</div>
+
 {{-- Modal de alerta genérico --}}
 <div class="app-alert-overlay" id="appAlertOverlay" onclick="if(event.target===this) hideAppAlert();">
   <div class="app-alert-modal" role="alertdialog" aria-modal="true" aria-labelledby="appAlertTitle" aria-describedby="appAlertMessage">
@@ -2402,16 +2479,33 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
   }
 
   const NOTIF_ICONS = {
-    bell:  '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
-    plus:  '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
-    check: '<polyline points="20 6 9 17 4 12"/>',
-    x:     '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
-    trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>',
+    bell:      '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
+    plus:      '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+    check:     '<polyline points="20 6 9 17 4 12"/>',
+    x:         '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+    trash:     '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>',
+    megaphone: '<path d="M3 11l19-9-9 19-2-8-8-2z"/>',
+    rocket:    '<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>',
+    wrench:    '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+    document:  '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>',
+  };
+
+  const ANUNCIO_CATEGORIA_CFG = {
+    anuncios_internos: { title: 'Comunicado interno',         type: 'blue',  icon: 'megaphone' },
+    mejoras:           { title: 'Mejoras en Enclaii',         type: 'green', icon: 'rocket'    },
+    mantenimiento:     { title: 'Aviso de mantenimiento',     type: 'amber', icon: 'wrench'    },
+    politicas:         { title: 'Actualización de políticas', type: 'gray',  icon: 'document'  },
   };
 
   function cfgFor(e) {
+    if (e.tipo === 'anuncio') {
+      const cat = e.categoria ?? e.category ?? null;
+      const catCfg = ANUNCIO_CATEGORIA_CFG[cat] ?? null;
+      return catCfg
+        ? { title: catCfg.title, type: catCfg.type, icon: catCfg.icon }
+        : { title: e.titulo || 'Nuevo anuncio', type: 'blue', icon: 'megaphone' };
+    }
     return {
-      anuncio:            { title: e.titulo || 'Nuevo anuncio', type: 'blue',  icon: 'bell' },
       nueva:              { title: 'Nueva cita agendada',      type: 'blue',  icon: 'plus' },
       pendiente:          { title: 'Cita en espera',           type: 'amber', icon: 'bell' },
       cancelada:          { title: 'Cita cancelada',           type: 'red',   icon: 'x' },
@@ -2428,13 +2522,66 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
     return isNaN(d) ? '' : d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
   }
 
-  function addNotif({ title, body, type = 'blue', icon = 'bell', id = null, read = false, time = null, prepend = true }){
+  const CATEGORIA_LABELS = {
+    anuncios_internos: 'Comunicado interno',
+    mejoras:           'Mejoras en Enclaii',
+    mantenimiento:     'Aviso de mantenimiento',
+    politicas:         'Actualización de políticas',
+  };
+  const CATEGORIA_ICONS = {
+    anuncios_internos: '📢', mejoras: '🚀', mantenimiento: '🔧', politicas: '📄',
+  };
+  const CATEGORIA_THEME = {
+    anuncios_internos: 't-blue', mejoras: 't-green', mantenimiento: 't-amber', politicas: 't-gray',
+  };
+
+  function _renderAnuncioModal(data) {
+    const modal = document.getElementById('anuncioModal');
+    const cat   = data.categoria ?? null;
+    modal.className = 'anuncio-modal ' + (CATEGORIA_THEME[cat] ?? 't-blue');
+    document.getElementById('anuncioIcoWrap').textContent = CATEGORIA_ICONS[cat] ?? '📢';
+    document.getElementById('anuncioBadge').textContent   = CATEGORIA_LABELS[cat] ?? 'Anuncio';
+    document.getElementById('anuncioTitle').textContent   = data.titulo || 'Sin título';
+    document.getElementById('anuncioMeta').textContent    = (CATEGORIA_LABELS[cat] ?? '') + (data.publico_objetivo ? ' • ' + data.publico_objetivo : '');
+    document.getElementById('anuncioBody').innerHTML      = data.contenido || '';
+  }
+
+  function openAnuncioModal(data) {
+    const ov = document.getElementById('anuncioModalOv');
+    ov.classList.add('open');
+    document.addEventListener('keydown', _anuncioEsc);
+
+    if (data.contenido) {
+      _renderAnuncioModal(data);
+      return;
+    }
+
+    const anuncioId = data.anuncio_id ?? data.id ?? null;
+    document.getElementById('anuncioBody').innerHTML = '<em style="opacity:.5">Cargando...</em>';
+    _renderAnuncioModal(data);
+
+    if (!anuncioId) return;
+    fetch('/anuncios/' + anuncioId, { headers: { 'Accept': 'application/json' } })
+      .then(r => r.ok ? r.json() : null)
+      .then(full => { if (full) _renderAnuncioModal(full); })
+      .catch(() => {});
+  }
+  function closeAnuncioModal() {
+    document.getElementById('anuncioModalOv')?.classList.remove('open');
+    document.removeEventListener('keydown', _anuncioEsc);
+  }
+  function _anuncioEsc(e) { if (e.key === 'Escape') closeAnuncioModal(); }
+  window.closeAnuncioModal = closeAnuncioModal;
+
+  function addNotif({ title, body, type = 'blue', icon = 'bell', id = null, read = false, time = null, prepend = true, anuncioData = null }){
     if (empty) empty.style.display = 'none';
 
     const svgPath = NOTIF_ICONS[icon] ?? NOTIF_ICONS.bell;
     const item = document.createElement('div');
     item.className = 'notif-item' + (read ? ' read' : '');
     if (id) item.dataset.id = id;
+    if (anuncioData) item.dataset.anuncio = JSON.stringify(anuncioData);
+    item.style.cursor = anuncioData ? 'pointer' : '';
     item.innerHTML = `
       <div class="notif-ico ${type}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${svgPath}</svg>
@@ -2444,6 +2591,13 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
         <span>${body}</span>
         <time>${time || timeFrom(new Date())}</time>
       </div>`;
+
+    if (anuncioData) {
+      item.addEventListener('click', () => {
+        closePanel();
+        openAnuncioModal(anuncioData);
+      });
+    }
 
     if (prepend) list.prepend(item);
     else list.appendChild(item);
@@ -2511,6 +2665,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
         read: item.read,
         time: timeFrom(item.created_at),
         prepend: false,
+        anuncioData: item.tipo === 'anuncio' ? item : null,
       });
       if (!item.read) pendingIds.add(item.id);
     });
@@ -2561,6 +2716,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
           body: e.message || e.titulo || 'Nuevo anuncio',
           type: cfg.type,
           icon: cfg.icon,
+          anuncioData: { tipo: 'anuncio', ...e },
         });
       })
       .error((err) => console.error('[NOTIF] Error de canal:', err));

@@ -17,10 +17,14 @@ class EnsureCustomerSuccess
     {
         $user = $request->user();
 
-        if (! $user || ! $user->hasRole('Customer Success')) {
-            return response()->json([
-                'message' => 'Acceso restringido. Se requiere el rol de Customer Success.',
-            ], 403);
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        if (! $user->hasRole('Customer Success')) {
+            return $request->expectsJson()
+                ? response()->json(['message' => 'Acceso restringido.'], 403)
+                : redirect()->route('dashboard');
         }
 
         return $next($request);

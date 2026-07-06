@@ -53,10 +53,36 @@ class AnuncioController extends Controller
         $validated['contenido'] = $this->purifier->clean($validated['contenido']);
         $validated['user_id'] = $request->user()->id;
         $validated['canales'] = $validated['canales'] ?? ['web'];
+        $validated['activo'] = $this->shouldPublishImmediately($validated['fecha_publicacion'] ?? null);
 
         $anuncio = Anuncio::create($validated);
 
-        $targetUsers = $this->targetUsersFor($anuncio, $request->user());
+        if ($anuncio->activo) {
+            $this->publishNow($anuncio, $request->user());
+        }
+
+        return response()->json($anuncio, 201);
+    }
+
+    /**
+     * Determina si el anuncio debe publicarse inmediatamente.
+     */
+    private function shouldPublishImmediately(?string $fechaPublicacion): bool
+    {
+        if (empty($fechaPublicacion)) {
+            return true;
+        }
+
+        return now()->gte($fechaPublicacion);
+    }
+
+    /**
+     * Publica un anuncio inmediatamente: notificaciones + broadcast.
+     */
+    public function publishNow(Anuncio $anuncio, ?User $creator = null): void
+    {
+        $creator ??= $anuncio->user;
+        $targetUsers = $this->targetUsersFor($anuncio, $creator);
 
         if (in_array('web', $anuncio->canales ?? [], true)) {
             $this->dispatchWebNotifications($anuncio, $targetUsers);
@@ -67,8 +93,6 @@ class AnuncioController extends Controller
         }
 
         broadcast(new AnuncioPublicadoEvent($anuncio, $targetUsers->pluck('id')->all()));
-
-        return response()->json($anuncio, 201);
     }
 
     /**

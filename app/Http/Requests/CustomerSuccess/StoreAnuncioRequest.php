@@ -48,7 +48,6 @@ class StoreAnuncioRequest extends FormRequest
             'canales' => ['nullable', 'array'],
             'canales.*' => ['string', 'in:' . implode(',', self::CANALES)],
             'fecha_publicacion' => ['nullable', 'date'],
-            'activo' => ['boolean'],
         ];
     }
 
@@ -59,17 +58,5 @@ class StoreAnuncioRequest extends FormRequest
             'publico_objetivo.in' => 'El público objetivo no es válido.',
             'canales.*.in' => 'Uno de los canales seleccionados no es válido.',
         ];
-    }
-
-    /**
-     * Prepare the data for validation.
-     */
-    protected function prepareForValidation(): void
-    {
-        if ($this->has('activo')) {
-            $this->merge([
-                'activo' => filter_var($this->input('activo'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE),
-            ]);
-        }
     }
 }

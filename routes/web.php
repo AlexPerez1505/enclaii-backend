@@ -110,6 +110,19 @@ Route::middleware('auth')->group(function () {
     Route::get('/stripe/cancel', [StripeController::class, 'cancel'])
         ->name('stripe.cancel');
 
+    // ===== Anuncios (lectura pública autenticada) =====
+    Route::get('/anuncios/{anuncio}', fn (\App\Models\Anuncio $anuncio) =>
+        response()->json([
+            'id'              => $anuncio->id,
+            'tipo'            => 'anuncio',
+            'titulo'          => $anuncio->titulo,
+            'contenido'       => $anuncio->contenido,
+            'categoria'       => $anuncio->tipo,
+            'publico_objetivo' => $anuncio->publico_objetivo,
+            'created_at'      => $anuncio->created_at?->toDateTimeString(),
+        ])
+    )->name('anuncios.show-public');
+
     // ===== Notificaciones =====
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::patch('/notifications/read', [NotificationController::class, 'markRead'])->name('notifications.read');
