@@ -17,6 +17,7 @@ class PatientRegistrationLink extends Model
         'token',
         'token_hash',
         'status',
+        'patient_message',
         'expires_at',
         'submitted_at',
         'revoked_at',

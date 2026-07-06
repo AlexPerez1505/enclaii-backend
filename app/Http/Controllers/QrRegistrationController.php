@@ -17,6 +17,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -29,11 +30,12 @@ class QrRegistrationController extends Controller
 
     public function index(Request $request): View
     {
+        $qrSettings = $request->user()->resolvedSettings();
         $links = PatientRegistrationLink::query()
             ->with(['creator', 'preregistration'])
             ->whereNull('archived_at')
             ->latest()
-            ->limit(12)
+            ->limit(50)
             ->get();
 
         $preregistrations = PatientPreregistration::query()
@@ -42,29 +44,36 @@ class QrRegistrationController extends Controller
             ->limit(30)
             ->get();
 
-        $possibleDuplicates = $preregistrations
-            ->filter(fn (PatientPreregistration $item) => $item->status === 'pending')
-            ->mapWithKeys(function (PatientPreregistration $item): array {
-                $query = Paciente::query()->where(function ($filter) use ($item): void {
-                    if ($item->email) {
-                        $filter->orWhereRaw('LOWER(email) = ?', [Str::lower($item->email)]);
-                    }
-                    if ($item->telefono) {
-                        $filter->orWhere('telefono', $item->telefono);
-                    }
-                });
+        $possibleDuplicates = ($qrSettings['qr_duplicate_check'] ?? true)
+            ? $preregistrations
+                ->filter(fn (PatientPreregistration $item) => $item->status === 'pending')
+                ->mapWithKeys(fn (PatientPreregistration $item): array => [
+                    $item->id => $this->hasPossibleDuplicate($item),
+                ])
+            : collect();
 
-                return [$item->id => $query->exists()];
-            });
+        $selectedLinkId = (int) ($request->query('qr') ?: session('new_qr_link_id'));
+        $currentLink = $links->firstWhere('id', $selectedLinkId)
+            ?? $links->first(fn (PatientRegistrationLink $link) => $link->isAvailable())
+            ?? $links->first();
 
-        return view('qr.index', compact('links', 'preregistrations', 'possibleDuplicates'));
+        return view('qr.index', compact('links', 'currentLink', 'preregistrations', 'possibleDuplicates', 'qrSettings'));
     }
 
     public function store(Request $request): RedirectResponse
     {
+        $qrSettings = $request->user()->resolvedSettings();
         $validated = $request->validate([
-            'expires_in_hours' => ['required', 'integer', 'in:24,48,168'],
+            'expires_in_hours' => ['nullable', 'integer', 'in:24,48,168'],
+            'patient_message' => ['nullable', 'string', 'max:150'],
         ]);
+        $expiresInHours = (int) ($validated['expires_in_hours']
+            ?? $qrSettings['qr_default_expiration_hours']
+            ?? 48);
+        $patientMessage = array_key_exists('patient_message', $validated)
+            ? $validated['patient_message']
+            : ($qrSettings['qr_default_patient_message'] ?? null);
+
         $token = Str::random(64);
         $link = PatientRegistrationLink::create([
             'clinica_id' => $request->user()->clinica_id,
@@ -72,7 +81,8 @@ class QrRegistrationController extends Controller
             'token' => $token,
             'token_hash' => hash('sha256', $token),
             'status' => 'active',
-            'expires_at' => now()->addHours((int) $validated['expires_in_hours']),
+            'patient_message' => $patientMessage ?: null,
+            'expires_at' => now()->addHours($expiresInHours),
         ]);
 
         $this->activity->record(
@@ -98,14 +108,14 @@ class QrRegistrationController extends Controller
         $qrCode = new QrCode(
             data: $url,
             encoding: new Encoding('UTF-8'),
-            errorCorrectionLevel: ErrorCorrectionLevel::Medium,
+            errorCorrectionLevel: ErrorCorrectionLevel::High,
             size: 360,
             margin: 18,
             roundBlockSizeMode: RoundBlockSizeMode::Margin,
             foregroundColor: new Color(6, 16, 50),
             backgroundColor: new Color(255, 255, 255),
         );
-        $result = (new SvgWriter())->write($qrCode);
+        $result = (new SvgWriter)->write($qrCode);
 
         return response($result->getString(), 200, [
             'Content-Type' => $result->getMimeType(),
@@ -171,6 +181,15 @@ class QrRegistrationController extends Controller
                 ->firstOrFail();
 
             abort_unless($record->status === 'pending', 422, 'Este pre-registro ya fue revisado.');
+            $qrSettings = $request->user()->resolvedSettings();
+
+            if (
+                ($qrSettings['qr_duplicate_check'] ?? true)
+                && ($qrSettings['qr_duplicate_action'] ?? 'warn') === 'block_acceptance'
+                && $this->hasPossibleDuplicate($record)
+            ) {
+                abort(422, 'Existe un paciente con el mismo teléfono o correo. Revisa el expediente existente antes de aceptar este pre-registro.');
+            }
 
             $patient = Paciente::create([
                 'clinica_id' => $request->user()->clinica_id,
@@ -192,6 +211,7 @@ class QrRegistrationController extends Controller
                 'enfermedades' => $record->enfermedades,
                 'medicamentos_actuales' => $record->medicamentos_actuales,
                 'antecedentes_medicos' => $record->antecedentes_medicos,
+                'foto' => $record->foto,
             ]);
 
             $record->update([
@@ -218,13 +238,30 @@ class QrRegistrationController extends Controller
         Request $request,
         PatientPreregistration $preregistration,
     ): RedirectResponse {
-        abort_unless($preregistration->status === 'pending', 422, 'Este pre-registro ya fue revisado.');
+        $photoToDelete = DB::transaction(function () use ($request, $preregistration): ?string {
+            $record = PatientPreregistration::query()
+                ->whereKey($preregistration->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $preregistration->update([
-            'status' => 'rejected',
-            'reviewed_by' => $request->user()->id,
-            'reviewed_at' => now(),
-        ]);
+            abort_unless($record->status === 'pending', 422, 'Este pre-registro ya fue revisado.');
+
+            $photo = $record->foto;
+            $record->update([
+                'status' => 'rejected',
+                'reviewed_by' => $request->user()->id,
+                'reviewed_at' => now(),
+                'foto' => null,
+            ]);
+
+            return $photo;
+        });
+
+        if ($photoToDelete) {
+            Storage::disk('public')->delete($photoToDelete);
+        }
+
+        $preregistration->refresh();
         $this->activity->record(
             'patient_preregistration_rejected',
             'patients',
@@ -234,5 +271,19 @@ class QrRegistrationController extends Controller
         );
 
         return back()->with('success', 'Pre-registro rechazado.');
+    }
+
+    private function hasPossibleDuplicate(PatientPreregistration $preregistration): bool
+    {
+        return Paciente::query()
+            ->where(function ($filter) use ($preregistration): void {
+                if ($preregistration->email) {
+                    $filter->orWhereRaw('LOWER(email) = ?', [Str::lower($preregistration->email)]);
+                }
+                if ($preregistration->telefono) {
+                    $filter->orWhere('telefono', $preregistration->telefono);
+                }
+            })
+            ->exists();
     }
 }

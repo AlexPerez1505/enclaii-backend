@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -273,6 +273,17 @@ class User extends Authenticatable
             'notif_new_studies' => true,
             'notif_reports' => true,
             'notif_reminders' => false,
+            'qr_default_expiration_hours' => '48',
+            'qr_default_patient_message' => 'Por favor completa tus datos con la mayor información posible. Gracias.',
+            'qr_whatsapp_template' => 'Hola, te comparto tu enlace de pre-registro de ENCLAII: {enlace}',
+            'qr_patient_photo_enabled' => true,
+            'qr_patient_photo_required' => false,
+            'qr_allow_camera_photo' => true,
+            'qr_allow_gallery_photo' => true,
+            'qr_required_fields' => [],
+            'qr_consent_text' => 'Autorizo el envío de estos datos y, si la adjunto, mi fotografía a {clinica} para preparar mi atención y crear mi expediente después de que el personal médico revise la información.',
+            'qr_duplicate_check' => true,
+            'qr_duplicate_action' => 'warn',
             'capture_auto_capture' => true,
             'capture_auto_save' => true,
             'capture_auto_interval' => 30,

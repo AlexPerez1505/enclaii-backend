@@ -33,6 +33,7 @@ class PatientPreregistration extends Model
         'medicamentos_actuales',
         'antecedentes_medicos',
         'observaciones',
+        'foto',
         'consent_accepted_at',
         'ip_address',
         'user_agent',
