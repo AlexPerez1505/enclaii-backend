@@ -9,6 +9,8 @@ class CapturePairingCode extends Model
     protected $fillable = [
         'tenant_id',
         'user_id',
+        'paciente_id',
+        'estudio_id',
         'study_id',
         'code_hash',
         'expires_at',

@@ -8,6 +8,7 @@ use App\Models\CapturePairingCode;
 use App\Models\CaptureSession;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -34,7 +35,7 @@ class TauriCaptureController extends Controller
             ->whereNull('used_at')
             ->where('expires_at', '>', now())
             ->latest()
-            ->limit(30)
+            ->limit(50)
             ->get();
 
         $pairing = $pairings->first(function ($item) use ($code) {
@@ -58,14 +59,27 @@ class TauriCaptureController extends Controller
             'is_active' => true,
         ]);
 
-        $session = CaptureSession::create([
+        $sessionPayload = [
             'tenant_id' => $pairing->tenant_id,
             'user_id' => $pairing->user_id,
-            'study_id' => $pairing->study_id,
             'capture_device_id' => $device->id,
             'status' => 'active',
             'started_at' => now(),
-        ]);
+        ];
+
+        if (Schema::hasColumn('capture_sessions', 'paciente_id')) {
+            $sessionPayload['paciente_id'] = $pairing->paciente_id ?? null;
+        }
+
+        if (Schema::hasColumn('capture_sessions', 'estudio_id')) {
+            $sessionPayload['estudio_id'] = $pairing->estudio_id ?? null;
+        }
+
+        if (Schema::hasColumn('capture_sessions', 'study_id')) {
+            $sessionPayload['study_id'] = $pairing->estudio_id ?? $pairing->study_id ?? null;
+        }
+
+        $session = CaptureSession::create($sessionPayload);
 
         $pairing->update([
             'used_at' => now(),
@@ -87,10 +101,11 @@ class TauriCaptureController extends Controller
                 'token' => $token,
                 'tenant_id' => $pairing->tenant_id,
                 'user_id' => $pairing->user_id,
-                'study_id' => $pairing->study_id,
+                'paciente_id' => $pairing->paciente_id ?? null,
+                'estudio_id' => $pairing->estudio_id ?? null,
+                'study_id' => $pairing->study_id ?? null,
                 'device_id' => $device->id,
                 'session_id' => $session->id,
-                'expires_note' => 'Este token queda guardado en la app Tauri hasta cerrar sesión.',
             ],
         ]);
     }
@@ -101,13 +116,11 @@ class TauriCaptureController extends Controller
 
         $request->validate([
             'session_id' => ['required', 'integer', 'exists:capture_sessions,id'],
-            'study_id' => ['required', 'integer'],
             'frame' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
         ]);
 
         $session = CaptureSession::query()
             ->where('id', $request->session_id)
-            ->where('study_id', $request->study_id)
             ->where('capture_device_id', $device->id)
             ->where('status', 'active')
             ->firstOrFail();
@@ -136,7 +149,7 @@ class TauriCaptureController extends Controller
             'data' => [
                 'session_id' => $session->id,
                 'url' => Storage::disk('public')->url($path),
-                'live_frame_at' => $session->fresh()->live_frame_at?->toDateTimeString(),
+                'live_frame_at' => now()->toDateTimeString(),
             ],
         ]);
     }
@@ -147,36 +160,36 @@ class TauriCaptureController extends Controller
 
         $request->validate([
             'session_id' => ['required', 'integer', 'exists:capture_sessions,id'],
-            'study_id' => ['required', 'integer'],
             'image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:20480'],
             'captured_at' => ['nullable', 'date'],
         ]);
 
         $session = CaptureSession::query()
             ->where('id', $request->session_id)
-            ->where('study_id', $request->study_id)
             ->where('capture_device_id', $device->id)
             ->where('status', 'active')
             ->firstOrFail();
 
         $this->ensureSameTenant($device, $session);
 
-        $path = $request->file('image')->store(
-            'endoscopy/studies/' . $session->study_id . '/images',
-            'public'
-        );
+        $folder = $this->getSessionMediaFolder($session, 'images');
+
+        $path = $request->file('image')->store($folder, 'public');
 
         /*
-         * Aquí puedes guardar en tu tabla real study_images.
-         * Si ya tienes StudyImage, descomenta y ajusta campos:
-         *
-         * $image = StudyImage::create([
-         *     'tenant_id' => $session->tenant_id,
-         *     'study_id' => $session->study_id,
-         *     'file_path' => $path,
-         *     'original_file_path' => $path,
-         *     'captured_at' => $request->captured_at ?: now(),
-         * ]);
+         |--------------------------------------------------------------------------
+         | AQUÍ PUEDES GUARDAR EN TU TABLA REAL DE GALERÍA
+         |--------------------------------------------------------------------------
+         | Si ya tienes un modelo para imágenes del estudio, por ejemplo:
+         |
+         | \App\Models\GaleriaImagen::create([
+         |     'tenant_id' => $session->tenant_id,
+         |     'paciente_id' => $session->paciente_id,
+         |     'estudio_id' => $session->estudio_id ?? $session->study_id,
+         |     'path' => $path,
+         |     'nombre_original' => $request->file('image')->getClientOriginalName(),
+         |     'capturado_en' => $request->captured_at ?: now(),
+         | ]);
          */
 
         $device->update([
@@ -188,8 +201,10 @@ class TauriCaptureController extends Controller
             'ok' => true,
             'message' => 'Imagen guardada correctamente.',
             'data' => [
-                'study_id' => $session->study_id,
                 'session_id' => $session->id,
+                'paciente_id' => $session->paciente_id ?? null,
+                'estudio_id' => $session->estudio_id ?? null,
+                'study_id' => $session->study_id ?? null,
                 'path' => $path,
                 'url' => Storage::disk('public')->url($path),
             ],
@@ -202,27 +217,36 @@ class TauriCaptureController extends Controller
 
         $request->validate([
             'session_id' => ['required', 'integer', 'exists:capture_sessions,id'],
-            'study_id' => ['required', 'integer'],
             'video' => ['required', 'file', 'mimes:webm,mp4,mov,avi,mkv', 'max:1048576'],
             'ended_at' => ['nullable', 'date'],
         ]);
 
         $session = CaptureSession::query()
             ->where('id', $request->session_id)
-            ->where('study_id', $request->study_id)
             ->where('capture_device_id', $device->id)
             ->where('status', 'active')
             ->firstOrFail();
 
         $this->ensureSameTenant($device, $session);
 
-        $path = $request->file('video')->store(
-            'endoscopy/studies/' . $session->study_id . '/videos',
-            'public'
-        );
+        $folder = $this->getSessionMediaFolder($session, 'videos');
+
+        $path = $request->file('video')->store($folder, 'public');
 
         /*
-         * Aquí puedes guardar en tu tabla real study_videos.
+         |--------------------------------------------------------------------------
+         | AQUÍ PUEDES GUARDAR EN TU TABLA REAL DE VIDEOS
+         |--------------------------------------------------------------------------
+         | Si ya tienes un modelo para videos del estudio, por ejemplo:
+         |
+         | \App\Models\GaleriaVideo::create([
+         |     'tenant_id' => $session->tenant_id,
+         |     'paciente_id' => $session->paciente_id,
+         |     'estudio_id' => $session->estudio_id ?? $session->study_id,
+         |     'path' => $path,
+         |     'nombre_original' => $request->file('video')->getClientOriginalName(),
+         |     'capturado_en' => now(),
+         | ]);
          */
 
         $device->update([
@@ -234,8 +258,10 @@ class TauriCaptureController extends Controller
             'ok' => true,
             'message' => 'Video guardado correctamente.',
             'data' => [
-                'study_id' => $session->study_id,
                 'session_id' => $session->id,
+                'paciente_id' => $session->paciente_id ?? null,
+                'estudio_id' => $session->estudio_id ?? null,
+                'study_id' => $session->study_id ?? null,
                 'path' => $path,
                 'url' => Storage::disk('public')->url($path),
             ],
@@ -263,6 +289,11 @@ class TauriCaptureController extends Controller
             'ended_at' => now(),
         ]);
 
+        $device->update([
+            'last_seen_at' => now(),
+            'last_ip' => $request->ip(),
+        ]);
+
         return response()->json([
             'ok' => true,
             'message' => 'Sesión finalizada correctamente.',
@@ -271,8 +302,39 @@ class TauriCaptureController extends Controller
 
     private function ensureSameTenant(CaptureDevice $device, CaptureSession $session): void
     {
-        if ((string) $device->tenant_id !== (string) $session->tenant_id) {
-            abort(403, 'El dispositivo no pertenece al tenant de esta sesión.');
+        /*
+         |--------------------------------------------------------------------------
+         | VALIDACIÓN MULTITENANT
+         |--------------------------------------------------------------------------
+         | Si tenant_id es null en ambos, lo permitimos para desarrollo local.
+         | Si en producción siempre tienes tenant_id, esto protege que un dispositivo
+         | de otro tenant no pueda escribir en una sesión ajena.
+         */
+
+        $deviceTenant = $device->tenant_id;
+        $sessionTenant = $session->tenant_id;
+
+        if (is_null($deviceTenant) && is_null($sessionTenant)) {
+            return;
         }
+
+        if ((string) $deviceTenant !== (string) $sessionTenant) {
+            abort(403, 'El dispositivo no pertenece a este tenant.');
+        }
+    }
+
+    private function getSessionMediaFolder(CaptureSession $session, string $type): string
+    {
+        $studyId = $session->estudio_id ?? $session->study_id ?? null;
+
+        if ($studyId) {
+            return 'endoscopy/studies/' . $studyId . '/' . $type;
+        }
+
+        if ($session->paciente_id) {
+            return 'endoscopy/patients/' . $session->paciente_id . '/sessions/' . $session->id . '/' . $type;
+        }
+
+        return 'endoscopy/sessions/' . $session->id . '/' . $type;
     }
 }
