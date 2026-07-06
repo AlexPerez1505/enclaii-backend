@@ -29,6 +29,10 @@ class EnsureSubscribed
             return $next($request);
         }
 
+        if ($user->hasRole('Customer Success')) {
+            return $next($request);
+        }
+
         if ($user->subscribed()) {
             return $next($request);
         }

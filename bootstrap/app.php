@@ -28,10 +28,13 @@ return Application::configure(basePath: dirname(__DIR__))
         // customer success -> dashboard propio, suscritos -> dashboard, resto -> seleccionar plan
         $middleware->redirectUsersTo(function ($request) {
             $user = $request->user();
-            if ($user && $user->hasRole('Customer Success')) {
+            if (!$user) {
+                return '/login';
+            }
+            if ($user->hasRole('Customer Success')) {
                 return '/customer-success/dashboard';
             }
-            return $user && $user->subscribed() ? '/dashboard' : '/configuracion';
+            return $user->subscribed() ? '/dashboard' : '/configuracion';
         });
     })
     ->withBroadcasting(
