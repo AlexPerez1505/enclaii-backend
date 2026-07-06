@@ -212,6 +212,56 @@ class AnuncioTest extends TestCase
         $this->assertEquals('Aviso general', $notification->data['titulo'] ?? null);
     }
 
+    public function test_anuncio_notification_is_not_created_when_user_disabled_category(): void
+    {
+        $csUser = $this->customerSuccessUser();
+        $otherUser = $this->regularUser();
+        $otherUser->settings = array_merge($otherUser->settings ?? [], [
+            'notif_new_studies_screen' => false,
+        ]);
+        $otherUser->save();
+
+        $this->actingAs($csUser);
+
+        $this->postJson(route('api.customer-success.anuncios.store'), [
+            'titulo' => 'Aviso de anuncios internos',
+            'contenido' => '<p>Contenido</p>',
+            'tipo' => 'anuncios_internos',
+        ])->assertCreated();
+
+        $this->assertDatabaseCount('notifications', 0);
+    }
+
+    public function test_customer_success_can_fetch_notifications_via_api(): void
+    {
+        $csUser = User::create([
+            'name' => 'Customer Success Receptor',
+            'email' => 'cs-receptor@example.com',
+            'password' => bcrypt('password'),
+        ]);
+        $csUser->assignRole('Customer Success');
+
+        $publisher = User::create([
+            'name' => 'Customer Success Publisher',
+            'email' => 'cs-publisher@example.com',
+            'password' => bcrypt('password'),
+        ]);
+        $publisher->assignRole('Customer Success');
+
+        $this->actingAs($publisher);
+        $this->postJson(route('api.customer-success.anuncios.store'), [
+            'titulo' => 'Aviso para CS',
+            'contenido' => '<p>Contenido</p>',
+            'tipo' => 'anuncios_internos',
+        ])->assertCreated();
+
+        $this->actingAs($csUser);
+        $this->getJson(route('api.customer-success.notifications.index'))
+            ->assertOk()
+            ->assertJsonCount(1)
+            ->assertJsonPath('0.message', 'Se publicó un nuevo anuncio: Aviso para CS');
+    }
+
     public function test_anuncio_notifications_are_not_in_doctor_panel(): void
     {
         $csUser = $this->customerSuccessUser();

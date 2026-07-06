@@ -13,6 +13,17 @@ use Illuminate\Http\Request;
 
 class AnuncioController extends Controller
 {
+    /**
+     * Mapea la categoría del anuncio al setting de pantalla del usuario.
+     * Si el usuario tiene desactivado ese setting, no recibe la notificación.
+     */
+    private const CATEGORY_SETTING_MAP = [
+        'anuncios_internos' => 'notif_new_studies_screen',
+        'mejoras' => 'notif_updates_screen',
+        'mantenimiento' => 'notif_maintenance_screen',
+        'politicas' => 'notif_privacy_screen',
+    ];
+
     public function __construct(
         private readonly HtmlPurifierService $purifier
     ) {}
@@ -41,16 +52,30 @@ class AnuncioController extends Controller
 
         $anuncio = Anuncio::create($validated);
 
-        // Notificar a todos los usuarios (excepto al creador)
+        // Notificar a usuarios que tengan activada la categoría correspondiente
         $now = now();
-        $notifications = User::whereKeyNot($request->user()->id)
-            ->get(['id'])
+        $settingKey = self::CATEGORY_SETTING_MAP[$anuncio->tipo] ?? null;
+
+        $users = User::whereKeyNot($request->user()->id)
+            ->get(['id', 'settings']);
+
+        $notifications = $users
+            ->filter(function ($user) use ($settingKey) {
+                if ($settingKey === null) {
+                    return true;
+                }
+
+                $settings = $user->resolvedSettings();
+
+                return $settings[$settingKey] ?? true;
+            })
             ->map(fn ($user) => [
                 'user_id' => $user->id,
                 'tipo' => 'anuncio',
                 'data' => json_encode([
                     'anuncio_id' => $anuncio->id,
                     'titulo' => $anuncio->titulo,
+                    'categoria' => $anuncio->tipo,
                     'message' => 'Se publicó un nuevo anuncio: ' . $anuncio->titulo,
                 ]),
                 'read' => false,

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\CustomerSuccess\AnuncioController;
+use App\Http\Controllers\Api\CustomerSuccess\NotificationController;
 use App\Http\Controllers\Api\CustomerSuccess\UserRoleController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,4 +19,7 @@ Route::middleware(['web', 'auth', 'customer.success'])->prefix('customer-success
     Route::get('users', [UserRoleController::class, 'index'])->name('api.customer-success.users.index');
     Route::post('users/{user}/assign-role', [UserRoleController::class, 'assign'])->name('api.customer-success.users.assign-role');
     Route::post('users/{user}/remove-role', [UserRoleController::class, 'remove'])->name('api.customer-success.users.remove-role');
+
+    Route::get('notifications', [NotificationController::class, 'index'])->name('api.customer-success.notifications.index');
+    Route::patch('notifications/read-all', [NotificationController::class, 'markAllRead'])->name('api.customer-success.notifications.read-all');
 });
