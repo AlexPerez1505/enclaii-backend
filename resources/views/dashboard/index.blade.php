@@ -14,7 +14,8 @@
 /* ============ WIDGET GRID SYSTEM ============ */
 
 /* Contenedor principal de widgets */
-#widgetGrid{
+#widgetGrid,
+#widgetGridMinimal{
   display:grid;
   grid-template-columns:repeat(13,1fr);
   grid-auto-rows:minmax(60px,auto);
@@ -182,25 +183,25 @@ html[data-theme="light"] .card-next .meta b{color:#1E3A8A}
 .card-next .btn-line{
   margin-top:auto;
   flex:1 0 auto;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:0.5em;
+  display:flex;align-items:center;justify-content:center;gap:0.5em;
   padding:0.6em 1em;
-  font-size:0.85em;
+  border-radius:var(--r-md);
+  border:1px solid #60A5FA;
+  font-size:0.85em;font-weight:700;color:#fff;
+  background:rgba(96,165,250,.14);
+  transition:background-color 150ms ease, transform 160ms var(--ease-out);
   min-height:2.8em;
-  border-color:#2563EB;
-  color:#60A5FA;
-  background:rgba(37,99,235,.12);
+  box-shadow:0 4px 14px rgba(37,99,235,.25);
 }
-@media (hover:hover) and (pointer:fine){ .card-next .btn-line:hover{background:rgba(37,99,235,.22)} }
+.card-next .btn-line svg{width:1em;height:1em}
+.card-next .btn-line:active{transform:scale(.97)}
+@media (hover:hover) and (pointer:fine){ .card-next .btn-line:hover{background:rgba(96,165,250,.26)} }
 html[data-theme="light"] .card-next .btn-line{
   border-color:#2563EB;
   color:#2563EB;
   background:rgba(37,99,235,.10);
 }
 @media (hover:hover) and (pointer:fine){ html[data-theme="light"] .card-next .btn-line:hover{background:rgba(37,99,235,.18)} }
-.card-next .btn-line svg{width:1em;height:1em}
 .holo{
   position:absolute;
   right:0.9em;top:50%;
@@ -514,6 +515,11 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
 /* Minimalista widgets */
 .widget.mode-hidden{display:none !important}
 
+/* Visibilidad de grids según modo */
+#widgetGridMinimal{display:none}
+#widgetGrid.dashboard-mode-min{display:none}
+#widgetGridMinimal:not(.dashboard-mode-min){display:grid}
+
 /* Dashboard mode switch */
 .db-mode-bar{
   display:flex;align-items:center;justify-content:space-between;gap:16px;
@@ -545,6 +551,7 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
   justify-content:center;
   transition:transform .2s ease, box-shadow .2s ease;
   font-size: clamp(12px, min(calc(var(--widget-w-px, 300) * 0.055px), calc(var(--widget-h-px, 260) * 0.065px)), 22px);
+  position:relative;
 }
 .widget-minimal .card-minimal:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.15)}
 .widget-minimal .min-label{
@@ -643,30 +650,27 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
 
 @section('content')
 
+  {{-- Grid original --}}
   <div id="widgetGrid">
-
     @include('dashboard.widgets.next-patient.index')
-    @include('dashboard.widgets.next-patient.minimalista')
-
     @include('dashboard.widgets.ia-pending.index')
-    @include('dashboard.widgets.ia-pending.minimalista')
-
     @include('dashboard.widgets.agenda-today.index')
-    @include('dashboard.widgets.agenda-today.minimalista')
-
     @include('dashboard.widgets.new-study.index')
-    @include('dashboard.widgets.new-study.minimalista')
-
     @include('dashboard.widgets.next-list.index')
-    @include('dashboard.widgets.next-list.minimalista')
-
     @include('dashboard.widgets.agenda-summary.index')
-    @include('dashboard.widgets.agenda-summary.minimalista')
-
     @include('dashboard.widgets.ia-risk.index')
-    @include('dashboard.widgets.ia-risk.minimalista')
-
   </div>{{-- /#widgetGrid --}}
+
+  {{-- Grid minimalista --}}
+  <div id="widgetGridMinimal" class="dashboard-mode-min">
+    @include('dashboard.widgets.next-patient.minimalista')
+    @include('dashboard.widgets.ia-pending.minimalista')
+    @include('dashboard.widgets.agenda-today.minimalista')
+    @include('dashboard.widgets.new-study.minimalista')
+    @include('dashboard.widgets.next-list.minimalista')
+    @include('dashboard.widgets.agenda-summary.minimalista')
+    @include('dashboard.widgets.ia-risk.minimalista')
+  </div>{{-- /#widgetGridMinimal --}}
 
 @endsection
 
@@ -760,6 +764,16 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
         maxH: Math.round(baseHStored * 3)
       };
     }
+    // Widgets con tamaño predeterminado fijo en el dashboard original
+    if (['next-patient', 'ia-pending', 'new-study'].includes(id)) {
+      const baseHStored = parseInt(w.dataset.baseH, 10) || w.offsetHeight;
+      return {
+        minW: Math.max(3, Math.floor(initialW * 0.5)),
+        maxW: 13,
+        minH: Math.round(baseHStored * 0.85),
+        maxH: Math.round(baseHStored * 1.5)
+      };
+    }
     return {
       minW: Math.max(3, Math.floor(initialW * 0.5)),
       maxW: 13,
@@ -768,28 +782,49 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
     };
   }
 
-  function applySizeLimits() {
-    const grid = document.getElementById('widgetGrid');
-    if (!grid) return;
+  function applySizeLimits(grid) {
+    if (!grid) {
+      applySizeLimits(document.getElementById('widgetGrid'));
+      applySizeLimits(document.getElementById('widgetGridMinimal'));
+      return;
+    }
+    if (grid.offsetParent === null) return; // grid oculto, no aplicar
     const visible = Array.from(grid.querySelectorAll('.widget:not(.widget-ghost):not(.widget-hidden):not(.mode-hidden)'));
+    let needsRetry = false;
     visible.forEach(w => {
+      const isMinimal = w.classList.contains('widget-minimal');
+      const minRendered = isMinimal ? 260 : 120;
+      if (w.offsetHeight < minRendered && !w.style.height) { needsRetry = true; return; }
       if (!w.dataset.baseW) w.dataset.baseW = parseInt(w.dataset.w, 10);
-      if (!w.dataset.baseH) w.dataset.baseH = w.offsetHeight;
+      const storedBaseH = parseInt(w.dataset.baseH, 10) || 0;
+      if (!w.dataset.baseH || storedBaseH <= 0) w.dataset.baseH = w.offsetHeight;
       const limits = getWidgetLimits(w);
       const currentW = parseInt(w.dataset.w, 10);
       const currentH = parseInt(w.style.height, 10) || w.offsetHeight;
       const newW = Math.max(limits.minW, Math.min(limits.maxW, currentW));
-      const newH = Math.max(limits.minH, Math.min(limits.maxH, currentH));
+      let newH = Math.max(limits.minH, Math.min(limits.maxH, currentH));
+      if (newH <= 0) newH = w.offsetHeight || limits.minH || 220;
       w.dataset.w = newW;
       w.style.gridColumn = 'span ' + newW;
       w.style.height = newH + 'px';
     });
+    if (needsRetry) {
+      const retries = parseInt(grid.dataset.applyRetries, 10) || 0;
+      if (retries < 10) {
+        grid.dataset.applyRetries = retries + 1;
+        requestAnimationFrame(() => applySizeLimits(grid));
+      } else {
+        grid.dataset.applyRetries = 0;
+      }
+    } else {
+      grid.dataset.applyRetries = 0;
+    }
   }
 
   /* ============ WIDGET DRAG & REORDER ============ */
-  (function(){
-    const grid = document.getElementById('widgetGrid');
+  function initGrid(grid){
     if (!grid) return;
+    const storageKey = grid.id === 'widgetGridMinimal' ? 'dbWidgetOrderV2Minimal' : 'dbWidgetOrderV2';
 
     let dragging = null, ghost = null, originNext = null;
 
@@ -935,12 +970,12 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
         const h = w.style.height;
         return { id: w.dataset.widgetId, w: w.dataset.w, h: h || null };
       });
-      try { localStorage.setItem('dbWidgetOrderV2', JSON.stringify(order)); } catch(e) {}
+      try { localStorage.setItem(storageKey, JSON.stringify(order)); } catch(e) {}
     }
 
     function restoreOrder() {
       try {
-        const saved = JSON.parse(localStorage.getItem('dbWidgetOrderV2') || 'null');
+        const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
         if (!saved) return;
         saved.forEach(({ id, w, h }) => {
           const el = grid.querySelector(`[data-widget-id="${id}"]`);
@@ -997,7 +1032,22 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
     })();
 
     /* Aplicar límites de tamaño al cargar */
-    applySizeLimits();
+    applySizeLimits(grid);
+
+    /* Capturar altura inicial de cada widget como base */
+    (function captureInitialHeights() {
+      grid.querySelectorAll('.widget').forEach(w => {
+        if (!w.dataset.baseH) {
+          w.dataset.baseH = Math.round(w.offsetHeight);
+        }
+      });
+    })();
+
+    /* Tooltips de handles */
+    (function setHandleTitles() {
+      grid.querySelectorAll('.widget-drag-handle').forEach(el => el.title = 'Arrastre para mover');
+      grid.querySelectorAll('.widget-resize-handle').forEach(el => el.title = 'Arrastrar para cambiar tamaño');
+    })();
 
     /* Escala del contenido según tamaño del widget */
     (function(){
@@ -1014,8 +1064,105 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
       });
       grid.querySelectorAll('.widget').forEach(w => ro.observe(w));
     })();
-  })();
 
+    /* ---- Actualizar calendario y resumen al cambiar de mes ---- */
+    (function(){
+      const calWidget = grid.querySelector('[data-widget-id="agenda-today"]');
+      if (!calWidget) return;
+      const summaryWidget = grid.querySelector('[data-widget-id="agenda-summary"]');
+      const CSRF = @json(csrf_token());
+
+      async function refreshWidget(widget, url, targetSelector) {
+        try {
+          const current = grid.querySelector('[data-widget-id="' + widget + '"]');
+          if (!current) return;
+          current.style.transition = 'opacity .25s ease, transform .25s ease';
+          current.style.opacity = '0.6';
+          current.style.transform = 'scale(0.98)';
+          const res = await fetch(url, {
+            headers: { 'X-CSRF-TOKEN': CSRF, 'X-Requested-With': 'XMLHttpRequest' }
+          });
+          if (!res.ok) return;
+          const html = await res.text();
+          const temp = document.createElement('div');
+          temp.innerHTML = html;
+          const newWidget = temp.querySelector('[data-widget-id="' + widget + '"]');
+          if (!newWidget) return;
+          const ro = current._resizeObserver;
+          if (ro && typeof ro.disconnect === 'function') ro.disconnect();
+          newWidget.style.opacity = '0';
+          newWidget.style.transform = 'scale(0.98)';
+          newWidget.style.transition = 'opacity .25s ease, transform .25s ease';
+          current.replaceWith(newWidget);
+          requestAnimationFrame(() => {
+            newWidget.style.opacity = '1';
+            newWidget.style.transform = 'scale(1)';
+          });
+          const newRo = new ResizeObserver(entries => {
+            entries.forEach(entry => {
+              const w = entry.borderBoxSize && entry.borderBoxSize[0] ? entry.borderBoxSize[0].inlineSize : entry.contentRect.width;
+              const h = entry.borderBoxSize && entry.borderBoxSize[0] ? entry.borderBoxSize[0].blockSize : entry.contentRect.height;
+              entry.target.style.setProperty('--widget-w-px', Math.round(w));
+              entry.target.style.setProperty('--widget-h-px', Math.round(h));
+              if (!entry.target.dataset.baseH) entry.target.dataset.baseH = Math.round(h);
+            });
+          });
+          newWidget._resizeObserver = newRo;
+          newRo.observe(newWidget);
+          applySizeLimits();
+          bindCalendarNav();
+          if (window.gsap) {
+            const counters = newWidget.querySelectorAll('[data-target]');
+            counters.forEach((counter, i) => {
+              if (!counter.id) return;
+              const target = parseInt(counter.dataset.target, 10);
+              const obj = { v: 0 };
+              gsap.to(obj, { v: target, duration: 1.4, ease: 'expo.out', delay: 0.4 + i * 0.12,
+                onUpdate: () => { counter.textContent = Math.round(obj.v).toLocaleString('es-MX'); }
+              });
+            });
+          } else {
+            newWidget.querySelectorAll('[data-target]').forEach(c => { if (c.dataset.target) c.textContent = parseInt(c.dataset.target, 10).toLocaleString('es-MX'); });
+          }
+        } catch(e) {
+          console.error('Error actualizando widget', widget, e);
+          window.location.href = url;
+        }
+      }
+
+      function bindCalendarNav() {
+        const cal = grid.querySelector('[data-widget-id="agenda-today"]');
+        if (!cal) return;
+        cal.querySelectorAll('.cal-nav-btn').forEach(btn => {
+          btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const url = this.dataset.url;
+            if (!url) return;
+            const params = new URL(url, window.location.origin).searchParams;
+            const mes = params.get('widget_mes');
+            const anio = params.get('widget_anio');
+            const baseUrl = new URL(window.location.href);
+            if (mes) baseUrl.searchParams.set('widget_mes', mes);
+            if (anio) baseUrl.searchParams.set('widget_anio', anio);
+            window.history.replaceState({}, '', baseUrl.toString());
+            refreshWidget('agenda-today', url, '[data-widget-id="agenda-today"]');
+            if (summaryWidget) {
+              const summaryUrl = baseUrl.toString().replace('/dashboard', '/dashboard/widget/agenda-summary');
+              refreshWidget('agenda-summary', summaryUrl, '[data-widget-id="agenda-summary"]');
+            }
+          });
+        });
+      }
+
+      bindCalendarNav();
+    })();
+  }
+
+  initGrid(document.getElementById('widgetGrid'));
+  initGrid(document.getElementById('widgetGridMinimal'));
+
+  window.applyWidgetSizeLimits = applySizeLimits;
 })();
 </script>
 @endpush

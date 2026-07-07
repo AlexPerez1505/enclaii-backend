@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}?v=20260627-2">
 <script>
   /* Aplicar tema guardado antes del primer render (evita parpadeo) */
@@ -19,10 +20,26 @@
 </script>
 <title>@yield('title', 'ENCLAII') — ENCLAII</title>
 @auth
-<script>window.enclaiiSettings = @json(auth()->user()->resolvedSettings());</script>
+@php
+$initialNotifications = \App\Models\Notification::where('user_id', auth()->id())
+    ->orderByDesc('created_at')
+    ->limit(50)
+    ->get()
+    ->map(fn ($n) => array_merge([
+        'id' => $n->id,
+        'tipo' => $n->tipo,
+        'read' => $n->read,
+        'created_at' => $n->created_at?->toDateTimeString(),
+    ], $n->data));
+@endphp
+<script>
+window.enclaiiSettings = @json(array_merge(auth()->user()->resolvedSettings(), ['user_id' => auth()->id()]));
+window._initialNotifications = @json($initialNotifications);
+</script>
 @endauth
 <script defer src="{{ asset('js/i18n.js') }}"></script>
 <script defer src="{{ asset('js/preferences.js') }}"></script>
+@vite(['resources/js/app.js'])
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -333,6 +350,55 @@ html[data-theme="light"] .side-help { background: var(--bg); border:none; }
   display:grid;place-items:center;
   box-shadow:0 0 0 3px var(--bg);
 }
+
+/* ===== Panel de notificaciones ===== */
+.notif-wrap{position:relative}
+.notif-panel{
+  position:absolute;top:calc(100% + 10px);right:0;width:320px;max-width:90vw;
+  background:var(--card);border:1px solid var(--stroke);border-radius:var(--r-lg);
+  box-shadow:0 24px 48px rgba(0,0,0,.42);z-index:2100;
+  opacity:0;visibility:hidden;transform:translateY(-10px) scale(.98);transform-origin:top right;
+  transition:opacity .2s var(--ease-out),transform .2s var(--ease-out),visibility .2s;
+  overflow:hidden;
+}
+.notif-panel.open{opacity:1;visibility:visible;transform:translateY(0) scale(1)}
+.notif-panel-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px 10px;border-bottom:1px solid var(--stroke);
+}
+.notif-panel-title{font-family:'Sora',sans-serif;font-size:13.5px;font-weight:700;color:var(--txt)}
+.notif-clear-btn{
+  font-size:11.5px;font-weight:700;color:var(--txt-soft);
+  padding:4px 10px;border-radius:99px;
+  transition:background .15s,color .15s;
+}
+.notif-clear-btn:hover{background:var(--hover-bg);color:var(--blue)}
+.notif-list{max-height:340px;overflow-y:auto}
+.notif-empty{
+  padding:28px 16px;text-align:center;
+  font-size:13px;color:var(--txt-soft);
+}
+.notif-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:12px 16px;border-bottom:1px solid var(--stroke);
+  animation:notif-in .25s var(--ease-out);
+}
+.notif-item:last-child{border-bottom:0}
+@keyframes notif-in{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:none}}
+.notif-ico{
+  width:34px;height:34px;flex:none;border-radius:10px;
+  display:grid;place-items:center;
+  background:rgba(59,130,246,.15);color:var(--blue);
+}
+.notif-ico.amber{background:rgba(245,158,45,.15);color:var(--orange)}
+.notif-ico.red{background:rgba(239,68,68,.15);color:var(--red)}
+.notif-ico.green{background:rgba(16,185,129,.15);color:var(--green)}
+.notif-ico svg{width:16px;height:16px}
+.notif-item.read{opacity:.55}
+.notif-body{flex:1;min-width:0}
+.notif-body strong{display:block;font-size:13px;font-weight:700;color:var(--txt);line-height:1.3}
+.notif-body span{display:block;font-size:11.5px;color:var(--txt-soft);margin-top:2px;line-height:1.4}
+.notif-body time{display:block;font-size:10.5px;color:var(--txt-soft);margin-top:4px;opacity:.7}
 .profile{
   display:flex;align-items:center;gap:10px;
   padding:6px 14px 6px 6px;
@@ -449,6 +515,69 @@ html[data-theme="light"] .side-collapse-btn { background: var(--bg); border: 1px
   .dash.sidebar-collapsed .side-help .orb{margin-bottom:0}
 }
 
+.db-editor-panels{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.db-editor-panel{display:none;flex:1;flex-direction:column;overflow:hidden}
+.db-editor-panel.active{display:flex}
+
+.db-mode-switch-editor{display:flex;background:var(--panel-2);border:1px solid var(--stroke-strong);border-radius:var(--r-md);padding:3px;gap:3px}
+.db-mode-switch-editor button{flex:1;padding:10px 12px;border:none;border-radius:8px;background:transparent;font:inherit;font-size:13px;font-weight:600;color:var(--txt-soft);cursor:pointer;transition:background .15s,color .15s}
+.db-mode-switch-editor button:hover{color:var(--txt)}
+.db-mode-switch-editor button.active{background:linear-gradient(135deg,#7B3FE4,#B263FF);color:#fff}
+
+.db-editor-hint{font-size:11.5px;color:rgba(234,241,255,.45);margin-top:12px;line-height:1.45}
+
+.db-editor-section{margin-bottom:22px}
+.db-editor-section-title{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(234,241,255,.35);margin-bottom:10px}
+.db-widget-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;border:1px solid var(--stroke);background:var(--panel);margin-bottom:8px;cursor:grab;user-select:none;transition:border-color .15s,background .15s}
+.db-widget-item:hover{border-color:rgba(178,99,255,.4);background:rgba(178,99,255,.06)}
+.db-widget-item.dragging{opacity:.5;cursor:grabbing}
+.db-widget-dot{width:10px;height:10px;border-radius:50%;flex:none}
+.db-widget-dot.blue{background:#2E7BF6}
+.db-widget-dot.purple{background:#B263FF}
+.db-widget-dot.teal{background:#168BD9}
+.db-widget-dot.green{background:#3DDC97}
+.db-widget-dot.green2{background:#22C55E}
+.db-widget-dot.orange{background:#F59E2D}
+.db-widget-info{flex:1;min-width:0}
+.db-widget-name{font-size:13px;font-weight:600;color:#EAF1FF}
+.db-widget-desc{font-size:11px;color:rgba(234,241,255,.45);margin-top:1px}
+.db-widget-toggle{position:relative;width:36px;height:20px;flex:none}
+.db-widget-toggle input{opacity:0;width:0;height:0;position:absolute}
+.db-widget-slider{position:absolute;inset:0;border-radius:20px;background:rgba(110,160,255,.2);cursor:pointer;transition:background .2s}
+.db-widget-slider::before{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#8FA3CF;top:3px;left:3px;transition:transform .2s,background .2s}
+.db-widget-toggle input:checked + .db-widget-slider{background:rgba(178,99,255,.4)}
+.db-widget-toggle input:checked + .db-widget-slider::before{transform:translateX(16px);background:#B263FF}
+.db-editor-footer{padding:14px 18px;border-top:1px solid rgba(178,99,255,.2);display:flex;gap:10px;flex:none}
+.db-editor-btn{flex:1;padding:11px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .15s}
+.db-editor-btn.save{background:linear-gradient(135deg,#7B3FE4,#B263FF);color:#fff}
+.db-editor-btn.save:hover{opacity:.88}
+.db-editor-btn.reset{background:transparent;border:1px solid rgba(178,99,255,.3);color:rgba(234,241,255,.6)}
+.db-editor-btn.reset:hover{border-color:rgba(178,99,255,.6);color:#EAF1FF}
+html[data-theme="light"] .db-editor-overlay{background:rgba(14,21,48,.25)}
+html[data-theme="light"] .db-editor{background:#F6F8FE;border-left-color:rgba(120,60,220,.3)}
+html[data-theme="light"] .db-editor-head{border-bottom-color:rgba(120,60,220,.2)}
+html[data-theme="light"] .db-editor-title{color:#0E1530}
+html[data-theme="light"] .db-editor-subtitle{color:rgba(14,21,48,.5)}
+html[data-theme="light"] .db-editor-tabs{background:rgba(120,60,220,.06);border-bottom-color:rgba(120,60,220,.2)}
+html[data-theme="light"] .db-editor-tab{color:rgba(14,21,48,.5)}
+html[data-theme="light"] .db-editor-tab:hover{color:rgba(14,21,48,.75)}
+html[data-theme="light"] .db-editor-tab.active{color:#0E1530}
+html[data-theme="light"] .db-editor-section-title{color:rgba(14,21,48,.45)}
+html[data-theme="light"] .db-editor-hint{color:rgba(14,21,48,.45)}
+html[data-theme="light"] .db-editor-footer{border-top-color:rgba(120,60,220,.2)}
+html[data-theme="light"] .db-editor-btn.reset{border-color:rgba(120,60,220,.3);color:rgba(14,21,48,.55)}
+html[data-theme="light"] .db-editor-btn.reset:hover{border-color:rgba(120,60,220,.55);color:#0E1530}
+html[data-theme="light"] .db-editor-close{color:#5B6A99}
+html[data-theme="light"] .db-editor-close:hover{background:rgba(120,60,220,.1);color:#0E1530}
+html[data-theme="light"] .db-widget-item{background:#fff;border-color:rgba(20,50,120,.12)}
+html[data-theme="light"] .db-widget-item:hover{border-color:rgba(120,60,220,.35);background:rgba(120,60,220,.04)}
+html[data-theme="light"] .db-widget-name{color:#0E1530}
+html[data-theme="light"] .db-widget-desc{color:rgba(14,21,48,.45)}
+html[data-theme="light"] .db-widget-slider{background:rgba(20,50,120,.15)}
+html[data-theme="light"] .db-mode-switch-editor{background:#fff;border-color:rgba(20,50,120,.15)}
+html[data-theme="light"] .db-mode-switch-editor button{color:rgba(14,21,48,.6)}
+html[data-theme="light"] .db-mode-switch-editor button:hover{color:#0E1530}
+html[data-theme="light"] .db-editor-body::-webkit-scrollbar-thumb{background:rgba(120,60,220,.25)}
 
 /* ================= COMPONENTES COMPARTIDOS ================= */
 .card{
@@ -1070,10 +1199,21 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
           <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
           <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
         </button>
-        <button class="bell" aria-label="Notificaciones">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
-          <span class="dot">3</span>
-        </button>
+        <div class="notif-wrap" id="notifWrap">
+          <button class="bell" id="notifBell" aria-label="Notificaciones" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            <span class="dot" id="notifDot" style="display:none">0</span>
+          </button>
+          <div class="notif-panel" id="notifPanel">
+            <div class="notif-panel-head">
+              <span class="notif-panel-title">Notificaciones</span>
+              <button class="notif-clear-btn" id="notifClear" type="button">Limpiar</button>
+            </div>
+            <div class="notif-list" id="notifList">
+              <div class="notif-empty" id="notifEmpty">Sin notificaciones nuevas</div>
+            </div>
+          </div>
+        </div>
         @php
           $userName = auth()->check() ? trim(auth()->user()->name ?? 'Doctor') : 'Doctor';
           $userParts = preg_split('/\s+/', $userName);
@@ -2020,14 +2160,32 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
 
       function applyMode(mode) {
         const isMinimal = mode === 'minimal';
-        grid.querySelectorAll('.widget:not(.widget-minimal)').forEach(w => w.classList.toggle('mode-hidden', isMinimal));
-        grid.querySelectorAll('.widget-minimal').forEach(w => w.classList.toggle('mode-hidden', !isMinimal));
-        grid.classList.toggle('dashboard-mode-min', isMinimal);
+        const originalGrid = document.getElementById('widgetGrid');
+        const minimalGrid = document.getElementById('widgetGridMinimal');
+        if (originalGrid) {
+          originalGrid.classList.toggle('dashboard-mode-min', isMinimal);
+          originalGrid.style.display = isMinimal ? 'none' : '';
+        }
+        if (minimalGrid) {
+          minimalGrid.classList.toggle('dashboard-mode-min', !isMinimal);
+          minimalGrid.style.display = !isMinimal ? 'none' : '';
+        }
         originalBtn.classList.toggle('active', !isMinimal);
         originalBtn.setAttribute('aria-pressed', String(!isMinimal));
         minimalBtn.classList.toggle('active', isMinimal);
         minimalBtn.setAttribute('aria-pressed', String(isMinimal));
         try { localStorage.setItem('dbMode', mode); } catch(e) {}
+        if (originalGrid) originalGrid.offsetHeight;
+        if (minimalGrid) minimalGrid.offsetHeight;
+        if (window.applyWidgetSizeLimits) window.applyWidgetSizeLimits();
+        requestAnimationFrame(() => {
+          if (window.applyWidgetSizeLimits) window.applyWidgetSizeLimits();
+        });
+        setTimeout(() => {
+          if (originalGrid) originalGrid.offsetHeight;
+          if (minimalGrid) minimalGrid.offsetHeight;
+          if (window.applyWidgetSizeLimits) window.applyWidgetSizeLimits();
+        }, 120);
       }
 
       originalBtn.addEventListener('click', () => applyMode('original'));
@@ -2186,5 +2344,209 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
 </script>
 
 @stack('scripts')
+
+<script>
+(function(){
+  const bell     = document.getElementById('notifBell');
+  const panel    = document.getElementById('notifPanel');
+  const dot      = document.getElementById('notifDot');
+  const list     = document.getElementById('notifList');
+  const empty    = document.getElementById('notifEmpty');
+  const clearBtn = document.getElementById('notifClear');
+  if (!bell || !panel) return;
+
+  let unread = 0;
+  const pendingIds = new Set();
+
+  function openPanel(){ panel.classList.add('open'); }
+  function closePanel(){ panel.classList.remove('open'); }
+
+  bell.addEventListener('click', (e) => {
+    e.stopPropagation();
+    panel.classList.toggle('open');
+    if (panel.classList.contains('open')) markAllAsRead();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!document.getElementById('notifWrap')?.contains(e.target)) closePanel();
+  });
+
+  clearBtn?.addEventListener('click', () => {
+    const ids = Array.from(list.querySelectorAll('.notif-item')).map(el => parseInt(el.dataset.id, 10)).filter(Boolean);
+    if (ids.length) {
+      fetch('/notifications', {
+        method: 'DELETE',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ ids }),
+      }).catch(() => {});
+    }
+    list.querySelectorAll('.notif-item').forEach(n => n.remove());
+    pendingIds.clear();
+    unread = 0;
+    updateDot();
+    if (empty) empty.style.display = '';
+  });
+
+  function updateDot(){
+    if (!dot) return;
+    if (unread > 0){ dot.textContent = unread > 99 ? '99+' : unread; dot.style.display = ''; }
+    else { dot.style.display = 'none'; }
+  }
+
+  const NOTIF_ICONS = {
+    bell:  '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
+    plus:  '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+    check: '<polyline points="20 6 9 17 4 12"/>',
+    x:     '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+    trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>',
+  };
+
+  function cfgFor(e) {
+    return {
+      nueva:              { title: 'Nueva cita agendada',     type: 'blue',  icon: 'plus' },
+      pendiente:          { title: 'Cita en espera',          type: 'amber', icon: 'bell' },
+      cancelada:          { title: 'Cita cancelada',          type: 'red',   icon: 'x' },
+      completada:         { title: 'Cita completada',         type: 'green', icon: 'check' },
+      eliminada:          { title: 'Cita eliminada',          type: 'red',   icon: 'trash' },
+      estudio_completado: { title: 'Estudio completado',      type: 'green', icon: 'check' },
+      estado:             { title: 'Estado de cita cambiado', type: 'blue',  icon: 'bell' },
+    }[e.tipo] ?? { title: 'Notificación de cita', type: 'blue', icon: 'bell' };
+  }
+
+  function timeFrom(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return isNaN(d) ? '' : d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function addNotif({ title, body, type = 'blue', icon = 'bell', id = null, read = false, time = null, prepend = true }){
+    if (empty) empty.style.display = 'none';
+
+    const svgPath = NOTIF_ICONS[icon] ?? NOTIF_ICONS.bell;
+    const item = document.createElement('div');
+    item.className = 'notif-item' + (read ? ' read' : '');
+    if (id) item.dataset.id = id;
+    item.innerHTML = `
+      <div class="notif-ico ${type}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${svgPath}</svg>
+      </div>
+      <div class="notif-body">
+        <strong>${title}</strong>
+        <span>${body}</span>
+        <time>${time || timeFrom(new Date())}</time>
+      </div>`;
+
+    if (prepend) list.prepend(item);
+    else list.appendChild(item);
+
+    if (!read && !pendingIds.has(id)) {
+      unread++;
+      if (id) pendingIds.add(id);
+      updateDot();
+    }
+    return item;
+  }
+
+  function markAllAsRead() {
+    if (!unread && !pendingIds.size) return;
+    fetch('/notifications/read-all', {
+      method: 'PATCH',
+      headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+        'Accept': 'application/json',
+      },
+    }).catch(() => {});
+    pendingIds.clear();
+    unread = 0;
+    updateDot();
+    list.querySelectorAll('.notif-item').forEach(el => el.classList.add('read'));
+  }
+
+  function loadNotifications() {
+    const initial = window._initialNotifications;
+    if (Array.isArray(initial) && initial.length) {
+      renderNotifications(initial);
+    }
+    fetch('/notifications', {
+      headers: { 'Accept': 'application/json' }
+    })
+    .then(r => r.json())
+    .then(items => {
+      list.querySelectorAll('.notif-item').forEach(n => n.remove());
+      pendingIds.clear();
+      unread = 0;
+      updateDot();
+      renderNotifications(items);
+    })
+    .catch(() => {});
+  }
+
+  function renderNotifications(items) {
+    if (!items.length) {
+      if (empty) empty.style.display = '';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+    items.forEach(item => {
+      if (pendingIds.has(item.id)) return;
+      const cfg = cfgFor(item);
+      addNotif({
+        id: item.id,
+        title: cfg.title,
+        body: `${item.paciente} — ${item.fecha} ${item.hora}`,
+        type: cfg.type,
+        icon: cfg.icon,
+        read: item.read,
+        time: timeFrom(item.created_at),
+        prepend: false,
+      });
+      if (!item.read) pendingIds.add(item.id);
+    });
+  }
+
+  @auth
+  const _notifUserId = @json(auth()->id());
+  const _notifEnabled = window.enclaiiSettings?.notif_reminders_screen ?? true;
+
+  loadNotifications();
+
+  function _initEchoNotif() {
+    if (!window.Echo) { setTimeout(_initEchoNotif, 200); return; }
+    if (!_notifUserId || !_notifEnabled) return;
+    const _notifChannel = window.Echo.private(`App.Models.User.${_notifUserId}`);
+
+    _notifChannel
+      .listen('.cita.estado-cambio', (e) => {
+        console.log('[NOTIF] Evento recibido:', e);
+        const cfg = cfgFor(e);
+        addNotif({
+          id: e.id,
+          title: cfg.title,
+          body: `${e.paciente} — ${e.fecha} ${e.hora}`,
+          type: cfg.type,
+          icon: cfg.icon,
+        });
+      })
+      .listen('.estudio.completado', (e) => {
+        console.log('[NOTIF] Estudio completado:', e);
+        const cfg = cfgFor(e);
+        addNotif({
+          id: e.id,
+          title: cfg.title,
+          body: `${e.paciente} — ${e.estudio_tipo ?? e.tipo} (${e.fecha} ${e.hora})`,
+          type: cfg.type,
+          icon: cfg.icon,
+        });
+      })
+      .error((err) => console.error('[NOTIF] Error de canal:', err));
+  }
+  _initEchoNotif();
+  @endauth
+})();
+</script>
 </body>
 </html>

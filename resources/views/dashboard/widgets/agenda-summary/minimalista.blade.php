@@ -1,16 +1,16 @@
 {{-- Widget: Resumen de estudios (minimalista) --}}
 @php
-  $proxSum = $citasProximas ?? 0;
-  $compSum = $citasCompletadas ?? 0;
-  $cancSum = $citasCanceladas ?? 0;
+  $proxSum = $citasProximasMes ?? ($citasProximas ?? 0);
+  $compSum = $citasCompletadasMes ?? ($citasCompletadas ?? 0);
+  $cancSum = $citasCanceladasMes ?? ($citasCanceladas ?? 0);
   $totalSum = $proxSum + $compSum + $cancSum;
 @endphp
-<div class="widget widget-minimal mode-hidden d6" data-widget-id="agenda-summary-min" data-w="5">
+<div class="widget widget-minimal d6" data-widget-id="agenda-summary-min" data-w="5">
   <span class="widget-drag-handle" aria-hidden="true">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="19" r="1"/></svg>
   </span>
   <article class="card card-minimal card-minimal-summary" style="overflow:hidden">
-    <div class="min-label" style="flex:0 0 auto">Estudios hoy</div>
+    <div class="min-label" style="flex:0 0 auto">Estudios del mes</div>
     <div class="summary-grid" style="flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:0.6em;min-height:0">
       <div class="summary-cell summary-total" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.4em;padding:0.6em;border-radius:12px;background:rgba(46,123,246,.1);border:1px solid rgba(46,123,246,.2)">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:1.8em;height:1.8em;color:var(--blue)">
@@ -47,6 +47,6 @@
         <div class="summary-label" style="font-size:clamp(0.6em,2.5cqi,0.8em);color:var(--txt-soft)">Cancelados</div>
       </div>
     </div>
+    <span class="widget-resize-handle"></span>
   </article>
-  <span class="widget-resize-handle"></span>
 </div>
