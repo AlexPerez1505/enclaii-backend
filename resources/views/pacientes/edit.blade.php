@@ -1505,6 +1505,12 @@ document.addEventListener('DOMContentLoaded', function() {
       const formData = new FormData(pacienteForm);
       console.log('[Guardar] FormData keys:', [...formData.keys()]);
 
+      const criticalToken = await window.CriticalSecurity.authorize(
+        'patients',
+        'Confirma tu contraseña para editar la información de este paciente.'
+      );
+      if (criticalToken === null) return;
+
       if (btnGuardarInfo) {
         btnGuardarInfo.disabled = true;
         btnGuardarInfo.style.opacity = '.7';
@@ -1516,7 +1522,8 @@ document.addEventListener('DOMContentLoaded', function() {
           body: formData,
           headers: {
             'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'X-Critical-Authorization': criticalToken
           }
         });
 

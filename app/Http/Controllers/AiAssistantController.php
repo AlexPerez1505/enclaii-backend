@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class AiAssistantController extends Controller
 {
@@ -308,7 +309,10 @@ class AiAssistantController extends Controller
         $saved = [];
 
         foreach ($request->file('attachments', []) as $file) {
-            $path = $file->store('ai_uploads/'.now()->format('Y/m'), 'public');
+            $path = $file->store(
+                'clinicas/'.$request->user()->clinica_id.'/ai_uploads/'.now()->format('Y/m'),
+                'public',
+            );
 
             $attachment = AiAttachment::create([
                 'ai_message_id' => $messageId,
@@ -532,7 +536,11 @@ class AiAssistantController extends Controller
             'hora' => 'required|string|max:20',
             'sala' => 'nullable|string|max:100',
             'notas' => 'nullable|string|max:1000',
-            'paciente_id' => 'nullable|integer|exists:pacientes,id',
+            'paciente_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('pacientes', 'id')->where('clinica_id', $request->user()->clinica_id),
+            ],
         ]);
 
         if ($validator->fails()) {

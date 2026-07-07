@@ -301,6 +301,7 @@
   {{-- Pestañas --}}
   <div class="cfg-tabs rise d1">
     <button class="cfg-tab active" data-tab="general">General</button>
+    <button class="cfg-tab" data-tab="qr-preregistro">QR y Pre-registro</button>
     <button class="cfg-tab" data-tab="plan">Plan y almacenamiento</button>
     <button class="cfg-tab" data-tab="integraciones">Integraciones</button>
     <button class="cfg-tab" data-tab="seguridad">Seguridad</button>
@@ -308,6 +309,7 @@
   </div>
 
   @include('configuracion.sections.general')
+  @include('configuracion.sections.qr-preregistro')
   @include('configuracion.sections.plan')
   @include('configuracion.sections.integraciones')
   @include('configuracion.sections.seguridad')
@@ -334,6 +336,12 @@
     const target = document.querySelector(`.cfg-panel[data-panel="${t.dataset.tab}"]`);
     if (target) target.classList.add('active');
   }));
+
+  const requestedTab = new URLSearchParams(window.location.search).get('tab');
+  const requestedTabButton = requestedTab
+    ? document.querySelector(`.cfg-tab[data-tab="${requestedTab}"]`)
+    : null;
+  if (requestedTabButton) requestedTabButton.click();
 
   /* Barras de almacenamiento */
   const bars = document.querySelectorAll('.store-bar i');
@@ -365,10 +373,6 @@
     const current = (window.enclaiiI18n && window.enclaiiI18n.get())
       || localStorage.getItem('enclaii-lang') || 'es';
     langSel.value = current;
-    langSel.addEventListener('change', () => {
-      if (window.enclaiiI18n) window.enclaiiI18n.set(langSel.value);
-      else { localStorage.setItem('enclaii-lang', langSel.value); location.reload(); }
-    });
   }
 
   /* ===== Preferencias generales persistentes (base de datos) ===== */
@@ -434,6 +438,23 @@
     t._h = setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(-50%) translateY(10px)'; }, 1600);
   }
 
+  const listGroups = {};
+  document.querySelectorAll('[data-setting-list]').forEach(el => {
+    const key = el.dataset.settingList;
+    if (!listGroups[key]) listGroups[key] = [];
+    listGroups[key].push(el);
+  });
+
+  Object.entries(listGroups).forEach(([key, items]) => {
+    const saved = Array.isArray(SETTINGS[key]) ? SETTINGS[key] : [];
+    items.forEach(item => {
+      item.checked = saved.includes(item.value);
+      item.addEventListener('change', () => {
+        queueSave(key, items.filter(input => input.checked).map(input => input.value));
+      });
+    });
+  });
+
   document.querySelectorAll('[data-setting]').forEach(el => {
     if (el.id === 'cfgTheme' || el.id === 'cfgLang') return; // ya tienen manejo propio
     const key = el.dataset.setting;
@@ -446,12 +467,18 @@
         if (el.dataset.effect) applyEffect(el.dataset.effect, el.checked);
         queueSave(key, el.checked);
       });
-    } else { // select: el value de cada opción es su texto
+    } else if (el.tagName === 'SELECT') { // select: el value de cada opción es su texto
       if (saved !== undefined && saved !== null) {
         const match = Array.from(el.options).find(o => o.value === saved || o.text === saved);
         if (match) el.value = match.value;
       }
       el.addEventListener('change', () => {
+        queueSave(key, el.value);
+      });
+    } else {
+      if (saved !== undefined && saved !== null) el.value = saved;
+      const eventName = el.tagName === 'TEXTAREA' || el.type === 'text' ? 'input' : 'change';
+      el.addEventListener(eventName, () => {
         queueSave(key, el.value);
       });
     }

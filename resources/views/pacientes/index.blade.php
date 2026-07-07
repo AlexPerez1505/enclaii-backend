@@ -2078,7 +2078,7 @@
           return [
               'id' => $est->id,
               'tipo' => $est->tipo ?? 'Sin tipo',
-              'fecha' => $est->fecha ? $est->fecha->format('d/m/Y') : 'Sin fecha',
+              'fecha' => $est->fecha ? format_user_date($est->fecha) : 'Sin fecha',
               'reporte_path' => $est->reporte_path,
               'video_path' => $est->video_path,
           ];
@@ -2096,23 +2096,23 @@
           'age' => $edad ? $edad . ' años' : 'Sin edad',
           'gender' => $paciente->sexo ? ucfirst($paciente->sexo) : 'No especificado',
           'folio' => $paciente->folio ?? 'Sin folio',
-          'dob' => $paciente->fecha_nacimiento ? $paciente->fecha_nacimiento->format('d/m/Y') : 'Sin fecha',
+          'dob' => $paciente->fecha_nacimiento ? format_user_date($paciente->fecha_nacimiento) : 'Sin fecha',
           'phone' => $paciente->telefono ?? 'Sin teléfono',
           'email' => $paciente->email ?? 'Sin correo',
           'address' => $paciente->direccion ?? 'Sin dirección',
           'medico' => $paciente->medico ?? 'Sin médico',
-          'study_date' => $ultimoEstudio && $ultimoEstudio->fecha ? $ultimoEstudio->fecha->format('d M Y') : '',
+          'study_date' => $ultimoEstudio && $ultimoEstudio->fecha ? format_user_date($ultimoEstudio->fecha) : '',
           'study_type' => $ultimoEstudio ? ($ultimoEstudio->tipo ?? 'Sin estudio') : '',
           'status' => $ultimoEstudio ? ($ultimoEstudio->estado ?? 'completed') : '',
           'tiene_estudios' => $tieneEstudios,
           'estudios' => $estudiosLista,
           'foto_url' => $paciente->foto ? asset('storage/' . $paciente->foto) : null,
           'proxima_cita' => $proximaCita ? [
-              'fecha' => $proximaCita->fecha->format('d M Y'),
+              'fecha' => format_user_date($proximaCita->fecha),
               'hora' => $proximaCita->hora
                   ? (function ($hora) {
                       try {
-                          return \Illuminate\Support\Carbon::parse($hora)->format('g:i A');
+                          return format_user_time(\Illuminate\Support\Carbon::parse($hora));
                       } catch (\Exception $e) {
                           return $hora;
                       }
@@ -2342,12 +2342,19 @@ async function confirmarEliminar() {
   if (!patient) return;
 
   try {
+    const criticalToken = await window.CriticalSecurity.authorize(
+      'patients',
+      `Confirma tu contraseña para eliminar al paciente ${patient.name}.`
+    );
+    if (criticalToken === null) return;
+
     const response = await fetch(routes.destroy.replace(':id', patient.id), {
       method: 'POST',
       headers: {
         'X-CSRF-TOKEN': '{{ csrf_token() }}',
         'X-Requested-With': 'XMLHttpRequest',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'X-Critical-Authorization': criticalToken
       },
       body: new URLSearchParams({'_method':'DELETE'})
     });

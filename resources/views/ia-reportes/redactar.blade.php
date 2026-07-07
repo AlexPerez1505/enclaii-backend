@@ -186,7 +186,9 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 .rep-sign[data-pos="left"]{justify-content:flex-start}
 .rep-sign[data-pos="center"]{justify-content:center}
 .rep-sign[data-pos="right"]{justify-content:flex-end}
-.rep-sign .sign-box{min-width:250px;text-align:center;padding-top:8px;border-top:1px solid var(--txt)}
+.rep-sign .sign-box{min-width:250px;text-align:center}
+.rep-sign .sign-image{display:block;max-width:230px;max-height:72px;object-fit:contain;margin:0 auto 5px}
+.rep-sign .sign-line{padding-top:8px;border-top:1px solid var(--txt)}
 .rep-sign .sign-box [contenteditable]{font-size:13px;outline:none}
 
 /* ===== Modal de Configuración ===== */
@@ -352,7 +354,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
       <label>Fecha del reporte</label>
       <div class="ed-ctrl">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <span contenteditable="true" data-ph="dd/mm/aaaa">{{ now()->format('d/m/Y') }}</span>
+        <span contenteditable="true" data-ph="{{ str_replace(['d','m','Y'], ['dd','mm','aaaa'], user_date_format()) }}">{{ now()->format(user_date_format()) }}</span>
       </div>
     </div>
     <div class="f">
@@ -435,7 +437,16 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
         {{-- Firma (su posición se cambia desde Configuración) --}}
         <div class="rep-sign" id="repSign" data-pos="center">
           <div class="sign-box">
-            <span contenteditable="true" id="repSignName" data-ph="Dr. Nombre del médico">{{ ($datosEstudio['medico'] ?? '') ?: 'Dr. Nombre del médico' }}</span>
+            @if(auth()->user()?->signature_path)
+              <img
+                class="sign-image"
+                src="{{ route('configuracion.signature.show', ['v' => auth()->user()->signature_updated_at?->timestamp]) }}"
+                alt="Firma digital de {{ auth()->user()->name }}"
+              >
+            @endif
+            <div class="sign-line">
+              <span contenteditable="true" id="repSignName" data-ph="Dr. Nombre del médico">{{ ($datosEstudio['medico'] ?? '') ?: 'Dr. Nombre del médico' }}</span>
+            </div>
           </div>
         </div>
       </article>

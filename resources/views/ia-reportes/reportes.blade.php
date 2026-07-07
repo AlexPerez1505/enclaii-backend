@@ -73,7 +73,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
           <tr>
             <td><span class="pat"><span class="mini">{{ $pacIni }}</span>{{ $pacNombre }}</span></td>
             <td>{{ $r->estudio?->tipo ?? '—' }}</td>
-            <td class="date">{{ $r->created_at?->format('d/m/Y') }} <small>{{ $r->created_at?->format('h:i A') }}</small></td>
+            <td class="date">{{ format_user_date($r->created_at) }} <small>{{ format_user_time($r->created_at) }}</small></td>
             <td><span class="chip {{ $critico ? 'urgent' : 'done' }}">{{ $critico ? 'Crítico' : 'Normal' }}</span></td>
             <td>
               <div class="row-actions">

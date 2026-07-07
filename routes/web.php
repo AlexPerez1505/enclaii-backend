@@ -19,6 +19,15 @@ use App\Http\Controllers\NotificationController;
 Route::get('/storage/{path}', [StorageServeController::class, 'show'])
     ->where('path', '.*')
     ->name('storage.fallback');
+use App\Http\Controllers\ConfigurationBackupController;
+use App\Http\Controllers\SignatureController;
+use App\Http\Controllers\PasswordController;
+use App\Http\Controllers\UserSessionController;
+use App\Http\Controllers\ClinicaMemberController;
+use App\Http\Controllers\CriticalSecurityController;
+use App\Http\Controllers\SecuritySettingsController;
+use App\Http\Controllers\QrRegistrationController;
+use App\Http\Controllers\PublicPatientPreregistrationController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -34,6 +43,18 @@ Route::post('/webhooks/whatsapp', [WhatsAppController::class, 'webhook'])
 Route::post('/webhooks/stripe', [StripeController::class, 'webhook'])
     ->name('webhooks.stripe');
 
+Route::get('/registro-paciente/completado', [PublicPatientPreregistrationController::class, 'success'])
+    ->name('qr.public.success');
+Route::get('/registro-paciente/expirado', [PublicPatientPreregistrationController::class, 'expired'])
+    ->name('qr.public.expired');
+Route::get('/registro-paciente/{token}', [PublicPatientPreregistrationController::class, 'show'])
+    ->where('token', '[A-Za-z0-9]{64}')
+    ->name('qr.public.show');
+Route::post('/registro-paciente/{token}', [PublicPatientPreregistrationController::class, 'store'])
+    ->where('token', '[A-Za-z0-9]{64}')
+    ->middleware('throttle:5,1')
+    ->name('qr.public.store');
+
 Route::middleware('guest')->group(function () {
     Route::get('/login', [EndoCareAuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [EndoCareAuthController::class, 'login'])->name('login.post');
@@ -42,7 +63,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/registro', [EndoCareAuthController::class, 'register'])->name('register.post');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
 
     // Ruta de configuracion: si no tiene plan, muestra vista plan-only
     Route::get('/configuracion', function () {
@@ -50,7 +71,49 @@ Route::middleware('auth')->group(function () {
             return view('configuracion.plan-only');
         }
         return view('configuracion.index', [
+            'billingUser' => request()->user()->billingUser(),
+            'clinicMembers' => request()->user()->clinica
+                ->usuarios()
+                ->withMax('connectedSessions', 'last_activity')
+                ->orderByRaw("CASE WHEN clinica_rol = 'propietario' THEN 0 ELSE 1 END")
+                ->orderBy('name')
+                ->get(),
+            'clinicInvitations' => request()->user()->clinica
+                ->invitations()
+                ->whereNull('accepted_at')
+                ->whereNull('revoked_at')
+                ->where('expires_at', '>', now())
+                ->latest()
+                ->get(),
+            'clinicMemberLimit' => request()->user()->clinicMemberLimit(),
             'userSettings' => request()->user()->resolvedSettings(),
+            'securitySettings' => request()->user()->securityPreferences(),
+            'configurationBackups' => request()->user()
+                ->configurationBackups()
+                ->latest()
+                ->limit(10)
+                ->get(),
+            'activityLogs' => request()->user()
+                ->activityLogs()
+                ->with('user')
+                ->when(request('activity_search'), function ($query, $search) {
+                    $query->where(function ($filter) use ($search) {
+                        $filter
+                            ->where('description', 'like', '%'.$search.'%')
+                            ->orWhere('category', 'like', '%'.$search.'%')
+                            ->orWhere('action', 'like', '%'.$search.'%')
+                            ->orWhere('ip_address', 'like', '%'.$search.'%');
+                    });
+                })
+                ->latest()
+                ->paginate(8, ['*'], 'activity_page')
+                ->withQueryString(),
+            'connectedSessions' => request()->user()
+                ->connectedSessions()
+                ->where('last_activity', '>=', now()->subMinutes(config('session.lifetime'))->timestamp)
+                ->orderByDesc('last_activity')
+                ->get(),
+            'currentSessionId' => request()->session()->getId(),
         ]);
     })->name('configuracion');
 
@@ -65,6 +128,44 @@ Route::middleware('auth')->group(function () {
     // ===== Aceptaciones legales =====
     Route::post('/legal/acceptances', [SettingsController::class, 'storeLegalAcceptances'])
         ->name('legal.acceptances.store');
+    Route::post('/configuracion/copias', [ConfigurationBackupController::class, 'store'])
+        ->name('configuracion.backups.store');
+    Route::post('/configuracion/copias/{backup}/restaurar', [ConfigurationBackupController::class, 'restore'])
+        ->name('configuracion.backups.restore');
+    Route::get('/configuracion/copias/{backup}/descargar', [ConfigurationBackupController::class, 'download'])
+        ->name('configuracion.backups.download');
+    Route::delete('/configuracion/copias/{backup}', [ConfigurationBackupController::class, 'destroy'])
+        ->name('configuracion.backups.destroy');
+
+    Route::get('/configuracion/firma', [SignatureController::class, 'show'])
+        ->name('configuracion.signature.show');
+    Route::post('/configuracion/firma', [SignatureController::class, 'store'])
+        ->name('configuracion.signature.store');
+    Route::delete('/configuracion/firma', [SignatureController::class, 'destroy'])
+        ->name('configuracion.signature.destroy');
+
+    Route::patch('/configuracion/seguridad/contrasena', [PasswordController::class, 'update'])
+        ->name('configuracion.password.update');
+    Route::post('/configuracion/seguridad/autorizar', [CriticalSecurityController::class, 'authorizeAction'])
+        ->middleware('throttle:6,1')
+        ->name('configuracion.security.authorize');
+    Route::patch('/configuracion/seguridad/permisos', [SecuritySettingsController::class, 'update'])
+        ->middleware('critical.password:security_settings')
+        ->name('configuracion.security-settings.update');
+
+    Route::middleware('clinic.owner')->group(function () {
+        Route::post('/configuracion/clinica/invitaciones', [ClinicaMemberController::class, 'storeInvitation'])
+            ->name('configuracion.clinic-invitations.store');
+        Route::delete('/configuracion/clinica/invitaciones/{invitation}', [ClinicaMemberController::class, 'destroyInvitation'])
+            ->name('configuracion.clinic-invitations.destroy');
+        Route::delete('/configuracion/clinica/integrantes/{member}', [ClinicaMemberController::class, 'destroyMember'])
+            ->name('configuracion.clinic-members.destroy');
+    });
+
+    Route::delete('/configuracion/seguridad/sesiones/otras', [UserSessionController::class, 'destroyOthers'])
+        ->name('configuracion.sessions.destroy-others');
+    Route::delete('/configuracion/seguridad/sesiones/{session}', [UserSessionController::class, 'destroy'])
+        ->name('configuracion.sessions.destroy');
 
     // ===== Stripe (pagos y suscripciones) =====
     Route::post('/stripe/checkout', [StripeController::class, 'checkout'])
@@ -75,6 +176,9 @@ Route::middleware('auth')->group(function () {
         ->name('stripe.subscribe');
     Route::post('/stripe/change-plan', [StripeController::class, 'changePlan'])
         ->name('stripe.change.plan');
+    Route::post('/stripe/member-addon/checkout', [StripeController::class, 'memberAddonCheckout'])
+        ->middleware('clinic.owner')
+        ->name('stripe.member-addon.checkout');
     Route::get('/stripe/invoices', [StripeController::class, 'invoices'])
         ->name('stripe.invoices');
     Route::post('/stripe/cancel-subscription', [StripeController::class, 'cancelSubscription'])
@@ -100,7 +204,7 @@ Route::middleware('auth')->group(function () {
 
 });
 
-Route::middleware(['auth', 'subscribed'])->group(function () {
+Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
 
     Route::get('/dashboard', function () {
         $estudiosSinReporte = \App\Models\Estudio::whereDoesntHave('reportes')->count();
@@ -590,7 +694,12 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
         ->name('nuevo-estudio.finalizar');
 
     Route::delete('/nuevo-estudio/archivos/{archivo}', [NuevoEstudioController::class, 'destroyArchivo'])
+        ->middleware('critical.password:studies')
         ->name('nuevo-estudio.archivos.destroy');
+
+    Route::patch('/nuevo-estudio/configuracion', [NuevoEstudioController::class, 'guardarConfiguracion'])
+        ->middleware('critical.password:studies')
+        ->name('nuevo-estudio.configuracion.update');
 
     /* ── Galería ── */
     Route::get('/galeria', function () {
@@ -750,6 +859,7 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
     })->name('galeria.imagen');
 
     Route::delete('/galeria/imagenes/{archivo}', [NuevoEstudioController::class, 'destroyImagenGaleria'])
+        ->middleware('critical.password:studies')
         ->name('galeria.imagen.destroy');
 
     Route::post('/galeria/imagen/{id}/guardar', function ($id, \Illuminate\Http\Request $request) {
@@ -783,7 +893,8 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
                 'path' => $archivo->path,
             ],
         ]);
-    })->name('galeria.imagen.guardar');
+    })->middleware('critical.password:studies')
+        ->name('galeria.imagen.guardar');
 
     Route::post('/galeria/imagen/{id}/guardar-copia', function ($id, \Illuminate\Http\Request $request) {
         $archivo = \App\Models\EstudioArchivo::findOrFail($id);
@@ -816,7 +927,8 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
                 'path' => $copy->path,
             ],
         ]);
-    })->name('galeria.imagen.guardar-copia');
+    })->middleware('critical.password:studies')
+        ->name('galeria.imagen.guardar-copia');
 
     /* ── Finanzas ── */
     // Route::get('/finanzas', function () {
@@ -825,19 +937,32 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
 });
 
 
-Route::resource('pacientes', PacienteController::class);
+Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
+    Route::resource('pacientes', PacienteController::class)
+        ->middlewareFor(['update', 'destroy'], 'critical.password:patients');
 
-Route::get('/agenda', [AgendaController::class, 'index'])->name('agenda');
-Route::get('/agendar', [AgendaController::class, 'create'])->name('agendar');
+    Route::get('/qr', [QrRegistrationController::class, 'index'])->name('qr.index');
+    Route::post('/qr/enlaces', [QrRegistrationController::class, 'store'])->name('qr.links.store');
+    Route::get('/qr/enlaces/{link}/imagen', [QrRegistrationController::class, 'image'])->name('qr.links.image');
+    Route::delete('/qr/enlaces/{link}', [QrRegistrationController::class, 'destroy'])->name('qr.links.destroy');
+    Route::delete('/qr/enlaces/{link}/eliminar', [QrRegistrationController::class, 'archive'])->name('qr.links.archive');
+    Route::post('/qr/preregistros/{preregistration}/aceptar', [QrRegistrationController::class, 'accept'])
+        ->name('qr.preregistrations.accept');
+    Route::post('/qr/preregistros/{preregistration}/rechazar', [QrRegistrationController::class, 'reject'])
+        ->name('qr.preregistrations.reject');
 
-Route::post('/agenda/citas', [AgendaController::class, 'store'])->name('agenda.citas.store');
-Route::put('/agenda/citas/{cita}', [AgendaController::class, 'update'])->name('agenda.citas.update');
-Route::patch('/agenda/citas/{cita}/estado', [AgendaController::class, 'cambiarEstado'])->name('agenda.citas.estado');
-Route::delete('/agenda/citas/{cita}', [AgendaController::class, 'destroy'])->name('agenda.citas.destroy');
+    Route::get('/agenda', [AgendaController::class, 'index'])->name('agenda');
+    Route::get('/agendar', [AgendaController::class, 'create'])->name('agendar');
 
-Route::get('/finanzas', function () {
-    return view('finanzas.index');
-})->name('finanzas');
+    Route::post('/agenda/citas', [AgendaController::class, 'store'])->name('agenda.citas.store');
+    Route::put('/agenda/citas/{cita}', [AgendaController::class, 'update'])->name('agenda.citas.update');
+    Route::patch('/agenda/citas/{cita}/estado', [AgendaController::class, 'cambiarEstado'])->name('agenda.citas.estado');
+    Route::delete('/agenda/citas/{cita}', [AgendaController::class, 'destroy'])->name('agenda.citas.destroy');
+
+    Route::get('/finanzas', function () {
+        return view('finanzas.index');
+    })->name('finanzas');
+});
 
 
 Route::get('/forgot-password', function () {

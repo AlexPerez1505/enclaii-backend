@@ -2,14 +2,18 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToClinica;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WhatsAppMessage extends Model
 {
+    use BelongsToClinica;
+
     protected $table = 'whatsapp_messages';
 
     protected $fillable = [
+        'clinica_id',
         'paciente_id',
         'user_id',
         'meta_message_id',

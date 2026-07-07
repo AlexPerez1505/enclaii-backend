@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Throwable;
 
@@ -19,7 +20,10 @@ class IaReporteController extends Controller
     public function generar(Request $request, OpenAiReportService $service): JsonResponse
     {
         $validated = $request->validate([
-            'estudio_id' => ['required', 'exists:estudios,id'],
+            'estudio_id' => [
+                'required',
+                Rule::exists('estudios', 'id')->where('clinica_id', $request->user()->clinica_id),
+            ],
             'paciente' => ['nullable', 'string', 'max:255'],
             'tipo_estudio' => ['nullable', 'string', 'max:255'],
             'fecha' => ['nullable', 'string', 'max:50'],
@@ -216,8 +220,14 @@ class IaReporteController extends Controller
     public function guardar(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'estudio_id' => ['required', 'exists:estudios,id'],
-            'reporte_id' => ['nullable', 'exists:reportes,id'],
+            'estudio_id' => [
+                'required',
+                Rule::exists('estudios', 'id')->where('clinica_id', $request->user()->clinica_id),
+            ],
+            'reporte_id' => [
+                'nullable',
+                Rule::exists('reportes', 'id')->where('clinica_id', $request->user()->clinica_id),
+            ],
             'contenido_texto' => ['nullable', 'string'],
             'contenido_html' => ['nullable', 'string'],
             'contiene_hallazgos_criticos' => ['nullable', 'boolean'],

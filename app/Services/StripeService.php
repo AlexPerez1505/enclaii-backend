@@ -83,6 +83,41 @@ class StripeService
     }
 
     /**
+     * Crea una suscripción mensual independiente para una cuenta adicional.
+     */
+    public function createMemberAddonCheckout(User $user, string $successUrl, string $cancelUrl): \Stripe\Checkout\Session
+    {
+        $metadata = [
+            'user_id' => (string) $user->id,
+            'type' => 'member_addon',
+            'quantity' => '1',
+        ];
+
+        return $this->client->checkout->sessions->create([
+            'mode' => 'subscription',
+            'customer' => $this->resolveCustomer($user),
+            'line_items' => [[
+                'price_data' => [
+                    'currency' => config('services.stripe.currency', 'mxn'),
+                    'unit_amount' => (int) config('services.stripe.member_addon.amount', 500000),
+                    'recurring' => ['interval' => 'month'],
+                    'product_data' => [
+                        'name' => 'ENCLAII - Cuenta adicional Red Médica',
+                    ],
+                ],
+                'quantity' => 1,
+            ]],
+            'success_url' => $successUrl,
+            'cancel_url' => $cancelUrl,
+            'allow_promotion_codes' => true,
+            'metadata' => $metadata,
+            'subscription_data' => [
+                'metadata' => $metadata,
+            ],
+        ]);
+    }
+
+    /**
      * Crea una sesión de Checkout en modo embedded (para mostrar en modal).
      */
     public function createEmbeddedCheckout(User $user, string $priceId, string $returnUrl, array $metadata = []): \Stripe\Checkout\Session

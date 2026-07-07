@@ -78,6 +78,29 @@ return [
             'storage_50' => env('STRIPE_PRICE_STORAGE_50'),
             'storage_100' => env('STRIPE_PRICE_STORAGE_100'),
         ],
+
+        // Cuenta adicional para Red Médica: $5,000 MXN al mes.
+        'member_addon' => [
+            'amount' => 500000,
+        ],
+    ],
+
+    'whatsapp' => [
+        'access_token' => env('WHATSAPP_ACCESS_TOKEN'),
+        'business_account_id' => env('WHATSAPP_BUSINESS_ACCOUNT_ID'),
+        'phone_number_id' => env('WHATSAPP_PHONE_NUMBER_ID'),
+        'phone_number' => env('WHATSAPP_PHONE_NUMBER'),
+        'api_version' => env('WHATSAPP_API_VERSION', 'v21.0'),
+        'webhook_verify_token' => env('WHATSAPP_WEBHOOK_VERIFY_TOKEN'),
+        'app_secret' => env('WHATSAPP_APP_SECRET'),
+        'notifications_enabled' => env('WHATSAPP_NOTIFICATIONS_ENABLED', true),
+        'default_language' => env('WHATSAPP_DEFAULT_LANG', 'es_MX'),
+        'auto_reply_enabled' => env('WHATSAPP_AUTO_REPLY_ENABLED', false),
+        'auto_reply_message' => env(
+            'WHATSAPP_AUTO_REPLY_MESSAGE',
+            'Hola, somos ENCLAII. ¿Cómo podemos ayudarte?'
+        ),
+        'auto_reply_cooldown_hours' => env('WHATSAPP_AUTO_REPLY_COOLDOWN_HOURS', 24),
     ],
 
     'whatsapp' => [

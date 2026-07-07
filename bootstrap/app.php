@@ -18,16 +18,18 @@ return Application::configure(basePath: dirname(__DIR__))
             'webhooks/stripe',
         ]);
 
+        $middleware->web(\App\Http\Middleware\UserTimezone::class);
+
         $middleware->alias([
             'subscribed' => \App\Http\Middleware\EnsureSubscribed::class,
+            'clinic.owner' => \App\Http\Middleware\EnsureClinicaOwner::class,
+            'critical.password' => \App\Http\Middleware\RequireCriticalPassword::class,
         ]);
 
         // Usuarios ya autenticados que visitan /login o /registro:
         // si tienen plan -> dashboard, si no -> seleccionar plan
         $middleware->redirectUsersTo(function ($request) {
-            $user = $request->user();
-
-            return $user && $user->subscribed() ? '/dashboard' : '/configuracion';
+            return $request->user()?->subscribed() ? '/dashboard' : '/seleccionar-plan';
         });
     })
     ->withBroadcasting(

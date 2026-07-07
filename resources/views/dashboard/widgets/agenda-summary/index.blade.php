@@ -56,7 +56,7 @@
       @forelse($pendientesMes ?? ($pendientesHoy ?? []) as $cita)
         @php
           $fecha = \Carbon\Carbon::parse($cita->fecha)->format('d/m');
-          $hora = \Carbon\Carbon::parse($cita->hora)->format('g:i A');
+          $hora = format_user_time(\Carbon\Carbon::parse($cita->hora));
           $chip = $cita->estado === 'proximo' ? 'wait' : 'urgent';
           $chipText = $cita->estado === 'proximo' ? 'Próxima' : 'En espera';
         @endphp
