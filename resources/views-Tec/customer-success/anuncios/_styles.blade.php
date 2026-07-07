@@ -28,6 +28,65 @@
 .cs-btn-danger:hover{background:rgba(220,38,38,.2)}
 .cs-btn-secondary{background:var(--panel);border:1px solid var(--stroke);color:var(--txt-soft)}
 .cs-btn-secondary:hover{border-color:var(--blue);color:var(--blue)}
+
+/* Botones de acción en tabla (ícono) */
+.cs-action-btn{
+  position:relative;
+  display:inline-flex;align-items:center;justify-content:center;
+  width:32px;height:32px;border-radius:8px;border:none;cursor:pointer;
+  transition:background 140ms,color 140ms,transform 100ms;
+  background:transparent;
+}
+.cs-action-btn svg{width:15px;height:15px;stroke-width:2;pointer-events:none}
+.cs-action-btn:active{transform:scale(.9)}
+.cs-action-btn[data-tip]{position:relative}
+.cs-action-btn[data-tip]::after{
+  content:attr(data-tip);
+  position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+  background:#1e2530;color:#f1f5f9;font-size:11px;font-weight:600;
+  white-space:nowrap;padding:3px 8px;border-radius:6px;pointer-events:none;
+  opacity:0;transition:opacity 120ms;
+}
+.cs-action-btn[data-tip]:hover::after{opacity:1}
+.cs-action-view{color:#60a5fa}
+.cs-action-view:hover{background:rgba(59,130,246,.12)}
+.cs-action-edit{color:#34d399}
+.cs-action-edit:hover{background:rgba(52,211,153,.12)}
+.cs-action-delete{color:#f87171}
+.cs-action-delete:hover{background:rgba(248,113,113,.12)}
+
+/* Wrapper tipo + candado */
+.cs-tipo-wrap{position:relative;display:flex;align-items:center}
+.cs-tipo-wrap .cs-input{flex:1;padding-right:36px}
+.cs-tipo-lock{
+  display:none;position:absolute;right:10px;
+  color:var(--txt-soft);pointer-events:none;
+}
+.cs-tipo-lock svg{width:15px;height:15px}
+.cs-tipo-wrap.locked .cs-tipo-lock{display:flex;align-items:center}
+.cs-tipo-wrap.locked .cs-input{
+  opacity:.65;cursor:not-allowed;
+  background:repeating-linear-gradient(135deg,transparent,transparent 4px,rgba(0,0,0,.03) 4px,rgba(0,0,0,.03) 8px);
+  appearance:none;-webkit-appearance:none;-moz-appearance:none;
+}
+
+/* Banner de edición activa */
+.cs-edit-banner{
+  display:none;align-items:center;gap:12px;
+  background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.35);
+  border-radius:10px;padding:10px 16px;margin-bottom:12px;
+  font-size:13px;color:var(--txt);
+}
+.cs-edit-banner.visible{display:flex}
+.cs-edit-banner-icon{font-size:18px;flex:none}
+.cs-edit-banner-text{flex:1;line-height:1.4}
+.cs-edit-banner-text strong{color:#34d399}
+.cs-edit-banner-close{
+  background:none;border:none;cursor:pointer;color:var(--txt-soft);
+  font-size:18px;line-height:1;padding:0 4px;
+  transition:color 140ms;flex:none;
+}
+.cs-edit-banner-close:hover{color:#ef4444}
 .cs-table{width:100%;border-collapse:collapse}
 .cs-table th,.cs-table td{padding:12px;text-align:left;font-size:13px;border-bottom:1px solid var(--stroke)}
 .cs-table th{color:var(--txt-soft);font-weight:600}
@@ -76,6 +135,24 @@
 .cs-channel{display:flex;align-items:center;gap:8px;cursor:pointer}
 .cs-channel input{width:16px;height:16px;cursor:pointer}
 
+/* Mini-modal de confirmación */
+.cs-confirm-ov{
+  position:fixed;inset:0;z-index:4000;
+  background:rgba(0,0,0,.55);backdrop-filter:blur(3px);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;visibility:hidden;transition:opacity 180ms ease,visibility 180ms ease;
+}
+.cs-confirm-ov.open{opacity:1;visibility:visible}
+.cs-confirm-box{
+  background:var(--panel);border:1px solid var(--stroke);
+  border-radius:14px;padding:22px 24px;max-width:360px;width:90%;
+  box-shadow:0 8px 32px rgba(0,0,0,.35);
+  transform:scale(.94);transition:transform 180ms var(--ease-out,cubic-bezier(.16,1,.3,1));
+}
+.cs-confirm-ov.open .cs-confirm-box{transform:scale(1)}
+.cs-confirm-msg{font-size:14px;color:var(--txt);margin:0 0 18px;line-height:1.5}
+.cs-confirm-btns{display:flex;gap:10px;justify-content:flex-end}
+
 /* Vista previa base */
 .pv-ov{position:fixed;inset:0;z-index:3000;background:rgba(8,12,18,.78);backdrop-filter:blur(4px);display:none;flex-direction:column}
 .pv-ov.open{display:flex}
@@ -87,6 +164,21 @@
 .pv-card .meta{font-size:12px;margin-bottom:16px}
 .pv-card .body{font-size:13px;line-height:1.7}
 .pv-card .body ul,.pv-card .body ol{padding-left:20px}
+
+/* Tema: Notificación — alerta rápida violeta (estándar libre) */
+.theme-notificacion{
+  background:linear-gradient(135deg,#1e1030 0%,#0f0720 100%);
+  border:1px solid #8b5cf6;
+  box-shadow:0 0 0 3px rgba(139,92,246,.15);
+}
+.theme-notificacion .pv-badge{
+  display:inline-flex;align-items:center;gap:6px;background:rgba(139,92,246,.2);
+  color:#c4b5fd;border:1px solid rgba(139,92,246,.45);border-radius:20px;
+  font-size:11px;font-weight:700;padding:3px 10px;margin-bottom:14px;
+}
+.theme-notificacion h2{color:#f5f3ff;font-size:20px;border-bottom:2px solid #8b5cf6;padding-bottom:10px;margin-bottom:8px}
+.theme-notificacion .meta{color:#a78bfa;font-weight:500}
+.theme-notificacion .body{color:#ede9fe}
 
 /* Tema: Anuncios internos — comunicado formal azul (alto contraste) */
 .theme-anuncios_internos{

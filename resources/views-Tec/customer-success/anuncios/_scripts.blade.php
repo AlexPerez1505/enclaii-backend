@@ -11,6 +11,28 @@
   const pvClose = document.getElementById('pvClose');
   const pvBtn = document.getElementById('csPreview');
 
+  const _confirmOv  = document.getElementById('csConfirmOv');
+  const _confirmMsg  = document.getElementById('csConfirmMsg');
+  const _confirmOk   = document.getElementById('csConfirmOk');
+  const _confirmCancel = document.getElementById('csConfirmCancel');
+
+  function csConfirm(msg) {
+    return new Promise(resolve => {
+      _confirmMsg.textContent = msg;
+      _confirmOv.classList.add('open');
+      function cleanup(result) {
+        _confirmOv.classList.remove('open');
+        _confirmOk.removeEventListener('click', onOk);
+        _confirmCancel.removeEventListener('click', onCancel);
+        resolve(result);
+      }
+      function onOk()     { cleanup(true);  }
+      function onCancel() { cleanup(false); }
+      _confirmOk.addEventListener('click', onOk);
+      _confirmCancel.addEventListener('click', onCancel);
+    });
+  }
+
   function showAlert(msg, type){
     alert.textContent = msg;
     alert.className = 'cs-alert ' + type;
@@ -48,6 +70,7 @@
   editor.addEventListener('input', () => hiddenInput.value = editor.innerHTML);
 
   const THEMES = {
+    notificacion:     { cls: 'theme-notificacion',      badge: '🔔 Notificación',           icon: null },
     anuncios_internos: { cls: 'theme-anuncios_internos', badge: '📋 Comunicado Interno', icon: null },
     mejoras:          { cls: 'theme-mejoras',           badge: '🚀 Mejoras en Enclaii',  icon: null },
     mantenimiento:    { cls: 'theme-mantenimiento',     badge: '⚠️ Aviso de Mantenimiento', icon: '🔧' },
@@ -107,12 +130,21 @@
 
   const tipoSelect = document.getElementById('csTipo');
 
-  tipoSelect.addEventListener('change', function(){
+  tipoSelect.addEventListener('change', async function(){
     const boilerplate = BOILERPLATES[this.value];
-    if (!boilerplate) return;
-    if (editor.innerHTML.trim() === '' || confirm('¿Reemplazar el contenido con la plantilla de "' + this.options[this.selectedIndex].text + '"?')) {
+    if (!boilerplate) {
+      if (editor.innerHTML.trim() !== '') {
+        const ok = await csConfirm('Este tipo no tiene plantilla. ¿Deseas limpiar el contenido actual?');
+        if (ok) { editor.innerHTML = ''; hiddenInput.value = ''; }
+      }
+      return;
+    }
+    if (editor.innerHTML.trim() === '') {
       editor.innerHTML = boilerplate;
       hiddenInput.value = boilerplate;
+    } else {
+      const ok = await csConfirm('¿Reemplazar el contenido con la plantilla de "' + this.options[this.selectedIndex].text + '"?');
+      if (ok) { editor.innerHTML = boilerplate; hiddenInput.value = boilerplate; }
     }
   });
 
@@ -150,6 +182,41 @@
   pvOverlay.addEventListener('click', (e) => { if (e.target === pvOverlay) closePreview(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && pvOverlay.classList.contains('open')) closePreview(); });
 
+  let editingId = null;
+  let flatpickrInstance = null;
+  const submitBtn   = form.querySelector('button[type="submit"]');
+  const editBanner  = document.getElementById('csEditBanner');
+  const bannerTitle = document.getElementById('csEditBannerTitle');
+  const cancelBtn   = document.getElementById('csCancelEdit');
+
+  function enterEditMode(id, titulo) {
+    editingId = id;
+    submitBtn.textContent = 'Guardar cambios';
+    tipoSelect.disabled = true;
+    tipoSelect.closest('.cs-tipo-wrap')?.classList.add('locked');
+    if (bannerTitle) bannerTitle.textContent = titulo || '—';
+    if (editBanner)  editBanner.classList.add('visible');
+    setTimeout(() => {
+      const top = (editBanner?.getBoundingClientRect().top ?? 0) + window.scrollY - 16;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }, 30);
+  }
+
+  function exitEditMode() {
+    editingId = null;
+    submitBtn.textContent = 'Publicar anuncio';
+    tipoSelect.disabled = false;
+    tipoSelect.closest('.cs-tipo-wrap')?.classList.remove('locked');
+    if (editBanner)  editBanner.classList.remove('visible');
+    if (bannerTitle) bannerTitle.textContent = '—';
+    form.reset();
+    editor.innerHTML = '';
+    hiddenInput.value = '';
+    if (flatpickrInstance) flatpickrInstance.clear();
+  }
+
+  if (cancelBtn) cancelBtn.addEventListener('click', exitEditMode);
+
   form.addEventListener('submit', async function(e){
     e.preventDefault();
     hiddenInput.value = editor.innerHTML;
@@ -165,9 +232,13 @@
       fecha_publicacion: document.getElementById('csFecha').value || null,
     };
 
+    const isEdit = editingId !== null;
+    const url    = isEdit ? '/api/customer-success/anuncios/' + editingId : '/api/customer-success/anuncios';
+    const method = isEdit ? 'PUT' : 'POST';
+
     try {
-      const res = await fetch('/api/customer-success/anuncios', {
-        method: 'POST',
+      const res = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -176,51 +247,176 @@
         body: JSON.stringify(payload),
       });
 
+      if (res.status === 419) {
+        showAlert('Tu sesión expiró. Redirigiendo...', 'error');
+        setTimeout(() => { window.location.href = '/cerrar-sesion'; }, 1200);
+        return;
+      }
       if (res.ok) {
-        showAlert('Anuncio enviado correctamente.', 'success');
-        form.reset();
-        editor.innerHTML = '';
+        showAlert(isEdit ? 'Anuncio actualizado correctamente.' : 'Anuncio enviado correctamente.', 'success');
+        exitEditMode();
         setTimeout(() => location.reload(), 800);
       } else {
         const data = await res.json();
-        showAlert(data.message || 'Error al publicar.', 'error');
+        showAlert(data.message || 'Error al guardar.', 'error');
       }
     } catch (err) {
       showAlert('Error de conexión.', 'error');
     }
   });
 
-  document.querySelectorAll('.cs-delete').forEach(btn => {
-    btn.addEventListener('click', async function(){
-      const row = this.closest('tr');
-      const id = row.dataset.id;
-      if (!confirm('¿Eliminar este anuncio?')) return;
+  // Paginación AJAX — intercepta clicks en links de paginación
+  const listaWrap = document.getElementById('csListaWrap');
 
-      try {
-        const res = await fetch('/api/customer-success/anuncios/' + id, {
-          method: 'DELETE',
-          headers: {
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-          },
+  function bindPaginationLinks() {
+    if (!listaWrap) return;
+    listaWrap.querySelectorAll('[data-pagination] a, nav a, .pagination a').forEach(a => {
+      a.addEventListener('click', async function(e) {
+        e.preventDefault();
+        const url = this.href;
+        if (!url) return;
+        try {
+          const res = await fetch(url, {
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'text/html',
+            }
+          });
+          if (res.status === 419) {
+            showAlert('Tu sesión expiró. Redirigiendo...', 'error');
+            setTimeout(() => { window.location.href = '/cerrar-sesion'; }, 1200);
+            return;
+          }
+          if (res.ok) {
+            const html = await res.text();
+            const tmp = document.createElement('div');
+            tmp.innerHTML = html;
+            const newWrap = tmp.querySelector('#csListaWrap');
+            if (newWrap) {
+              listaWrap.innerHTML = newWrap.innerHTML;
+              bindDeleteButtons();
+              bindViewButtons();
+              bindEditButtons();
+              bindPaginationLinks();
+              window.history.pushState({}, '', url);
+            }
+          }
+        } catch(err) {}
+      });
+    });
+  }
+
+  function bindDeleteButtons() {
+    if (!listaWrap) return;
+    listaWrap.querySelectorAll('.cs-delete').forEach(btn => {
+      if (btn.dataset.bound) return;
+      btn.dataset.bound = '1';
+      btn.addEventListener('click', async function(){
+        const row = this.closest('tr');
+        const id = row.dataset.id;
+        if (!await csConfirm('¿Eliminar este anuncio? Esta acción no se puede deshacer.')) return;
+        try {
+          const res = await fetch('/api/customer-success/anuncios/' + id, {
+            method: 'DELETE',
+            headers: {
+              'Accept': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            },
+          });
+          if (res.status === 419) {
+            showAlert('Tu sesión expiró. Redirigiendo...', 'error');
+            setTimeout(() => { window.location.href = '/cerrar-sesion'; }, 1200);
+            return;
+          }
+          if (res.ok) {
+            row.remove();
+            showAlert('Anuncio eliminado.', 'success');
+          } else {
+            const data = await res.json();
+            showAlert(data.message || 'Error al eliminar.', 'error');
+          }
+        } catch (err) {
+          showAlert('Error de conexión.', 'error');
+        }
+      });
+    });
+  }
+
+  function bindViewButtons() {
+    if (!listaWrap) return;
+    listaWrap.querySelectorAll('.cs-view').forEach(btn => {
+      if (btn.dataset.bound) return;
+      btn.dataset.bound = '1';
+      btn.addEventListener('click', function() {
+        const row   = this.closest('tr');
+        const tipo  = row.dataset.tipo;
+        const theme = THEMES[tipo] || { cls: '', badge: tipo, icon: null };
+
+        const pvCard = document.getElementById('pvCard');
+        pvCard.className = 'pv-card ' + theme.cls;
+
+        const pvIcon = document.getElementById('pvIcon');
+        if (theme.icon) { pvIcon.textContent = theme.icon; pvIcon.style.display = 'block'; }
+        else { pvIcon.style.display = 'none'; }
+
+        document.getElementById('pvBadge').textContent = theme.badge;
+        document.getElementById('pvTitle').textContent = row.dataset.titulo;
+
+        const tipoOpts = tipoSelect.options;
+        let tipoLabel = tipo;
+        for (let i = 0; i < tipoOpts.length; i++) {
+          if (tipoOpts[i].value === tipo) { tipoLabel = tipoOpts[i].text; break; }
+        }
+        const publicoMap = { todos: 'Todos', doctores: 'Doctores', administradores: 'Administradores' };
+        document.getElementById('pvMeta').textContent = tipoLabel + ' • ' + (publicoMap[row.dataset.publico] ?? row.dataset.publico);
+        document.getElementById('pvBody').innerHTML = row.dataset.contenido || '<p>Sin contenido</p>';
+
+        pvOverlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      });
+    });
+  }
+
+  function bindEditButtons() {
+    if (!listaWrap) return;
+    listaWrap.querySelectorAll('.cs-edit').forEach(btn => {
+      if (btn.dataset.bound) return;
+      btn.dataset.bound = '1';
+      btn.addEventListener('click', function() {
+        const row = this.closest('tr');
+
+        document.getElementById('csTitulo').value = row.dataset.titulo;
+
+        tipoSelect.value = row.dataset.tipo;
+        document.getElementById('csPublico').value = row.dataset.publico;
+
+        const canales = row.dataset.canales ? row.dataset.canales.split(',') : ['web'];
+        document.querySelectorAll('input[name="csCanales"]').forEach(cb => {
+          cb.checked = canales.includes(cb.value);
         });
 
-        if (res.ok) {
-          row.remove();
-          showAlert('Anuncio eliminado.', 'success');
-        } else {
-          const data = await res.json();
-          showAlert(data.message || 'Error al eliminar.', 'error');
+        if (flatpickrInstance && row.dataset.fecha) {
+          flatpickrInstance.setDate(row.dataset.fecha, false);
+        } else if (flatpickrInstance) {
+          flatpickrInstance.clear();
         }
-      } catch (err) {
-        showAlert('Error de conexión.', 'error');
-      }
+
+        editor.innerHTML = row.dataset.contenido || '';
+        hiddenInput.value = editor.innerHTML;
+
+        enterEditMode(row.dataset.id, row.dataset.titulo);
+      });
     });
-  });
+  }
+
+  bindDeleteButtons();
+  bindViewButtons();
+  bindEditButtons();
+  bindPaginationLinks();
 
   // Calendario personalizado para fecha de publicación
   if (typeof flatpickr !== 'undefined') {
-    flatpickr('#csFecha', {
+    flatpickrInstance = flatpickr('#csFecha', {
       enableTime: true,
       dateFormat: 'Y-m-d\\TH:i',
       altInput: true,

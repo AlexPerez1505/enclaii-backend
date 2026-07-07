@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\EndoCareAuthController;
 use App\Http\Controllers\IaReporteController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\WhatsAppController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\PacienteController;
@@ -39,6 +40,13 @@ Route::post('/webhooks/whatsapp', [WhatsAppController::class, 'webhook'])
 // Webhook de Stripe (ruta publica, sin CSRF: ver bootstrap/app.php)
 Route::post('/webhooks/stripe', [StripeController::class, 'webhook'])
     ->name('webhooks.stripe');
+
+Route::get('/cerrar-sesion', function (Illuminate\Http\Request $request) {
+    Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+    return redirect()->route('login');
+})->name('logout.get');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [EndoCareAuthController::class, 'showLogin'])->name('login');
@@ -133,7 +141,7 @@ Route::middleware('auth')->group(function () {
 
 });
 
-Route::middleware(['auth', 'subscribed'])->group(function () {
+Route::middleware(['auth', 'subscribed', 'no.customer.success'])->group(function () {
 
     Route::get('/dashboard', function () {
         $estudiosSinReporte = \App\Models\Estudio::whereDoesntHave('reportes')->count();

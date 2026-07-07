@@ -170,7 +170,33 @@ class AnuncioController extends Controller
         $validated = $request->validated();
         $validated['contenido'] = $this->purifier->clean($validated['contenido']);
 
+        $wasActive = $anuncio->activo;
         $anuncio->update($validated);
+        $anuncio->refresh();
+
+        $shouldPublish = $this->shouldPublishImmediately($validated['fecha_publicacion'] ?? null);
+
+        if ($wasActive && $shouldPublish) {
+            // Ya estaba publicado: actualizar el título en notificaciones existentes
+            // y re-broadcast para que el panel refleje el cambio en tiempo real.
+            Notification::where('tipo', 'anuncio')
+                ->whereRaw("JSON_EXTRACT(data, '$.anuncio_id') = ?", [$anuncio->id])
+                ->get()
+                ->each(function (Notification $n) use ($anuncio) {
+                    $data = $n->data;
+                    $data['titulo']  = $anuncio->titulo;
+                    $data['message'] = 'Se publicó un nuevo anuncio: ' . $anuncio->titulo;
+                    $n->update(['data' => $data]);
+                });
+
+            broadcast(new AnuncioPublicadoEvent($anuncio,
+                $this->targetUsersFor($anuncio, $request->user())->pluck('id')->all()
+            ));
+        } elseif (! $wasActive && $shouldPublish) {
+            // Antes no estaba activo, ahora sí: publicar por primera vez.
+            $anuncio->update(['activo' => true]);
+            $this->publishNow($anuncio, $request->user());
+        }
 
         return response()->json($anuncio);
     }

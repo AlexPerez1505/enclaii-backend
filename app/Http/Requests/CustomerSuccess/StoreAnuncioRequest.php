@@ -11,6 +11,7 @@ class StoreAnuncioRequest extends FormRequest
         'mejoras',
         'mantenimiento',
         'politicas',
+        'notificacion',
     ];
 
     public const PUBLICOS = [

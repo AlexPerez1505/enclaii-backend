@@ -394,6 +394,7 @@ html[data-theme="light"] .side-help { background: var(--bg); border:none; }
 .notif-ico.red{background:rgba(239,68,68,.15);color:var(--red)}
 .notif-ico.green{background:rgba(16,185,129,.15);color:var(--green)}
 .notif-ico.gray{background:rgba(148,163,184,.15);color:#94a3b8}
+.notif-ico.purple{background:rgba(139,92,246,.15);color:#a78bfa}
 .notif-ico svg{width:16px;height:16px}
 .notif-item.read{opacity:.75}
 .notif-item:not(.read){border-left:2px solid var(--blue);padding-left:10px}
@@ -1078,6 +1079,11 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
 .anuncio-modal.t-gray .anuncio-meta{color:#374151}
 .anuncio-modal.t-gray .anuncio-body{color:#1f2937}
 .anuncio-modal.t-gray .anuncio-badge{background:#f3f4f6;color:#111827;border:1px solid #374151}
+.anuncio-modal.t-purple{background:linear-gradient(135deg,#1e1030,#0f0720);border:1px solid #8b5cf6;color:#ede9fe}
+.anuncio-modal.t-purple .anuncio-title{color:#f5f3ff;border-bottom:2px solid #8b5cf6}
+.anuncio-modal.t-purple .anuncio-meta{color:#a78bfa}
+.anuncio-modal.t-purple .anuncio-body{color:#ede9fe}
+.anuncio-modal.t-purple .anuncio-badge{background:rgba(139,92,246,.2);color:#c4b5fd;border:1px solid rgba(139,92,246,.45)}
 
 /* Modal de alerta genérico */
 .app-alert-overlay{
@@ -2491,10 +2497,11 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
   };
 
   const ANUNCIO_CATEGORIA_CFG = {
-    anuncios_internos: { title: 'Comunicado interno',         type: 'blue',  icon: 'megaphone' },
-    mejoras:           { title: 'Mejoras en Enclaii',         type: 'green', icon: 'rocket'    },
-    mantenimiento:     { title: 'Aviso de mantenimiento',     type: 'amber', icon: 'wrench'    },
-    politicas:         { title: 'Actualización de políticas', type: 'gray',  icon: 'document'  },
+    notificacion:      { title: 'Notificación',               type: 'purple', icon: 'bell'      },
+    anuncios_internos: { title: 'Comunicado interno',         type: 'blue',   icon: 'megaphone' },
+    mejoras:           { title: 'Mejoras en Enclaii',         type: 'green',  icon: 'rocket'    },
+    mantenimiento:     { title: 'Aviso de mantenimiento',     type: 'amber',  icon: 'wrench'    },
+    politicas:         { title: 'Actualización de políticas', type: 'gray',   icon: 'document'  },
   };
 
   function cfgFor(e) {
@@ -2523,15 +2530,18 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
   }
 
   const CATEGORIA_LABELS = {
+    notificacion:      'Notificación',
     anuncios_internos: 'Comunicado interno',
     mejoras:           'Mejoras en Enclaii',
     mantenimiento:     'Aviso de mantenimiento',
     politicas:         'Actualización de políticas',
   };
   const CATEGORIA_ICONS = {
+    notificacion:      '🔔',
     anuncios_internos: '📢', mejoras: '🚀', mantenimiento: '🔧', politicas: '📄',
   };
   const CATEGORIA_THEME = {
+    notificacion:      't-purple',
     anuncios_internos: 't-blue', mejoras: 't-green', mantenimiento: 't-amber', politicas: 't-gray',
   };
 
@@ -2635,11 +2645,37 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
     })
     .then(r => r.json())
     .then(items => {
-      list.querySelectorAll('.notif-item').forEach(n => n.remove());
-      pendingIds.clear();
-      unread = 0;
-      updateDot();
-      renderNotifications(items);
+      if (!items.length) {
+        if (!list.querySelector('.notif-item')) {
+          if (empty) empty.style.display = '';
+        }
+        return;
+      }
+      if (empty) empty.style.display = 'none';
+
+      const renderedIds = new Set(
+        Array.from(list.querySelectorAll('.notif-item[data-id]'))
+          .map(el => parseInt(el.dataset.id))
+      );
+
+      items.forEach(item => {
+        if (renderedIds.has(item.id)) return;
+        const cfg = cfgFor(item);
+        const body = item.tipo === 'anuncio'
+          ? (item.message || item.titulo || 'Nuevo anuncio')
+          : `${item.paciente ?? '—'} — ${item.fecha ?? '—'} ${item.hora ?? ''}`;
+        addNotif({
+          id: item.id,
+          title: cfg.title,
+          body: body,
+          type: cfg.type,
+          icon: cfg.icon,
+          read: item.read,
+          time: timeFrom(item.created_at),
+          prepend: false,
+          anuncioData: item.tipo === 'anuncio' ? item : null,
+        });
+      });
     })
     .catch(() => {});
   }

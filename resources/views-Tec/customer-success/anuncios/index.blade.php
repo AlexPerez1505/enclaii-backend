@@ -22,6 +22,15 @@
 @section('content')
 <div class="cs-shell rise d1">
 
+  <div class="cs-edit-banner" id="csEditBanner">
+    <span class="cs-edit-banner-icon">✏️</span>
+    <div class="cs-edit-banner-text">
+      Estás editando: <strong id="csEditBannerTitle">—</strong>
+      <br><span style="font-size:12px;color:var(--txt-soft)">El tipo de anuncio no puede modificarse. Los cambios se guardarán sin reenviar notificaciones.</span>
+    </div>
+    <button class="cs-edit-banner-close" id="csCancelEdit" type="button" title="Cancelar edición">✕</button>
+  </div>
+
   <div class="cs-card">
     <div class="cs-card-title">Nuevo anuncio</div>
     <div class="cs-alert" id="csAlert"></div>
@@ -54,12 +63,21 @@
       <div class="cs-row">
         <div class="cs-field" style="flex:1;min-width:180px">
           <label class="cs-label">Tipo</label>
-          <select class="cs-input" id="csTipo" required>
-            <option value="anuncios_internos">Anuncios internos</option>
-            <option value="mejoras">Mejoras en Enclaii</option>
-            <option value="mantenimiento">Mantenimiento de la plataforma</option>
-            <option value="politicas">Políticas</option>
-          </select>
+          <div class="cs-tipo-wrap">
+            <select class="cs-input" id="csTipo" required>
+              <option value="notificacion">Notificación</option>
+              <option value="anuncios_internos">Anuncios internos</option>
+              <option value="mejoras">Mejoras en Enclaii</option>
+              <option value="mantenimiento">Mantenimiento de la plataforma</option>
+              <option value="politicas">Políticas</option>
+            </select>
+            <span class="cs-tipo-lock" id="csTipoLock" title="El tipo no puede cambiarse al editar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </span>
+          </div>
         </div>
         <div class="cs-field" style="flex:1;min-width:180px">
           <label class="cs-label">Público objetivo</label>
@@ -93,7 +111,7 @@
         </div>
       </div>
 
-      <div style="display:flex;gap:10px">
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
         <button class="cs-btn cs-btn-primary" type="submit">Publicar anuncio</button>
         <button class="cs-btn cs-btn-secondary" type="button" id="csPreview">Vista previa</button>
       </div>
@@ -102,6 +120,17 @@
 
   @include('customer-success.anuncios._lista')
 
+</div>
+
+{{-- Mini-modal de confirmación --}}
+<div class="cs-confirm-ov" id="csConfirmOv">
+  <div class="cs-confirm-box">
+    <p class="cs-confirm-msg" id="csConfirmMsg"></p>
+    <div class="cs-confirm-btns">
+      <button class="cs-btn cs-btn-primary" id="csConfirmOk" type="button">Aceptar</button>
+      <button class="cs-btn cs-btn-secondary" id="csConfirmCancel" type="button">Cancelar</button>
+    </div>
+  </div>
 </div>
 
 {{-- Vista previa --}}

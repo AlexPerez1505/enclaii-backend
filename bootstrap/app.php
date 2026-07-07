@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'subscribed' => \App\Http\Middleware\EnsureSubscribed::class,
             'customer.success' => \App\Http\Middleware\EnsureCustomerSuccess::class,
+            'no.customer.success' => \App\Http\Middleware\RedirectCustomerSuccess::class,
         ]);
 
         // Usuarios ya autenticados que visitan /login o /registro:

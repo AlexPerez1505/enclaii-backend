@@ -30,9 +30,7 @@ class EnsureSubscribed
         }
 
         if ($user->hasRole('Customer Success')) {
-            return $request->expectsJson()
-                ? $next($request)
-                : redirect()->route('customer-success.dashboard');
+            return $next($request);
         }
 
         if ($user->subscribed()) {
