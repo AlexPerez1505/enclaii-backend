@@ -5,37 +5,43 @@ namespace App\Http\Controllers;
 use App\Models\CapturePairingCode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Schema;
 
 class CapturePairingCodeController extends Controller
 {
     public function store(Request $request)
     {
         $request->validate([
-            'study_id' => ['required', 'integer'],
+            'paciente_id' => ['nullable', 'integer'],
+            'estudio_id' => ['nullable', 'integer'],
         ]);
 
         $user = $request->user();
 
-        /*
-         * Ajusta esta parte a tu multitenant real.
-         * Si usas tenant_id en users:
-         * $tenantId = $user->tenant_id;
-         *
-         * Si usas stancl/tenancy:
-         * $tenantId = tenant('id');
-         */
         $tenantId = $user->tenant_id ?? null;
 
         $plainCode = $this->generateReadableCode();
 
-        $pairing = CapturePairingCode::create([
+        $payload = [
             'tenant_id' => $tenantId,
             'user_id' => $user->id,
-            'study_id' => $request->study_id,
             'code_hash' => Hash::make($plainCode),
             'expires_at' => now()->addMinutes(10),
-        ]);
+        ];
+
+        if (Schema::hasColumn('capture_pairing_codes', 'paciente_id')) {
+            $payload['paciente_id'] = $request->paciente_id;
+        }
+
+        if (Schema::hasColumn('capture_pairing_codes', 'estudio_id')) {
+            $payload['estudio_id'] = $request->estudio_id;
+        }
+
+        if (Schema::hasColumn('capture_pairing_codes', 'study_id')) {
+            $payload['study_id'] = $request->estudio_id;
+        }
+
+        $pairing = CapturePairingCode::create($payload);
 
         return response()->json([
             'ok' => true,
@@ -43,7 +49,7 @@ class CapturePairingCodeController extends Controller
             'data' => [
                 'pairing_id' => $pairing->id,
                 'code' => $plainCode,
-                'expires_at' => $pairing->expires_at?->toDateTimeString(),
+                'expires_at' => $pairing->expires_at?->format('d/m/Y H:i:s'),
             ],
         ]);
     }

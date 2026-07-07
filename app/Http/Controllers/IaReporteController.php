@@ -222,6 +222,8 @@ class IaReporteController extends Controller
             'contenido_html' => ['nullable', 'string'],
             'contiene_hallazgos_criticos' => ['nullable', 'boolean'],
             'plantilla_id' => ['nullable', 'exists:plantillas,id'],
+            'hallazgos' => ['nullable', 'array'],
+            'hallazgos.*' => ['string', 'max:255'],
         ]);
 
         $data = [
@@ -240,11 +242,124 @@ class IaReporteController extends Controller
             $reporte = Reporte::create($data);
         }
 
+        if (! empty($validated['hallazgos'])) {
+            $this->persistirHallazgosDoctor($validated['estudio_id'], $validated['hallazgos']);
+        }
+
         return response()->json([
             'ok' => true,
             'reporte_id' => $reporte->id,
             'message' => 'Reporte guardado correctamente.',
         ]);
+    }
+
+    /**
+     * Lista todos los hallazgos disponibles + los del estudio actual.
+     */
+    public function listarHallazgos(Request $request): JsonResponse
+    {
+        $estudioId = $request->query('estudio_id');
+
+        $todos = Hallazgo::orderBy('nombre')->get()->map(fn ($h) => [
+            'id' => $h->id,
+            'nombre' => $h->nombre,
+            'es_critico' => $h->es_critico,
+        ]);
+
+        $seleccionados = [];
+        if ($estudioId) {
+            $seleccionados = EstudioHallazgo::where('estudio_id', $estudioId)
+                ->with('hallazgo')
+                ->get()
+                ->map(fn ($eh) => [
+                    'id' => $eh->hallazgo_id,
+                    'nombre' => $eh->hallazgo?->nombre,
+                    'detectado_por' => $eh->detectado_por,
+                ])
+                ->filter(fn ($item) => $item['nombre'] !== null)
+                ->values()
+                ->toArray();
+        }
+
+        return response()->json([
+            'ok' => true,
+            'data' => [
+                'todos' => $todos,
+                'seleccionados' => $seleccionados,
+            ],
+        ]);
+    }
+
+    /**
+     * Crea un hallazgo nuevo y lo devuelve.
+     */
+    public function crearHallazgo(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'nombre' => ['required', 'string', 'max:255'],
+            'es_critico' => ['nullable', 'boolean'],
+        ]);
+
+        $existente = Hallazgo::where('nombre', trim($validated['nombre']))->first();
+        if ($existente) {
+            return response()->json([
+                'ok' => true,
+                'data' => [
+                    'id' => $existente->id,
+                    'nombre' => $existente->nombre,
+                    'es_critico' => $existente->es_critico,
+                    'ya_existe' => true,
+                ],
+            ]);
+        }
+
+        $hallazgo = Hallazgo::create([
+            'nombre' => trim($validated['nombre']),
+            'es_critico' => $validated['es_critico'] ?? false,
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'data' => [
+                'id' => $hallazgo->id,
+                'nombre' => $hallazgo->nombre,
+                'es_critico' => $hallazgo->es_critico,
+                'ya_existe' => false,
+            ],
+        ]);
+    }
+
+    /**
+     * Persiste los hallazgos seleccionados por el doctor en estudio_hallazgos.
+     */
+    private function persistirHallazgosDoctor(int $estudioId, array $nombres): void
+    {
+        $nombres = collect($nombres)
+            ->map(fn ($n) => trim((string) $n))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($nombres->isEmpty()) {
+            return;
+        }
+
+        foreach ($nombres as $nombre) {
+            $hallazgo = Hallazgo::firstOrCreate(
+                ['nombre' => $nombre],
+                ['es_critico' => false]
+            );
+
+            EstudioHallazgo::updateOrCreate(
+                [
+                    'estudio_id' => $estudioId,
+                    'hallazgo_id' => $hallazgo->id,
+                ],
+                [
+                    'detectado_por' => 'doctor',
+                ]
+            );
+        }
     }
 
     /**

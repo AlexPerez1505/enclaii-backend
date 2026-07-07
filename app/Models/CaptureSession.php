@@ -9,6 +9,8 @@ class CaptureSession extends Model
     protected $fillable = [
         'tenant_id',
         'user_id',
+        'paciente_id',
+        'estudio_id',
         'study_id',
         'capture_device_id',
         'status',
