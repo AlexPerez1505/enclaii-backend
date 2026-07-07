@@ -542,7 +542,7 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
                 ->get();
         }
 
-        return view('estudios.crear.index', [
+        return view('estudios.crear', [
             'paciente' => $paciente,
             'pacientes' => $pacientes,
             'galImagenes' => $galImagenes,
@@ -552,8 +552,11 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
     })->name('nuevo-estudio');
 
     Route::get('/nuevo-estudio/crear', function () {
-        return view('estudios.crear.index');
+        return view('estudios.crear');
     })->name('nuevo-estudio.crear');
+
+    Route::post('/capture/pairing-code', [\App\Http\Controllers\CapturePairingCodeController::class, 'store'])
+        ->name('capture.pairing-code.store');
 
     Route::get('/nuevo-estudio/importar', function () {
         return view('estudios.importar.index');
@@ -870,6 +873,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/ia/reset', [AiAssistantController::class, 'reset'])->name('ia.reset');
 });
 
+// Customer Success panel
+Route::middleware(['auth', 'customer.success'])->prefix('customer-success')->name('customer-success.')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/anuncios', [AnuncioDashboardController::class, 'index'])->name('anuncios');
+    Route::get('/gestion-usuarios', [RolesController::class, 'index'])->name('gestion-usuarios');
+    Route::post('/logout', [EndoCareAuthController::class, 'logoutCs'])->name('logout');
+});
 
 
 Route::middleware(['auth'])->group(function () {

@@ -1259,13 +1259,15 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
             </button>
             @endif
             <div class="pm-sep"></div>
-            <form method="POST" action="{{ route('logout') }}">
+            @auth
+            <form method="POST" action="{{ auth()->user()->hasRole('Customer Success') ? route('customer-success.logout') : route('logout') }}">
               @csrf
               <button type="submit" class="pm-item danger" role="menuitem">
                 <span class="pm-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>
                 <span class="pm-txt"><span class="t">Cerrar sesión</span><span class="d">Cerrar sesión en tu cuenta actual</span></span>
               </button>
             </form>
+            @endauth
           </div>
         </div>
       </div>
@@ -2541,6 +2543,70 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
           type: cfg.type,
           icon: cfg.icon,
         });
+      })
+      .listen('.anuncio.publicado', (e) => {
+        console.log('[NOTIF] Anuncio publicado:', e);
+        const cfg = cfgFor(e);
+        addNotif({
+          id: e.id,
+          title: cfg.title,
+          body: e.message || e.titulo || 'Nuevo anuncio',
+          type: cfg.type,
+          icon: cfg.icon,
+          anuncioData: { tipo: 'anuncio', ...e },
+        });
+      })
+      .listen('.anuncio.actualizado', (e) => {
+        list.querySelectorAll('.notif-item[data-anuncio]').forEach(el => {
+          try {
+            const data = JSON.parse(el.dataset.anuncio || '{}');
+            if (data.anuncio_id == e.anuncio_id) {
+              const strong = el.querySelector('.notif-body strong');
+              const span   = el.querySelector('.notif-body span');
+              if (strong) strong.textContent = e.titulo || strong.textContent;
+              if (span)   span.textContent   = e.message || span.textContent;
+              data.titulo  = e.titulo;
+              data.message = e.message;
+              el.dataset.anuncio = JSON.stringify(data);
+            }
+          } catch {}
+        });
+      })
+      .listen('.anuncio.eliminado', (e) => {
+        const anuncioId = e.anuncio_id;
+        // Eliminar del DOM inmediatamente
+        list.querySelectorAll('.notif-item[data-anuncio]').forEach(el => {
+          try {
+            const data = JSON.parse(el.dataset.anuncio || '{}');
+            if (data.anuncio_id == anuncioId) {
+              if (!el.classList.contains('read')) {
+                unread = Math.max(0, unread - 1);
+                updateDot();
+              }
+              el.remove();
+            }
+          } catch {}
+        });
+        // Re-fetch silencioso: eliminar del DOM cualquier notif que ya no esté en BD
+        fetch('/notifications', { headers: { 'Accept': 'application/json' } })
+          .then(r => r.json())
+          .then(items => {
+            const activeIds = new Set(items.map(i => i.id));
+            list.querySelectorAll('.notif-item[data-id]').forEach(el => {
+              const id = parseInt(el.dataset.id);
+              if (id && !activeIds.has(id)) {
+                if (!el.classList.contains('read')) {
+                  unread = Math.max(0, unread - 1);
+                  updateDot();
+                }
+                el.remove();
+              }
+            });
+            if (!list.querySelector('.notif-item') && empty) {
+              empty.style.display = '';
+            }
+          })
+          .catch(() => {});
       })
       .error((err) => console.error('[NOTIF] Error de canal:', err));
   }
