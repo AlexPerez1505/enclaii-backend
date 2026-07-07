@@ -568,7 +568,7 @@ Route::middleware(['auth', 'subscribed', 'no.customer.success'])->group(function
                 ->get();
         }
 
-        return view('estudios.crear.index', [
+        return view('estudios.crear', [
             'paciente' => $paciente,
             'pacientes' => $pacientes,
             'galImagenes' => $galImagenes,
@@ -578,8 +578,11 @@ Route::middleware(['auth', 'subscribed', 'no.customer.success'])->group(function
     })->name('nuevo-estudio');
 
     Route::get('/nuevo-estudio/crear', function () {
-        return view('estudios.crear.index');
+        return view('estudios.crear');
     })->name('nuevo-estudio.crear');
+
+    Route::post('/capture/pairing-code', [\App\Http\Controllers\CapturePairingCodeController::class, 'store'])
+        ->name('capture.pairing-code.store');
 
     Route::get('/nuevo-estudio/importar', function () {
         return view('estudios.importar.index');
@@ -901,6 +904,7 @@ Route::middleware(['auth', 'customer.success'])->prefix('customer-success')->nam
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/anuncios', [AnuncioDashboardController::class, 'index'])->name('anuncios');
     Route::get('/gestion-usuarios', [RolesController::class, 'index'])->name('gestion-usuarios');
+    Route::post('/logout', [EndoCareAuthController::class, 'logoutCs'])->name('logout');
 });
 
 // Customer Success API (web session + CSRF, usada por el panel TEC)

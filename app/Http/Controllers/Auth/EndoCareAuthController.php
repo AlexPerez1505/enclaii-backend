@@ -108,4 +108,14 @@ class EndoCareAuthController extends Controller
 
         return redirect()->route('login');
     }
+
+    public function logoutCs(Request $request)
+    {
+        Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login');
+    }
 }

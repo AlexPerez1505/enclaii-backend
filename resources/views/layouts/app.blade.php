@@ -1330,13 +1330,15 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
             </button>
             @endif
             <div class="pm-sep"></div>
-            <form method="POST" action="{{ route('logout') }}">
+            @auth
+            <form method="POST" action="{{ auth()->user()->hasRole('Customer Success') ? route('customer-success.logout') : route('logout') }}">
               @csrf
               <button type="submit" class="pm-item danger" role="menuitem">
                 <span class="pm-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>
                 <span class="pm-txt"><span class="t">Cerrar sesión</span><span class="d">Cerrar sesión en tu cuenta actual</span></span>
               </button>
             </form>
+            @endauth
           </div>
         </div>
       </div>

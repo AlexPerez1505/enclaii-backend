@@ -24,7 +24,7 @@ class EnsureCustomerSuccess
         if (! $user->hasRole('Customer Success')) {
             return $request->expectsJson()
                 ? response()->json(['message' => 'Acceso restringido.'], 403)
-                : redirect()->route('dashboard');
+                : redirect()->route('login')->with('error', 'No tienes acceso a esta sección.');
         }
 
         return $next($request);
