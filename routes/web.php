@@ -7,7 +7,6 @@ use App\Http\Controllers\WhatsAppController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\PacienteController;
-use App\Http\Controllers\PacienteDocumentoController;
 use App\Http\Controllers\NuevoEstudioController;
 use App\Models\Paciente;
 use App\Models\Reporte;
@@ -62,22 +61,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/configuracion/general', [SettingsController::class, 'update'])
         ->name('configuracion.general.update');
 
-    Route::post('/configuracion/foto-perfil', [SettingsController::class, 'updateFoto'])
-        ->name('configuracion.foto.update');
-
-    Route::delete('/configuracion/foto-perfil', [SettingsController::class, 'deleteFoto'])
-        ->name('configuracion.foto.delete');
-
-    Route::patch('/configuracion/perfil', [SettingsController::class, 'updatePerfil'])
-        ->name('configuracion.perfil.update');
-
-    Route::post('/configuracion/constancia-fiscal', [SettingsController::class, 'uploadConstancia'])
-        ->name('configuracion.constancia.upload');
-
-    Route::delete('/configuracion/constancia-fiscal', [SettingsController::class, 'deleteConstancia'])
-        ->name('configuracion.constancia.delete');
-
-    Route::post('/legal/aceptaciones', [SettingsController::class, 'storeLegalAcceptances'])
+    // ===== Aceptaciones legales =====
+    Route::post('/legal/acceptances', [SettingsController::class, 'storeLegalAcceptances'])
         ->name('legal.acceptances.store');
 
     // ===== Stripe (pagos y suscripciones) =====
@@ -382,6 +367,12 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
 
     Route::post('/ia-reportes/guardar', [IaReporteController::class, 'guardar'])
         ->name('ia-reportes.guardar');
+
+    Route::get('/ia-reportes/hallazgos-lista', [IaReporteController::class, 'listarHallazgos'])
+        ->name('ia-reportes.hallazgos-lista');
+
+    Route::post('/ia-reportes/hallazgos-crear', [IaReporteController::class, 'crearHallazgo'])
+        ->name('ia-reportes.hallazgos-crear');
 
     Route::post('/plantillas/{clave}', [\App\Http\Controllers\PlantillaController::class, 'update'])
         ->name('plantillas.update');
@@ -758,7 +749,6 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
 
 
 Route::resource('pacientes', PacienteController::class);
-Route::delete('/paciente-documentos/{pacienteDocumento}', [PacienteDocumentoController::class, 'destroy'])->name('paciente-documentos.destroy');
 
 Route::get('/agenda', [AgendaController::class, 'index'])->name('agenda');
 Route::get('/agendar', [AgendaController::class, 'create'])->name('agendar');
