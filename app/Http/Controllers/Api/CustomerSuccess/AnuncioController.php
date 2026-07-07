@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api\CustomerSuccess;
 
+use App\Events\AnuncioActualizado as AnuncioActualizadoEvent;
+use App\Events\AnuncioEliminado as AnuncioEliminadoEvent;
 use App\Events\AnuncioPublicado as AnuncioPublicadoEvent;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CustomerSuccess\StoreAnuncioRequest;
@@ -178,18 +180,18 @@ class AnuncioController extends Controller
 
         if ($wasActive && $shouldPublish) {
             // Ya estaba publicado: actualizar el título en notificaciones existentes
-            // y re-broadcast para que el panel refleje el cambio en tiempo real.
+            // y broadcast de ACTUALIZACIÓN (no crea notificación nueva en el frontend).
             Notification::where('tipo', 'anuncio')
                 ->whereRaw("JSON_EXTRACT(data, '$.anuncio_id') = ?", [$anuncio->id])
                 ->get()
                 ->each(function (Notification $n) use ($anuncio) {
                     $data = $n->data;
                     $data['titulo']  = $anuncio->titulo;
-                    $data['message'] = 'Se publicó un nuevo anuncio: ' . $anuncio->titulo;
+                    $data['message'] = 'Anuncio actualizado: ' . $anuncio->titulo;
                     $n->update(['data' => $data]);
                 });
 
-            broadcast(new AnuncioPublicadoEvent($anuncio,
+            broadcast(new AnuncioActualizadoEvent($anuncio,
                 $this->targetUsersFor($anuncio, $request->user())->pluck('id')->all()
             ));
         } elseif (! $wasActive && $shouldPublish) {
@@ -204,9 +206,24 @@ class AnuncioController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Anuncio $anuncio): JsonResponse
+    public function destroy(Anuncio $anuncio, Request $request): JsonResponse
     {
+        $affectedUserIds = Notification::where('tipo', 'anuncio')
+            ->whereRaw("JSON_EXTRACT(data, '$.anuncio_id') = ?", [$anuncio->id])
+            ->pluck('user_id')
+            ->unique()
+            ->values()
+            ->all();
+
+        Notification::where('tipo', 'anuncio')
+            ->whereRaw("JSON_EXTRACT(data, '$.anuncio_id') = ?", [$anuncio->id])
+            ->delete();
+
         $anuncio->delete();
+
+        if (!empty($affectedUserIds)) {
+            broadcast(new AnuncioEliminadoEvent($anuncio->id, $affectedUserIds));
+        }
 
         return response()->json(['message' => 'Anuncio eliminado correctamente.']);
     }

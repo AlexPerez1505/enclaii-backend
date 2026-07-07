@@ -2755,6 +2755,58 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
           anuncioData: { tipo: 'anuncio', ...e },
         });
       })
+      .listen('.anuncio.actualizado', (e) => {
+        list.querySelectorAll('.notif-item[data-anuncio]').forEach(el => {
+          try {
+            const data = JSON.parse(el.dataset.anuncio || '{}');
+            if (data.anuncio_id == e.anuncio_id) {
+              const strong = el.querySelector('.notif-body strong');
+              const span   = el.querySelector('.notif-body span');
+              if (strong) strong.textContent = e.titulo || strong.textContent;
+              if (span)   span.textContent   = e.message || span.textContent;
+              data.titulo  = e.titulo;
+              data.message = e.message;
+              el.dataset.anuncio = JSON.stringify(data);
+            }
+          } catch {}
+        });
+      })
+      .listen('.anuncio.eliminado', (e) => {
+        const anuncioId = e.anuncio_id;
+        // Eliminar del DOM inmediatamente
+        list.querySelectorAll('.notif-item[data-anuncio]').forEach(el => {
+          try {
+            const data = JSON.parse(el.dataset.anuncio || '{}');
+            if (data.anuncio_id == anuncioId) {
+              if (!el.classList.contains('read')) {
+                unread = Math.max(0, unread - 1);
+                updateDot();
+              }
+              el.remove();
+            }
+          } catch {}
+        });
+        // Re-fetch silencioso: eliminar del DOM cualquier notif que ya no esté en BD
+        fetch('/notifications', { headers: { 'Accept': 'application/json' } })
+          .then(r => r.json())
+          .then(items => {
+            const activeIds = new Set(items.map(i => i.id));
+            list.querySelectorAll('.notif-item[data-id]').forEach(el => {
+              const id = parseInt(el.dataset.id);
+              if (id && !activeIds.has(id)) {
+                if (!el.classList.contains('read')) {
+                  unread = Math.max(0, unread - 1);
+                  updateDot();
+                }
+                el.remove();
+              }
+            });
+            if (!list.querySelector('.notif-item') && empty) {
+              empty.style.display = '';
+            }
+          })
+          .catch(() => {});
+      })
       .error((err) => console.error('[NOTIF] Error de canal:', err));
   }
   _initEchoNotif();

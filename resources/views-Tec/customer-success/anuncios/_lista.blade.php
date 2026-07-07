@@ -39,7 +39,7 @@
             data-publico="{{ $anuncio->publico_objetivo }}"
             data-canales="{{ implode(',', is_array($anuncio->canales) ? $anuncio->canales : ['web']) }}"
             data-fecha="{{ $anuncio->fecha_publicacion?->format('Y-m-d\TH:i') ?? '' }}"
-            data-contenido="{{ e($anuncio->contenido) }}">
+            data-contenido="{{ json_encode($anuncio->contenido) }}">
           <td>{{ $anuncio->titulo }}</td>
           <td>{{ $tipoLabels[$anuncio->tipo] ?? $anuncio->tipo }}</td>
           <td>{{ $publicoLabels[$anuncio->publico_objetivo] ?? $anuncio->publico_objetivo }}</td>

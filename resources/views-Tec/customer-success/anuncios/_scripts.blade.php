@@ -330,6 +330,7 @@
           }
           if (res.ok) {
             row.remove();
+            if (editingId == id) exitEditMode();
             showAlert('Anuncio eliminado.', 'success');
           } else {
             const data = await res.json();
@@ -369,7 +370,8 @@
         }
         const publicoMap = { todos: 'Todos', doctores: 'Doctores', administradores: 'Administradores' };
         document.getElementById('pvMeta').textContent = tipoLabel + ' • ' + (publicoMap[row.dataset.publico] ?? row.dataset.publico);
-        document.getElementById('pvBody').innerHTML = row.dataset.contenido || '<p>Sin contenido</p>';
+        const contenidoView = (() => { try { return JSON.parse(row.dataset.contenido || '""'); } catch { return row.dataset.contenido || ''; } })();
+        document.getElementById('pvBody').innerHTML = contenidoView || '<p>Sin contenido</p>';
 
         pvOverlay.classList.add('open');
         document.body.style.overflow = 'hidden';
@@ -387,6 +389,7 @@
 
         document.getElementById('csTitulo').value = row.dataset.titulo;
 
+        tipoSelect.disabled = true;
         tipoSelect.value = row.dataset.tipo;
         document.getElementById('csPublico').value = row.dataset.publico;
 
@@ -401,8 +404,9 @@
           flatpickrInstance.clear();
         }
 
-        editor.innerHTML = row.dataset.contenido || '';
-        hiddenInput.value = editor.innerHTML;
+        const contenidoEdit = (() => { try { return JSON.parse(row.dataset.contenido || '""'); } catch { return row.dataset.contenido || ''; } })();
+        editor.innerHTML = contenidoEdit;
+        hiddenInput.value = contenidoEdit;
 
         enterEditMode(row.dataset.id, row.dataset.titulo);
       });
