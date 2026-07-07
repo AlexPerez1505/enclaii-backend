@@ -13,6 +13,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->statefulApi();
+
         $middleware->validateCsrfTokens(except: [
             'webhooks/whatsapp',
             'webhooks/stripe',
@@ -24,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'subscribed' => \App\Http\Middleware\EnsureSubscribed::class,
             'clinic.owner' => \App\Http\Middleware\EnsureClinicaOwner::class,
             'critical.password' => \App\Http\Middleware\RequireCriticalPassword::class,
+            'customer.success' => \App\Http\Middleware\EnsureCustomerSuccess::class,
         ]);
 
         // Usuarios ya autenticados que visitan /login o /registro:

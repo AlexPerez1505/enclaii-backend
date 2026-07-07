@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\Auth\EndoCareAuthController;
+use App\Http\Controllers\CustomerSuccess\AnuncioDashboardController;
+use App\Http\Controllers\CustomerSuccess\DashboardController;
+use App\Http\Controllers\CustomerSuccess\RolesController;
 use App\Http\Controllers\IaReporteController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\WhatsAppController;
@@ -124,6 +127,17 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
 
     Route::patch('/configuracion/general', [SettingsController::class, 'update'])
         ->name('configuracion.general.update');
+
+    Route::patch('/configuracion/perfil', [SettingsController::class, 'updatePerfil'])
+        ->name('configuracion.perfil.update');
+    Route::post('/configuracion/foto', [SettingsController::class, 'updateFoto'])
+        ->name('configuracion.foto.update');
+    Route::delete('/configuracion/foto', [SettingsController::class, 'deleteFoto'])
+        ->name('configuracion.foto.delete');
+    Route::post('/configuracion/constancia', [SettingsController::class, 'uploadConstancia'])
+        ->name('configuracion.constancia.upload');
+    Route::delete('/configuracion/constancia', [SettingsController::class, 'deleteConstancia'])
+        ->name('configuracion.constancia.delete');
 
     // ===== Aceptaciones legales =====
     Route::post('/legal/acceptances', [SettingsController::class, 'storeLegalAcceptances'])
