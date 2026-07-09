@@ -338,8 +338,8 @@ html[data-theme="light"] .day-modal-overlay{
     <div class="del-confirm-title">¿Borrar esta cita?</div>
     <div class="del-confirm-sub">Esta acción eliminará la cita de la agenda. No se puede deshacer.</div>
     <div class="del-confirm-actions" style="width:100%">
-      <button class="del-confirm-yes" id="delGlobalYes">Sí, borrar cita</button>
-      <button class="del-confirm-no" id="delGlobalNo" style="margin-top:0">Cancelar</button>
+      <button class="del-confirm-yes" data-no-confirm id="delGlobalYes">Sí, borrar cita</button>
+      <button class="del-confirm-no" data-no-confirm id="delGlobalNo" style="margin-top:0">Cancelar</button>
     </div>
   </div>
 </div>
@@ -350,7 +350,7 @@ html[data-theme="light"] .day-modal-overlay{
     <div class="day-modal-header">
       <div class="day-modal-title" id="dayModalTitle">Detalle de cita</div>
       <div style="display:flex;gap:4px;align-items:center">
-        <button class="day-modal-del" id="dayModalDel" aria-label="Borrar cita" title="Borrar cita">
+        <button class="day-modal-del" id="dayModalDel" data-no-confirm aria-label="Borrar cita" title="Borrar cita">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
         </button>
         <button class="day-modal-close" id="dayModalClose" aria-label="Cerrar">×</button>
@@ -373,10 +373,10 @@ html[data-theme="light"] .day-modal-overlay{
     'ev-done':'Completado','ev-wait':'En espera','ev-cancel':'Cancelado','ev-soon':'Próximos','ev-block':'',
   };
   const DAY_BUTTONS = {
-    'ev-done':  [{label:'Datos del paciente',cls:'primary'},{label:'Reprogramar nueva cita',cls:'secondary'},{label:'Ver Informe',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
-    'ev-wait':  [{label:'Iniciar Estudio',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
-    'ev-cancel':[{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
-    'ev-soon':  [{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
+    'ev-done':  [{label:'Datos del paciente',cls:'primary'},{label:'Reprogramar nueva cita',cls:'secondary'},{label:'Ver Informe',cls:'secondary'}],
+    'ev-wait':  [{label:'Iniciar Estudio',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'}],
+    'ev-cancel':[{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'}],
+    'ev-soon':  [{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'}],
   };
 
   function minutesTo12h(min) {
@@ -413,8 +413,8 @@ html[data-theme="light"] .day-modal-overlay{
       <div class="del-confirm-title">${isEliminar ? '¿Eliminar esta cita?' : '¿Cancelar esta cita?'}</div>
       <div class="del-confirm-sub">${isEliminar ? 'Esta acción eliminará la cita de la base de datos. No se puede deshacer.' : 'La cita se marcará como cancelada y seguirá visible en el historial.'}</div>
       <div class="del-confirm-actions">
-        <button class="del-confirm-yes" id="delConfirmYes">${isEliminar ? 'Sí, eliminar' : 'Sí, cancelar'}</button>
-        <button class="del-confirm-no" id="delConfirmNo">Cancelar</button>
+        <button class="del-confirm-yes" data-no-confirm id="delConfirmYes">${isEliminar ? 'Sí, eliminar' : 'Sí, cancelar'}</button>
+        <button class="del-confirm-no" data-no-confirm id="delConfirmNo">Cancelar</button>
       </div>
     `;
     dayModalWrap.appendChild(panel);
@@ -604,7 +604,6 @@ html[data-theme="light"] .day-modal-overlay{
   const STATUS_BADGE_KEY   = {'ev-done':'done','ev-wait':'wait','ev-cancel':'cancel','ev-soon':'soon'};
   const REPROG_LABELS_DIA  = ['Reprogramar nueva cita','Reprogramar Paciente'];
   const PACIENTE_LABELS_DIA = ['Datos del paciente','Datos del Paciente'];
-  const MENSAJE_LABELS_DIA = ['Enviar mensaje'];
   const INFORME_LABELS_DIA = ['Ver Informe'];
   const INICIAR_LABELS_DIA = ['Iniciar Estudio'];
 
@@ -693,11 +692,6 @@ html[data-theme="light"] .day-modal-overlay{
           } else {
             window.location.href = '{{ route('pacientes.index') }}?paciente=' + encodeURIComponent(name);
           }
-        });
-      }
-      if (MENSAJE_LABELS_DIA.includes(b.label)) {
-        btn.addEventListener('click', () => {
-          window.location.href = '{{ route('mensajes') }}?paciente=' + encodeURIComponent(displayName || name);
         });
       }
       if (INFORME_LABELS_DIA.includes(b.label)) {
@@ -891,11 +885,6 @@ html[data-theme="light"] .day-modal-overlay{
             } else {
               window.location.href = '{{ route('pacientes.index') }}?paciente=' + encodeURIComponent(name);
             }
-          });
-        }
-        if (MENSAJE_LABELS_DIA.includes(b.label)) {
-          btn.addEventListener('click', () => {
-            window.location.href = '{{ route('mensajes') }}?paciente=' + encodeURIComponent(displayName || name);
           });
         }
         if (INFORME_LABELS_DIA.includes(b.label)) {

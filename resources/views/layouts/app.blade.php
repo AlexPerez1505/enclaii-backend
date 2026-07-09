@@ -2409,7 +2409,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
     const text = (el.textContent || '').toLowerCase();
     const title = (el.title || '').toLowerCase();
     const ariaLabel = (el.getAttribute('aria-label') || '').toLowerCase();
-    const cls = (el.className || '').toLowerCase();
+    const cls = (typeof el.className === 'string' ? el.className : (el.className?.baseVal || '')).toLowerCase();
     const keywords = ['eliminar', 'borrar', 'quitar', 'retirar'];
     const hasKeyword = keywords.some(k => text.includes(k) || title.includes(k) || ariaLabel.includes(k));
     const looksDangerous = cls.includes('danger') || cls.includes('red') || cls.includes('del') || cls.includes('trash');

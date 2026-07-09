@@ -1952,6 +1952,19 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
       .finally(() => { if (btnSave) btnSave.disabled = false; });
   };
   if (btnSave) btnSave.addEventListener('click', saveReport);
+
+  /* Auto-abrir selector de estudios al llegar desde el widget del dashboard */
+  if (new URLSearchParams(window.location.search).get('from') === 'widget') {
+    const edEstudioSel = document.getElementById('edEstudioSel');
+    if (edEstudioSel) {
+      setTimeout(() => {
+        edEstudioSel.focus();
+        if (typeof edEstudioSel.showPicker === 'function') {
+          try { edEstudioSel.showPicker(); } catch (e) {}
+        }
+      }, 200);
+    }
+  }
 })();
 </script>
 @endpush

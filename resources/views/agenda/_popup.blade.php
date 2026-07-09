@@ -76,10 +76,10 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
     const evPopBtns  = document.getElementById('evPopBtns');
 
     const STATUS_BUTTONS = {
-      'ev-done':  [{label:'Datos del paciente',cls:'primary'},{label:'Reprogramar nueva cita',cls:'secondary'},{label:'Ver Informe',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
-      'ev-wait':  [{label:'Iniciar Estudio',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
-      'ev-cancel':[{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
-      'ev-soon':  [{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
+      'ev-done':  [{label:'Datos del paciente',cls:'primary'},{label:'Reprogramar nueva cita',cls:'secondary'},{label:'Ver Informe',cls:'secondary'}],
+      'ev-wait':  [{label:'Iniciar Estudio',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'}],
+      'ev-cancel':[{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'}],
+      'ev-soon':  [{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'}],
     };
     const STATUS_LABELS = {'ev-done':'Completado','ev-wait':'En espera','ev-cancel':'Cancelado','ev-soon':'Próximos'};
     const STATUS_BADGE_CLS = {'ev-done':'done','ev-wait':'wait','ev-cancel':'cancel','ev-soon':'soon'};
@@ -139,7 +139,6 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
 
     const REPROG_LABELS = ['Reprogramar nueva cita','Reprogramar Paciente'];
     const PACIENTE_LABELS = ['Datos del paciente','Datos del Paciente'];
-    const MENSAJE_LABELS = ['Enviar mensaje'];
     const INFORME_LABELS = ['Ver Informe'];
     const INICIAR_LABELS = ['Iniciar Estudio','Iniciar estudio'];
 
@@ -269,12 +268,6 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
             }
           });
         }
-        if (MENSAJE_LABELS.includes(b.label)) {
-          btn.addEventListener('click', ev => {
-            ev.stopPropagation();
-            window.location.href = '{{ route('mensajes') }}?paciente=' + encodeURIComponent(d.displayName || d.fullName);
-          });
-        }
         if (INICIAR_LABELS.includes(b.label)) {
           btn.addEventListener('click', ev => {
             ev.stopPropagation();
@@ -295,6 +288,7 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
       });
       const delBtn = document.createElement('button');
       delBtn.className = 'ev-pop-btn danger';
+      delBtn.dataset.noConfirm = '';
       const puedeEliminar = ['cancelado', 'completado'].includes(d.estado);
       delBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>${puedeEliminar ? 'Eliminar cita' : 'Cancelar cita'}`;
       delBtn.addEventListener('click', e => {
