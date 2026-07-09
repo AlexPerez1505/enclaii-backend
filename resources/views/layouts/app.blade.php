@@ -2138,7 +2138,6 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
       {id:'next-patient',    name:'Próximo Paciente',   desc:'Paciente actual y hora',     group:'👨‍⚕️ Pacientes', color:'blue',   default:true},
       {id:'next-list',       name:'Pacientes Pendientes', desc:'Lista de pacientes de hoy', group:'👨‍⚕️ Pacientes', color:'blue',   default:true},
       {id:'ia-pending',      name:'Reporte IA',         desc:'Reportes pendientes de IA',   group:'🤖 IA',         color:'purple', default:true},
-      {id:'ia-risk',         name:'IA Predictiva',      desc:'Riesgo y recomendaciones',    group:'🤖 IA',         color:'purple', default:true},
       {id:'ia-recs',         name:'Recomendaciones IA', desc:'Sugerencias clínicas',        group:'🤖 IA',         color:'purple', default:false},
       {id:'agenda-today',    name:'Agenda del día',     desc:'Calendario y citas',          group:'📅 Agenda',     color:'teal',   default:true},
       {id:'agenda-summary',  name:'Resumen de estudios', desc:'Dona y próximos estudios',   group:'📅 Agenda',     color:'teal',   default:true},
