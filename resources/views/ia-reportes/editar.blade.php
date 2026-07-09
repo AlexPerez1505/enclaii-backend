@@ -724,7 +724,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
         const cambios = applyAcciones(data.acciones);
         let respuesta = data.respuesta || '...';
         if (cambios > 0) {
-          respuesta += '\n\n✓ Actualicé ' + cambios + (cambios === 1 ? ' sección' : ' secciones') + ' del informe.';
+          respuesta += '\n\nActualicé ' + cambios + (cambios === 1 ? ' sección' : ' secciones') + ' del informe.';
         }
         typeInto(aiEl, respuesta);
       }

@@ -931,7 +931,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
         const seccionesFiltradas = tpl.secciones.filter(s => !ocultas.includes(s.h) && !borradas.includes(s.h));
         const todasSecciones = [...seccionesFiltradas, ...nuevas];
         cont.innerHTML = todasSecciones.map(s => {
-          const head = '<h4 data-section="' + s.h + '">' + s.h + '<button type="button" class="sec-hide" title="Ocultar sección">✕</button><button type="button" class="sec-delete" title="Borrar sección">🗑</button></h4>';
+          const head = '<h4 data-section="' + s.h + '">' + s.h + '<button type="button" class="sec-hide" title="Ocultar sección">×</button><button type="button" class="sec-delete" title="Borrar sección">Borrar</button></h4>';
           if (s.tipo === 'ul') {
             return head + '<ul><li contenteditable="true" data-ph="' + s.ph + '"></li></ul>';
           }
@@ -1513,7 +1513,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
         const cambios = applyAcciones(data.acciones);
         let respuesta = data.respuesta || '...';
         if (cambios > 0) {
-          respuesta += '\n\n✓ Actualicé ' + cambios + (cambios === 1 ? ' sección' : ' secciones') + ' del reporte.';
+          respuesta += '\n\nActualicé ' + cambios + (cambios === 1 ? ' sección' : ' secciones') + ' del reporte.';
         }
         typeInto(aiEl, respuesta);
       }
@@ -1844,7 +1844,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     const indicator = document.getElementById('pageFitIndicator');
     if (indicator) {
       if (actualHeight > targetHeight) {
-        indicator.textContent = '⚠️ Excede 1 hoja (ajustando...)';
+        indicator.textContent = 'Excede 1 hoja (ajustando...)';
         indicator.style.color = '#ef4444';
         // Aplicar escalamiento automático
         const scale = targetHeight / actualHeight;
@@ -1852,7 +1852,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
         doc.style.transformOrigin = 'top left';
         doc.style.width = (7.7 / scale) + 'in';
       } else {
-        indicator.textContent = '✓ Cabe en 1 hoja';
+        indicator.textContent = 'Cabe en 1 hoja';
         indicator.style.color = '#16a34a';
         // Restaurar tamaño normal
         doc.style.transform = '';

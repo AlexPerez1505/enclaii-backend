@@ -925,9 +925,9 @@ textarea{
         <div class="patient-photo-container" id="patientPhotoContainer">
           @if($paciente->foto)
             <img id="patientPhoto" src="{{ asset('storage/' . $paciente->foto) }}" alt="Foto del paciente">
-            <div class="patient-photo-placeholder" id="patientPhotoPlaceholder" style="display:none;">👤</div>
+            <div class="patient-photo-placeholder" id="patientPhotoPlaceholder" style="display:none;"></div>
           @else
-            <div class="patient-photo-placeholder" id="patientPhotoPlaceholder">👤</div>
+            <div class="patient-photo-placeholder" id="patientPhotoPlaceholder"></div>
             <img id="patientPhoto" style="display:none;" alt="Foto del paciente">
           @endif
         </div>
@@ -1356,7 +1356,7 @@ textarea{
             <span class="corner corner-tr"></span>
             <span class="corner corner-bl"></span>
             <span class="corner corner-br"></span>
-            <div class="avatar-preview">👤</div>
+            <div class="avatar-preview"></div>
           </div>
           <div class="camera-controls">
             <button class="cam-btn">
@@ -1683,7 +1683,7 @@ document.addEventListener('DOMContentLoaded', function() {
     modalFoto.classList.add('active');
 
     if (avatarPreview && !currentPhotoData) {
-      avatarPreview.textContent = '👤';
+      avatarPreview.textContent = '';
       avatarPreview.style.backgroundImage = '';
     }
   };

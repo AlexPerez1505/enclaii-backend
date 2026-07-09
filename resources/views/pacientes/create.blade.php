@@ -1032,7 +1032,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
       {{-- Foto --}}
       <div class="personal-photo-col">
         <div class="patient-photo-container" id="patientPhotoContainer">
-          <div class="patient-photo-placeholder" id="patientPhotoPlaceholder">👤</div>
+          <div class="patient-photo-placeholder" id="patientPhotoPlaceholder"></div>
           <img id="patientPhoto" style="display:none;" alt="Foto del paciente">
         </div>
         <input type="file" name="foto" id="inputFileFoto" accept="image/*" style="display:none;">
@@ -1344,7 +1344,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
             <span class="corner corner-tr"></span>
             <span class="corner corner-bl"></span>
             <span class="corner corner-br"></span>
-            <div class="avatar-preview">👤</div>
+            <div class="avatar-preview"></div>
           </div>
           <div class="camera-controls">
             <button class="cam-btn">
@@ -2132,7 +2132,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
       modalFotoAuto.classList.add('active');
 
       if (avatarPreviewAuto && !currentPhotoDataAuto) {
-        avatarPreviewAuto.textContent = '👤';
+        avatarPreviewAuto.textContent = '';
         avatarPreviewAuto.style.backgroundImage = '';
       }
     });

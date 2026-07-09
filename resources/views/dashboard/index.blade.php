@@ -3,7 +3,7 @@
 @section('title', 'Dashboard')
 @section('active', 'dashboard')
 @section('header-title')
-  Buenos días, {{ auth()->user()?->name ?? 'Doctor' }} 👋
+  Buenos días, {{ auth()->user()?->name ?? 'Doctor' }}
 @endsection
 @section('header-sub')
   Resumen general de tu actividad clinica

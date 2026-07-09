@@ -69,7 +69,7 @@
         <div class="photo-uploader">
           <div class="photo-preview">
             <img id="patientPhotoPreview" alt="Vista previa de tu foto" hidden>
-            <div class="photo-placeholder" id="patientPhotoPlaceholder"><span>👤</span><span>Tu foto aparecerá aquí</span></div>
+            <div class="photo-placeholder" id="patientPhotoPlaceholder"><span></span><span>Tu foto aparecerá aquí</span></div>
           </div>
           <div>
             <p class="photo-copy">Puedes tomar una foto con la cámara frontal de tu teléfono o elegir una imagen de tu galería. Procura tener buena iluminación y mostrar claramente tu rostro.</p>
@@ -81,10 +81,10 @@
             @endif
             <div class="photo-actions">
               @if($allowCameraPhoto)
-                <label class="photo-button primary" for="patientPhotoCamera">📷 Tomar foto</label>
+                <label class="photo-button primary" for="patientPhotoCamera">Tomar foto</label>
               @endif
               @if($allowGalleryPhoto)
-                <label class="photo-button" for="patientPhotoGallery">🖼️ Elegir de galería</label>
+                <label class="photo-button" for="patientPhotoGallery">Elegir de galería</label>
               @endif
               <button class="photo-button danger" id="removePatientPhoto" type="button" hidden>Quitar foto</button>
             </div>

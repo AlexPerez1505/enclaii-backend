@@ -297,7 +297,7 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
           <span class="pf-corner pf-corner-tr"></span>
           <span class="pf-corner pf-corner-bl"></span>
           <span class="pf-corner pf-corner-br"></span>
-          <div class="pf-avatar-preview" id="pfAvatarPreview">👤</div>
+          <div class="pf-avatar-preview" id="pfAvatarPreview"></div>
         </div>
         <div class="pf-camera-controls">
           <button type="button" class="pf-cam-btn" id="pfBtnGaleria">
@@ -497,7 +497,7 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
 
   function openModal() {
     modal.classList.add('active');
-    if (avatarPrev && !photoData) { avatarPrev.style.backgroundImage=''; avatarPrev.textContent='👤'; }
+    if (avatarPrev && !photoData) { avatarPrev.style.backgroundImage=''; avatarPrev.textContent=''; }
   }
   function closeModal() { stopCamera(); modal.classList.remove('active'); }
 

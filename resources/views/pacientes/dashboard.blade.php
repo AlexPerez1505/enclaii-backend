@@ -93,7 +93,6 @@ body{
     <div class="profile-card">
 
         <div class="avatar">
-            👤
         </div>
 
         <div class="info">
@@ -110,18 +109,18 @@ body{
     <div class="cards">
 
         <div class="card">
-            <h3>📅 Próxima Cita</h3>
+            <h3>Próxima Cita</h3>
             <p>20 Junio 2026</p>
             <p>10:00 AM</p>
         </div>
 
         <div class="card">
-            <h3>📋 Historial Médico</h3>
+            <h3>Historial Médico</h3>
             <p>3 consultas registradas</p>
         </div>
 
         <div class="card">
-            <h3>💊 Tratamiento</h3>
+            <h3>Tratamiento</h3>
             <p>En seguimiento</p>
         </div>
 

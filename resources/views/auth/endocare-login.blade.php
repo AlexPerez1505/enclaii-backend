@@ -995,7 +995,7 @@ body{
         </div>
 
         <div class="ec-card card-cloud" data-depth="18">
-          <h4>☁ Datos seguros</h4>
+          <h4>Datos seguros</h4>
           <div class="big"><span class="ec-count" data-target="48920">0</span></div>
           <div class="sub">Registros sincronizados en la nube</div>
           <div class="cloud-bar"><i></i></div>

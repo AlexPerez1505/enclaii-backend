@@ -768,7 +768,7 @@
 
     if (!received) {
       const state = document.createElement('span');
-      state.textContent = message.status === 'read' ? ' ✓✓' : ' ✓';
+      state.textContent = message.status === 'read' ? ' Leído' : ' Enviado';
       state.title = message.status || 'enviado';
       time.appendChild(state);
     }

@@ -1248,21 +1248,9 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
           <div class="profile-menu" id="profileMenu" role="menu">
             <div class="pm-head"><strong>Acciones rápidas</strong><span>Acciones y herramientas</span></div>
 
-            <a href="{{ route('configuracion') }}" class="pm-item" role="menuitem">
+            <a href="{{ route('configuracion') }}?tab=perfil" class="pm-item" role="menuitem">
               <span class="pm-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
               <span class="pm-txt"><span class="t">Editar perfil</span><span class="d">Actualiza tu información personal</span></span>
-            </a>
-            <a href="#" class="pm-item" role="menuitem">
-              <span class="pm-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
-              <span class="pm-txt"><span class="t">Exportar mis datos</span><span class="d">Descargar una copia tus datos</span></span>
-            </a>
-            <a href="#" class="pm-item" role="menuitem">
-              <span class="pm-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
-              <span class="pm-txt"><span class="t">Importar mi configuración</span><span class="d">Importar configuración desde un archivo</span></span>
-            </a>
-            <a href="#" class="pm-item" role="menuitem">
-              <span class="pm-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.5 15a9 9 0 1 0 .5-8L1 10"/></svg></span>
-              <span class="pm-txt"><span class="t">Restablecer configuración</span><span class="d">Restaurar configuración predeterminada</span></span>
             </a>
             @if(request()->routeIs('dashboard'))
             <div class="pm-sep"></div>
@@ -1600,7 +1588,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
             : 'Archivo';
 
         item.innerHTML = `
-          ${url ? `<img src="${url}" alt="${escapeHtml(file.name)}">` : `<span class="ai-file-icon">📎</span>`}
+          ${url ? `<img src="${url}" alt="${escapeHtml(file.name)}">` : `<span class="ai-file-icon"></span>`}
           <span class="ai-file-info">
             <span class="ai-file-name">${escapeHtml(file.name)}</span>
             <span class="ai-file-type">${typeLabel}</span>
@@ -1871,7 +1859,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
       if (otherFiles.length) {
         const note = document.createElement('div');
         note.className = 'ai-file-note';
-        note.textContent = otherFiles.map(f => `📎 ${f.name}`).join(' · ');
+        note.textContent = otherFiles.map(f => f.name).join(' · ');
         msg.appendChild(note);
       }
 
@@ -2135,16 +2123,16 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
   /* Dashboard Editor */
   (function(){
     const WIDGETS = [
-      {id:'next-patient',    name:'Próximo Paciente',   desc:'Paciente actual y hora',     group:'👨‍⚕️ Pacientes', color:'blue',   default:true},
-      {id:'next-list',       name:'Pacientes Pendientes', desc:'Lista de pacientes de hoy', group:'👨‍⚕️ Pacientes', color:'blue',   default:true},
-      {id:'ia-pending',      name:'Reporte IA',         desc:'Reportes pendientes de IA',   group:'🤖 IA',         color:'purple', default:true},
-      {id:'ia-recs',         name:'Recomendaciones IA', desc:'Sugerencias clínicas',        group:'🤖 IA',         color:'purple', default:false},
-      {id:'agenda-today',    name:'Agenda del día',     desc:'Calendario y citas',          group:'📅 Agenda',     color:'teal',   default:true},
-      {id:'agenda-summary',  name:'Resumen de estudios', desc:'Dona y próximos estudios',   group:'📅 Agenda',     color:'teal',   default:true},
-      {id:'new-study',       name:'Acciones rápidas',   desc:'Nuevo estudio, WhatsApp…',    group:'🎥 Estudio',    color:'green',  default:true},
-      {id:'gallery-recent',  name:'Últimos Estudios',   desc:'Galería reciente',            group:'🖼 Galería',    color:'green2', default:false},
-      {id:'system-status',   name:'Estado General',     desc:'Cámara, IA, Nube',            group:'☁ Sistema',    color:'orange', default:false},
-      {id:'reminders',       name:'Recordatorios',      desc:'Avisos del sistema',          group:'☁ Sistema',    color:'orange', default:false},
+      {id:'next-patient',    name:'Próximo Paciente',   desc:'Paciente actual y hora',     group:'Pacientes', color:'blue',   default:true},
+      {id:'next-list',       name:'Pacientes Pendientes', desc:'Lista de pacientes de hoy', group:'Pacientes', color:'blue',   default:true},
+      {id:'ia-pending',      name:'Reporte IA',         desc:'Reportes pendientes de IA',   group:'IA',         color:'purple', default:true},
+      {id:'ia-recs',         name:'Recomendaciones IA', desc:'Sugerencias clínicas',        group:'IA',         color:'purple', default:false},
+      {id:'agenda-today',    name:'Agenda del día',     desc:'Calendario y citas',          group:'Agenda',     color:'teal',   default:true},
+      {id:'agenda-summary',  name:'Resumen de estudios', desc:'Dona y próximos estudios',   group:'Agenda',     color:'teal',   default:true},
+      {id:'new-study',       name:'Acciones rápidas',   desc:'Nuevo estudio, WhatsApp…',    group:'Estudio',    color:'green',  default:true},
+      {id:'gallery-recent',  name:'Últimos Estudios',   desc:'Galería reciente',            group:'Galería',    color:'green2', default:false},
+      {id:'system-status',   name:'Estado General',     desc:'Cámara, IA, Nube',            group:'Sistema',    color:'orange', default:false},
+      {id:'reminders',       name:'Recordatorios',      desc:'Avisos del sistema',          group:'Sistema',    color:'orange', default:false},
     ];
 
     function loadPrefs() {

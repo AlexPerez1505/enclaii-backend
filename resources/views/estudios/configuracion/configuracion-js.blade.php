@@ -145,7 +145,7 @@
     repList.querySelectorAll('.rep-list-item').forEach(i => i.classList.remove('playing'));
     repSelected.classList.add('playing');
     if (repPlayIcon) repPlayIcon.innerHTML = PAUSE_SVG;
-    if (repStatus)  repStatus.textContent = '⏵ Reproduciendo: ' + repSelected.dataset.name;
+    if (repStatus)  repStatus.textContent = 'Reproduciendo: ' + repSelected.dataset.name;
     clearInterval(repTimer);
     repTimer = setInterval(() => {
       repProgressV = Math.min(100, repProgressV + 0.5);
@@ -159,7 +159,7 @@
     repPlaying = false;
     clearInterval(repTimer);
     if (repPlayIcon) repPlayIcon.innerHTML = PLAY_SVG;
-    if (repStatus && repSelected) repStatus.textContent = '⏸ Pausado: ' + repSelected.dataset.name;
+    if (repStatus && repSelected) repStatus.textContent = 'Pausado: ' + repSelected.dataset.name;
   }
 
   /* Detiene y resetea */
@@ -227,9 +227,9 @@
   if (repCtrlCapture) {
     repCtrlCapture.addEventListener('click', () => {
       const ts = new Date().toLocaleTimeString();
-      if (repStatus) repStatus.textContent = `📷 Foto capturada ${ts}`;
+      if (repStatus) repStatus.textContent = `Foto capturada ${ts}`;
       setTimeout(() => {
-        if (repStatus && repSelected) repStatus.textContent = (repPlaying ? '⏵ Reproduciendo: ' : '') + repSelected.dataset.name;
+        if (repStatus && repSelected) repStatus.textContent = (repPlaying ? 'Reproduciendo: ' : '') + repSelected.dataset.name;
       }, 2000);
     });
   }

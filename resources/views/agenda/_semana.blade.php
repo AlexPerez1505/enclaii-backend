@@ -112,7 +112,7 @@ html[data-theme="light"] .wk-modal-badge.soon{background:#F3ECFF;color:#4A1A8A;b
   <div class="wk-modal">
     <div class="wk-modal-header">
       <div class="wk-modal-title" id="wkModalTitle"></div>
-      <button class="wk-modal-close" id="wkModalClose" aria-label="Cerrar">✕</button>
+      <button class="wk-modal-close" id="wkModalClose" aria-label="Cerrar">×</button>
     </div>
     <div class="wk-modal-body" id="wkModalBody"></div>
   </div>
