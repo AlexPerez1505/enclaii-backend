@@ -8,6 +8,8 @@ use App\Http\Controllers\IaReporteController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\WhatsAppController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Password;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\NuevoEstudioController;
@@ -996,6 +998,36 @@ Route::post('/forgot-password', function (Request $request) {
         ? back()->with(['status' => __($status)])
         : back()->withErrors(['email' => __($status)]);
 })->middleware('guest')->name('password.email');
+
+Route::get('/reset-password/{token}', function (string $token, Request $request) {
+    return view('auth.reset-password', [
+        'token' => $token,
+        'email' => $request->query('email'),
+    ]);
+})->middleware('guest')->name('password.reset');
+
+Route::post('/reset-password', function (Request $request) {
+    $request->validate([
+        'token' => ['required'],
+        'email' => ['required', 'email'],
+        'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
+    ]);
+
+    $status = Password::reset(
+        $request->only('email', 'password', 'password_confirmation', 'token'),
+        function ($user, $password) {
+            $user->forceFill([
+                'password' => \Illuminate\Support\Facades\Hash::make($password),
+            ])->setRememberToken(\Illuminate\Support\Str::random(60));
+
+            $user->save();
+        }
+    );
+
+    return $status === Password::PASSWORD_RESET
+        ? redirect()->route('login')->with('status', __($status))
+        : back()->withErrors(['email' => __($status)]);
+})->middleware('guest')->name('password.update');
 
 Route::post('/ia/chat', [AiAssistantController::class, 'chat'])
     ->name('ia.chat');
