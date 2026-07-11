@@ -29,7 +29,7 @@ class AnuncioPublicado extends Mailable
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.anuncio-publicado',
+            view: 'emails.anuncio-publicado',
             with: ['anuncio' => $this->anuncio],
         );
     }

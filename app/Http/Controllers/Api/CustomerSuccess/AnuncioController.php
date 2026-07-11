@@ -172,7 +172,14 @@ class AnuncioController extends Controller
                 if ($emailKey === null) return true;
                 return $user->resolvedSettings()[$emailKey] ?? true;
             })
-            ->each(fn (User $user) => Mail::to($user->email)->queue(new AnuncioPublicado($anuncio)));
+            ->each(function (User $user) use ($anuncio) {
+                try {
+                    Mail::to($user->email)->send(new AnuncioPublicado($anuncio));
+                    \Illuminate\Support\Facades\Log::info("[Anuncio] Correo enviado OK → {$user->email} | anuncio_id:{$anuncio->id} | titulo:{$anuncio->titulo}");
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::error("[Anuncio] Error al enviar correo → {$user->email} | anuncio_id:{$anuncio->id} | error:" . $e->getMessage());
+                }
+            });
     }
 
     /**

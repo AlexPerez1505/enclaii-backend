@@ -221,6 +221,9 @@
     editor.innerHTML = '';
     hiddenInput.value = '';
     if (flatpickrInstance) flatpickrInstance.clear();
+    document.querySelectorAll('input[name="csCanales"]').forEach(cb => {
+      cb.checked = cb.value === 'web';
+    });
   }
 
   if (cancelBtn) cancelBtn.addEventListener('click', exitEditMode);
