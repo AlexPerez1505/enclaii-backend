@@ -215,6 +215,40 @@ class PacienteController extends Controller
             ->with('success', 'Paciente actualizado correctamente.');
     }
 
+    public function addMedico(Request $request, Paciente $paciente)
+    {
+        $validated = $request->validate([
+            'medico' => ['required', 'string', 'max:255'],
+        ]);
+
+        $paciente->medico = $validated['medico'];
+        $paciente->save();
+
+        return response()->json([
+            'success' => true,
+            'medico' => $paciente->medico,
+        ]);
+    }
+
+    public function updateCampo(Request $request, Paciente $paciente)
+    {
+        $camposPermitidos = ['medico', 'procedimiento', 'anestesiologo', 'referido_por', 'equipo_utilizado'];
+
+        $validated = $request->validate([
+            'campo' => ['required', 'string', Rule::in($camposPermitidos)],
+            'valor' => ['required', 'string', 'max:255'],
+        ]);
+
+        $paciente->{$validated['campo']} = $validated['valor'];
+        $paciente->save();
+
+        return response()->json([
+            'success' => true,
+            'campo' => $validated['campo'],
+            'valor' => $paciente->{$validated['campo']},
+        ]);
+    }
+
     public function destroy(Paciente $paciente)
     {
         try {

@@ -956,6 +956,10 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
 Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     Route::resource('pacientes', PacienteController::class)
         ->middlewareFor(['update', 'destroy'], 'critical.password:patients');
+    Route::post('/pacientes/{paciente}/add-medico', [PacienteController::class, 'addMedico'])
+        ->name('pacientes.add-medico');
+    Route::post('/pacientes/{paciente}/update-campo', [PacienteController::class, 'updateCampo'])
+        ->name('pacientes.update-campo');
 
     Route::get('/qr', [QrRegistrationController::class, 'index'])->name('qr.index');
     Route::post('/qr/enlaces', [QrRegistrationController::class, 'store'])->name('qr.links.store');
@@ -974,6 +978,9 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     Route::put('/agenda/citas/{cita}', [AgendaController::class, 'update'])->name('agenda.citas.update');
     Route::patch('/agenda/citas/{cita}/estado', [AgendaController::class, 'cambiarEstado'])->name('agenda.citas.estado');
     Route::delete('/agenda/citas/{cita}', [AgendaController::class, 'destroy'])->name('agenda.citas.destroy');
+
+    Route::post('/agenda/bloqueos', [AgendaController::class, 'storeBloqueo'])->name('agenda.bloqueos.store');
+    Route::delete('/agenda/bloqueos/{bloqueo}', [AgendaController::class, 'destroyBloqueo'])->name('agenda.bloqueos.destroy');
 
     Route::get('/finanzas', function () {
         return view('finanzas.index');

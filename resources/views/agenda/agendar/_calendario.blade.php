@@ -66,6 +66,8 @@
 .timeline-segment:last-child{border-right:none}
 .timeline-segment.free{background:#4C9242}
 .timeline-segment.busy{background:#D90000}
+.timeline-segment.blocked{background:rgba(100,110,140,.7);cursor:not-allowed}
+.timeline-segment.blocked::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 4px,rgba(255,255,255,.12) 4px,rgba(255,255,255,.12) 8px)}
 .timeline-segment.past{background:rgba(120,120,120,.55);cursor:not-allowed}
 .timeline-segment.past::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 4px,rgba(255,255,255,.15) 4px,rgba(255,255,255,.15) 8px)}
 .timeline-cursor{position:absolute;top:50%;width:2px;height:140%;background:#fff;transform:translate(-50%,-50%);box-shadow:0 0 6px rgba(0,0,0,.5);z-index:2;pointer-events:none;transition:height 200ms ease}
@@ -114,6 +116,7 @@
 .legend-dot{width:8px;height:8px;border-radius:50%;flex:none}
 .legend-dot.libre{background:#4C9242}
 .legend-dot.ocupado{background:#D90000}
+.legend-dot.bloqueado{background:rgba(100,110,140,.8);border:1px solid rgba(180,190,210,.5)}
 
 /* Tema claro */
 html[data-theme="light"] .cal-ag-wrap{
@@ -138,6 +141,7 @@ html[data-theme="light"] .timeline-segment{border-right-color:rgba(20,50,120,.25
 html[data-theme="light"] .timeline-cursor{background:#0E1530;box-shadow:0 0 6px rgba(20,50,120,.25)}
 html[data-theme="light"] .timeline-selection{background:linear-gradient(90deg,rgba(217,0,0,.25),rgba(217,0,0,.12))}
 html[data-theme="light"] .timeline-segment.past{background:rgba(100,100,100,.35)}
+html[data-theme="light"] .timeline-segment.blocked{background:rgba(90,100,130,.35)}
 html[data-theme="light"] .time-picker-col input[type="text"]{background:#fff;border-color:rgba(20,50,120,.25);color:#0E1530}
 html[data-theme="light"] .time-picker-col input[type="text"]::selection{background:#1668D9;color:#fff}
 html[data-theme="light"] .time-separator{color:#0E1530}
@@ -260,6 +264,7 @@ html[data-theme="light"] .reprogram-info{
     <div class="slots-legend">
       <div class="legend-item"><span class="legend-dot libre"></span> Libre</div>
       <div class="legend-item"><span class="legend-dot ocupado"></span> Ocupado</div>
+      <div class="legend-item"><span class="legend-dot bloqueado"></span> Bloqueado</div>
     </div>
   </div>
 </div>
@@ -420,7 +425,9 @@ html[data-theme="light"] .reprogram-info{
   }
 
   function getSegmentStatus(midMinutes, ranges) {
-    return ranges.some(r => midMinutes >= r.start && midMinutes < r.end) ? 'busy' : 'free';
+    const hit = ranges.find(r => midMinutes >= r.start && midMinutes < r.end);
+    if (!hit) return 'free';
+    return hit.cls === 'ev-block' ? 'blocked' : 'busy';
   }
 
   function renderTimelineLabels() {

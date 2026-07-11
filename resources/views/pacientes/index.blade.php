@@ -1715,7 +1715,7 @@
   <div class="filter-overlay" id="filterOverlay" onclick="closeFilters()"></div>
   <div class="filter-modal" id="filterPanel" role="dialog" aria-modal="true">
     <div class="filter-modal-head">
-      <h2>Filtros <span id="filterCount">(0)</span></h2>
+      <h2>Filtros</h2>
       <button class="filter-clear-all" onclick="clearFilters()" id="btnClearAllFilters" style="display:none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
         Limpiar todo
@@ -1723,10 +1723,6 @@
     </div>
     <div class="filter-modal-body">
       <div class="filter-grid" id="filterBasicGrid">
-        <div class="filter-group">
-          <label>Nombre del paciente</label>
-          <input type="text" class="filter-input" placeholder="Ej. María González" id="fNombre">
-        </div>
         <div class="filter-group">
           <label>Médico</label>
           <select class="filter-input filter-select" id="fMedico">
@@ -2477,17 +2473,15 @@ function toggleMoreFilters() {
   if (icon) icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
 }
 function updateFilterCount() {
-  const ids = ['fNombre','fMedico','fEstado','fUltimoEstudio','fFechaNacimiento','fFolio'];
+  const ids = ['fMedico','fEstado','fUltimoEstudio','fFechaNacimiento','fFolio'];
   let count = 0;
   ids.forEach(id => {
     const el = document.getElementById(id);
     if (el && el.value.trim() !== '') count++;
   });
   const countText = count > 0 ? `(${count})` : '(0)';
-  const filterCount = document.getElementById('filterCount');
   const applyFilterCount = document.getElementById('applyFilterCount');
   const btnClear = document.getElementById('btnClearAllFilters');
-  if (filterCount) filterCount.textContent = countText;
   if (applyFilterCount) applyFilterCount.textContent = countText;
   if (btnClear) btnClear.style.display = count > 0 ? 'flex' : 'none';
 }
@@ -2497,7 +2491,7 @@ function setDateFilter(btn, val) {
   updateFilterCounter();
 }
 function updateFilterCounter() {
-  const fields = ['fNombre','fMedico','fEstado','fUltimoEstudio','fFechaNacimiento','fFolio'];
+  const fields = ['fMedico','fEstado','fUltimoEstudio','fFechaNacimiento','fFolio'];
   let count = 0;
   fields.forEach(id => {
     const el = document.getElementById(id);
@@ -2507,10 +2501,8 @@ function updateFilterCounter() {
   const moreOpen = document.getElementById('moreFiltersBox')?.style.display === 'block';
   if (moreOpen) count++;
 
-  const filterCount = document.getElementById('filterCount');
   const applyCount = document.getElementById('applyCount');
   const btnLimpiar = document.getElementById('btnLimpiarTodo');
-  if (filterCount) filterCount.textContent = '(' + count + ')';
   if (applyCount) applyCount.textContent = '(' + count + ')';
   if (btnLimpiar) btnLimpiar.style.display = count > 0 ? 'inline-flex' : 'none';
 }
@@ -2518,7 +2510,6 @@ function applyFilters() {
   updateFilterCount();
   closeFilters();
 
-  const nombre        = document.getElementById('fNombre')?.value.toLowerCase().trim() || '';
   const medico        = document.getElementById('fMedico')?.value.toLowerCase().trim() || '';
   const estado        = document.getElementById('fEstado')?.value.toLowerCase().trim() || '';
   const ultimoEstudio = document.getElementById('fUltimoEstudio')?.value.toLowerCase().trim() || '';
@@ -2536,9 +2527,6 @@ function applyFilters() {
   };
 
   patientsDataFiltered = patientsData.filter(p => {
-    /* Nombre */
-    if (nombre && !(p.name && p.name.toLowerCase().includes(nombre))) return false;
-
     /* Médico */
     if (medico && !(p.medico && p.medico.toLowerCase() === medico)) return false;
 
@@ -2617,7 +2605,7 @@ function filterPatients() {
   renderPage(1);
 }
 function clearFilters() {
-  ['fNombre','fMedico','fEstado','fUltimoEstudio','fFechaNacimiento','fFolio'].forEach(id => {
+  ['fMedico','fEstado','fUltimoEstudio','fFechaNacimiento','fFolio'].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
       if (el.tagName === 'SELECT') el.selectedIndex = 0;
@@ -2628,7 +2616,7 @@ function clearFilters() {
 }
 
 // Actualizar contador cuando cambia cualquier filtro
-['fNombre','fMedico','fEstado','fUltimoEstudio','fFechaNacimiento','fFolio'].forEach(id => {
+['fMedico','fEstado','fUltimoEstudio','fFechaNacimiento','fFolio'].forEach(id => {
   const el = document.getElementById(id);
   if (el) el.addEventListener('change', updateFilterCounter);
   if (el) el.addEventListener('input', updateFilterCounter);
@@ -2637,7 +2625,7 @@ function clearFilters() {
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closeFilters(); });
 
 // Actualizar contador cuando cambia cualquier filtro
-['fNombre','fMedico','fEstado','fUltimoEstudio','fFechaNacimiento','fFolio'].forEach(id => {
+['fMedico','fEstado','fUltimoEstudio','fFechaNacimiento','fFolio'].forEach(id => {
   const el = document.getElementById(id);
   if (el) el.addEventListener('change', updateFilterCount);
 });
