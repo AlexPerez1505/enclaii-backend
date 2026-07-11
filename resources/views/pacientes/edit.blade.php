@@ -924,7 +924,7 @@ textarea{
       <div class="personal-photo-col">
         <div class="patient-photo-container" id="patientPhotoContainer">
           @if($paciente->foto)
-            <img id="patientPhoto" src="{{ asset('storage/' . $paciente->foto) }}" alt="Foto del paciente">
+            <img id="patientPhoto" src="{{ media_url($paciente->foto) }}" alt="Foto del paciente">
             <div class="patient-photo-placeholder" id="patientPhotoPlaceholder" style="display:none;">👤</div>
           @else
             <div class="patient-photo-placeholder" id="patientPhotoPlaceholder">👤</div>

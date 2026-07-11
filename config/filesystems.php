@@ -17,6 +17,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Media Disk
+    |--------------------------------------------------------------------------
+    |
+    | The application stores user-facing media such as patient photos, study
+    | captures, and videos on this disk. Keep this as "public" for local/dev
+    | storage or set MEDIA_DISK=s3 in production to offload files to AWS S3.
+    |
+    */
+
+    'media_disk' => env('MEDIA_DISK', 'public'),
+    'media_signed_urls' => env('MEDIA_SIGNED_URLS', env('MEDIA_DISK', 'public') === 's3'),
+    'media_url_ttl' => env('MEDIA_URL_TTL', 60),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |

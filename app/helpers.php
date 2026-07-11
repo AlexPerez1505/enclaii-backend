@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 if (! function_exists('user_date_format')) {
     function user_date_format(): string
@@ -79,5 +81,66 @@ if (! function_exists('format_user_datetime')) {
     function format_user_datetime($date): string
     {
         return format_user_date_time($date);
+    }
+}
+
+if (! function_exists('media_disk')) {
+    function media_disk(): string
+    {
+        return (string) config('filesystems.media_disk', 'public');
+    }
+}
+
+if (! function_exists('media_store')) {
+    function media_store($file, string $directory): string
+    {
+        return $file->store($directory, media_disk());
+    }
+}
+
+if (! function_exists('media_url')) {
+    function media_url(?string $path, ?int $minutes = null): string
+    {
+        if (! $path) {
+            return '';
+        }
+
+        if (Str::startsWith($path, ['http://', 'https://'])) {
+            return $path;
+        }
+
+        $disk = media_disk();
+        $storage = Storage::disk($disk);
+        $signedUrls = (bool) config('filesystems.media_signed_urls', $disk === 's3');
+
+        if ($signedUrls && method_exists($storage, 'temporaryUrl')) {
+            try {
+                $ttl = $minutes ?? (int) config('filesystems.media_url_ttl', 60);
+
+                return $storage->temporaryUrl($path, now()->addMinutes(max(1, $ttl)));
+            } catch (Throwable) {
+                // Fall back to regular URLs for disks that do not support signing.
+            }
+        }
+
+        return $storage->url($path);
+    }
+}
+
+if (! function_exists('media_exists')) {
+    function media_exists(?string $path): bool
+    {
+        return filled($path) && Storage::disk(media_disk())->exists($path);
+    }
+}
+
+if (! function_exists('media_delete')) {
+    function media_delete(?string $path): bool
+    {
+        if (! filled($path)) {
+            return false;
+        }
+
+        return Storage::disk(media_disk())->delete($path);
     }
 }

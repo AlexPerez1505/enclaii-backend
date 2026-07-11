@@ -251,7 +251,7 @@
               <div class="qr-person">
                 <div class="qr-person-avatar">
                   @if($item->foto)
-                    <img src="{{ asset('storage/'.$item->foto) }}" alt="Foto de {{ $item->nombre_completo }}">
+                    <img src="{{ media_url($item->foto) }}" alt="Foto de {{ $item->nombre_completo }}">
                   @else
                     {{ mb_strtoupper(mb_substr($item->nombre_completo, 0, 1)) }}
                   @endif
@@ -270,7 +270,7 @@
               @endif
               @if($item->foto)
                 <div class="qr-photo-review">
-                  <img src="{{ asset('storage/'.$item->foto) }}" alt="Fotografía enviada por {{ $item->nombre_completo }}">
+                  <img src="{{ media_url($item->foto) }}" alt="Fotografía enviada por {{ $item->nombre_completo }}">
                   <div><strong>Fotografía enviada por el paciente</strong><span>Al aceptar este pre-registro, la fotografía se agregará automáticamente a su expediente.</span></div>
                 </div>
               @endif

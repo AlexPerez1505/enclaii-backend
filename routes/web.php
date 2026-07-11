@@ -303,7 +303,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
                 ->orderByDesc('capturado_en')
                 ->orderByDesc('id')
                 ->get()
-                ->map(fn ($a) => 'storage/'.$a->path)
+                ->map(fn ($a) => media_url($a->path))
                 ->values();
         }
 
@@ -396,7 +396,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
                 ->get()
                 ->map(fn ($a) => [
                     'id' => $a->id,
-                    'url' => asset('storage/'.$a->path),
+                    'url' => media_url($a->path),
                     'titulo' => $a->nombre_original,
                 ])
                 ->values();
@@ -501,7 +501,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
                     ->where('tipo', 'imagen')
                     ->orderByDesc('capturado_en')
                     ->get()
-                    ->map(fn ($a) => ['url' => asset('storage/' . $a->path), 'titulo' => $a->nombre_original]);
+                    ->map(fn ($a) => ['url' => media_url($a->path), 'titulo' => $a->nombre_original]);
             }
             // Si el reporte no tiene plantilla asignada, cargar la que corresponda al tipo de estudio
             if ($reporte && ! $reporte->plantilla && $reporte->estudio?->tipo) {
@@ -747,7 +747,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
                 'n' => $i + 1,
                 'ts' => optional($a->capturado_en)->format('H:i:s') ?? '',
                 'bg' => 'radial-gradient(ellipse at 50% 50%,#1a1208 0%,#0a0610 100%)',
-                'src' => asset('storage/' . $a->path),
+                'src' => media_url($a->path),
                 'id' => $a->id,
             ];
         })->all();
@@ -779,7 +779,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
 
         $file = $request->file('image');
         $oldPath = $archivo->path;
-        $path = $file->store("estudios/{$archivo->estudio_id}/archivos", 'public');
+        $path = media_store($file, "estudios/{$archivo->estudio_id}/archivos");
 
         $archivo->update([
             'path' => $path,
@@ -789,15 +789,15 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
             'nombre' => pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
         ]);
 
-        if ($oldPath && $oldPath !== $path && \Illuminate\Support\Facades\Storage::disk('public')->exists($oldPath)) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($oldPath);
+        if ($oldPath && $oldPath !== $path) {
+            media_delete($oldPath);
         }
 
         return response()->json([
             'ok' => true,
             'archivo' => [
                 'id' => $archivo->id,
-                'url' => asset('storage/'.$archivo->path),
+                'url' => media_url($archivo->path),
                 'path' => $archivo->path,
             ],
         ]);
@@ -812,7 +812,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
         ]);
 
         $file = $request->file('image');
-        $path = $file->store("estudios/{$archivo->estudio_id}/archivos", 'public');
+        $path = media_store($file, "estudios/{$archivo->estudio_id}/archivos");
         $copy = \App\Models\EstudioArchivo::create([
             'estudio_id' => $archivo->estudio_id,
             'paciente_id' => $archivo->paciente_id,
@@ -831,7 +831,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
             'ok' => true,
             'archivo' => [
                 'id' => $copy->id,
-                'url' => asset('storage/'.$copy->path),
+                'url' => media_url($copy->path),
                 'path' => $copy->path,
             ],
         ]);
@@ -845,7 +845,517 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
 });
 
 
+Route::options('/tauri/{any}', function (\Illuminate\Http\Request $request) {
+    $origin = $request->headers->get('Origin');
+    $allowedOrigin = $origin && (
+        $origin === 'null'
+        || preg_match('#^tauri://localhost$#', $origin)
+        || preg_match('#^https?://tauri\.localhost$#', $origin)
+        || preg_match('#^https?://localhost(:\d+)?$#', $origin)
+        || preg_match('#^https?://127\.0\.0\.1(:\d+)?$#', $origin)
+    );
+
+    $response = response('', $allowedOrigin ? 204 : 403)
+        ->header('Access-Control-Allow-Credentials', 'true')
+        ->header('Access-Control-Allow-Headers', 'Accept, Authorization, Content-Type, X-Requested-With')
+        ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+        ->header('Vary', 'Origin');
+
+    if ($allowedOrigin) {
+        $response->headers->set('Access-Control-Allow-Origin', $origin);
+    }
+
+    return $response;
+})->where('any', '.*');
+
 Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
+    Route::get('/tauri/dashboard', function (\Illuminate\Http\Request $request) {
+        $withCors = function ($response) use ($request) {
+            $origin = $request->headers->get('Origin');
+            $allowedOrigin = $origin && (
+                $origin === 'null'
+                || preg_match('#^tauri://localhost$#', $origin)
+                || preg_match('#^https?://tauri\.localhost$#', $origin)
+                || preg_match('#^https?://localhost(:\d+)?$#', $origin)
+                || preg_match('#^https?://127\.0\.0\.1(:\d+)?$#', $origin)
+            );
+
+            if ($allowedOrigin) {
+                $response->headers->set('Access-Control-Allow-Origin', $origin);
+                $response->headers->set('Access-Control-Allow-Credentials', 'true');
+                $response->headers->set('Vary', 'Origin');
+            }
+
+            return $response;
+        };
+
+        if (! auth()->check()) {
+            $authorization = (string) $request->header('Authorization');
+
+            if (str_starts_with($authorization, 'Basic ')) {
+                $decoded = base64_decode(substr($authorization, 6), true);
+
+                if ($decoded && str_contains($decoded, ':')) {
+                    [$email, $password] = explode(':', $decoded, 2);
+
+                    auth()->once([
+                        'email' => $email,
+                        'password' => $password,
+                    ]);
+                }
+            }
+        }
+
+        $user = auth()->user();
+
+        if (! $user) {
+            return $withCors(response()->json([
+                'ok' => false,
+                'message' => 'Credenciales de Laravel requeridas.',
+            ], 401));
+        }
+
+        if (! $user->subscribed()) {
+            return $withCors(response()->json([
+                'ok' => false,
+                'message' => 'El usuario no tiene una suscripción activa.',
+            ], 403));
+        }
+
+        \App\Models\Cita::query()
+            ->where('estado', 'proximo')
+            ->whereRaw("CONCAT(fecha, ' ', hora) <= ?", [now()->format('Y-m-d H:i:s')])
+            ->update(['estado' => 'cancelado']);
+
+        $estudiosSinReporte = \App\Models\Estudio::whereDoesntHave('reportes')->count();
+
+        $proximaCita = \App\Models\Cita::with('paciente')
+            ->whereNotIn('estado', ['cancelado', 'completado'])
+            ->whereRaw("CONCAT(fecha, ' ', hora) >= ?", [now()->format('Y-m-d H:i:s')])
+            ->orderBy('fecha')
+            ->orderBy('hora')
+            ->first();
+
+        $pendientesHoy = \App\Models\Cita::with('paciente')
+            ->whereDate('fecha', now()->toDateString())
+            ->whereNotIn('estado', ['completado', 'cancelado'])
+            ->whereTime('hora', '>=', now()->format('H:i:s'))
+            ->orderBy('hora')
+            ->get();
+
+        $proximosEstudios = \App\Models\Cita::with('paciente')
+            ->whereNotIn('estado', ['cancelado', 'completado'])
+            ->whereRaw("CONCAT(fecha, ' ', hora) >= ?", [now()->format('Y-m-d H:i:s')])
+            ->orderBy('fecha')
+            ->orderBy('hora')
+            ->limit(5)
+            ->get();
+
+        $citasProximas = \App\Models\Cita::where('estado', 'proximo')->count();
+        $citasCompletadas = \App\Models\Cita::where('estado', 'completado')->count();
+        $citasCanceladas = \App\Models\Cita::where('estado', 'cancelado')->count();
+
+        $citaPayload = function (\App\Models\Cita $cita) {
+            $hora = \Carbon\Carbon::parse($cita->hora)->format('H:i');
+            $pacienteNombre = $cita->paciente?->nombre_completo
+                ?? $cita->paciente_nombre
+                ?? 'Paciente sin nombre';
+
+            return [
+                'id' => $cita->id,
+                'paciente_id' => $cita->paciente_id,
+                'paciente' => $pacienteNombre,
+                'hora' => $hora,
+                'fecha' => optional($cita->fecha)->format('d/m/Y') ?? '',
+                'procedimiento' => $cita->procedimiento ?? 'Procedimiento',
+                'estado' => $cita->estado,
+                'estado_texto' => $cita->estado_texto,
+                'medico' => $cita->paciente?->medico ?? '',
+            ];
+        };
+
+        $nextPatient = $proximaCita ? $citaPayload($proximaCita) : null;
+
+        return $withCors(response()->json([
+            'ok' => true,
+            'dashboard' => [
+                'reportes_pendientes' => $estudiosSinReporte,
+                'next_patient' => $nextPatient,
+                'pendientes_hoy' => $pendientesHoy->map($citaPayload)->values(),
+                'summary' => [
+                    'total_citas' => $citasProximas + $citasCompletadas + $citasCanceladas,
+                    'citas_proximas' => $citasProximas,
+                    'citas_completadas' => $citasCompletadas,
+                    'citas_canceladas' => $citasCanceladas,
+                ],
+                'proximos_estudios' => $proximosEstudios->map($citaPayload)->values(),
+            ],
+        ]));
+    })->withoutMiddleware(['auth', 'auth.session', 'subscribed'])->name('tauri.dashboard');
+
+    Route::get('/tauri/pacientes', function (\Illuminate\Http\Request $request) {
+        $withCors = function ($response) use ($request) {
+            $origin = $request->headers->get('Origin');
+            $allowedOrigin = $origin && (
+                $origin === 'null'
+                || preg_match('#^tauri://localhost$#', $origin)
+                || preg_match('#^https?://tauri\.localhost$#', $origin)
+                || preg_match('#^https?://localhost(:\d+)?$#', $origin)
+                || preg_match('#^https?://127\.0\.0\.1(:\d+)?$#', $origin)
+            );
+
+            if ($allowedOrigin) {
+                $response->headers->set('Access-Control-Allow-Origin', $origin);
+                $response->headers->set('Access-Control-Allow-Credentials', 'true');
+                $response->headers->set('Vary', 'Origin');
+            }
+
+            return $response;
+        };
+
+        if (! auth()->check()) {
+            $authorization = (string) $request->header('Authorization');
+
+            if (str_starts_with($authorization, 'Basic ')) {
+                $decoded = base64_decode(substr($authorization, 6), true);
+
+                if ($decoded && str_contains($decoded, ':')) {
+                    [$email, $password] = explode(':', $decoded, 2);
+
+                    auth()->once([
+                        'email' => $email,
+                        'password' => $password,
+                    ]);
+                }
+            }
+        }
+
+        $user = auth()->user();
+
+        if (! $user) {
+            return $withCors(response()->json([
+                'ok' => false,
+                'message' => 'Credenciales de Laravel requeridas.',
+            ], 401));
+        }
+
+        if (! $user->subscribed()) {
+            return $withCors(response()->json([
+                'ok' => false,
+                'message' => 'El usuario no tiene una suscripción activa.',
+            ], 403));
+        }
+
+        $pacientes = Paciente::query()
+            ->orderBy('nombre_completo')
+            ->get();
+
+        $pacienteIds = $pacientes->pluck('id');
+
+        $estudiosPorPaciente = \App\Models\Estudio::query()
+            ->whereIn('paciente_id', $pacienteIds)
+            ->orderByDesc('fecha')
+            ->orderByDesc('id')
+            ->get()
+            ->groupBy('paciente_id');
+
+        $proximasCitas = \App\Models\Cita::query()
+            ->whereIn('paciente_id', $pacienteIds)
+            ->whereNotIn('estado', ['cancelado', 'completado'])
+            ->whereRaw("CONCAT(fecha, ' ', hora) >= ?", [now()->format('Y-m-d H:i:s')])
+            ->orderBy('fecha')
+            ->orderBy('hora')
+            ->get()
+            ->groupBy('paciente_id')
+            ->map(fn ($citas) => $citas->first());
+
+        $patients = $pacientes->map(function (Paciente $paciente) use ($estudiosPorPaciente, $proximasCitas) {
+            $estudios = $estudiosPorPaciente->get($paciente->id, collect());
+            $ultimoEstudio = $estudios->first();
+            $proximaCita = $proximasCitas->get($paciente->id);
+            $nombre = trim((string) $paciente->nombre_completo);
+            $initials = collect(explode(' ', $nombre))
+                ->filter()
+                ->take(2)
+                ->map(fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)))
+                ->implode('') ?: 'PX';
+
+            return [
+                'id' => $paciente->id,
+                'name' => $paciente->nombre_completo,
+                'initials' => $initials,
+                'age' => $paciente->edad ? $paciente->edad.' años' : '',
+                'gender' => $paciente->sexo ? ucfirst($paciente->sexo) : '',
+                'folio' => $paciente->folio,
+                'dob' => optional($paciente->fecha_nacimiento)->format('d/m/Y') ?? '',
+                'phone' => $paciente->telefono,
+                'email' => $paciente->email,
+                'address' => $paciente->direccion,
+                'medico' => $paciente->medico,
+                'foto_url' => $paciente->foto ? media_url($paciente->foto) : null,
+                'study_date' => optional($ultimoEstudio?->fecha)->format('d/m/Y') ?? '',
+                'study_type' => $ultimoEstudio?->tipo ?? $paciente->procedimiento ?? '',
+                'status' => $ultimoEstudio?->estado ?? '',
+                'tiene_estudios' => $estudios->isNotEmpty(),
+                'estudios' => $estudios->map(fn ($estudio) => [
+                    'id' => $estudio->id,
+                    'tipo' => $estudio->tipo ?? 'Estudio',
+                    'fecha' => optional($estudio->fecha)->format('d/m/Y') ?? '',
+                ])->values(),
+                'proxima_cita' => $proximaCita ? [
+                    'fecha' => optional($proximaCita->fecha)->format('d/m/Y') ?? '',
+                    'hora' => \Carbon\Carbon::parse($proximaCita->hora)->format('H:i'),
+                ] : null,
+            ];
+        })->values();
+
+        $response = response()->json([
+            'ok' => true,
+            'patients' => $patients,
+        ]);
+
+        return $withCors($response);
+    })->withoutMiddleware(['auth', 'auth.session', 'subscribed'])->name('tauri.pacientes');
+
+    Route::get('/tauri/agenda', function (\Illuminate\Http\Request $request) {
+        $withCors = function ($response) use ($request) {
+            $origin = $request->headers->get('Origin');
+            $allowedOrigin = $origin && (
+                $origin === 'null'
+                || preg_match('#^tauri://localhost$#', $origin)
+                || preg_match('#^https?://tauri\.localhost$#', $origin)
+                || preg_match('#^https?://localhost(:\d+)?$#', $origin)
+                || preg_match('#^https?://127\.0\.0\.1(:\d+)?$#', $origin)
+            );
+
+            if ($allowedOrigin) {
+                $response->headers->set('Access-Control-Allow-Origin', $origin);
+                $response->headers->set('Access-Control-Allow-Credentials', 'true');
+                $response->headers->set('Vary', 'Origin');
+            }
+
+            return $response;
+        };
+
+        if (! auth()->check()) {
+            $authorization = (string) $request->header('Authorization');
+
+            if (str_starts_with($authorization, 'Basic ')) {
+                $decoded = base64_decode(substr($authorization, 6), true);
+
+                if ($decoded && str_contains($decoded, ':')) {
+                    [$email, $password] = explode(':', $decoded, 2);
+
+                    auth()->once([
+                        'email' => $email,
+                        'password' => $password,
+                    ]);
+                }
+            }
+        }
+
+        $user = auth()->user();
+
+        if (! $user) {
+            return $withCors(response()->json([
+                'ok' => false,
+                'message' => 'Credenciales de Laravel requeridas.',
+            ], 401));
+        }
+
+        if (! $user->subscribed()) {
+            return $withCors(response()->json([
+                'ok' => false,
+                'message' => 'El usuario no tiene una suscripcion activa.',
+            ], 403));
+        }
+
+        $year = (int) $request->query('year', now()->year);
+        $month = (int) $request->query('month', now()->month);
+
+        if ($year < 2000 || $year > 2100 || $month < 1 || $month > 12) {
+            return $withCors(response()->json([
+                'ok' => false,
+                'message' => 'Mes de agenda invalido.',
+            ], 422));
+        }
+
+        \App\Models\Cita::query()
+            ->where('estado', 'proximo')
+            ->whereRaw("CONCAT(fecha, ' ', hora) <= ?", [now()->format('Y-m-d H:i:s')])
+            ->update(['estado' => 'cancelado']);
+
+        $citas = \App\Models\Cita::with('paciente')
+            ->whereYear('fecha', $year)
+            ->whereMonth('fecha', $month)
+            ->orderBy('fecha')
+            ->orderBy('hora')
+            ->get()
+            ->map(function (\App\Models\Cita $cita) {
+                $hora = \Carbon\Carbon::parse($cita->hora)->format('H:i');
+
+                return [
+                    'id' => $cita->id,
+                    'fecha' => optional($cita->fecha)->format('Y-m-d'),
+                    'hora' => $hora,
+                    'paciente_id' => $cita->paciente_id,
+                    'paciente' => $cita->paciente?->nombre_completo
+                        ?? $cita->paciente_nombre
+                        ?? 'Paciente sin nombre',
+                    'procedimiento' => $cita->procedimiento ?? 'Procedimiento',
+                    'estado' => $cita->estado,
+                    'estado_texto' => $cita->estado_texto,
+                    'cls' => $cita->estado_clase,
+                    'sala' => $cita->sala,
+                    'notas' => $cita->notas,
+                ];
+            })
+            ->values();
+
+        return $withCors(response()->json([
+            'ok' => true,
+            'citas' => $citas,
+        ]));
+    })->withoutMiddleware(['auth', 'auth.session', 'subscribed'])->name('tauri.agenda');
+
+    Route::get('/tauri/reportes', function (\Illuminate\Http\Request $request) {
+        $withCors = function ($response) use ($request) {
+            $origin = $request->headers->get('Origin');
+            $allowedOrigin = $origin && (
+                $origin === 'null'
+                || preg_match('#^tauri://localhost$#', $origin)
+                || preg_match('#^https?://tauri\.localhost$#', $origin)
+                || preg_match('#^https?://localhost(:\d+)?$#', $origin)
+                || preg_match('#^https?://127\.0\.0\.1(:\d+)?$#', $origin)
+            );
+
+            if ($allowedOrigin) {
+                $response->headers->set('Access-Control-Allow-Origin', $origin);
+                $response->headers->set('Access-Control-Allow-Credentials', 'true');
+                $response->headers->set('Vary', 'Origin');
+            }
+
+            return $response;
+        };
+
+        if (! auth()->check()) {
+            $authorization = (string) $request->header('Authorization');
+
+            if (str_starts_with($authorization, 'Basic ')) {
+                $decoded = base64_decode(substr($authorization, 6), true);
+
+                if ($decoded && str_contains($decoded, ':')) {
+                    [$email, $password] = explode(':', $decoded, 2);
+
+                    auth()->once([
+                        'email' => $email,
+                        'password' => $password,
+                    ]);
+                }
+            }
+        }
+
+        $user = auth()->user();
+
+        if (! $user) {
+            return $withCors(response()->json([
+                'ok' => false,
+                'message' => 'Credenciales de Laravel requeridas.',
+            ], 401));
+        }
+
+        if (! $user->subscribed()) {
+            return $withCors(response()->json([
+                'ok' => false,
+                'message' => 'El usuario no tiene una suscripcion activa.',
+            ], 403));
+        }
+
+        $inicioMes = now()->startOfMonth();
+        $finMes = now()->endOfMonth();
+        $inicioMesPrev = now()->subMonthNoOverflow()->startOfMonth();
+        $finMesPrev = now()->subMonthNoOverflow()->endOfMonth();
+
+        $pct = function (int $actual, int $previo): int {
+            if ($previo === 0) {
+                return $actual > 0 ? 100 : 0;
+            }
+
+            return (int) round((($actual - $previo) / $previo) * 100);
+        };
+
+        $repMes = Reporte::whereBetween('created_at', [$inicioMes, $finMes])->count();
+        $repPrev = Reporte::whereBetween('created_at', [$inicioMesPrev, $finMesPrev])->count();
+        $estudiosSinReporte = \App\Models\Estudio::whereDoesntHave('reportes')->count();
+
+        $evMes = \App\Models\EstudioArchivo::where('tipo', 'imagen')
+            ->whereBetween('created_at', [$inicioMes, $finMes])
+            ->count();
+        $evPrev = \App\Models\EstudioArchivo::where('tipo', 'imagen')
+            ->whereBetween('created_at', [$inicioMesPrev, $finMesPrev])
+            ->count();
+
+        $estMes = \App\Models\Estudio::whereBetween('created_at', [$inicioMes, $finMes])->count();
+        $estPrev = \App\Models\Estudio::whereBetween('created_at', [$inicioMesPrev, $finMesPrev])->count();
+
+        $reportes = Reporte::with(['estudio.paciente', 'usuario'])
+            ->latest()
+            ->limit(100)
+            ->get()
+            ->map(function (Reporte $reporte) {
+                $paciente = $reporte->estudio?->paciente;
+                $pacienteNombre = $paciente?->nombre_completo
+                    ?? $reporte->estudio?->paciente_nombre
+                    ?? 'Paciente sin nombre';
+                $initials = collect(explode(' ', trim($pacienteNombre)))
+                    ->filter()
+                    ->take(2)
+                    ->map(fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)))
+                    ->implode('') ?: 'RP';
+
+                return [
+                    'id' => $reporte->id,
+                    'paciente' => $pacienteNombre,
+                    'initials' => $initials,
+                    'estudio' => $reporte->estudio?->tipo ?? 'Estudio',
+                    'fecha' => optional($reporte->created_at)->format('d/m/Y') ?? '',
+                    'hora' => optional($reporte->created_at)->format('H:i') ?? '',
+                    'estado_texto' => $reporte->contiene_hallazgos_criticos ? 'Critico' : 'Normal',
+                    'contiene_hallazgos_criticos' => (bool) $reporte->contiene_hallazgos_criticos,
+                    'view_url' => route('ia-reportes.ver', ['reporte' => $reporte->id]),
+                    'edit_url' => route('ia-reportes.redactar', [
+                        'reporte' => $reporte->id,
+                        'estudio' => $reporte->estudio_id,
+                    ]),
+                    'download_url' => route('ia-reportes.ver', ['reporte' => $reporte->id]),
+                ];
+            })
+            ->values();
+
+        $hallazgosData = app(\App\Http\Controllers\IaReporteController::class)->hallazgosData();
+        $hallazgos = collect($hallazgosData['hallazgos'] ?? [])
+            ->take(5)
+            ->map(fn ($hallazgo) => [
+                'id' => $hallazgo['id'] ?? null,
+                'nombre' => $hallazgo['nombre'] ?? 'Hallazgo',
+                'porcentaje' => $hallazgo['porcentaje'] ?? 0,
+                'es_critico' => (bool) ($hallazgo['es_critico'] ?? false),
+            ])
+            ->values();
+
+        return $withCors(response()->json([
+            'ok' => true,
+            'kpis' => [
+                'reportes' => ['valor' => $repMes, 'trend' => $pct($repMes, $repPrev)],
+                'sin_reporte' => ['valor' => $estudiosSinReporte],
+                'evidencias' => ['valor' => $evMes, 'trend' => $pct($evMes, $evPrev)],
+                'estudios' => ['valor' => $estMes, 'trend' => $pct($estMes, $estPrev)],
+            ],
+            'reportes' => $reportes,
+            'hallazgos' => $hallazgos,
+        ]));
+    })->withoutMiddleware(['auth', 'auth.session', 'subscribed'])->name('tauri.reportes');
+
     Route::resource('pacientes', PacienteController::class)
         ->middlewareFor(['update', 'destroy'], 'critical.password:patients');
 

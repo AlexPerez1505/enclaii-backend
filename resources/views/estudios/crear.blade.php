@@ -835,7 +835,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
       'sexo' => $p->sexo ? ucfirst($p->sexo) : '',
       'telefono' => $p->telefono ?? '',
       'email' => $p->email ?? '',
-      'foto' => $p->foto ? asset('storage/' . $p->foto) : null,
+      'foto' => $p->foto ? media_url($p->foto) : null,
       'iniciales' => $iniciales,
     ];
   });
@@ -873,7 +873,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
         {{-- Foto --}}
         <div class="np-foto-col">
           @php
-            $pacFoto = $paciente && $paciente->foto ? asset('storage/'.$paciente->foto) : '';
+            $pacFoto = $paciente && $paciente->foto ? media_url($paciente->foto) : '';
           @endphp
           <div class="np-foto-box" id="npFotoBox">
             <img id="npFotoPreview" src="{{ $pacFoto }}" alt="{{ $paciente?->nombre_completo }}" @if($pacFoto) style="display:block;" @endif>
@@ -1013,7 +1013,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
           @forelse($galVideos as $v)
           <article class="pa-card" data-kind="video" data-title="{{ strtolower($v->nombre_original ?? 'video') }}">
             <div class="pa-thumb">
-              <video src="{{ asset('storage/'.$v->path) }}" preload="metadata" muted style="width:100%;height:100%;object-fit:cover"></video>
+              <video src="{{ media_url($v->path) }}" preload="metadata" muted style="width:100%;height:100%;object-fit:cover"></video>
               <span class="pa-badge video">VIDEO</span>
               <div class="pa-play"><span><svg width="17" height="17" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg></span></div>
             </div>
@@ -1021,7 +1021,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
               <div class="pa-name">{{ $v->nombre_original ?? 'Video del estudio' }}</div>
               <div class="pa-meta">Estudio {{ $v->estudio?->folio }}<br>{{ format_user_date($v->capturado_en) }}</div>
               <div class="pa-actions">
-                <a class="pa-btn primary" href="{{ asset('storage/'.$v->path) }}" target="_blank">Ver</a>
+                <a class="pa-btn primary" href="{{ media_url($v->path) }}" target="_blank">Ver</a>
               </div>
             </div>
           </article>
@@ -1058,7 +1058,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
           @forelse($galImagenes as $img)
           <article class="pa-card" data-kind="imagen" data-title="{{ strtolower($img->nombre_original ?? 'imagen') }}">
             <div class="pa-thumb">
-              <img src="{{ asset('storage/'.$img->path) }}" alt="{{ $img->nombre_original ?? 'Captura' }}">
+              <img src="{{ media_url($img->path) }}" alt="{{ $img->nombre_original ?? 'Captura' }}">
               <span class="pa-badge image">IMG</span>
               <span class="pa-duration">{{ format_user_time($img->capturado_en) }}</span>
             </div>
@@ -1192,7 +1192,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
       @if($rptImgs->count())
       <div class="rptd-imgs">
         @foreach($rptImgs as $img)
-          <span class="cell"><img src="{{ asset('storage/'.$img->path) }}" alt="Imagen del estudio"></span>
+          <span class="cell"><img src="{{ media_url($img->path) }}" alt="Imagen del estudio"></span>
         @endforeach
       </div>
       @endif

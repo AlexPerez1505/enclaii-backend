@@ -17,7 +17,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -258,7 +257,7 @@ class QrRegistrationController extends Controller
         });
 
         if ($photoToDelete) {
-            Storage::disk('public')->delete($photoToDelete);
+            media_delete($photoToDelete);
         }
 
         $preregistration->refresh();
