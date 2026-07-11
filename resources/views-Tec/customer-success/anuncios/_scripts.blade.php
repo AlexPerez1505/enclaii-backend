@@ -78,6 +78,14 @@
   };
 
   const BOILERPLATES = {
+    notificacion:
+      '<p>Estimado usuario,</p>'
+      + '<br>'
+      + '<p>[Escribe aquí el mensaje de tu notificación.]</p>'
+      + '<br>'
+      + '<p>Si tienes alguna duda, no dudes en contactarnos.</p>'
+      + '<p><strong>Equipo Enclaii</strong></p>',
+
     anuncios_internos:
       '<p><strong>Fecha:</strong> [Fecha]</p>'
       + '<p><strong>Asunto:</strong> [Asunto del comunicado]</p>'
@@ -229,8 +237,9 @@
       tipo: document.getElementById('csTipo').value,
       publico_objetivo: document.getElementById('csPublico').value,
       canales: canales,
-      fecha_publicacion: document.getElementById('csFecha').value || null,
+      fecha_publicacion: (flatpickrInstance ? flatpickrInstance.input.value : document.getElementById('csFecha').value) || null,
     };
+
 
     const isEdit = editingId !== null;
     const url    = isEdit ? '/api/customer-success/anuncios/' + editingId : '/api/customer-success/anuncios';
@@ -258,7 +267,12 @@
         setTimeout(() => location.reload(), 800);
       } else {
         const data = await res.json();
-        showAlert(data.message || 'Error al guardar.', 'error');
+        if (res.status === 422 && data.errors) {
+          const msgs = Object.values(data.errors).flat().join(' | ');
+          showAlert(msgs, 'error');
+        } else {
+          showAlert(data.message || 'Error al guardar.', 'error');
+        }
       }
     } catch (err) {
       showAlert('Error de conexión.', 'error');
@@ -418,11 +432,43 @@
   bindEditButtons();
   bindPaginationLinks();
 
+  // Auto-refresh lista cuando hay anuncios programados pendientes
+  (function startScheduledPoll() {
+    const hasProgramados = !!document.querySelector('#csListaWrap [data-fecha]');
+    if (!hasProgramados) return;
+
+    let lastSnapshot = document.querySelector('#csListaWrap tbody')?.innerHTML || '';
+
+    async function refreshLista() {
+      try {
+        const url = window.location.href.split('?')[0];
+        const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html' } });
+        if (!res.ok) return;
+        const html = await res.text();
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        const newWrap = tmp.querySelector('#csListaWrap');
+        if (!newWrap) return;
+        const newSnapshot = newWrap.querySelector('tbody')?.innerHTML || '';
+        if (newSnapshot !== lastSnapshot) {
+          lastSnapshot = newSnapshot;
+          listaWrap.innerHTML = newWrap.innerHTML;
+          bindDeleteButtons();
+          bindViewButtons();
+          bindEditButtons();
+          bindPaginationLinks();
+        }
+      } catch {}
+    }
+
+    setInterval(refreshLista, 30000);
+  })();
+
   // Calendario personalizado para fecha de publicación
   if (typeof flatpickr !== 'undefined') {
     flatpickrInstance = flatpickr('#csFecha', {
       enableTime: true,
-      dateFormat: 'Y-m-d\\TH:i',
+      dateFormat: 'Y-m-d H:i:S',
       altInput: true,
       altFormat: 'd/m/Y h:i K',
       locale: 'es',
@@ -430,6 +476,7 @@
       minuteIncrement: 1,
       allowInput: true,
       disableMobile: false,
+      defaultSeconds: 0,
     });
   }
 })();

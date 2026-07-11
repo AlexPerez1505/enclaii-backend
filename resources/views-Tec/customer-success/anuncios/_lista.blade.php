@@ -45,14 +45,23 @@
           <td>{{ $publicoLabels[$anuncio->publico_objetivo] ?? $anuncio->publico_objetivo }}</td>
           <td>{{ is_array($anuncio->canales) ? implode(', ', $anuncio->canales) : 'web' }}</td>
           <td>{{ $anuncio->user->name ?? '—' }}</td>
-          <td>{{ $anuncio->fecha_publicacion ? $anuncio->fecha_publicacion->format('d/m/Y H:i') : 'Inmediata' }}</td>
+          <td>
+            @if($anuncio->fecha_publicacion && $anuncio->fecha_publicacion->isFuture())
+              <span style="color:var(--amber);font-size:11px;font-weight:600">Programado</span><br>
+              {{ $anuncio->fecha_publicacion->format('d/m/Y H:i') }}
+            @elseif($anuncio->fecha_publicacion)
+              {{ $anuncio->fecha_publicacion->format('d/m/Y H:i') }}
+            @else
+              {{ $anuncio->created_at->format('d/m/Y H:i') }}
+            @endif
+          </td>
           <td>
             @if($anuncio->activo)
-              Activo
+              <span style="color:var(--green,#10b981);font-weight:600">Activo</span>
             @elseif($anuncio->fecha_publicacion && $anuncio->fecha_publicacion->isFuture())
-              Programado
+              <span style="color:var(--amber);font-weight:600">Programado</span>
             @else
-              Inactivo
+              <span style="color:var(--txt-soft)">Inactivo</span>
             @endif
           </td>
           <td style="display:flex;gap:4px;align-items:center">

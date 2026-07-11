@@ -105,7 +105,7 @@
 
   async function loadUsers(){
     try {
-      const res = await fetch('/api/customer-success/users', {
+      const res = await fetch('/customer-success/api/users', {
         headers: { 'Accept': 'application/json' },
       });
       if (!res.ok) throw new Error('Error al cargar usuarios');
@@ -137,7 +137,7 @@
       return;
     }
 
-    const url = '/api/customer-success/users/' + userId + '/' + action;
+    const url = '/customer-success/api/users/' + userId + '/' + action;
     try {
       const res = await fetch(url, {
         method: 'POST',

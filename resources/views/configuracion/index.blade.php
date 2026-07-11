@@ -416,6 +416,9 @@
       });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       toast('Configuración guardada');
+      Object.entries(payload).forEach(([key, value]) => {
+        document.dispatchEvent(new CustomEvent('enclaiiSettingChanged', { detail: { key, value } }));
+      });
     } catch (err) {
       toast('No se pudo guardar la configuración');
     }

@@ -45,6 +45,10 @@ class EndoCareAuthController extends Controller
                 request: $request,
             );
 
+            if ($user->hasRole('Customer Success')) {
+                return redirect()->route('customer-success.dashboard');
+            }
+
             if (!$user->subscribed()) {
                 return redirect()->route('plan.only');
             }

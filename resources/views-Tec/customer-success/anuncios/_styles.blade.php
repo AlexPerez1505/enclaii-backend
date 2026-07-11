@@ -160,91 +160,146 @@
 .pv-title{font-size:14px;font-weight:700;color:var(--txt)}
 .pv-scroll{flex:1;overflow:auto;padding:26px 16px;display:flex;justify-content:center;align-items:flex-start}
 .pv-card{width:100%;max-width:640px;border-radius:16px;padding:28px;color:var(--txt);transition:all .2s}
-.pv-card h2{margin:0 0 12px;font-size:18px;font-weight:800}
+.pv-card h2{margin:0 0 12px;font-size:20px;font-weight:800}
 .pv-card .meta{font-size:12px;margin-bottom:16px}
 .pv-card .body{font-size:13px;line-height:1.7}
 .pv-card .body ul,.pv-card .body ol{padding-left:20px}
+.pv-card .pv-badge{display:inline-flex;align-items:center;gap:6px;border-radius:20px;font-size:11px;font-weight:700;padding:4px 12px;margin-bottom:14px}
+.pv-card .pv-icon{font-size:28px;margin-bottom:12px;display:block}
 
-/* Tema: Notificación — alerta rápida violeta (estándar libre) */
+/* ===== TEMA OSCURO (default) — neón intenso ===== */
 .theme-notificacion{
   background:linear-gradient(135deg,#1e1030 0%,#0f0720 100%);
-  border:1px solid #8b5cf6;
-  box-shadow:0 0 0 3px rgba(139,92,246,.15);
+  border:2.5px solid #a855f7;
+  box-shadow:0 0 0 4px rgba(139,92,246,.25),0 0 32px rgba(168,85,247,.4);
 }
 .theme-notificacion .pv-badge{
-  display:inline-flex;align-items:center;gap:6px;background:rgba(139,92,246,.2);
-  color:#c4b5fd;border:1px solid rgba(139,92,246,.45);border-radius:20px;
-  font-size:11px;font-weight:700;padding:3px 10px;margin-bottom:14px;
+  background:rgba(139,92,246,.25);color:#ddd6fe;border:1.5px solid #a855f7;
 }
-.theme-notificacion h2{color:#f5f3ff;font-size:20px;border-bottom:2px solid #8b5cf6;padding-bottom:10px;margin-bottom:8px}
+.theme-notificacion h2{color:#f5f3ff;font-size:20px;border-bottom:2.5px solid #a855f7;padding-bottom:10px;margin-bottom:8px}
 .theme-notificacion .meta{color:#a78bfa;font-weight:500}
 .theme-notificacion .body{color:#ede9fe}
 
-/* Tema: Anuncios internos — comunicado formal azul (alto contraste) */
 .theme-anuncios_internos{
   background:linear-gradient(135deg,#071025 0%,#030712 100%);
-  border:1px solid #3b82f6;
-  box-shadow:0 0 0 3px rgba(59,130,246,.2);
+  border:2.5px solid #2563eb;
+  box-shadow:0 0 0 4px rgba(59,130,246,.28),0 0 32px rgba(37,99,235,.4);
 }
 .theme-anuncios_internos .pv-badge{
-  display:inline-flex;align-items:center;gap:6px;background:rgba(59,130,246,.22);
-  color:#93c5fd;border:1px solid rgba(59,130,246,.5);border-radius:20px;
-  font-size:11px;font-weight:700;padding:3px 10px;margin-bottom:14px;
+  background:rgba(59,130,246,.28);color:#bfdbfe;border:1.5px solid #2563eb;
 }
-.theme-anuncios_internos h2{color:#f8fafc;font-size:20px;border-bottom:2px solid #3b82f6;padding-bottom:10px;margin-bottom:8px}
+.theme-anuncios_internos h2{color:#f8fafc;font-size:20px;border-bottom:2.5px solid #2563eb;padding-bottom:10px;margin-bottom:8px}
 .theme-anuncios_internos .meta{color:#60a5fa;font-weight:500}
 .theme-anuncios_internos .body{color:#dbeafe}
 
-/* Tema: Mejoras en Enclaii — release notes verde/cyan (alto contraste) */
 .theme-mejoras{
-  background:linear-gradient(135deg,#022c22 0%,#022c22 100%);
-  border:1px solid #10b981;
-  box-shadow:0 0 0 3px rgba(16,185,129,.15);
+  background:linear-gradient(135deg,#022c22 0%,#011613 100%);
+  border:2.5px solid #059669;
+  box-shadow:0 0 0 4px rgba(16,185,129,.25),0 0 32px rgba(5,150,105,.4);
 }
 .theme-mejoras .pv-badge{
-  display:inline-flex;align-items:center;gap:6px;background:rgba(16,185,129,.2);
-  color:#6ee7b7;border:1px solid rgba(16,185,129,.45);border-radius:20px;
-  font-size:11px;font-weight:700;padding:3px 10px;margin-bottom:14px;
+  background:rgba(16,185,129,.25);color:#a7f3d0;border:1.5px solid #059669;
 }
-.theme-mejoras h2{color:#ecfdf5;font-size:20px;border-bottom:2px solid #10b981;padding-bottom:10px;margin-bottom:8px}
+.theme-mejoras h2{color:#ecfdf5;font-size:20px;border-bottom:2.5px solid #059669;padding-bottom:10px;margin-bottom:8px}
 .theme-mejoras .meta{color:#34d399;font-weight:500}
 .theme-mejoras .body{color:#a7f3d0}
 .theme-mejoras .body ul{list-style:none;padding-left:0}
 .theme-mejoras .body ul li::before{content:'✦ ';color:#34d399}
 
-/* Tema: Mantenimiento — alerta técnica amarillo/naranja (alto contraste) */
 .theme-mantenimiento{
   background:linear-gradient(135deg,#281b02 0%,#1a1200 100%);
-  border:1px solid #f59e0b;
-  box-shadow:0 0 0 3px rgba(245,158,11,.15);
+  border:2.5px solid #d97706;
+  box-shadow:0 0 0 4px rgba(245,158,11,.25),0 0 32px rgba(217,119,6,.4);
 }
 .theme-mantenimiento .pv-badge{
-  display:inline-flex;align-items:center;gap:6px;background:rgba(245,158,11,.2);
-  color:#fcd34d;border:1px solid rgba(245,158,11,.45);border-radius:20px;
-  font-size:11px;font-weight:700;padding:3px 10px;margin-bottom:14px;
+  background:rgba(245,158,11,.25);color:#fde68a;border:1.5px solid #d97706;
 }
 .theme-mantenimiento .pv-icon{font-size:28px;margin-bottom:12px;display:block}
-.theme-mantenimiento h2{color:#fffbeb;font-size:20px;border-bottom:2px solid #f59e0b;padding-bottom:10px;margin-bottom:8px}
+.theme-mantenimiento h2{color:#fffbeb;font-size:20px;border-bottom:2.5px solid #d97706;padding-bottom:10px;margin-bottom:8px}
 .theme-mantenimiento .meta{color:#fbbf24;font-weight:500}
 .theme-mantenimiento .body{color:#fde68a}
 .theme-mantenimiento .body strong{color:#fbbf24}
 
-/* Tema: Políticas — documento legal claro (alto contraste) */
 .theme-politicas{
-  background:#ffffff;
-  border:1px solid #1f2937;
-  box-shadow:0 2px 16px rgba(0,0,0,.12);
+  background:linear-gradient(135deg,#1a1a1a 0%,#0d0d0d 100%);
+  border:2.5px solid #9ca3af;
+  box-shadow:0 0 0 4px rgba(156,163,175,.2),0 0 28px rgba(156,163,175,.3);
 }
 .theme-politicas .pv-badge{
-  display:inline-flex;align-items:center;gap:6px;background:#f3f4f6;
-  color:#111827;border:1px solid #374151;border-radius:4px;
-  font-size:11px;font-weight:700;padding:3px 10px;margin-bottom:14px;
+  background:rgba(156,163,175,.18);color:#d1d5db;border:1.5px solid #9ca3af;border-radius:4px;
 }
-.theme-politicas h2{color:#030712;font-size:20px;border-bottom:2px solid #030712;padding-bottom:8px;margin-bottom:12px}
-.theme-politicas .meta{color:#374151;font-weight:500}
-.theme-politicas .body{color:#1f2937;text-align:justify}
-.theme-politicas .body h3{color:#030712;margin-top:16px}
+.theme-politicas h2{color:#f9fafb;font-size:20px;border-bottom:2.5px solid #9ca3af;padding-bottom:8px;margin-bottom:12px}
+.theme-politicas .meta{color:#9ca3af;font-weight:500}
+.theme-politicas .body{color:#e5e7eb;text-align:justify}
+.theme-politicas .body h3{color:#f9fafb;margin-top:16px}
 .theme-politicas .body ol{list-style:decimal;padding-left:20px}
+
+/* ===== TEMA CLARO — neón adaptado a fondo claro ===== */
+html[data-theme="light"] .theme-notificacion{
+  background:linear-gradient(135deg,#faf5ff 0%,#f3e8ff 100%);
+  border:2.5px solid #7c3aed;
+  box-shadow:0 0 0 4px rgba(139,92,246,.18),0 0 32px rgba(124,58,237,.3);
+}
+html[data-theme="light"] .theme-notificacion .pv-badge{
+  background:rgba(139,92,246,.18);color:#6d28d9;border:1.5px solid #7c3aed;
+}
+html[data-theme="light"] .theme-notificacion h2{color:#4c1d95;font-size:20px;border-bottom:2.5px solid #7c3aed;padding-bottom:10px;margin-bottom:8px}
+html[data-theme="light"] .theme-notificacion .meta{color:#7c3aed;font-weight:500}
+html[data-theme="light"] .theme-notificacion .body{color:#3b0764}
+
+html[data-theme="light"] .theme-anuncios_internos{
+  background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%);
+  border:2.5px solid #1d4ed8;
+  box-shadow:0 0 0 4px rgba(59,130,246,.18),0 0 32px rgba(29,78,216,.3);
+}
+html[data-theme="light"] .theme-anuncios_internos .pv-badge{
+  background:rgba(59,130,246,.18);color:#1d4ed8;border:1.5px solid #1d4ed8;
+}
+html[data-theme="light"] .theme-anuncios_internos h2{color:#1e3a8a;font-size:20px;border-bottom:2.5px solid #1d4ed8;padding-bottom:10px;margin-bottom:8px}
+html[data-theme="light"] .theme-anuncios_internos .meta{color:#2563eb;font-weight:500}
+html[data-theme="light"] .theme-anuncios_internos .body{color:#1e293b}
+
+html[data-theme="light"] .theme-mejoras{
+  background:linear-gradient(135deg,#ecfdf5 0%,#d1fae5 100%);
+  border:2.5px solid #047857;
+  box-shadow:0 0 0 4px rgba(16,185,129,.18),0 0 32px rgba(4,120,87,.3);
+}
+html[data-theme="light"] .theme-mejoras .pv-badge{
+  background:rgba(16,185,129,.18);color:#047857;border:1.5px solid #047857;
+}
+html[data-theme="light"] .theme-mejoras h2{color:#064e3b;font-size:20px;border-bottom:2.5px solid #047857;padding-bottom:10px;margin-bottom:8px}
+html[data-theme="light"] .theme-mejoras .meta{color:#059669;font-weight:500}
+html[data-theme="light"] .theme-mejoras .body{color:#064e3b}
+html[data-theme="light"] .theme-mejoras .body ul{list-style:none;padding-left:0}
+html[data-theme="light"] .theme-mejoras .body ul li::before{content:'✦ ';color:#059669}
+
+html[data-theme="light"] .theme-mantenimiento{
+  background:linear-gradient(135deg,#fffbeb 0%,#fef3c7 100%);
+  border:2.5px solid #b45309;
+  box-shadow:0 0 0 4px rgba(245,158,11,.18),0 0 32px rgba(180,83,9,.3);
+}
+html[data-theme="light"] .theme-mantenimiento .pv-badge{
+  background:rgba(245,158,11,.18);color:#b45309;border:1.5px solid #b45309;
+}
+html[data-theme="light"] .theme-mantenimiento .pv-icon{font-size:28px;margin-bottom:12px;display:block}
+html[data-theme="light"] .theme-mantenimiento h2{color:#78350f;font-size:20px;border-bottom:2.5px solid #b45309;padding-bottom:10px;margin-bottom:8px}
+html[data-theme="light"] .theme-mantenimiento .meta{color:#d97706;font-weight:500}
+html[data-theme="light"] .theme-mantenimiento .body{color:#78350f}
+html[data-theme="light"] .theme-mantenimiento .body strong{color:#b45309}
+
+html[data-theme="light"] .theme-politicas{
+  background:linear-gradient(135deg,#f8fafc 0%,#f1f5f9 100%);
+  border:2.5px solid #334155;
+  box-shadow:0 0 0 4px rgba(51,65,85,.15),0 0 28px rgba(51,65,85,.25);
+}
+html[data-theme="light"] .theme-politicas .pv-badge{
+  background:#f1f5f9;color:#1e293b;border:1.5px solid #334155;border-radius:4px;
+}
+html[data-theme="light"] .theme-politicas h2{color:#0f172a;font-size:20px;border-bottom:2.5px solid #334155;padding-bottom:8px;margin-bottom:12px}
+html[data-theme="light"] .theme-politicas .meta{color:#475569;font-weight:500}
+html[data-theme="light"] .theme-politicas .body{color:#1e293b;text-align:justify}
+html[data-theme="light"] .theme-politicas .body h3{color:#0f172a;margin-top:16px}
+html[data-theme="light"] .theme-politicas .body ol{list-style:decimal;padding-left:20px}
 
 /* Flatpickr custom theme — CLARO */
 .flatpickr-calendar{

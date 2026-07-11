@@ -7,6 +7,7 @@ use Illuminate\Foundation\Http\FormRequest;
 class StoreAnuncioRequest extends FormRequest
 {
     public const TIPOS = [
+        'notificacion',
         'anuncios_internos',
         'mejoras',
         'mantenimiento',

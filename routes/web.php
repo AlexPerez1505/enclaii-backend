@@ -20,11 +20,13 @@ use App\Http\Controllers\StripeController;
 use App\Http\Controllers\StorageServeController;
 use App\Http\Controllers\CapturePairingCodeController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\CronController;
+use App\Http\Controllers\CustomerSuccessController;
+use App\Http\Controllers\ConfigurationBackupController;
 
 Route::get('/storage/{path}', [StorageServeController::class, 'show'])
     ->where('path', '.*')
     ->name('storage.fallback');
-use App\Http\Controllers\ConfigurationBackupController;
 use App\Http\Controllers\SignatureController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\UserSessionController;
@@ -47,6 +49,12 @@ Route::post('/webhooks/whatsapp', [WhatsAppController::class, 'webhook'])
 // Webhook de Stripe (ruta publica, sin CSRF: ver bootstrap/app.php)
 Route::post('/webhooks/stripe', [StripeController::class, 'webhook'])
     ->name('webhooks.stripe');
+
+// Cron endpoint para cron-job.org (protegido por header X-Cron-Token)
+Route::get('/cron/notificaciones', [CronController::class, 'run'])
+    ->name('cron.notificaciones');
+Route::get('/cron/anuncios', [CronController::class, 'runAnuncios'])
+    ->name('cron.anuncios');
 
 Route::get('/registro-paciente/completado', [PublicPatientPreregistrationController::class, 'success'])
     ->name('qr.public.success');
@@ -1051,12 +1059,26 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/ia/reset', [AiAssistantController::class, 'reset'])->name('ia.reset');
 });
 
+// Customer Success API (sesión web, usado por el JS de las vistas CS)
+Route::middleware(['auth', 'customer.success'])->prefix('api/customer-success')->group(function () {
+    Route::apiResource('anuncios', \App\Http\Controllers\Api\CustomerSuccess\AnuncioController::class);
+    Route::get('/users', [\App\Http\Controllers\Api\CustomerSuccess\UserRoleController::class, 'index']);
+    Route::post('/users/{user}/assign-role', [\App\Http\Controllers\Api\CustomerSuccess\UserRoleController::class, 'assign']);
+    Route::post('/users/{user}/remove-role', [\App\Http\Controllers\Api\CustomerSuccess\UserRoleController::class, 'remove']);
+    Route::get('/notifications', [\App\Http\Controllers\Api\CustomerSuccess\NotificationController::class, 'index']);
+    Route::patch('/notifications/read-all', [\App\Http\Controllers\Api\CustomerSuccess\NotificationController::class, 'markAllRead']);
+});
+
 // Customer Success panel
 Route::middleware(['auth', 'customer.success'])->prefix('customer-success')->name('customer-success.')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/anuncios', [AnuncioDashboardController::class, 'index'])->name('anuncios');
-    Route::get('/gestion-usuarios', [RolesController::class, 'index'])->name('gestion-usuarios');
+    Route::get('/dashboard', [CustomerSuccessController::class, 'dashboard'])->name('dashboard');
+    Route::get('/anuncios', [CustomerSuccessController::class, 'anuncios'])->name('anuncios');
+    Route::get('/gestion-usuarios', [CustomerSuccessController::class, 'gestionUsuarios'])->name('gestion-usuarios');
     Route::post('/logout', [EndoCareAuthController::class, 'logoutCs'])->name('logout');
+
+    Route::get('/api/users', [CustomerSuccessController::class, 'users'])->name('api.users');
+    Route::post('/api/users/{user}/assign-role', [CustomerSuccessController::class, 'assignRole'])->name('api.users.assign-role');
+    Route::post('/api/users/{user}/remove-role', [CustomerSuccessController::class, 'removeRole'])->name('api.users.remove-role');
 });
 
 

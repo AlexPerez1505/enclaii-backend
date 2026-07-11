@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Anuncio;
 use App\Models\Notification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,13 +18,30 @@ class NotificationController extends Controller
             ->limit(50)
             ->get();
 
-        return response()->json($notifications->map(fn (Notification $n) => [
-            'id' => $n->id,
-            'tipo' => $n->tipo,
-            ...$n->data,
-            'read' => $n->read,
-            'created_at' => $n->created_at?->toDateTimeString(),
-        ]));
+        $anuncioIds = $notifications
+            ->where('tipo', 'anuncio')
+            ->pluck('data.anuncio_id')
+            ->filter()
+            ->unique();
+
+        $anuncios = $anuncioIds->isNotEmpty()
+            ? Anuncio::whereIn('id', $anuncioIds)->pluck('contenido', 'id')
+            : collect();
+
+        return response()->json($notifications->map(function (Notification $n) use ($anuncios) {
+            $merged = array_merge($n->data ?? [], [
+                'id'         => $n->id,
+                'tipo'       => $n->tipo,
+                'read'       => $n->read,
+                'created_at' => $n->created_at?->toDateTimeString(),
+            ]);
+
+            if ($n->tipo === 'anuncio' && !isset($merged['contenido'])) {
+                $merged['contenido'] = $anuncios[$n->data['anuncio_id'] ?? 0] ?? null;
+            }
+
+            return $merged;
+        }));
     }
 
     public function markAllRead(): JsonResponse

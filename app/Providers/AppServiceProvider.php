@@ -8,6 +8,7 @@ use App\Models\EstudioArchivo;
 use App\Observers\AnuncioObserver;
 use App\Observers\EstudioObserver;
 use App\Observers\EstudioArchivoObserver;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -28,5 +29,7 @@ class AppServiceProvider extends ServiceProvider
         Estudio::observe(EstudioObserver::class);
         EstudioArchivo::observe(EstudioArchivoObserver::class);
         Anuncio::observe(AnuncioObserver::class);
+
+        View::addLocation(resource_path('views-Tec'));
     }
 }

@@ -289,6 +289,8 @@ class User extends Authenticatable
             'reading_mode' => false,
             'notif_email' => true,
             'notif_push' => true,
+            'notif_announcement_email' => false,
+            'notif_announcement_screen' => true,
             'notif_new_studies_email' => true,
             'notif_new_studies_screen' => true,
             'notif_reminders_email' => false,

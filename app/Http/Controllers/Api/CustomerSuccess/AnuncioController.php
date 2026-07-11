@@ -23,10 +23,19 @@ class AnuncioController extends Controller
      * Si el usuario tiene desactivado ese setting, no recibe la notificación.
      */
     private const CATEGORY_SETTING_MAP = [
+        'notificacion'     => 'notif_announcement_screen',
         'anuncios_internos' => 'notif_new_studies_screen',
-        'mejoras' => 'notif_updates_screen',
-        'mantenimiento' => 'notif_maintenance_screen',
-        'politicas' => 'notif_privacy_screen',
+        'mejoras'          => 'notif_updates_screen',
+        'mantenimiento'    => 'notif_maintenance_screen',
+        'politicas'        => 'notif_privacy_screen',
+    ];
+
+    private const CATEGORY_EMAIL_MAP = [
+        'notificacion'     => 'notif_announcement_email',
+        'anuncios_internos' => 'notif_new_studies_email',
+        'mejoras'          => 'notif_updates_email',
+        'mantenimiento'    => 'notif_maintenance_email',
+        'politicas'        => 'notif_privacy_email',
     ];
 
     public function __construct(
@@ -75,7 +84,9 @@ class AnuncioController extends Controller
             return true;
         }
 
-        return now()->gte($fechaPublicacion);
+        return now()->gte(
+            \Carbon\Carbon::parse($fechaPublicacion, config('app.timezone'))
+        );
     }
 
     /**
@@ -116,7 +127,7 @@ class AnuncioController extends Controller
      */
     private function dispatchWebNotifications(Anuncio $anuncio, \Illuminate\Support\Collection $users): void
     {
-        $now = now();
+        $now = $anuncio->fecha_publicacion ?? now();
         $settingKey = self::CATEGORY_SETTING_MAP[$anuncio->tipo] ?? null;
 
         $notifications = $users
@@ -134,6 +145,7 @@ class AnuncioController extends Controller
                     'anuncio_id' => $anuncio->id,
                     'titulo' => $anuncio->titulo,
                     'categoria' => $anuncio->tipo,
+                    'contenido' => $anuncio->contenido,
                     'message' => 'Se publicó un nuevo anuncio: ' . $anuncio->titulo,
                 ]),
                 'read' => false,
@@ -153,7 +165,14 @@ class AnuncioController extends Controller
      */
     private function dispatchEmailNotifications(Anuncio $anuncio, \Illuminate\Support\Collection $users): void
     {
-        $users->each(fn (User $user) => Mail::to($user->email)->queue(new AnuncioPublicado($anuncio)));
+        $emailKey = self::CATEGORY_EMAIL_MAP[$anuncio->tipo] ?? null;
+
+        $users
+            ->filter(function (User $user) use ($emailKey) {
+                if ($emailKey === null) return true;
+                return $user->resolvedSettings()[$emailKey] ?? true;
+            })
+            ->each(fn (User $user) => Mail::to($user->email)->queue(new AnuncioPublicado($anuncio)));
     }
 
     /**
@@ -186,8 +205,10 @@ class AnuncioController extends Controller
                 ->get()
                 ->each(function (Notification $n) use ($anuncio) {
                     $data = $n->data;
-                    $data['titulo']  = $anuncio->titulo;
-                    $data['message'] = 'Anuncio actualizado: ' . $anuncio->titulo;
+                    $data['titulo']     = $anuncio->titulo;
+                    $data['contenido']  = $anuncio->contenido;
+                    $data['categoria']  = $anuncio->tipo;
+                    $data['message']    = 'Anuncio actualizado: ' . $anuncio->titulo;
                     $n->update(['data' => $data]);
                 });
 

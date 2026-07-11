@@ -14,6 +14,10 @@ return [
     |
     */
 
+    'cron' => [
+        'secret' => env('CRON_SECRET'),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

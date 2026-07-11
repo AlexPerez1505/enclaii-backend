@@ -29,6 +29,8 @@ class SettingsController extends Controller
             'reading_mode' => ['sometimes', 'boolean'],
             'notif_email' => ['sometimes', 'boolean'],
             'notif_push' => ['sometimes', 'boolean'],
+            'notif_announcement_email' => ['sometimes', 'boolean'],
+            'notif_announcement_screen' => ['sometimes', 'boolean'],
             'notif_new_studies_email' => ['sometimes', 'boolean'],
             'notif_new_studies_screen' => ['sometimes', 'boolean'],
             'notif_reminders_email' => ['sometimes', 'boolean'],

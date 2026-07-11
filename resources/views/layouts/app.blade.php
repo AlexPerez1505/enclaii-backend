@@ -28,21 +28,8 @@
 </script>
 <title>@yield('title', 'ENCLAII') — ENCLAII</title>
 @auth
-@php
-$initialNotifications = \App\Models\Notification::where('user_id', auth()->id())
-    ->orderByDesc('created_at')
-    ->limit(50)
-    ->get()
-    ->map(fn ($n) => array_merge([
-        'id' => $n->id,
-        'tipo' => $n->tipo,
-        'read' => $n->read,
-        'created_at' => $n->created_at?->toDateTimeString(),
-    ], $n->data));
-@endphp
 <script>
 window.enclaiiSettings = @json(array_merge(auth()->user()->resolvedSettings(), ['user_id' => auth()->id()]));
-window._initialNotifications = @json($initialNotifications);
 </script>
 @endauth
 <script defer src="{{ asset('js/i18n.js') }}?v=20260702-1"></script>
@@ -407,6 +394,102 @@ html[data-theme="light"] .side-help { background: var(--bg); border:none; }
 .notif-body strong{display:block;font-size:13px;font-weight:700;color:var(--txt);line-height:1.3}
 .notif-body span{display:block;font-size:11.5px;color:var(--txt-soft);margin-top:2px;line-height:1.4}
 .notif-body time{display:block;font-size:10.5px;color:var(--txt-soft);margin-top:4px;opacity:.7}
+.notif-item[data-preview="1"]{cursor:pointer}
+.notif-preview-ov{
+  position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:3000;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s,visibility .2s;
+}
+.notif-preview-ov.open{opacity:1;visibility:visible;pointer-events:auto}
+.notif-preview-box{
+  width:min(640px,92vw);max-height:85vh;background:transparent;border:none;border-radius:var(--r-lg);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.notif-preview-body{
+  overflow-y:auto;font-size:13px;line-height:1.65;color:var(--txt);position:relative;
+}
+.notif-preview-body *{max-width:100%}
+.notif-preview-body img{height:auto;border-radius:8px}
+.notif-preview-body a{color:var(--blue)}
+.notif-pv-close{
+  position:absolute;top:12px;right:12px;z-index:10;
+  width:32px;height:32px;border-radius:50%;border:none;cursor:pointer;
+  display:grid;place-items:center;font-size:18px;line-height:1;
+  background:rgba(0,0,0,.3);color:#fff;transition:background .15s;
+}
+.notif-pv-close:hover{background:rgba(0,0,0,.5)}
+html[data-theme="light"] .notif-pv-close{background:rgba(0,0,0,.08);color:#1e293b}
+html[data-theme="light"] .notif-pv-close:hover{background:rgba(0,0,0,.15)}
+.notif-pv-card{width:100%;border-radius:16px;padding:28px;color:var(--txt);transition:all .2s;user-select:none}
+.notif-pv-card h2{margin:0 0 12px;font-size:18px;font-weight:800}
+.notif-pv-card .meta{font-size:12px;margin-bottom:16px;background:none !important}
+.notif-pv-card .body{font-size:13px;line-height:1.7}
+.notif-pv-card .body ul,.notif-pv-card .body ol{padding-left:20px}
+.notif-pv-card .pv-badge{display:inline-flex;align-items:center;gap:6px;border-radius:20px;font-size:11px;font-weight:700;padding:4px 12px;margin-bottom:14px}
+.notif-pv-card .pv-icon{font-size:28px;margin-bottom:12px;display:block}
+
+/* ===== TEMA OSCURO (default) — neón intenso ===== */
+.notif-pv-card.theme-notificacion{background:linear-gradient(135deg,#1e1030 0%,#0f0720 100%);border:2.5px solid #a855f7;box-shadow:0 0 0 4px rgba(139,92,246,.25),0 0 32px rgba(168,85,247,.4)}
+.notif-pv-card.theme-notificacion .pv-badge{background:rgba(139,92,246,.25);color:#ddd6fe;border:1.5px solid #a855f7}
+.notif-pv-card.theme-notificacion h2{color:#f5f3ff;border-bottom:2.5px solid #a855f7;padding-bottom:10px}
+.notif-pv-card.theme-notificacion .meta{color:#a78bfa}.notif-pv-card.theme-notificacion .body{color:#ede9fe}
+
+.notif-pv-card.theme-anuncios_internos{background:linear-gradient(135deg,#071025 0%,#030712 100%);border:2.5px solid #2563eb;box-shadow:0 0 0 4px rgba(59,130,246,.28),0 0 32px rgba(37,99,235,.4)}
+.notif-pv-card.theme-anuncios_internos .pv-badge{background:rgba(59,130,246,.28);color:#bfdbfe;border:1.5px solid #2563eb}
+.notif-pv-card.theme-anuncios_internos h2{color:#f8fafc;border-bottom:2.5px solid #2563eb;padding-bottom:10px}
+.notif-pv-card.theme-anuncios_internos .meta{color:#60a5fa}.notif-pv-card.theme-anuncios_internos .body{color:#dbeafe}
+
+.notif-pv-card.theme-mejoras{background:linear-gradient(135deg,#022c22 0%,#011613 100%);border:2.5px solid #059669;box-shadow:0 0 0 4px rgba(16,185,129,.25),0 0 32px rgba(5,150,105,.4)}
+.notif-pv-card.theme-mejoras .pv-badge{background:rgba(16,185,129,.25);color:#a7f3d0;border:1.5px solid #059669}
+.notif-pv-card.theme-mejoras h2{color:#ecfdf5;border-bottom:2.5px solid #059669;padding-bottom:10px}
+.notif-pv-card.theme-mejoras .meta{color:#34d399}.notif-pv-card.theme-mejoras .body{color:#a7f3d0}
+
+.notif-pv-card.theme-mantenimiento{background:linear-gradient(135deg,#281b02 0%,#1a1200 100%);border:2.5px solid #d97706;box-shadow:0 0 0 4px rgba(245,158,11,.25),0 0 32px rgba(217,119,6,.4)}
+.notif-pv-card.theme-mantenimiento .pv-badge{background:rgba(245,158,11,.25);color:#fde68a;border:1.5px solid #d97706}
+.notif-pv-card.theme-mantenimiento h2{color:#fffbeb;border-bottom:2.5px solid #d97706;padding-bottom:10px}
+.notif-pv-card.theme-mantenimiento .meta{color:#fbbf24}.notif-pv-card.theme-mantenimiento .body{color:#fde68a}
+.notif-pv-card.theme-mantenimiento .body strong{color:#fbbf24}
+
+.notif-pv-card.theme-politicas{background:linear-gradient(135deg,#1a1a1a 0%,#0d0d0d 100%);border:2.5px solid #9ca3af;box-shadow:0 0 0 4px rgba(156,163,175,.2),0 0 28px rgba(156,163,175,.3)}
+.notif-pv-card.theme-politicas .pv-badge{background:rgba(156,163,175,.18);color:#d1d5db;border:1.5px solid #9ca3af;border-radius:4px}
+.notif-pv-card.theme-politicas h2{color:#f9fafb;border-bottom:2.5px solid #9ca3af;padding-bottom:8px}
+.notif-pv-card.theme-politicas .meta{color:#9ca3af;background:none}
+.notif-pv-card.theme-politicas .body{color:#e5e7eb;text-align:justify}
+
+/* ===== TEMA CLARO — neón adaptado a fondo claro ===== */
+html[data-theme="light"] .notif-pv-card.theme-notificacion{background:linear-gradient(135deg,#faf5ff 0%,#f3e8ff 100%);border:2.5px solid #7c3aed;box-shadow:0 0 0 4px rgba(139,92,246,.18),0 0 32px rgba(124,58,237,.3)}
+html[data-theme="light"] .notif-pv-card.theme-notificacion .pv-badge{background:rgba(139,92,246,.18);color:#6d28d9;border:1.5px solid #7c3aed}
+html[data-theme="light"] .notif-pv-card.theme-notificacion h2{color:#4c1d95;border-bottom:2.5px solid #7c3aed;padding-bottom:10px}
+html[data-theme="light"] .notif-pv-card.theme-notificacion .meta{color:#7c3aed}
+html[data-theme="light"] .notif-pv-card.theme-notificacion .body{color:#3b0764}
+
+html[data-theme="light"] .notif-pv-card.theme-anuncios_internos{background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%);border:2.5px solid #1d4ed8;box-shadow:0 0 0 4px rgba(59,130,246,.18),0 0 32px rgba(29,78,216,.3)}
+html[data-theme="light"] .notif-pv-card.theme-anuncios_internos .pv-badge{background:rgba(59,130,246,.18);color:#1d4ed8;border:1.5px solid #1d4ed8}
+html[data-theme="light"] .notif-pv-card.theme-anuncios_internos h2{color:#1e3a8a;border-bottom:2.5px solid #1d4ed8;padding-bottom:10px}
+html[data-theme="light"] .notif-pv-card.theme-anuncios_internos .meta{color:#2563eb}
+html[data-theme="light"] .notif-pv-card.theme-anuncios_internos .body{color:#1e293b}
+
+html[data-theme="light"] .notif-pv-card.theme-mejoras{background:linear-gradient(135deg,#ecfdf5 0%,#d1fae5 100%);border:2.5px solid #047857;box-shadow:0 0 0 4px rgba(16,185,129,.18),0 0 32px rgba(4,120,87,.3)}
+html[data-theme="light"] .notif-pv-card.theme-mejoras .pv-badge{background:rgba(16,185,129,.18);color:#047857;border:1.5px solid #047857}
+html[data-theme="light"] .notif-pv-card.theme-mejoras h2{color:#064e3b;border-bottom:2.5px solid #047857;padding-bottom:10px}
+html[data-theme="light"] .notif-pv-card.theme-mejoras .meta{color:#059669}
+html[data-theme="light"] .notif-pv-card.theme-mejoras .body{color:#064e3b}
+
+html[data-theme="light"] .notif-pv-card.theme-mantenimiento{background:linear-gradient(135deg,#fffbeb 0%,#fef3c7 100%);border:2.5px solid #b45309;box-shadow:0 0 0 4px rgba(245,158,11,.18),0 0 32px rgba(180,83,9,.3)}
+html[data-theme="light"] .notif-pv-card.theme-mantenimiento .pv-badge{background:rgba(245,158,11,.18);color:#b45309;border:1.5px solid #b45309}
+html[data-theme="light"] .notif-pv-card.theme-mantenimiento h2{color:#78350f;border-bottom:2.5px solid #b45309;padding-bottom:10px}
+html[data-theme="light"] .notif-pv-card.theme-mantenimiento .meta{color:#d97706}
+html[data-theme="light"] .notif-pv-card.theme-mantenimiento .body{color:#78350f}
+html[data-theme="light"] .notif-pv-card.theme-mantenimiento .body strong{color:#b45309}
+
+html[data-theme="light"] .notif-pv-card.theme-politicas{background:linear-gradient(135deg,#f8fafc 0%,#f1f5f9 100%);border:2.5px solid #334155;box-shadow:0 0 0 4px rgba(51,65,85,.15),0 0 28px rgba(51,65,85,.25)}
+html[data-theme="light"] .notif-pv-card.theme-politicas .pv-badge{background:#f1f5f9;color:#1e293b;border:1.5px solid #334155;border-radius:4px}
+html[data-theme="light"] .notif-pv-card.theme-politicas h2{color:#0f172a;border-bottom:2.5px solid #334155;padding-bottom:8px}
+html[data-theme="light"] .notif-pv-card.theme-politicas .meta{color:#475569;background:none}
+html[data-theme="light"] .notif-pv-card.theme-politicas .body{color:#1e293b;text-align:justify}
+
+.notif-pv-card .meta::selection{background:transparent}
+.notif-pv-card .body{user-select:text}
 .profile{
   display:flex;align-items:center;gap:10px;
   padding:6px 14px 6px 6px;
@@ -1113,6 +1196,9 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
 <div class="dash">
 
   {{-- ============ SIDEBAR (compartido) ============ --}}
+  @hasSection('sidebar')
+    @yield('sidebar')
+  @else
   <aside class="side">
     <div class="side-top">
       <div class="side-brand-row">
@@ -1191,6 +1277,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
       <button class="btn-ghost">Contactar soporte</button>
     </div>
   </aside>
+  @endif
 
   {{-- ============ MAIN ============ --}}
   <main class="main">
@@ -1227,6 +1314,8 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
             </div>
           </div>
         </div>
+
+        {{-- Preview modal para anuncios (se renderiza al final del body via JS) --}}
         @php
           $userName = auth()->check() ? trim(auth()->user()->name ?? 'Doctor') : 'Doctor';
           $userParts = preg_split('/\s+/', $userName);
@@ -1279,6 +1368,9 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
   </main>
 
   {{-- Bottom nav para móvil --}}
+  @hasSection('bottom-nav')
+    @yield('bottom-nav')
+  @else
   <nav class="mobile-nav">
     <a class="mobile-nav-item {{ $active === 'dashboard' ? 'active' : '' }}" href="{{ url('/dashboard') }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
@@ -1301,6 +1393,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
       Config
     </a>
   </nav>
+  @endif
 
 </div>
 
@@ -2363,6 +2456,10 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
 
   let unread = 0;
   const pendingIds = new Set();
+  const notifData = new Map();
+  let clearedByUser = sessionStorage.getItem('notif_cleared') === '1';
+
+  function $pv(id) { return document.getElementById(id); }
 
   function openPanel(){ panel.classList.add('open'); }
   function closePanel(){ panel.classList.remove('open'); }
@@ -2393,6 +2490,8 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
     list.querySelectorAll('.notif-item').forEach(n => n.remove());
     pendingIds.clear();
     unread = 0;
+    clearedByUser = true;
+    sessionStorage.setItem('notif_cleared', '1');
     updateDot();
     if (empty) empty.style.display = '';
   });
@@ -2404,23 +2503,51 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
   }
 
   const NOTIF_ICONS = {
-    bell:  '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
-    plus:  '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
-    check: '<polyline points="20 6 9 17 4 12"/>',
-    x:     '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
-    trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>',
+    bell:        '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
+    plus:        '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+    check:       '<polyline points="20 6 9 17 4 12"/>',
+    x:           '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+    trash:       '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>',
+    megaphone:   '<path d="M3 11l19-9-9 19-2-8-8-2z"/>',
+    radio:       '<path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1"/>',
+    wrench:      '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+    doc:         '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+    rocket:      '<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>',
   };
 
   function cfgFor(e) {
+    const tipo = e.categoria || e.tipo;
     return {
-      nueva:              { title: 'Nueva cita agendada',     type: 'blue',  icon: 'plus' },
-      pendiente:          { title: 'Cita en espera',          type: 'amber', icon: 'bell' },
-      cancelada:          { title: 'Cita cancelada',          type: 'red',   icon: 'x' },
-      completada:         { title: 'Cita completada',         type: 'green', icon: 'check' },
-      eliminada:          { title: 'Cita eliminada',          type: 'red',   icon: 'trash' },
-      estudio_completado: { title: 'Estudio completado',      type: 'green', icon: 'check' },
-      estado:             { title: 'Estado de cita cambiado', type: 'blue',  icon: 'bell' },
-    }[e.tipo] ?? { title: 'Notificación de cita', type: 'blue', icon: 'bell' };
+      nueva:              { title: 'Nueva cita agendada',        type: 'blue',   icon: 'plus' },
+      pendiente:          { title: 'Cita en espera',             type: 'amber',  icon: 'bell' },
+      cancelada:          { title: 'Cita cancelada',             type: 'red',    icon: 'x' },
+      completada:         { title: 'Cita completada',            type: 'green',  icon: 'check' },
+      eliminada:          { title: 'Cita eliminada',             type: 'red',    icon: 'trash' },
+      estudio_completado: { title: 'Estudio completado',         type: 'green',  icon: 'check' },
+      estado:             { title: 'Estado de cita cambiado',    type: 'blue',   icon: 'bell' },
+      recordatorio_1h:    { title: 'Recordatorio: cita en 1h',  type: 'amber',  icon: 'bell' },
+      recordatorio_24h:   { title: 'Recordatorio: cita mañana', type: 'blue',   icon: 'bell' },
+      anuncio:            { title: e.titulo || 'Nuevo anuncio',  type: 'blue',   icon: 'megaphone' },
+      notificacion:       { title: e.titulo || 'Notificación',   type: 'blue',   icon: 'bell' },
+      anuncios_internos:  { title: e.titulo || 'Comunicado',     type: 'blue',   icon: 'radio' },
+      mejoras:            { title: e.titulo || 'Mejoras',        type: 'green',  icon: 'rocket' },
+      mantenimiento:      { title: e.titulo || 'Mantenimiento',  type: 'amber',  icon: 'wrench' },
+      politicas:          { title: e.titulo || 'Política',       type: 'blue',   icon: 'doc' },
+    }[tipo] ?? { title: e.titulo || 'Notificación', type: 'blue', icon: 'bell' };
+  }
+
+  const TIPO_LABELS = {
+    notificacion: 'Notificación', anuncios_internos: 'Comunicado interno',
+    mejoras: 'Mejoras en Enclaii', mantenimiento: 'Mantenimiento', politicas: 'Política',
+  };
+
+  function bodyFor(item) {
+    const tipo = item.categoria || item.tipo;
+    if (tipo === 'anuncio' || ['notificacion','anuncios_internos','mejoras','mantenimiento','politicas'].includes(tipo)) {
+      return TIPO_LABELS[tipo] || TIPO_LABELS[item.categoria] || 'Anuncio';
+    }
+    const parts = [item.paciente, item.fecha, item.hora].filter(Boolean);
+    return parts.length ? parts.join(' — ') : (item.message || item.body || '');
   }
 
   function timeFrom(dateStr) {
@@ -2429,13 +2556,15 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
     return isNaN(d) ? '' : d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
   }
 
-  function addNotif({ title, body, type = 'blue', icon = 'bell', id = null, read = false, time = null, prepend = true }){
+  function addNotif({ title, body, type = 'blue', icon = 'bell', id = null, read = false, time = null, prepend = true, data = null }){
     if (empty) empty.style.display = 'none';
 
+    const isPreview = data && (data.contenido || data.categoria || data.tipo === 'anuncio');
     const svgPath = NOTIF_ICONS[icon] ?? NOTIF_ICONS.bell;
     const item = document.createElement('div');
     item.className = 'notif-item' + (read ? ' read' : '');
     if (id) item.dataset.id = id;
+    if (isPreview) item.dataset.preview = '1';
     item.innerHTML = `
       <div class="notif-ico ${type}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${svgPath}</svg>
@@ -2445,6 +2574,12 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
         <span>${body}</span>
         <time>${time || timeFrom(new Date())}</time>
       </div>`;
+
+    if (id && data) notifData.set(id, data);
+
+    item.addEventListener('click', () => {
+      if (isPreview) openPreview(id);
+    });
 
     if (prepend) list.prepend(item);
     else list.appendChild(item);
@@ -2456,6 +2591,46 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
     }
     return item;
   }
+
+  const PV_THEMES = {
+    notificacion:      { cls: 'theme-notificacion',       badge: '🔔 Notificación',            icon: '' },
+    anuncios_internos: { cls: 'theme-anuncios_internos',  badge: '📋 Comunicado Interno',       icon: '' },
+    mejoras:           { cls: 'theme-mejoras',            badge: '🚀 Mejoras en Enclaii',       icon: '' },
+    mantenimiento:     { cls: 'theme-mantenimiento',      badge: '⚠️ Aviso de Mantenimiento',  icon: '🔧' },
+    politicas:         { cls: 'theme-politicas',          badge: '📄 Documento de Política',    icon: '' },
+  };
+
+  function openPreview(id) {
+    const data = notifData.get(id);
+    if (!data) return;
+    const cat = data.categoria || data.tipo || 'notificacion';
+    const theme = PV_THEMES[cat] || PV_THEMES.notificacion;
+    const b = $pv('notifPreviewBody');
+    const o = $pv('notifPreviewOv');
+    if (b) {
+      b.innerHTML =
+        '<div class="notif-pv-card ' + theme.cls + '" style="position:relative">'
+        + '<button class="notif-pv-close" id="notifPreviewClose" type="button" aria-label="Cerrar">✕</button>'
+        + (theme.icon ? '<span class="pv-icon">' + theme.icon + '</span>' : '')
+        + '<span class="pv-badge">' + theme.badge + '</span>'
+        + '<h2>' + (data.titulo || 'Sin título') + '</h2>'
+        + '<div class="meta">' + (theme.badge.replace(/^[^\s]+\s/, '') || cat) + ' • Todos</div>'
+        + '<div class="body">' + (data.contenido || data.message || 'Sin contenido') + '</div>'
+        + '</div>';
+    }
+    if (o) o.classList.add('open');
+  }
+
+  function closePreview() {
+    const o = $pv('notifPreviewOv');
+    if (o) o.classList.remove('open');
+  }
+
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('#notifPreviewClose')) closePreview();
+    if (e.target.id === 'notifPreviewOv') closePreview();
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePreview(); });
 
   function markAllAsRead() {
     if (!unread && !pendingIds.size) return;
@@ -2472,27 +2647,8 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
     list.querySelectorAll('.notif-item').forEach(el => el.classList.add('read'));
   }
 
-  function loadNotifications() {
-    const initial = window._initialNotifications;
-    if (Array.isArray(initial) && initial.length) {
-      renderNotifications(initial);
-    }
-    fetch('/notifications', {
-      headers: { 'Accept': 'application/json' }
-    })
-    .then(r => r.json())
-    .then(items => {
-      list.querySelectorAll('.notif-item').forEach(n => n.remove());
-      pendingIds.clear();
-      unread = 0;
-      updateDot();
-      renderNotifications(items);
-    })
-    .catch(() => {});
-  }
-
   function renderNotifications(items) {
-    if (!items.length) {
+    if (!Array.isArray(items) || !items.length) {
       if (empty) empty.style.display = '';
       return;
     }
@@ -2503,120 +2659,64 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
       addNotif({
         id: item.id,
         title: cfg.title,
-        body: `${item.paciente} — ${item.fecha} ${item.hora}`,
+        body: bodyFor(item),
         type: cfg.type,
         icon: cfg.icon,
         read: item.read,
         time: timeFrom(item.created_at),
         prepend: false,
+        data: item,
       });
       if (!item.read) pendingIds.add(item.id);
     });
   }
 
-  @auth
-  const _notifUserId = @json(auth()->id());
-  const _notifEnabled = window.enclaiiSettings?.notif_reminders_screen ?? true;
-
-  loadNotifications();
-
-  function _initEchoNotif() {
-    if (!window.Echo) { setTimeout(_initEchoNotif, 200); return; }
-    if (!_notifUserId || !_notifEnabled) return;
-    const _notifChannel = window.Echo.private(`App.Models.User.${_notifUserId}`);
-
-    _notifChannel
-      .listen('.cita.estado-cambio', (e) => {
-        console.log('[NOTIF] Evento recibido:', e);
-        const cfg = cfgFor(e);
-        addNotif({
-          id: e.id,
-          title: cfg.title,
-          body: `${e.paciente} — ${e.fecha} ${e.hora}`,
-          type: cfg.type,
-          icon: cfg.icon,
-        });
+  function pollNotifications() {
+    fetch('/notifications', { headers: { 'Accept': 'application/json' } })
+      .then(r => r.ok ? r.json() : [])
+      .then(items => {
+        if (clearedByUser) {
+          if (!items.length) return;
+          clearedByUser = false;
+          sessionStorage.removeItem('notif_cleared');
+        }
+        list.querySelectorAll('.notif-item').forEach(n => n.remove());
+        pendingIds.clear();
+        unread = 0;
+        updateDot();
+        renderNotifications(items);
       })
-      .listen('.estudio.completado', (e) => {
-        console.log('[NOTIF] Estudio completado:', e);
-        const cfg = cfgFor(e);
-        addNotif({
-          id: e.id,
-          title: cfg.title,
-          body: `${e.paciente} — ${e.estudio_tipo ?? e.tipo} (${e.fecha} ${e.hora})`,
-          type: cfg.type,
-          icon: cfg.icon,
-        });
-      })
-      .listen('.anuncio.publicado', (e) => {
-        console.log('[NOTIF] Anuncio publicado:', e);
-        const cfg = cfgFor(e);
-        addNotif({
-          id: e.id,
-          title: cfg.title,
-          body: e.message || e.titulo || 'Nuevo anuncio',
-          type: cfg.type,
-          icon: cfg.icon,
-          anuncioData: { tipo: 'anuncio', ...e },
-        });
-      })
-      .listen('.anuncio.actualizado', (e) => {
-        list.querySelectorAll('.notif-item[data-anuncio]').forEach(el => {
-          try {
-            const data = JSON.parse(el.dataset.anuncio || '{}');
-            if (data.anuncio_id == e.anuncio_id) {
-              const strong = el.querySelector('.notif-body strong');
-              const span   = el.querySelector('.notif-body span');
-              if (strong) strong.textContent = e.titulo || strong.textContent;
-              if (span)   span.textContent   = e.message || span.textContent;
-              data.titulo  = e.titulo;
-              data.message = e.message;
-              el.dataset.anuncio = JSON.stringify(data);
-            }
-          } catch {}
-        });
-      })
-      .listen('.anuncio.eliminado', (e) => {
-        const anuncioId = e.anuncio_id;
-        // Eliminar del DOM inmediatamente
-        list.querySelectorAll('.notif-item[data-anuncio]').forEach(el => {
-          try {
-            const data = JSON.parse(el.dataset.anuncio || '{}');
-            if (data.anuncio_id == anuncioId) {
-              if (!el.classList.contains('read')) {
-                unread = Math.max(0, unread - 1);
-                updateDot();
-              }
-              el.remove();
-            }
-          } catch {}
-        });
-        // Re-fetch silencioso: eliminar del DOM cualquier notif que ya no esté en BD
-        fetch('/notifications', { headers: { 'Accept': 'application/json' } })
-          .then(r => r.json())
-          .then(items => {
-            const activeIds = new Set(items.map(i => i.id));
-            list.querySelectorAll('.notif-item[data-id]').forEach(el => {
-              const id = parseInt(el.dataset.id);
-              if (id && !activeIds.has(id)) {
-                if (!el.classList.contains('read')) {
-                  unread = Math.max(0, unread - 1);
-                  updateDot();
-                }
-                el.remove();
-              }
-            });
-            if (!list.querySelector('.notif-item') && empty) {
-              empty.style.display = '';
-            }
-          })
-          .catch(() => {});
-      })
-      .error((err) => console.error('[NOTIF] Error de canal:', err));
+      .catch(() => {});
   }
-  _initEchoNotif();
+
+  @auth
+  let _pollInterval = null;
+
+  function startPolling() {
+    if (_pollInterval) return;
+    pollNotifications();
+    _pollInterval = setInterval(pollNotifications, 30000);
+  }
+
+  function stopPolling() {
+    clearInterval(_pollInterval);
+    _pollInterval = null;
+    list.querySelectorAll('.notif-item').forEach(n => n.remove());
+    pendingIds.clear();
+    unread = 0;
+    updateDot();
+    if (empty) empty.style.display = '';
+  }
+
+  startPolling();
   @endauth
 })();
 </script>
+{{-- Preview modal para anuncios --}}
+<div class="notif-preview-ov" id="notifPreviewOv">
+  <div class="notif-preview-box">
+    <div class="notif-preview-body" id="notifPreviewBody"></div>
+  </div>
+</div>
 </body>
 </html>

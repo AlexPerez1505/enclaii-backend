@@ -14,14 +14,3 @@ Route::middleware('auth:sanctum')->prefix('tauri')->group(function () {
     Route::post('/videos', [TauriCaptureController::class, 'storeVideo']);
     Route::post('/finish-session', [TauriCaptureController::class, 'finishSession']);
 });
-
-Route::middleware(['auth:sanctum', 'customer.success'])->prefix('customer-success')->group(function () {
-    Route::apiResource('anuncios', AnuncioController::class);
-
-    Route::get('/users', [UserRoleController::class, 'index']);
-    Route::post('/users/{user}/assign-role', [UserRoleController::class, 'assign']);
-    Route::post('/users/{user}/remove-role', [UserRoleController::class, 'remove']);
-
-    Route::get('/notifications', [CsNotificationController::class, 'index']);
-    Route::patch('/notifications/read-all', [CsNotificationController::class, 'markAllRead']);
-});
