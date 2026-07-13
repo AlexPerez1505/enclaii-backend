@@ -1056,6 +1056,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/soporte/tickets', [TicketController::class, 'store'])->name('soporte.tickets.store');
     Route::get('/soporte/chat/history', [SoporteChatController::class, 'history'])->name('soporte.chat.history');
     Route::post('/soporte/chat', [SoporteChatController::class, 'chat'])->name('soporte.chat');
+    Route::get('/soporte/chat/poll', [SoporteChatController::class, 'poll'])->name('soporte.chat.poll');
+    Route::post('/soporte/chat/new', [SoporteChatController::class, 'newConversation'])->name('soporte.chat.new');
 
     Route::post('/ia/conversations/start', [AiAssistantController::class, 'start'])->name('ia.conversations.start');
     Route::get('/ia/conversations', [AiAssistantController::class, 'conversations'])->name('ia.conversations');
@@ -1086,6 +1088,14 @@ Route::middleware(['auth', 'customer.success'])->prefix('customer-success')->nam
     Route::get('/api/users', [CustomerSuccessController::class, 'users'])->name('api.users');
     Route::post('/api/users/{user}/assign-role', [CustomerSuccessController::class, 'assignRole'])->name('api.users.assign-role');
     Route::post('/api/users/{user}/remove-role', [CustomerSuccessController::class, 'removeRole'])->name('api.users.remove-role');
+
+    Route::get('/soporte', [\App\Http\Controllers\CustomerSuccess\SoporteAgentController::class, 'index'])->name('soporte');
+    Route::get('/soporte/{conversation}', [\App\Http\Controllers\CustomerSuccess\SoporteAgentController::class, 'show'])->name('soporte.chat');
+    Route::post('/soporte/{conversation}/tomar', [\App\Http\Controllers\CustomerSuccess\SoporteAgentController::class, 'take'])->name('soporte.take');
+    Route::post('/soporte/{conversation}/responder', [\App\Http\Controllers\CustomerSuccess\SoporteAgentController::class, 'reply'])->name('soporte.reply');
+    Route::get('/api/soporte/pendientes', [\App\Http\Controllers\CustomerSuccess\SoporteAgentController::class, 'pending'])->name('api.soporte.pending');
+    Route::get('/api/soporte/{conversation}/poll', [\App\Http\Controllers\CustomerSuccess\SoporteAgentController::class, 'poll'])->name('api.soporte.poll');
+    Route::post('/api/soporte/{conversation}/cerrar', [\App\Http\Controllers\CustomerSuccess\SoporteAgentController::class, 'close'])->name('api.soporte.close');
 });
 
 

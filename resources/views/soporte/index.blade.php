@@ -129,6 +129,15 @@
   height:420px;overflow:hidden;margin-bottom:24px;
 }
 .sop-chat-panel.open{display:flex}
+.sop-chat-skeleton{position:absolute;inset:0;display:flex;flex-direction:column;gap:12px;padding:16px;background:var(--panel-2);z-index:2;justify-content:flex-end}
+.sop-sk-row{display:flex;gap:8px;align-items:flex-end}
+.sop-sk-row.right{flex-direction:row-reverse}
+.sop-sk-bubble{border-radius:14px;background:var(--stroke);animation:skPulse 1.4s ease-in-out infinite}
+.sop-sk-bubble.wide{width:62%;height:44px}
+.sop-sk-bubble.mid{width:42%;height:38px}
+.sop-sk-bubble.short{width:28%;height:38px}
+.sop-sk-bubble.tall{width:55%;height:58px}
+@keyframes skPulse{0%,100%{opacity:.3}50%{opacity:.8}}
 .sop-chat-header{
   display:flex;align-items:center;justify-content:space-between;
   padding:14px 16px;border-bottom:1px solid var(--stroke);background:rgba(110,160,255,.06)
@@ -138,7 +147,7 @@
   background:none;border:none;color:var(--txt-soft);font-size:18px;cursor:pointer;
 }
 .sop-chat-messages{
-  flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;
+  position:relative;flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;
 }
 .sop-chat-msg{max-width:80%;padding:11px 14px;border-radius:14px;font-size:13px;line-height:1.5}
 .sop-chat-msg.user{align-self:flex-end;background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff}
@@ -155,6 +164,30 @@
   background:var(--blue);color:#fff;font-size:13px;font-weight:600;cursor:pointer;
 }
 .sop-chat-input button:disabled{opacity:.6;cursor:not-allowed}
+
+/* Opciones rápidas */
+.sop-quick-options{
+  display:flex;flex-wrap:wrap;gap:8px;
+  padding:10px 16px 4px;
+  border-top:1px solid var(--stroke);
+}
+.sop-quick-options.hidden{display:none}
+.sop-quick-opt{
+  padding:7px 13px;border-radius:99px;
+  border:1px solid var(--stroke);background:var(--panel-2);
+  color:var(--txt);font-size:12px;font-weight:500;
+  cursor:pointer;transition:background .15s,border-color .15s;
+  white-space:nowrap;
+}
+.sop-quick-opt:hover{background:rgba(110,160,255,.12);border-color:var(--blue)}
+.sop-quick-opt.agent{border-color:rgba(110,160,255,.4);color:var(--blue)}
+.sop-quick-more{background:rgba(110,160,255,.1);border-color:rgba(110,160,255,.3);color:var(--blue)}
+.sop-quick-more.open{background:rgba(110,160,255,.2)}
+.sop-quick-extra{
+  display:flex;flex-wrap:wrap;gap:8px;width:100%;
+  padding-top:6px;
+}
+.sop-quick-extra.hidden{display:none}
 </style>
 @endpush
 
@@ -171,9 +204,21 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v14a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v4a7 7 0 0 1-7 7"/><path d="M5 10v4a7 7 0 0 0 7 7"/></svg>
           Asistente de soporte ENCLAII
         </h3>
+        <button id="btnNuevaConv" type="button" style="background:none;border:none;color:var(--txt-soft);font-size:11px;cursor:pointer;padding:4px 8px;border-radius:var(--r-md);border:1px solid var(--stroke)" title="Iniciar nueva conversación">+ Nueva</button>
         <button class="close" id="btnCloseSoporteChat" type="button">×</button>
       </div>
       <div class="sop-chat-messages" id="soporteChatMessages"></div>
+      <div class="sop-quick-options" id="soporteQuickOptions">
+        <button class="sop-quick-opt" data-key="subir_estudio" type="button">¿Cómo subo un estudio?</button>
+        <button class="sop-quick-opt" data-key="problema_cuenta" type="button">Problema con mi cuenta</button>
+        <button class="sop-quick-opt sop-quick-more" id="btnMoreOpts" type="button">Más ▾</button>
+        <button class="sop-quick-opt agent" data-key="hablar_agente" type="button">💬 Hablar con un agente</button>
+        <div class="sop-quick-extra hidden" id="soporteExtraOpts">
+          <button class="sop-quick-opt" data-key="facturacion" type="button">Facturación</button>
+          <button class="sop-quick-opt" data-key="suscripcion" type="button">Mi suscripción / cobros</button>
+          <button class="sop-quick-opt" data-key="error_tecnico" type="button">Error técnico</button>
+        </div>
+      </div>
       <div class="sop-chat-input">
         <input type="text" id="soporteChatInput" placeholder="Describe tu problema..." autocomplete="off">
         <button type="button" id="btnSendSoporteChat">Enviar</button>
@@ -437,11 +482,53 @@
   var btnSendChat = document.getElementById('btnSendSoporteChat');
   var chatConversationId = null;
 
-  function addChatMessage(role, text){
+  var quickOptionsEl = document.getElementById('soporteQuickOptions');
+
+  var chatMode = 'bot';
+
+  function updateQuickOptions(){
+    if(!quickOptionsEl) return;
+    if(chatMode === 'bot'){
+      quickOptionsEl.classList.remove('hidden');
+    } else {
+      quickOptionsEl.classList.add('hidden');
+    }
+  }
+
+  function hideQuickOptions(){
+    if(quickOptionsEl) quickOptionsEl.classList.add('hidden');
+  }
+
+  function showQuickOptions(){
+    if(quickOptionsEl) quickOptionsEl.classList.remove('hidden');
+  }
+
+  function buildChatMessage(role, text){
+    if(role === 'system'){
+      var sys = document.createElement('div');
+      sys.style.cssText = 'text-align:center;font-size:11px;color:var(--txt-soft);padding:4px 0;font-style:italic;align-self:center';
+      sys.textContent = text;
+      return sys;
+    }
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;flex-direction:column;max-width:80%;'
+      + (role === 'user' ? 'align-self:flex-end;align-items:flex-end' : 'align-self:flex-start;align-items:flex-start');
+    if(role === 'agent'){
+      var lbl = document.createElement('div');
+      lbl.style.cssText = 'font-size:11px;color:var(--txt-soft);margin-bottom:3px';
+      lbl.textContent = 'Agente ENCLAII';
+      wrap.appendChild(lbl);
+    }
     var div = document.createElement('div');
-    div.className = 'sop-chat-msg ' + role;
+    div.className = 'sop-chat-msg ' + (role === 'agent' ? 'assistant' : role);
+    if(role === 'agent') div.style.borderLeft = '3px solid #16a34a';
     div.textContent = text;
-    chatMessages.appendChild(div);
+    wrap.appendChild(div);
+    return wrap;
+  }
+
+  function addChatMessage(role, text){
+    chatMessages.appendChild(buildChatMessage(role, text));
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
@@ -459,13 +546,16 @@
     if(el) el.remove();
   }
 
-  async function sendChatMessage(){
-    var text = chatInput.value.trim();
+  async function sendChatMessage(text, quickOption){
+    text = text || chatInput.value.trim();
     if(!text) return;
     addChatMessage('user', text);
     chatInput.value = '';
-    addChatLoading();
+    if(chatMode !== 'with_agent') addChatLoading();
     btnSendChat.disabled = true;
+
+    var body = { message: text, conversation_id: chatConversationId };
+    if(quickOption) body.quick_option = quickOption;
 
     try {
       var response = await fetch("{{ route('soporte.chat') }}", {
@@ -475,18 +565,18 @@
           'Accept': 'application/json',
           'X-CSRF-TOKEN': "{{ csrf_token() }}"
         },
-        body: JSON.stringify({
-          message: text,
-          conversation_id: chatConversationId
-        })
+        body: JSON.stringify(body)
       });
       var data = await response.json();
       removeChatLoading();
+      if(data.conversation_id){
+        chatConversationId = data.conversation_id;
+        startPolling(data.conversation_id);
+      }
+      if(data.mode) chatMode = data.mode;
+      updateQuickOptions();
       if(data.reply){
         addChatMessage('assistant', data.reply);
-        if(data.conversation_id) chatConversationId = data.conversation_id;
-      } else {
-        addChatMessage('assistant', 'No pude obtener respuesta. Intenta de nuevo.');
       }
     } catch(err){
       removeChatLoading();
@@ -498,26 +588,79 @@
   }
 
   async function loadChatHistory(){
+    var hasMessages = false;
     try {
       var response = await fetch("{{ route('soporte.chat.history') }}");
       var data = await response.json();
+      if(data.conversation){
+        chatConversationId = data.conversation.id;
+        chatMode = data.conversation.mode || 'bot';
+      }
       if(data.messages && data.messages.length){
-        chatMessages.innerHTML = '';
+        var frag = document.createDocumentFragment();
         data.messages.forEach(function(m){
-          addChatMessage(m.role, m.content);
+          frag.appendChild(buildChatMessage(m.role, m.content));
         });
-        if(data.conversation) chatConversationId = data.conversation.id;
+        chatMessages.appendChild(frag);
+        if(chatConversationId) startPolling(chatConversationId);
+        updateQuickOptions();
+        hasMessages = true;
       }
     } catch(e){}
+    return hasMessages;
   }
 
-  function openSoporteChat(){
+  function showSkeleton(){
+    var sk = document.createElement('div');
+    sk.className = 'sop-chat-skeleton';
+    sk.id = 'soporteSkeleton';
+    sk.innerHTML = '<div class="sop-sk-row"><div class="sop-sk-bubble wide"></div></div>'
+      + '<div class="sop-sk-row right"><div class="sop-sk-bubble mid"></div></div>'
+      + '<div class="sop-sk-row"><div class="sop-sk-bubble tall"></div></div>'
+      + '<div class="sop-sk-row right"><div class="sop-sk-bubble short"></div></div>'
+      + '<div class="sop-sk-row"><div class="sop-sk-bubble mid"></div></div>'
+      + '<div class="sop-sk-row right"><div class="sop-sk-bubble wide"></div></div>';
+    chatMessages.appendChild(sk);
+  }
+
+  function hideSkeleton(){
+    var sk = document.getElementById('soporteSkeleton');
+    if(sk) sk.remove();
+  }
+
+  async function openSoporteChat(){
+    if(chatPanel.classList.contains('open')) return;
     chatPanel.classList.add('open');
-    if(chatMessages.children.length === 0){
-      addChatMessage('assistant', 'Hola, soy el asistente de soporte de ENCLAII. ¿En qué puedo ayudarte?');
-      loadChatHistory();
+    try {
+      if(chatMessages.children.length === 0){
+        showSkeleton();
+        var hadHistory = await loadChatHistory();
+        if(!hadHistory){
+          hideSkeleton();
+          addChatMessage('assistant', 'Hola, soy el asistente de soporte de ENCLAII. ¿En qué puedo ayudarte?');
+          chatMode = 'bot';
+          updateQuickOptions();
+        } else {
+          var sk = document.getElementById('soporteSkeleton');
+          if(sk){
+            sk.style.transition = 'opacity .25s';
+            sk.style.opacity = '0';
+          }
+          requestAnimationFrame(function(){
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            requestAnimationFrame(function(){
+              chatMessages.scrollTop = chatMessages.scrollHeight;
+              setTimeout(function(){
+                var sk2 = document.getElementById('soporteSkeleton');
+                if(sk2) sk2.remove();
+              }, 280);
+            });
+          });
+        }
+      }
+    } finally {
+      chatInput.focus();
     }
-    chatInput.focus();
   }
 
   if(btnOpenChat && chatPanel){
@@ -532,7 +675,7 @@
     });
   }
   if(btnSendChat && chatInput){
-    btnSendChat.addEventListener('click', sendChatMessage);
+    btnSendChat.addEventListener('click', function(){ sendChatMessage(); });
     chatInput.addEventListener('keydown', function(e){
       if(e.key === 'Enter' && !e.shiftKey){
         e.preventDefault();
@@ -540,6 +683,115 @@
       }
     });
   }
+
+  var btnMoreOpts = document.getElementById('btnMoreOpts');
+  var extraOpts = document.getElementById('soporteExtraOpts');
+  if(btnMoreOpts && extraOpts){
+    btnMoreOpts.addEventListener('click', function(){
+      var isOpen = !extraOpts.classList.contains('hidden');
+      if(isOpen){
+        extraOpts.classList.add('hidden');
+        btnMoreOpts.classList.remove('open');
+        btnMoreOpts.textContent = 'Más ▾';
+      } else {
+        extraOpts.classList.remove('hidden');
+        btnMoreOpts.classList.add('open');
+        btnMoreOpts.textContent = 'Menos ▴';
+      }
+    });
+  }
+
+  document.querySelectorAll('.sop-quick-opt[data-key]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var key = btn.dataset.key;
+      var label = btn.textContent.trim();
+      if(extraOpts) extraOpts.classList.add('hidden');
+      if(btnMoreOpts){ btnMoreOpts.classList.remove('open'); btnMoreOpts.textContent = 'Más ▾'; }
+      sendChatMessage(label, key);
+    });
+  });
+
+  var btnNuevaConv = document.getElementById('btnNuevaConv');
+  if(btnNuevaConv){
+    btnNuevaConv.addEventListener('click', async function(){
+      if(!confirm('¿Iniciar una nueva conversación? La actual quedará cerrada.')) return;
+      try {
+        var r = await fetch("{{ route('soporte.chat.new') }}", {
+          method: 'POST',
+          headers: {'X-CSRF-TOKEN': "{{ csrf_token() }}", 'Accept': 'application/json'}
+        });
+        var d = await r.json();
+        if(d.ok){
+          chatConversationId = d.conversation_id;
+          chatMode = 'bot';
+          chatMessages.innerHTML = '';
+          if(pollInterval){ clearInterval(pollInterval); pollInterval = null; }
+          lastMessageId = 0;
+          addChatMessage('assistant', 'Hola, soy el asistente de soporte de ENCLAII. ¿En qué puedo ayudarte?');
+          updateQuickOptions();
+          startPolling(d.conversation_id);
+        }
+      } catch(e){}
+    });
+  }
+
+  var pollInterval = null;
+  var lastMessageId = 0;
+  var pollUrl = "{{ route('soporte.chat.poll') }}";
+
+  function startPolling(convId){
+    if(pollInterval) return;
+    pollInterval = setInterval(async function(){
+      try {
+        var r = await fetch(pollUrl + '?conversation_id=' + convId + '&last_id=' + lastMessageId, {
+          headers: { 'Accept': 'application/json' }
+        });
+        var data = await r.json();
+        if(!data.ok) return;
+
+        data.messages.forEach(function(m){
+          if(m.id > lastMessageId) lastMessageId = m.id;
+          if(m.role === 'system'){
+            var div = document.createElement('div');
+            div.style.cssText = 'text-align:center;font-size:11px;color:var(--txt-soft);padding:6px 0;font-style:italic';
+            div.textContent = m.content;
+            chatMessages.appendChild(div);
+            var badge = document.createElement('div');
+            badge.style.cssText = 'text-align:center;font-size:12px;color:#16a34a;padding:4px 0;font-weight:600';
+            badge.textContent = '✓ Agente conectado';
+            chatMessages.appendChild(badge);
+          } else if(m.role === 'agent'){
+            var wrap = document.createElement('div');
+            var lbl = document.createElement('div');
+            lbl.style.cssText = 'font-size:11px;color:var(--txt-soft);margin-bottom:3px';
+            lbl.textContent = 'Agente ENCLAII';
+            var msg = document.createElement('div');
+            msg.className = 'sop-chat-msg assistant';
+            msg.style.borderLeft = '3px solid #16a34a';
+            msg.textContent = m.content;
+            wrap.appendChild(lbl);
+            wrap.appendChild(msg);
+            chatMessages.appendChild(wrap);
+          }
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+
+        if(data.mode && data.mode !== chatMode){
+          chatMode = data.mode;
+          updateQuickOptions();
+          if(data.mode === 'closed' || data.status === 'closed'){
+            clearInterval(pollInterval); pollInterval = null;
+            var resolved = document.createElement('div');
+            resolved.style.cssText = 'text-align:center;padding:12px;font-size:12px;color:var(--txt-soft)';
+            resolved.innerHTML = 'Conversaci\u00f3n resuelta. <button onclick="document.getElementById(\'btnNuevaConv\').click()" style="color:var(--blue);background:none;border:none;cursor:pointer;font-size:12px;text-decoration:underline">Iniciar nueva</button>';
+            chatMessages.appendChild(resolved);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+          }
+        }
+      } catch(e){}
+    }, 4000);
+  }
+
 })();
 </script>
 @endpush
