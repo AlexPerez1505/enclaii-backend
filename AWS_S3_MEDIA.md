@@ -4,7 +4,7 @@ Esta guia deja Laravel en Hostinger y envia fotos, capturas y videos a AWS S3.
 
 ## 1. Crear bucket S3
 
-1. En AWS, crea un bucket privado para produccion, por ejemplo `enclaii-prod-media-357768534399`.
+1. En AWS, crea un bucket privado para produccion, por ejemplo `enclaii-prod-media`.
 2. Deja activado **Block Public Access**.
 3. Activa versionado para poder recuperar archivos eliminados accidentalmente.
 4. Usa cifrado predeterminado **SSE-S3**.
@@ -22,7 +22,7 @@ Crea un usuario o rol con acceso solo al bucket de medios. Politica minima:
       "Action": [
         "s3:ListBucket"
       ],
-      "Resource": "arn:aws:s3:::enclaii-prod-media-357768534399"
+      "Resource": "arn:aws:s3:::enclaii-prod-media"
     },
     {
       "Effect": "Allow",
@@ -32,13 +32,13 @@ Crea un usuario o rol con acceso solo al bucket de medios. Politica minima:
         "s3:DeleteObject",
         "s3:AbortMultipartUpload"
       ],
-      "Resource": "arn:aws:s3:::enclaii-prod-media-357768534399/*"
+      "Resource": "arn:aws:s3:::enclaii-prod-media/*"
     }
   ]
 }
 ```
 
-Cambia `enclaii-prod-media-357768534399` por el nombre real del bucket si usaste otro.
+Cambia `enclaii-prod-media` por el nombre real del bucket si usaste otro.
 
 ## 3. Variables en Hostinger
 
@@ -52,7 +52,7 @@ MEDIA_URL_TTL=120
 AWS_ACCESS_KEY_ID=REEMPLAZAR
 AWS_SECRET_ACCESS_KEY=REEMPLAZAR
 AWS_DEFAULT_REGION=us-east-2
-AWS_BUCKET=enclaii-prod-media-357768534399
+AWS_BUCKET=enclaii-prod-media
 AWS_USE_PATH_STYLE_ENDPOINT=false
 ```
 
