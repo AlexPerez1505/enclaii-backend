@@ -97,6 +97,8 @@ class AnuncioController extends Controller
         $creator ??= $anuncio->user;
         $targetUsers = $this->targetUsersFor($anuncio, $creator);
 
+        \Illuminate\Support\Facades\Log::info('[Anuncio] publishNow canales=' . json_encode($anuncio->canales) . ' | usuarios=' . $targetUsers->count() . ' | id=' . $anuncio->id);
+
         if (in_array('web', $anuncio->canales ?? [], true)) {
             $this->dispatchWebNotifications($anuncio, $targetUsers);
         }

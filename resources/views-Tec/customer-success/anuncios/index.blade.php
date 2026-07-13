@@ -34,7 +34,7 @@
   <div class="cs-card">
     <div class="cs-card-title">Nuevo anuncio</div>
     <div class="cs-alert" id="csAlert"></div>
-    <form class="cs-form" id="csForm">
+    <form class="cs-form" id="csForm" autocomplete="off">
       @csrf
       <div class="cs-field">
         <label class="cs-label">Título</label>

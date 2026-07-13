@@ -410,7 +410,7 @@
         tipoSelect.value = row.dataset.tipo;
         document.getElementById('csPublico').value = row.dataset.publico;
 
-        const canales = row.dataset.canales ? row.dataset.canales.split(',') : ['web'];
+        const canales = (row.dataset.canales || 'web').split(',').map(s => s.trim()).filter(Boolean);
         document.querySelectorAll('input[name="csCanales"]').forEach(cb => {
           cb.checked = canales.includes(cb.value);
         });
@@ -466,6 +466,10 @@
 
     setInterval(refreshLista, 30000);
   })();
+
+  document.querySelectorAll('input[name="csCanales"]').forEach(cb => {
+    cb.checked = cb.value === 'web';
+  });
 
   // Calendario personalizado para fecha de publicación
   if (typeof flatpickr !== 'undefined') {
