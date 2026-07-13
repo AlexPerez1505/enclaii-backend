@@ -2519,6 +2519,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
   loadNotifications();
 
   function _initEchoNotif() {
+    if (window.Echo === null) return;
     if (!window.Echo) { setTimeout(_initEchoNotif, 200); return; }
     if (!_notifUserId || !_notifEnabled) return;
     const _notifChannel = window.Echo.private(`App.Models.User.${_notifUserId}`);

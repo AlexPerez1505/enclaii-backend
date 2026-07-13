@@ -23,28 +23,34 @@ class TicketController extends Controller
     {
         $validated = $request->validate([
             'category' => ['required', 'string', 'max:100'],
-            'priority' => ['required', 'string', 'in:alta,media,baja'],
             'subject' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:4000'],
-            'business_name' => ['nullable', 'string', 'max:500'],
-            'operation_folio' => ['nullable', 'string', 'max:500'],
             'payment_method' => ['nullable', 'string', 'max:100'],
             'attachment' => ['nullable', 'file', 'max:10240'],
         ]);
+
+        $user = $request->user();
 
         $attachmentPath = null;
         if ($request->hasFile('attachment')) {
             $attachmentPath = $request->file('attachment')->store('tickets', 'public');
         }
 
+        $businessName = implode(' — ', array_filter([
+            $user->clinica_nombre,
+            $user->razon_social,
+            $user->rfc,
+        ]));
+
         $ticket = Ticket::create([
-            'user_id' => auth()->id(),
+            'user_id' => $user->id,
             'category' => $validated['category'],
             'subject' => $validated['subject'],
             'description' => $validated['description'],
-            'priority' => $validated['priority'],
-            'business_name' => $validated['business_name'] ?? null,
-            'operation_folio' => $validated['operation_folio'] ?? null,
+            'priority' => 'media',
+            'business_name' => $businessName ?: null,
+            'operation_folio' => $this->generarFolioTicket(),
+            'operation_datetime' => now(),
             'payment_method' => $validated['payment_method'] ?? null,
             'attachment_path' => $attachmentPath,
             'status' => 'abierto',
@@ -54,5 +60,17 @@ class TicketController extends Controller
             'ok' => true,
             'ticket' => $ticket,
         ], 201);
+    }
+
+    private function generarFolioTicket(): string
+    {
+        $ultimoId = (int) Ticket::max('id') + 1;
+
+        do {
+            $folio = 'T-' . str_pad((string) $ultimoId, 4, '0', STR_PAD_LEFT);
+            $ultimoId++;
+        } while (Ticket::where('operation_folio', $folio)->exists());
+
+        return $folio;
     }
 }

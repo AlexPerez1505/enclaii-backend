@@ -319,7 +319,6 @@
           </div>
         </div>
       @empty
-      @empty
         <div style="padding:18px;color:var(--txt-soft);font-size:13px;line-height:1.5">
           No hay pacientes con teléfono registrado.
         </div>

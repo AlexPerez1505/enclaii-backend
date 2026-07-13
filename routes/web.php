@@ -17,6 +17,9 @@ use App\Http\Controllers\CustomerSuccess\DashboardController;
 use App\Http\Controllers\StripeController;
 use App\Http\Controllers\StorageServeController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\SoporteChatController;
+use App\Http\Controllers\SoporteController;
+use App\Http\Controllers\TicketController;
 
 Route::get('/storage/{path}', [StorageServeController::class, 'show'])
     ->where('path', '.*')
@@ -864,6 +867,12 @@ Route::post('/ia/chat', [AiAssistantController::class, 'chat'])
 
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('/soporte', [SoporteController::class, 'index'])->name('soporte');
+    Route::get('/soporte/tickets', [TicketController::class, 'tickets'])->name('soporte.tickets');
+    Route::post('/soporte/tickets', [TicketController::class, 'store'])->name('soporte.tickets.store');
+    Route::get('/soporte/chat/history', [SoporteChatController::class, 'history'])->name('soporte.chat.history');
+    Route::post('/soporte/chat', [SoporteChatController::class, 'chat'])->name('soporte.chat');
+
     Route::post('/ia/conversations/start', [AiAssistantController::class, 'start'])->name('ia.conversations.start');
     Route::get('/ia/conversations', [AiAssistantController::class, 'conversations'])->name('ia.conversations');
     Route::get('/ia/conversations/{conversation}', [AiAssistantController::class, 'show'])->name('ia.conversations.show');

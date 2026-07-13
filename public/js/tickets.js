@@ -17,7 +17,7 @@ function __mostrarResumen(ticket){
   var hora = new Date().toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
   var id = '#' + ticket.id;
   var cat = __tktTexto('tktCategoria', 'Sin categoria');
-  var prio = __tktTexto('tktPrioridad', 'Media');
+  var prio = ticket.priority ? ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1) : 'Media';
   var asunto = __tktTexto('tktAsunto', 'Sin asunto');
   var desc = __tktTexto('tktDescripcion', 'Sin descripcion');
   var negocio = __tktTexto('tktNegocio');
@@ -51,6 +51,13 @@ window.__enviarTicket = function(){
   var btn = document.getElementById('btnEnviarTicket');
   if(!__tktOverlay || !__tktBody) { alert('Error: elementos no encontrados'); return; }
 
+  var negocioInput = document.getElementById('tktNegocio');
+  if(!negocioInput || !negocioInput.value.trim()){
+    var perfilOverlay = document.getElementById('tktPerfilModalOverlay');
+    if(perfilOverlay) perfilOverlay.style.display = 'grid';
+    return;
+  }
+
   var cat = __tktValor('tktCategoria');
   var asunto = __tktValor('tktAsunto');
   var desc = __tktValor('tktDescripcion');
@@ -68,11 +75,8 @@ window.__enviarTicket = function(){
   var csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
   var formData = new FormData();
   formData.append('category', cat);
-  formData.append('priority', __tktValor('tktPrioridad', 'media'));
   formData.append('subject', asunto);
   formData.append('description', desc);
-  formData.append('business_name', __tktValor('tktNegocio'));
-  formData.append('operation_folio', __tktValor('tktOperacion'));
   formData.append('payment_method', __tktValor('tktMetodoPago'));
 
   var fileInput = document.getElementById('tktAttachment');
@@ -102,12 +106,14 @@ window.__enviarTicket = function(){
     if(data.ok){
       __mostrarResumen(data.ticket);
       // limpiar formulario
-      ['tktCategoria','tktPrioridad','tktAsunto','tktDescripcion','tktMetodoPago','tktAttachment'].forEach(function(id){
+      ['tktCategoria','tktAsunto','tktDescripcion','tktMetodoPago','tktAttachment'].forEach(function(id){
         var el = document.getElementById(id);
         if(el) el.value = '';
       });
       var paymentRow = document.getElementById('tktPaymentMethodRow');
       if(paymentRow) paymentRow.style.display = 'none';
+      var attachmentName = document.getElementById('tktAttachmentName');
+      if(attachmentName){ attachmentName.textContent = ''; attachmentName.style.display = 'none'; }
     } else {
       alert('No se pudo guardar el ticket. Intenta de nuevo.');
     }
@@ -269,5 +275,27 @@ function __generarTicketHTML(d){
     win.document.close();
     setTimeout(function(){ win.print(); }, 500);
   });
+
+  var attachmentInput = document.getElementById('tktAttachment');
+  var attachmentName = document.getElementById('tktAttachmentName');
+  if(attachmentInput && attachmentName){
+    attachmentInput.addEventListener('change', function(){
+      if(attachmentInput.files && attachmentInput.files[0]){
+        attachmentName.textContent = 'Archivo: ' + attachmentInput.files[0].name;
+        attachmentName.style.display = '';
+      } else {
+        attachmentName.textContent = '';
+        attachmentName.style.display = 'none';
+      }
+    });
+  }
+
+  var perfilOverlay = document.getElementById('tktPerfilModalOverlay');
+  var perfilClose = document.getElementById('tktPerfilModalClose');
+  var perfilCerrar = document.getElementById('btnPerfilModalCerrar');
+  function closePerfilModal(){ if(perfilOverlay) perfilOverlay.style.display = 'none'; }
+  if(perfilClose) perfilClose.addEventListener('click', closePerfilModal);
+  if(perfilCerrar) perfilCerrar.addEventListener('click', closePerfilModal);
+  if(perfilOverlay) perfilOverlay.addEventListener('click', function(e){ if(e.target === perfilOverlay) closePerfilModal(); });
 
 })();

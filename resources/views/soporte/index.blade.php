@@ -113,6 +113,48 @@
 .call-card .call-btn:hover{opacity:.9;transform:scale(1.03)}
 
 @keyframes fbSlideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* Chat de soporte IA */
+.sop-chat-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:10px 16px;border-radius:var(--r-md);border:none;
+  background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff;
+  font-size:13px;font-weight:600;cursor:pointer;margin-bottom:18px;
+  transition:opacity .15s;
+}
+.sop-chat-btn:hover{opacity:.9}
+.sop-chat-panel{
+  display:none;flex-direction:column;
+  background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-lg);
+  height:420px;overflow:hidden;margin-bottom:24px;
+}
+.sop-chat-panel.open{display:flex}
+.sop-chat-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;border-bottom:1px solid var(--stroke);background:rgba(110,160,255,.06)
+}
+.sop-chat-header h3{font-size:14px;font-weight:700;margin:0;display:flex;align-items:center;gap:8px}
+.sop-chat-header .close{
+  background:none;border:none;color:var(--txt-soft);font-size:18px;cursor:pointer;
+}
+.sop-chat-messages{
+  flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;
+}
+.sop-chat-msg{max-width:80%;padding:11px 14px;border-radius:14px;font-size:13px;line-height:1.5}
+.sop-chat-msg.user{align-self:flex-end;background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff}
+.sop-chat-msg.assistant{align-self:flex-start;background:var(--panel);border:1px solid var(--stroke);color:var(--txt)}
+.sop-chat-input{
+  display:flex;gap:10px;padding:12px 16px;border-top:1px solid var(--stroke);background:var(--panel)
+}
+.sop-chat-input input{
+  flex:1;background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-md);
+  padding:10px 12px;font-size:13px;color:var(--txt);outline:none;
+}
+.sop-chat-input button{
+  padding:10px 14px;border-radius:var(--r-md);border:none;
+  background:var(--blue);color:#fff;font-size:13px;font-weight:600;cursor:pointer;
+}
+.sop-chat-input button:disabled{opacity:.6;cursor:not-allowed}
 </style>
 @endpush
 
@@ -122,12 +164,49 @@
   {{-- ============ COLUMNA PRINCIPAL ============ --}}
   <div class="sop-main">
 
+    {{-- Botón de chat de soporte IA --}}
+    <button class="sop-chat-btn" id="btnOpenSoporteChat" type="button">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Chat de soporte IA
+    </button>
+
+    {{-- Panel de chat de soporte --}}
+    <div class="sop-chat-panel" id="soporteChatPanel">
+      <div class="sop-chat-header">
+        <h3>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v14a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v4a7 7 0 0 1-7 7"/><path d="M5 10v4a7 7 0 0 0 7 7"/></svg>
+          Asistente de soporte ENCLAII
+        </h3>
+        <button class="close" id="btnCloseSoporteChat" type="button">×</button>
+      </div>
+      <div class="sop-chat-messages" id="soporteChatMessages"></div>
+      <div class="sop-chat-input">
+        <input type="text" id="soporteChatInput" placeholder="Describe tu problema..." autocomplete="off">
+        <button type="button" id="btnSendSoporteChat">Enviar</button>
+      </div>
+    </div>
+
     {{-- Formulario de ticket --}}
     <div class="sop-card">
       <h2>Crear ticket</h2>
       <p class="sub">Selecciona una categoría y proporciona los detalles de tu problema.</p>
 
-      @include('soporte._ticket_form', ['latestTicket' => $latestTicket ?? null])
+      @if(!empty($perfilIncompleto))
+        <div class="sop-alert" style="display:flex;align-items:center;gap:16px;justify-content:space-between;flex-wrap:wrap;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.35);border-radius:var(--r-md);padding:16px 18px;margin-bottom:18px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span style="font-size:13px;color:var(--txt)">Los campos "Datos del negocio" no se llenan automáticamente porque aún no has registrado los datos de tu clínica en el perfil.</span>
+          </div>
+          <a href="{{ route('configuracion') }}?tab=perfil" class="sop-btn" style="flex-shrink:0;padding:9px 16px;border-radius:var(--r-md);background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff;font-size:13px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:8px">Completar perfil →</a>
+        </div>
+      @endif
+
+      @include('soporte._ticket_form', [
+        'latestTicket' => $latestTicket ?? null,
+        'clinicaData' => $clinicaData ?? '',
+        'operationFolio' => $operationFolio ?? '',
+        'operationDate' => $operationDate ?? '',
+      ])
     </div>
 
     {{-- Temas de ayuda (acordeon) --}}
@@ -239,16 +318,16 @@
       <p class="sub">Elige el medio que prefieras para obtener ayuda más rápido.</p>
 
       <div class="sop-canales">
-        <a href="{{ route('mensajes') }}?chat=soporte" class="sop-canal" style="text-decoration:none;color:inherit">
+        <button class="sop-canal" id="btnCanalChatSoporte" type="button" style="width:100%;text-align:left;background:transparent;border:none;color:inherit">
           <div class="icon-wrap wa">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
           </div>
           <div class="canal-info">
             <strong>Chat de soporte</strong>
-            <span>Habla directamente con un tecnico</span>
+            <span>Habla con el asistente de IA de soporte</span>
           </div>
           <span class="canal-arrow">›</span>
-        </a>
+        </button>
 
         <div class="sop-canal" id="btnLlamar" style="cursor:pointer">
           <div class="icon-wrap phone">
@@ -353,6 +432,120 @@
   if(callOverlay) callOverlay.addEventListener('click', function(e){
     if(e.target === callOverlay) callOverlay.classList.remove('active');
   });
+
+  // Chat de soporte IA
+  var btnOpenChat = document.getElementById('btnOpenSoporteChat');
+  var btnCanalChatSoporte = document.getElementById('btnCanalChatSoporte');
+  var btnCloseChat = document.getElementById('btnCloseSoporteChat');
+  var chatPanel = document.getElementById('soporteChatPanel');
+  var chatMessages = document.getElementById('soporteChatMessages');
+  var chatInput = document.getElementById('soporteChatInput');
+  var btnSendChat = document.getElementById('btnSendSoporteChat');
+  var chatConversationId = null;
+
+  function addChatMessage(role, text){
+    var div = document.createElement('div');
+    div.className = 'sop-chat-msg ' + role;
+    div.textContent = text;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function addChatLoading(){
+    var div = document.createElement('div');
+    div.className = 'sop-chat-msg assistant';
+    div.id = 'soporteChatLoading';
+    div.textContent = 'Escribiendo...';
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function removeChatLoading(){
+    var el = document.getElementById('soporteChatLoading');
+    if(el) el.remove();
+  }
+
+  async function sendChatMessage(){
+    var text = chatInput.value.trim();
+    if(!text) return;
+    addChatMessage('user', text);
+    chatInput.value = '';
+    addChatLoading();
+    btnSendChat.disabled = true;
+
+    try {
+      var response = await fetch("{{ route('soporte.chat') }}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': "{{ csrf_token() }}"
+        },
+        body: JSON.stringify({
+          message: text,
+          conversation_id: chatConversationId
+        })
+      });
+      var data = await response.json();
+      removeChatLoading();
+      if(data.reply){
+        addChatMessage('assistant', data.reply);
+        if(data.conversation_id) chatConversationId = data.conversation_id;
+      } else {
+        addChatMessage('assistant', 'No pude obtener respuesta. Intenta de nuevo.');
+      }
+    } catch(err){
+      removeChatLoading();
+      addChatMessage('assistant', 'Error de conexión. Intenta de nuevo.');
+    } finally {
+      btnSendChat.disabled = false;
+      chatInput.focus();
+    }
+  }
+
+  async function loadChatHistory(){
+    try {
+      var response = await fetch("{{ route('soporte.chat.history') }}");
+      var data = await response.json();
+      if(data.messages && data.messages.length){
+        chatMessages.innerHTML = '';
+        data.messages.forEach(function(m){
+          addChatMessage(m.role, m.content);
+        });
+        if(data.conversation) chatConversationId = data.conversation.id;
+      }
+    } catch(e){}
+  }
+
+  function openSoporteChat(){
+    chatPanel.classList.add('open');
+    if(chatMessages.children.length === 0){
+      addChatMessage('assistant', 'Hola, soy el asistente de soporte de ENCLAII. ¿En qué puedo ayudarte?');
+      loadChatHistory();
+    }
+    chatInput.focus();
+  }
+
+  if(btnOpenChat && chatPanel){
+    btnOpenChat.addEventListener('click', openSoporteChat);
+  }
+  if(btnCanalChatSoporte && chatPanel){
+    btnCanalChatSoporte.addEventListener('click', openSoporteChat);
+  }
+  if(btnCloseChat && chatPanel){
+    btnCloseChat.addEventListener('click', function(){
+      chatPanel.classList.remove('open');
+    });
+  }
+  if(btnSendChat && chatInput){
+    btnSendChat.addEventListener('click', sendChatMessage);
+    chatInput.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' && !e.shiftKey){
+        e.preventDefault();
+        sendChatMessage();
+      }
+    });
+  }
 })();
 </script>
 @endpush

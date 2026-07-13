@@ -140,12 +140,8 @@
  
 
   @php
-    $businessData = '';
-    $operationData = '';
-    if (!empty($latestTicket)) {
-        $businessData = $latestTicket->business_name ?? '';
-        $operationData = $latestTicket->operation_folio ?? '';
-    }
+    $businessData = $clinicaData ?? '';
+    $operationData = ($operationFolio ?? '') . ' | ' . ($operationDate ?? '');
   @endphp
 
   <div class="tkt-form-row">
@@ -161,12 +157,8 @@
       </select>
     </div>
     <div class="tkt-field">
-      <label>Prioridad</label>
-      <select id="tktPrioridad">
-        <option value="media">Media</option>
-        <option value="alta">Alta</option>
-        <option value="baja">Baja</option>
-      </select>
+      <label>Datos de la operación</label>
+      <input type="text" id="tktOperacion" value="{{ $operationData }}" readonly placeholder="Folio único, fecha y hora de la compra">
     </div>
   </div>
 
@@ -184,15 +176,11 @@
     </div>
   </div>
 
-  {{-- Datos del negocio y operación (solo lectura, vienen de la BD) --}}
-  <div class="tkt-form-row">
+  {{-- Datos del negocio (solo lectura, vienen de la BD) --}}
+  <div class="tkt-form-row full">
     <div class="tkt-field">
       <label>Datos del negocio</label>
       <input type="text" id="tktNegocio" value="{{ $businessData }}" readonly placeholder="Nombre o razón social, domicilio fiscal, RFC">
-    </div>
-    <div class="tkt-field">
-      <label>Datos de la operación</label>
-      <input type="text" id="tktOperacion" value="{{ $operationData }}" readonly placeholder="Folio único, fecha y hora de la compra">
     </div>
   </div>
 
@@ -209,12 +197,15 @@
   </div>
 
   <div class="tkt-form-footer">
-    <label class="tkt-adjuntar">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-      Adjuntar archivo
-      <span>Tamaño máx. de archivo: 10MB</span>
-      <input type="file" id="tktAttachment" style="display:none">
-    </label>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <label class="tkt-adjuntar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+        Adjuntar archivo
+        <span>Tamaño máx. de archivo: 10MB</span>
+        <input type="file" id="tktAttachment" style="display:none">
+      </label>
+      <span id="tktAttachmentName" style="font-size:12px;color:var(--txt-soft);display:none"></span>
+    </div>
     <div class="tkt-form-actions">
       <button class="tkt-btn-enviar" type="button" id="btnEnviarTicket" onclick="window.__enviarTicket()">
         Enviar ticket
@@ -225,6 +216,30 @@
 </div>
 
 @push('scripts')
+{{-- Modal: Ticket creado --}}
+{{-- Modal: Datos de clínica incompletos --}}
+<div class="tkt-modal-overlay" id="tktPerfilModalOverlay" style="display:none">
+  <div class="tkt-modal">
+    <div class="tkt-modal-header">
+      <div class="tkt-modal-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <h2>Datos de la clínica incompletos</h2>
+      <p>No se puede crear el ticket porque aún no has registrado el nombre de tu clínica en el perfil.</p>
+      <button class="tkt-modal-close" id="tktPerfilModalClose" type="button">×</button>
+    </div>
+    <div class="tkt-modal-body">
+      <div class="tkt-resumen">
+        <div class="row"><span class="val">Completa los datos de tu clínica para que el campo "Datos del negocio" se llene automáticamente y puedas enviar el ticket.</span></div>
+      </div>
+    </div>
+    <div class="tkt-modal-actions">
+      <a href="{{ route('configuracion') }}?tab=perfil" class="tkt-modal-btn mensajes" style="text-decoration:none">Completar perfil →</a>
+      <button class="tkt-modal-btn guardar" id="btnPerfilModalCerrar" type="button">Cerrar</button>
+    </div>
+  </div>
+</div>
+
 {{-- Modal: Ticket creado --}}
 <div class="tkt-modal-overlay" id="tktModalOverlay" style="display:none">
   <div class="tkt-modal">

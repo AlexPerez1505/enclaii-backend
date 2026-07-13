@@ -18,6 +18,7 @@ class Ticket extends Model
         'priority',
         'business_name',
         'operation_folio',
+        'operation_datetime',
         'payment_method',
         'attachment_path',
     ];
