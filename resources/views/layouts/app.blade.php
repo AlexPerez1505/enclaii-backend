@@ -1322,7 +1322,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
           $userInitials = collect($userParts)->take(2)->map(fn($p) => mb_substr($p, 0, 1))->join('');
           $userInitials = mb_strtoupper($userInitials ?: mb_substr($userName, 0, 2));
           $userFoto = auth()->check() && auth()->user()->foto_perfil
-              ? asset('storage/' . auth()->user()->foto_perfil)
+              ? media_url(auth()->user()->foto_perfil)
               : null;
         @endphp
         <div class="profile-wrap">

@@ -1260,7 +1260,7 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
           @forelse($capturas as $cap)
           <div class="studio-thumb" data-id="{{ $cap->id }}">
             <div class="studio-thumb-inner" style="padding:0;overflow:hidden">
-              <img src="{{ asset('storage/'.$cap->path) }}" alt="captura" style="width:100%;height:100%;object-fit:cover;border-radius:8px">
+              <img src="{{ media_url($cap->path) }}" alt="captura" style="width:100%;height:100%;object-fit:cover;border-radius:8px">
             </div>
             <span class="studio-thumb-time">{{ format_user_time_with_seconds($cap->capturado_en) }}</span>
           </div>
@@ -1446,7 +1446,7 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
           @forelse($capturas as $i => $cap)
           <div class="studio-final-cap-item {{ $i===0 ? 'sel' : '' }}" data-id="{{ $cap->id }}">
             <div class="studio-final-cap-thumb">
-              <img src="{{ asset('storage/'.$cap->path) }}" alt="captura" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+              <img src="{{ media_url($cap->path) }}" alt="captura" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
               <span class="studio-final-cap-num">{{ $i+1 }}</span>
               <span class="studio-final-cap-check"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
             </div>

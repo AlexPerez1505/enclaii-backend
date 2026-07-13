@@ -173,7 +173,6 @@ class EndoCareAuthController extends Controller
         return redirect()->route('login');
     }
 
-
     public function logoutCs(Request $request)
     {
         Auth::logout();
@@ -183,5 +182,4 @@ class EndoCareAuthController extends Controller
 
         return redirect()->route('login');
     }
-
 }
