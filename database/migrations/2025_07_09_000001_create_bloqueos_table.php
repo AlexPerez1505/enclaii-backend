@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('bloqueos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('clinica_id')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('clinica_id');
             $table->string('label')->default('Bloqueo de Tiempo');
             $table->date('fecha');
             $table->time('hora');
