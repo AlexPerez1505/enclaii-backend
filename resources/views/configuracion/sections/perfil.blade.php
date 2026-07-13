@@ -131,7 +131,7 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
       <div class="pf-photo">
         @php
           $fotoPerfil = auth()->user()->foto_perfil
-              ? asset('storage/' . auth()->user()->foto_perfil)
+              ? media_url(auth()->user()->foto_perfil)
               : null;
         @endphp
         <div class="pf-ava-wrap">
@@ -227,7 +227,7 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
 
       {{-- Constancia de situación fiscal --}}
       @php
-        $constancia = $u->constancia_fiscal ? asset('storage/' . $u->constancia_fiscal) : null;
+        $constancia = $u->constancia_fiscal ? media_url($u->constancia_fiscal) : null;
         $constanciaExt = $u->constancia_fiscal ? strtolower(pathinfo($u->constancia_fiscal, PATHINFO_EXTENSION)) : null;
         $constanciaNombre = $u->constancia_fiscal ? basename($u->constancia_fiscal) : null;
       @endphp

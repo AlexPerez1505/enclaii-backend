@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Ticket;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class TicketController extends Controller
@@ -33,7 +32,7 @@ class TicketController extends Controller
 
         $attachmentPath = null;
         if ($request->hasFile('attachment')) {
-            $attachmentPath = $request->file('attachment')->store('tickets', 'public');
+            $attachmentPath = media_store($request->file('attachment'), 'tickets');
         }
 
         $businessName = implode(' — ', array_filter([
