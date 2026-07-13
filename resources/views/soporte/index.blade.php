@@ -164,12 +164,6 @@
   {{-- ============ COLUMNA PRINCIPAL ============ --}}
   <div class="sop-main">
 
-    {{-- Botón de chat de soporte IA --}}
-    <button class="sop-chat-btn" id="btnOpenSoporteChat" type="button">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      Chat de soporte IA
-    </button>
-
     {{-- Panel de chat de soporte --}}
     <div class="sop-chat-panel" id="soporteChatPanel">
       <div class="sop-chat-header">

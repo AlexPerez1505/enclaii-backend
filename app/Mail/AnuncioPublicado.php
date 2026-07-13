@@ -21,8 +21,18 @@ class AnuncioPublicado extends Mailable
 
     public function envelope(): Envelope
     {
+        $tipoLabels = [
+            'notificacion'      => 'Notificación',
+            'anuncios_internos' => 'Comunicado Interno',
+            'mejoras'           => 'Mejoras en Enclaii',
+            'mantenimiento'     => 'Aviso de Mantenimiento',
+            'politicas'         => 'Documento de Política',
+        ];
+
+        $tipoLabel = $tipoLabels[$this->anuncio->tipo] ?? 'Anuncio';
+
         return new Envelope(
-            subject: 'Nuevo anuncio: ' . $this->anuncio->titulo,
+            subject: $tipoLabel . ': ' . $this->anuncio->titulo,
         );
     }
 

@@ -82,13 +82,12 @@
             <span>Web</span>
           </label>
           <label class="cs-channel">
-            <input type="checkbox" name="csCanales" value="email">
+            <input type="checkbox" name="csCanales" value="email" id="csCanalesEmail">
             <span>Correo electrónico</span>
           </label>
-          <label class="cs-channel">
-            <input type="checkbox" name="csCanales" value="push">
-            <span>Push (requiere configuración)</span>
-          </label>
+          <div id="csEmailWarning" style="display:none;margin-top:8px;padding:8px 12px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.45);border-radius:8px;font-size:12px;color:#f59e0b;line-height:1.5;">
+            <strong>⚠ Atención:</strong> Los correos se enviarán al publicar y <strong>no se pueden reenviar</strong> al editar el anuncio posteriormente.
+          </div>
         </div>
       </div>
 

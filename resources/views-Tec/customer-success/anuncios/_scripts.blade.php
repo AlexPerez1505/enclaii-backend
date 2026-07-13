@@ -204,6 +204,7 @@
     tipoSelect.closest('.cs-tipo-wrap')?.classList.add('locked');
     if (bannerTitle) bannerTitle.textContent = titulo || '—';
     if (editBanner)  editBanner.classList.add('visible');
+    if (emailWarning) emailWarning.style.display = 'none';
     setTimeout(() => {
       const top = (editBanner?.getBoundingClientRect().top ?? 0) + window.scrollY - 16;
       window.scrollTo({ top, behavior: 'smooth' });
@@ -216,6 +217,7 @@
     tipoSelect.disabled = false;
     tipoSelect.closest('.cs-tipo-wrap')?.classList.remove('locked');
     if (editBanner)  editBanner.classList.remove('visible');
+    if (emailWarning) emailWarning.style.display = 'none';
     if (bannerTitle) bannerTitle.textContent = '—';
     form.reset();
     editor.innerHTML = '';
@@ -227,6 +229,14 @@
   }
 
   if (cancelBtn) cancelBtn.addEventListener('click', exitEditMode);
+
+  const emailCheckbox = document.getElementById('csCanalesEmail');
+  const emailWarning  = document.getElementById('csEmailWarning');
+  if (emailCheckbox && emailWarning) {
+    emailCheckbox.addEventListener('change', function() {
+      emailWarning.style.display = this.checked ? 'block' : 'none';
+    });
+  }
 
   form.addEventListener('submit', async function(e){
     e.preventDefault();
