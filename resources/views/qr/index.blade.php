@@ -174,15 +174,9 @@
         <div class="qr-share-actions">
           @if($currentAvailable)
             <a class="qr-action whatsapp" href="https://wa.me/?text={{ urlencode($shareText) }}" target="_blank" rel="noopener">◉ Enviar por WhatsApp</a>
-<<<<<<< HEAD
             <button class="qr-action" type="button" data-copy-url="{{ $currentPublicUrl }}">Copiar enlace</button>
           @endif
           <button class="qr-action" type="button" data-download-png="{{ $imageUrl }}" data-filename="{{ $currentCode }}">Descargar PNG</button>
-=======
-            <button class="qr-action" type="button" data-copy-url="{{ $currentPublicUrl }}">🔗 Copiar enlace</button>
-          @endif
-          <button class="qr-action" type="button" data-download-png="{{ $imageUrl }}" data-filename="{{ $currentCode }}">⇩ Descargar PNG</button>
->>>>>>> Ricardo-Galeria
           <button class="qr-action pdf" type="button" data-download-pdf="{{ $imageUrl }}" data-filename="{{ $currentCode }}">▧ Descargar PDF</button>
           <button class="qr-action print" type="button" data-print-qr>▣ Imprimir QR</button>
         </div>
@@ -272,15 +266,11 @@
             </summary>
             <div class="qr-detail">
               @if($possibleDuplicates[$item->id] ?? false)
-<<<<<<< HEAD
-<<<<<<< HEAD
+
                 <div class="qr-warning">Existe un paciente con el mismo teléfono o correo. Revisa posibles duplicados antes de aceptar.</div>
-=======
+
                 <div class="qr-warning">⚠ Existe un paciente con el mismo teléfono o correo. Revisa posibles duplicados antes de aceptar.</div>
->>>>>>> Ricardo-Galeria
-=======
-                <div class="qr-warning">⚠ Existe un paciente con el mismo teléfono o correo. Revisa posibles duplicados antes de aceptar.</div>
->>>>>>> Ricardo-Galeria
+
               @endif
               @if($item->foto)
                 <div class="qr-photo-review">
@@ -340,12 +330,8 @@ async function copyQrValue(button, value) {
   try {
     await navigator.clipboard.writeText(value);
     const original = button.textContent;
-<<<<<<< HEAD
-<<<<<<< HEAD
+<<
     button.textContent = 'Copiado';
-=======
-    button.textContent = '✓ Copiado';
->>>>>>> Ricardo-Galeria
 =======
     button.textContent = '✓ Copiado';
 >>>>>>> Ricardo-Galeria

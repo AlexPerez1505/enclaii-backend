@@ -5,11 +5,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-<<<<<<< HEAD
     "content-hash": "b6d1937916267e7e9083953f4c311d73",
-=======
-    "content-hash": "7c92a2bb6892cc025874db7537f6f227",
->>>>>>> Ricardo-Galeria
     "packages": [
         {
             "name": "afatmustafa/blade-hugeicons",
@@ -76,8 +72,6 @@
         {
             "name": "bacon/bacon-qr-code",
             "version": "v3.1.1",
-<<<<<<< HEAD
-=======
             "source": {
                 "type": "git",
                 "url": "https://github.com/Bacon/BaconQrCode.git",
@@ -133,7 +127,6 @@
         {
             "name": "blade-ui-kit/blade-icons",
             "version": "1.10.0",
->>>>>>> Ricardo-Galeria
             "source": {
                 "type": "git",
                 "url": "https://github.com/Bacon/BaconQrCode.git",
@@ -1094,7 +1087,6 @@
             "time": "2025-07-13T19:59:45+00:00"
         },
         {
-<<<<<<< HEAD
             "name": "evenement/evenement",
             "version": "v3.0.2",
             "source": {
@@ -1142,8 +1134,6 @@
             "time": "2023-08-08T05:53:35+00:00"
         },
         {
-=======
->>>>>>> Ricardo-Galeria
             "name": "fruitcake/php-cors",
             "version": "v1.4.0",
             "source": {

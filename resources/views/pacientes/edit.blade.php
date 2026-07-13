@@ -1536,7 +1536,6 @@ document.addEventListener('DOMContentLoaded', function() {
     pacienteForm.addEventListener('submit', async function(e) {
       e.preventDefault();
 
-<<<<<<< HEAD
       const archivoInput = document.getElementById('estudiosArchivos');
       const numArchivos = archivoInput ? archivoInput.files.length : 0;
       console.log('[Guardar] Archivos en input:', numArchivos);
@@ -1544,8 +1543,6 @@ document.addEventListener('DOMContentLoaded', function() {
       const formData = new FormData(pacienteForm);
       console.log('[Guardar] FormData keys:', [...formData.keys()]);
 
-=======
->>>>>>> Ricardo-Galeria
       const criticalToken = await window.CriticalSecurity.authorize(
         'patients',
         'Confirma tu contraseña para editar la información de este paciente.'
