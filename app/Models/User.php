@@ -8,11 +8,58 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Schema;
+<<<<<<< HEAD
 use Spatie\Permission\Traits\HasRoles;
+=======
+>>>>>>> Ricardo-Galeria
 
 class User extends Authenticatable
 {
     use HasRoles, Notifiable;
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user): void {
+            if (! $user->clinica_id && Schema::hasTable('clinicas')) {
+                $hasPlan = in_array($user->subscription_status, ['active', 'trialing'], true);
+                $clinica = $hasPlan
+                    ? Clinica::create([
+                        'nombre' => 'Clínica de '.$user->name,
+                        'is_shared' => false,
+                    ])
+                    : Clinica::shared();
+
+                $user->clinica_id = $clinica->id;
+                $user->clinica_rol = $hasPlan ? 'propietario' : 'usuario';
+            }
+        });
+
+        static::saved(function (User $user): void {
+            $user->ensurePrivateClinicForPlan();
+        });
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user): void {
+            if (! $user->clinica_id && Schema::hasTable('clinicas')) {
+                $hasPlan = in_array($user->subscription_status, ['active', 'trialing'], true);
+                $clinica = $hasPlan
+                    ? Clinica::create([
+                        'nombre' => 'Clínica de '.$user->name,
+                        'is_shared' => false,
+                    ])
+                    : Clinica::shared();
+
+                $user->clinica_id = $clinica->id;
+                $user->clinica_rol = $hasPlan ? 'propietario' : 'usuario';
+            }
+        });
+
+        static::saved(function (User $user): void {
+            $user->ensurePrivateClinicForPlan();
+        });
+    }
 
     protected static function booted(): void
     {

@@ -44,10 +44,13 @@ class EndoCareAuthController extends Controller
                 user: $user,
                 request: $request,
             );
+<<<<<<< HEAD
 
             if ($user->hasRole('Customer Success')) {
                 return redirect()->route('customer-success.dashboard');
             }
+=======
+>>>>>>> Ricardo-Galeria
 
             if (!$user->subscribed()) {
                 return redirect()->route('plan.only');
@@ -172,6 +175,8 @@ class EndoCareAuthController extends Controller
 
         return redirect()->route('login');
     }
+<<<<<<< HEAD
+<<<<<<< HEAD
 
     public function logoutCs(Request $request)
     {
@@ -182,4 +187,8 @@ class EndoCareAuthController extends Controller
 
         return redirect()->route('login');
     }
+=======
+>>>>>>> Ricardo-Galeria
+=======
+>>>>>>> Ricardo-Galeria
 }

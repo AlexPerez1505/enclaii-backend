@@ -327,6 +327,7 @@ class NuevoEstudioController extends Controller
                 "clinicas/{$request->user()->clinica_id}/estudios/{$estudio->id}/videos",
                 'public',
             );
+<<<<<<< HEAD
 
             $this->guardarArchivoEstudio(
                 estudio: $estudio,
@@ -334,6 +335,8 @@ class NuevoEstudioController extends Controller
                 categoria: 'grabacion',
                 descripcion: 'Grabación del estudio',
             );
+=======
+>>>>>>> Ricardo-Galeria
         }
 
         $estudio->update([
