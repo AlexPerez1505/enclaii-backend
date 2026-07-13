@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('plantillas')) { return; }
         Schema::create('plantillas', function (Blueprint $table) {
             $table->id();
             $table->string('clave')->unique();

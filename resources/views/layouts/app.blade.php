@@ -1274,7 +1274,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
       </div>
       <strong>¿Necesitas ayuda?</strong>
       <span>Soporte 24/7</span>
-      <button class="btn-ghost">Contactar soporte</button>
+      <a class="btn-ghost" href="{{ route('soporte') }}" style="text-decoration:none;color:inherit;display:inline-block">Contactar soporte</a>
     </div>
   </aside>
   @endif
@@ -2671,6 +2671,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
     });
   }
 
+<<<<<<< HEAD
   function pollNotifications() {
     fetch('/notifications', { headers: { 'Accept': 'application/json' } })
       .then(r => r.ok ? r.json() : [])
@@ -2685,6 +2686,31 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
         unread = 0;
         updateDot();
         renderNotifications(items);
+=======
+  @auth
+  const _notifUserId = @json(auth()->id());
+  const _notifEnabled = window.enclaiiSettings?.notif_reminders_screen ?? true;
+
+  loadNotifications();
+
+  function _initEchoNotif() {
+    if (window.Echo === null) return;
+    if (!window.Echo) { setTimeout(_initEchoNotif, 200); return; }
+    if (!_notifUserId || !_notifEnabled) return;
+    const _notifChannel = window.Echo.private(`App.Models.User.${_notifUserId}`);
+
+    _notifChannel
+      .listen('.cita.estado-cambio', (e) => {
+        console.log('[NOTIF] Evento recibido:', e);
+        const cfg = cfgFor(e);
+        addNotif({
+          id: e.id,
+          title: cfg.title,
+          body: `${e.paciente} — ${e.fecha} ${e.hora}`,
+          type: cfg.type,
+          icon: cfg.icon,
+        });
+>>>>>>> origin/Yesica-estudios
       })
       .catch(() => {});
   }

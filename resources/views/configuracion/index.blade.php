@@ -329,13 +329,19 @@
   /* Pestañas */
   const tabs = document.querySelectorAll('.cfg-tab');
   const panels = document.querySelectorAll('.cfg-panel');
-  tabs.forEach(t => t.addEventListener('click', () => {
+  function activateTab(tabName){
     tabs.forEach(x => x.classList.remove('active'));
     panels.forEach(p => p.classList.remove('active'));
-    t.classList.add('active');
-    const target = document.querySelector(`.cfg-panel[data-panel="${t.dataset.tab}"]`);
-    if (target) target.classList.add('active');
-  }));
+    const tab = document.querySelector(`.cfg-tab[data-tab="${tabName}"]`);
+    const panel = document.querySelector(`.cfg-panel[data-panel="${tabName}"]`);
+    if (tab) tab.classList.add('active');
+    if (panel) panel.classList.add('active');
+  }
+  tabs.forEach(t => t.addEventListener('click', () => activateTab(t.dataset.tab)));
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const initialTab = urlParams.get('tab');
+  if (initialTab) activateTab(initialTab);
 
   const requestedTab = new URLSearchParams(window.location.search).get('tab');
   const requestedTabButton = requestedTab

@@ -276,6 +276,22 @@
       <div class="msg-tab" onclick="switchTab(this,'archivados')">Archivados</div>
     </div>
     <div class="msg-list" id="convList">
+
+      <div class="conv-item" data-tab="todas" data-type="wa" data-contact="soporte"
+        onclick="openConv(this,'ST','Soporte Tecnico','teal','wa','Hola, soy del equipo de soporte tecnico de ENCLAII. En que puedo ayudarte?','En linea',[])">
+        <div style="position:relative;flex:none">
+          <div class="conv-avatar teal">ST</div>
+          <span style="position:absolute;bottom:1px;right:1px;width:8px;height:8px;border-radius:50%;background:#25d366;border:2px solid var(--panel);"></span>
+        </div>
+        <div class="conv-body">
+          <div class="conv-name">Soporte Tecnico</div>
+          <div class="conv-preview">En que puedo ayudarte?</div>
+        </div>
+        <div class="conv-meta">
+          <span class="conv-time">En linea</span>
+        </div>
+      </div>
+
       @php($contactColors = ['blue', 'purple', 'teal', 'orange', 'red', 'green'])
       @forelse($whatsappContacts as $contact)
         @php($contactColor = $contactColors[$loop->index % count($contactColors)])
@@ -1031,7 +1047,12 @@
     }
   }
 
-  if (launchContext.channel === 'whatsapp') {
+  // Check if arriving from soporte with ?chat=soporte
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('chat') === 'soporte') {
+    const soporteConv = document.querySelector('.conv-item[data-contact="soporte"]');
+    if (soporteConv) soporteConv.click();
+  } else if (launchContext.channel === 'whatsapp') {
     openWhatsAppLaunch(launchContext);
   } else {
     const first = document.querySelector('.conv-item[data-type="wa"]');
