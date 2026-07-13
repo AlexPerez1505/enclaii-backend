@@ -10,7 +10,6 @@ use App\Models\Paciente;
 use App\Services\ActivityLogger;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class NuevoEstudioController extends Controller
@@ -323,9 +322,9 @@ class NuevoEstudioController extends Controller
         $videoPath = $estudio->video_path;
 
         if ($request->hasFile('video')) {
-            $videoPath = $request->file('video')->store(
-                "clinicas/{$request->user()->clinica_id}/estudios/{$estudio->id}/videos",
-                'public',
+            $videoPath = media_store(
+                $request->file('video'),
+                "clinicas/{$request->user()->clinica_id}/estudios/{$estudio->id}/videos"
             );
 
             $this->guardarArchivoEstudio(
@@ -380,9 +379,7 @@ class NuevoEstudioController extends Controller
     {
         $estudio = $archivo->estudio;
 
-        if ($archivo->path && Storage::disk('public')->exists($archivo->path)) {
-            Storage::disk('public')->delete($archivo->path);
-        }
+        media_delete($archivo->path);
 
         $archivo->delete();
         $this->activity->record(
@@ -452,10 +449,7 @@ class NuevoEstudioController extends Controller
 
     private function guardarArchivoEstudio(Estudio $estudio, $file, ?string $categoria = null, ?string $descripcion = null): EstudioArchivo
     {
-        $path = $file->store(
-            "clinicas/{$estudio->clinica_id}/estudios/{$estudio->id}/archivos",
-            'public',
-        );
+        $path = media_store($file, "clinicas/{$estudio->clinica_id}/estudios/{$estudio->id}/archivos");
         $mime = $file->getMimeType();
 
         $tipo = match (true) {
@@ -517,7 +511,7 @@ class NuevoEstudioController extends Controller
             'tipo' => $archivo->tipo,
             'nombre' => $archivo->nombre,
             'nombre_original' => $archivo->nombre_original,
-            'url' => asset('storage/' . $archivo->path),
+            'url' => media_url($archivo->path),
             'path' => $archivo->path,
             'mime_type' => $archivo->mime_type,
             'size_bytes' => $archivo->size_bytes,

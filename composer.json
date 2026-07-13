@@ -17,6 +17,7 @@
         "laravel/reverb": "^1.10",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
+        "league/flysystem-aws-s3-v3": "^3.0",
         "owenvoke/blade-fontawesome": "^2.9",
         "spatie/laravel-permission": "*",
         "stripe/stripe-php": "^20.3"

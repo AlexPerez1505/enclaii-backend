@@ -2102,7 +2102,7 @@
           'status' => $ultimoEstudio ? ($ultimoEstudio->estado ?? 'completed') : '',
           'tiene_estudios' => $tieneEstudios,
           'estudios' => $estudiosLista,
-          'foto_url' => $paciente->foto ? asset('storage/' . $paciente->foto) : null,
+          'foto_url' => $paciente->foto ? media_url($paciente->foto) : null,
           'proxima_cita' => $proximaCita ? [
               'fecha' => format_user_date($proximaCita->fecha),
               'hora' => $proximaCita->hora

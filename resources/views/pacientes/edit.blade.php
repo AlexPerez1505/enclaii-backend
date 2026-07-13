@@ -925,7 +925,7 @@ textarea{
       <div class="personal-photo-col">
         <div class="patient-photo-container" id="patientPhotoContainer">
           @if($paciente->foto)
-            <img id="patientPhoto" src="{{ asset('storage/' . $paciente->foto) }}" alt="Foto del paciente">
+            <img id="patientPhoto" src="{{ media_url($paciente->foto) }}" alt="Foto del paciente">
             <div class="patient-photo-placeholder" id="patientPhotoPlaceholder" style="display:none;"></div>
           @else
             <div class="patient-photo-placeholder" id="patientPhotoPlaceholder"></div>
@@ -1142,7 +1142,7 @@ textarea{
               $isPdf = $ext === 'pdf';
               $isVideo = in_array($ext, ['mp4','mov','avi','mkv','webm']);
               $isDoc = in_array($ext, ['doc','docx']);
-              $url = asset('storage/'.$doc->path);
+              $url = media_url($doc->path);
               $nombre = $doc->nombre_original ?? basename($doc->path);
               $tipo = $isImg ? 'imagen' : ($isPdf ? 'pdf' : ($isVideo ? 'video' : 'otro'));
               $kb = $doc->size_bytes ?? 0;

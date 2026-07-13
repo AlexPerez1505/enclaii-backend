@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Paciente;
 use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class PacienteController extends Controller
@@ -72,9 +71,9 @@ class PacienteController extends Controller
             ]);
 
             if ($request->hasFile('foto')) {
-                $validated['foto'] = $request->file('foto')->store(
-                    'clinicas/'.$request->user()->clinica_id.'/pacientes',
-                    'public',
+                $validated['foto'] = media_store(
+                    $request->file('foto'),
+                    'clinicas/'.$request->user()->clinica_id.'/pacientes'
                 );
             }
 
@@ -89,7 +88,7 @@ class PacienteController extends Controller
 
             if ($request->hasFile('estudios_archivos')) {
                 foreach ($request->file('estudios_archivos') as $archivo) {
-                    $path = $archivo->store('paciente_docs/' . $paciente->id, 'public');
+                    $path = media_store($archivo, 'paciente_docs/' . $paciente->id);
                     \App\Models\PacienteDocumento::create([
                         'paciente_id' => $paciente->id,
                         'path' => $path,
@@ -170,13 +169,11 @@ class PacienteController extends Controller
         ]);
 
         if ($request->hasFile('foto')) {
-            if ($paciente->foto && Storage::disk('public')->exists($paciente->foto)) {
-                Storage::disk('public')->delete($paciente->foto);
-            }
+            media_delete($paciente->foto);
 
-            $validated['foto'] = $request->file('foto')->store(
-                'clinicas/'.$request->user()->clinica_id.'/pacientes',
-                'public',
+            $validated['foto'] = media_store(
+                $request->file('foto'),
+                'clinicas/'.$request->user()->clinica_id.'/pacientes'
             );
         }
 
@@ -195,7 +192,7 @@ class PacienteController extends Controller
         if ($request->hasFile('estudios_archivos')) {
             foreach ($request->file('estudios_archivos') as $archivo) {
                 \Log::info('Guardando archivo: ' . $archivo->getClientOriginalName());
-                $path = $archivo->store('paciente_docs/' . $paciente->id, 'public');
+                $path = media_store($archivo, 'paciente_docs/' . $paciente->id);
                 \App\Models\PacienteDocumento::create([
                     'paciente_id' => $paciente->id,
                     'path' => $path,
@@ -252,25 +249,16 @@ class PacienteController extends Controller
     public function destroy(Paciente $paciente)
     {
         try {
-            if ($paciente->foto && Storage::disk('public')->exists($paciente->foto)) {
-                Storage::disk('public')->delete($paciente->foto);
-            }
+            media_delete($paciente->foto);
 
             $paciente->estudios()->each(function ($estudio) {
                 $estudio->archivos()->each(function ($archivo) {
-                    if ($archivo->path && Storage::disk('public')->exists($archivo->path)) {
-                        Storage::disk('public')->delete($archivo->path);
-                    }
+                    media_delete($archivo->path);
                     $archivo->delete();
                 });
 
-                if ($estudio->reporte_path && Storage::disk('public')->exists($estudio->reporte_path)) {
-                    Storage::disk('public')->delete($estudio->reporte_path);
-                }
-
-                if ($estudio->video_path && Storage::disk('public')->exists($estudio->video_path)) {
-                    Storage::disk('public')->delete($estudio->video_path);
-                }
+                media_delete($estudio->reporte_path);
+                media_delete($estudio->video_path);
 
                 $estudio->delete();
             });
