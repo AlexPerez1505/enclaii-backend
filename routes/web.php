@@ -1,10 +1,15 @@
 <?php
 
 use App\Http\Controllers\Auth\EndoCareAuthController;
+use App\Http\Controllers\CustomerSuccess\AnuncioDashboardController;
+use App\Http\Controllers\CustomerSuccess\DashboardController;
+use App\Http\Controllers\CustomerSuccess\RolesController;
 use App\Http\Controllers\IaReporteController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\WhatsAppController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Password;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\NuevoEstudioController;
@@ -12,6 +17,22 @@ use App\Models\Paciente;
 use App\Models\Reporte;
 use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\StripeController;
+<<<<<<< HEAD
+=======
+use App\Http\Controllers\StorageServeController;
+use App\Http\Controllers\CapturePairingCodeController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\CronController;
+use App\Http\Controllers\CustomerSuccessController;
+use App\Http\Controllers\ConfigurationBackupController;
+use App\Http\Controllers\SoporteChatController;
+use App\Http\Controllers\SoporteController;
+use App\Http\Controllers\TicketController;
+
+Route::get('/storage/{path}', [StorageServeController::class, 'show'])
+    ->where('path', '.*')
+    ->name('storage.fallback');
+>>>>>>> origin/main
 use App\Http\Controllers\ConfigurationBackupController;
 use App\Http\Controllers\SignatureController;
 use App\Http\Controllers\PasswordController;
@@ -36,6 +57,15 @@ Route::post('/webhooks/whatsapp', [WhatsAppController::class, 'webhook'])
 Route::post('/webhooks/stripe', [StripeController::class, 'webhook'])
     ->name('webhooks.stripe');
 
+<<<<<<< HEAD
+=======
+// Cron endpoint para cron-job.org (protegido por header X-Cron-Token)
+Route::get('/cron/notificaciones', [CronController::class, 'run'])
+    ->name('cron.notificaciones');
+Route::get('/cron/anuncios', [CronController::class, 'runAnuncios'])
+    ->name('cron.anuncios');
+
+>>>>>>> origin/main
 Route::get('/registro-paciente/completado', [PublicPatientPreregistrationController::class, 'success'])
     ->name('qr.public.success');
 Route::get('/registro-paciente/expirado', [PublicPatientPreregistrationController::class, 'expired'])
@@ -118,6 +148,23 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     Route::patch('/configuracion/general', [SettingsController::class, 'update'])
         ->name('configuracion.general.update');
 
+<<<<<<< HEAD
+=======
+    Route::patch('/configuracion/perfil', [SettingsController::class, 'updatePerfil'])
+        ->name('configuracion.perfil.update');
+    Route::post('/configuracion/foto', [SettingsController::class, 'updateFoto'])
+        ->name('configuracion.foto.update');
+    Route::delete('/configuracion/foto', [SettingsController::class, 'deleteFoto'])
+        ->name('configuracion.foto.delete');
+    Route::post('/configuracion/constancia', [SettingsController::class, 'uploadConstancia'])
+        ->name('configuracion.constancia.upload');
+    Route::delete('/configuracion/constancia', [SettingsController::class, 'deleteConstancia'])
+        ->name('configuracion.constancia.delete');
+
+    // ===== Aceptaciones legales =====
+    Route::post('/legal/acceptances', [SettingsController::class, 'storeLegalAcceptances'])
+        ->name('legal.acceptances.store');
+>>>>>>> origin/main
     Route::post('/configuracion/copias', [ConfigurationBackupController::class, 'store'])
         ->name('configuracion.backups.store');
     Route::post('/configuracion/copias/{backup}/restaurar', [ConfigurationBackupController::class, 'restore'])
@@ -184,6 +231,12 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     Route::get('/stripe/cancel', [StripeController::class, 'cancel'])
         ->name('stripe.cancel');
 
+    // ===== Notificaciones =====
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('/notifications/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::patch('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+    Route::delete('/notifications', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+
     Route::post('/logout', [EndoCareAuthController::class, 'logout'])->name('logout');
 
 });
@@ -220,12 +273,69 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
         $citasCompletadas = \App\Models\Cita::where('estado', 'completado')->count();
         $citasCanceladas = \App\Models\Cita::where('estado', 'cancelado')->count();
 
+        // Resumen del mes (coincide con el mes mostrado en el widget de agenda)
+        $widgetMes = (int) request()->query('widget_mes', now()->month);
+        $widgetAnio = (int) request()->query('widget_anio', now()->year);
+        $inicioMes = \Carbon\Carbon::create($widgetAnio, $widgetMes, 1)->startOfDay();
+        $finMes = $inicioMes->copy()->endOfMonth();
+
+        $citasProximasMes = \App\Models\Cita::where('estado', 'proximo')
+            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
+            ->count();
+        $citasCompletadasMes = \App\Models\Cita::where('estado', 'completado')
+            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
+            ->count();
+        $citasCanceladasMes = \App\Models\Cita::where('estado', 'cancelado')
+            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
+            ->count();
+
+        $pendientesMes = \App\Models\Cita::with('paciente')
+            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
+            ->whereNotIn('estado', ['completado', 'cancelado'])
+            ->orderBy('fecha')
+            ->orderBy('hora')
+            ->get();
+
         return view('dashboard.index', compact(
             'estudiosSinReporte', 'proximaCita', 'pendientesHoy',
-            'citasProximas', 'citasCompletadas', 'citasCanceladas'
+            'citasProximas', 'citasCompletadas', 'citasCanceladas',
+            'citasProximasMes', 'citasCompletadasMes', 'citasCanceladasMes',
+            'pendientesMes', 'widgetMes', 'widgetAnio'
         ));
     })->name('dashboard');
-    
+
+    Route::get('/dashboard/widget/{widget}', function ($widget) {
+        $allowed = ['agenda-today', 'agenda-summary'];
+        if (!in_array($widget, $allowed)) abort(404);
+
+        $widgetMes = (int) request()->query('widget_mes', now()->month);
+        $widgetAnio = (int) request()->query('widget_anio', now()->year);
+        $inicioMes = \Carbon\Carbon::create($widgetAnio, $widgetMes, 1)->startOfDay();
+        $finMes = $inicioMes->copy()->endOfMonth();
+
+        $citasProximasMes = \App\Models\Cita::where('estado', 'proximo')
+            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
+            ->count();
+        $citasCompletadasMes = \App\Models\Cita::where('estado', 'completado')
+            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
+            ->count();
+        $citasCanceladasMes = \App\Models\Cita::where('estado', 'cancelado')
+            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
+            ->count();
+
+        $pendientesMes = \App\Models\Cita::with('paciente')
+            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
+            ->whereNotIn('estado', ['completado', 'cancelado'])
+            ->orderBy('fecha')
+            ->orderBy('hora')
+            ->get();
+
+        return view('dashboard.widgets.' . $widget . '.index', compact(
+            'citasProximasMes', 'citasCompletadasMes', 'citasCanceladasMes',
+            'pendientesMes', 'widgetMes', 'widgetAnio'
+        ));
+    })->name('dashboard.widget');
+
 
     Route::get('/ia-reportes', function () {
         $reportes = Reporte::with(['estudio.paciente', 'usuario'])
@@ -303,7 +413,11 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
                 ->orderByDesc('capturado_en')
                 ->orderByDesc('id')
                 ->get()
+<<<<<<< HEAD
                 ->map(fn ($a) => media_url($a->path))
+=======
+                ->map(fn ($a) => 'storage/'.$a->path.'?v='.($a->updated_at?->timestamp ?? $a->id))
+>>>>>>> origin/main
                 ->values();
         }
 
@@ -396,7 +510,11 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
                 ->get()
                 ->map(fn ($a) => [
                     'id' => $a->id,
+<<<<<<< HEAD
                     'url' => media_url($a->path),
+=======
+                    'url' => asset('storage/'.$a->path).'?v='.($a->updated_at?->timestamp ?? $a->id),
+>>>>>>> origin/main
                     'titulo' => $a->nombre_original,
                 ])
                 ->values();
@@ -463,6 +581,12 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     Route::post('/ia-reportes/guardar', [IaReporteController::class, 'guardar'])
         ->name('ia-reportes.guardar');
 
+    Route::get('/ia-reportes/hallazgos-lista', [IaReporteController::class, 'listarHallazgos'])
+        ->name('ia-reportes.hallazgos-lista');
+
+    Route::post('/ia-reportes/hallazgos-crear', [IaReporteController::class, 'crearHallazgo'])
+        ->name('ia-reportes.hallazgos-crear');
+
     Route::post('/plantillas/{clave}', [\App\Http\Controllers\PlantillaController::class, 'update'])
         ->name('plantillas.update');
 
@@ -501,7 +625,11 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
                     ->where('tipo', 'imagen')
                     ->orderByDesc('capturado_en')
                     ->get()
+<<<<<<< HEAD
                     ->map(fn ($a) => ['url' => media_url($a->path), 'titulo' => $a->nombre_original]);
+=======
+                    ->map(fn ($a) => ['url' => asset('storage/' . $a->path).'?v='.($a->updated_at?->timestamp ?? $a->id), 'titulo' => $a->nombre_original]);
+>>>>>>> origin/main
             }
             // Si el reporte no tiene plantilla asignada, cargar la que corresponda al tipo de estudio
             if ($reporte && ! $reporte->plantilla && $reporte->estudio?->tipo) {
@@ -519,10 +647,6 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
         return view('ia-reportes.analisis');
     })->name('ia-reportes.analisis');
     
-    // Route::get('/finanzas', function () {
-    //     return view('finanzas.index');
-    // })->name('finanzas');
-
     Route::get('/mensajes/correo', [WhatsAppController::class, 'index'])
         ->name('mensajes.correo');
 
@@ -536,6 +660,9 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
         ->name('mensajes.whatsapp.send');
 
     Route::get('/nuevo-estudio', function (\Illuminate\Http\Request $request) {
+        /* Limpiar sesión de estudio al volver al dashboard */
+        session()->forget(['estudio_activo_id', 'ultimo_estudio_completado_id']);
+
         $paciente = $request->filled('paciente')
             ? Paciente::find($request->query('paciente'))
             : null;
@@ -577,26 +704,36 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
         return view('estudios.crear');
     })->name('nuevo-estudio.crear');
 
+    Route::post('/capture/pairing-code', [\App\Http\Controllers\CapturePairingCodeController::class, 'store'])
+        ->name('capture.pairing-code.store');
+
     Route::get('/nuevo-estudio/importar', function () {
-        return view('estudios.importar');
+        return view('estudios.importar.index');
     })->name('nuevo-estudio.importar');
 
     Route::post('/nuevo-estudio', [NuevoEstudioController::class, 'store'])
         ->name('nuevo-estudio.store');
 
     Route::get('/nuevo-estudio/capturas', function () {
-        return view('estudios.capturas');
+        return view('estudios.caputras.index');
     })->name('nuevo-estudio.capturas');
 
     Route::post('/nuevo-estudio/capturas', [NuevoEstudioController::class, 'guardarCapturas'])
         ->name('nuevo-estudio.capturas.store');
 
     Route::get('/nuevo-estudio/configuracion', function () {
-        return view('estudios.configuracion');
+        return view('estudios.configuracion.index');
     })->name('nuevo-estudio.configuracion');
+
+    Route::get('/nuevo-estudio/videos', function () {
+        return view('estudios.videos.index');
+    })->name('nuevo-estudio.videos');
 
     Route::get('/nuevo-estudio/grabando', [NuevoEstudioController::class, 'grabando'])
         ->name('nuevo-estudio.grabando');
+
+    Route::get('/nuevo-estudio/finalizado', [NuevoEstudioController::class, 'finalizado'])
+        ->name('nuevo-estudio.finalizado');
 
     Route::post('/nuevo-estudio/finalizar', [NuevoEstudioController::class, 'finalizarGrabacion'])
         ->name('nuevo-estudio.finalizar');
@@ -609,7 +746,11 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
         ->middleware('critical.password:studies')
         ->name('nuevo-estudio.configuracion.update');
 
+<<<<<<< HEAD
     /* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ GalerÃƒÆ’Ã‚Â­a ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
+=======
+    /* ── Galería ── */
+>>>>>>> origin/main
     Route::get('/galeria', function () {
         $colores = [
             'linear-gradient(135deg,#c084fc,#a78bfa)',
@@ -747,7 +888,11 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
                 'n' => $i + 1,
                 'ts' => optional($a->capturado_en)->format('H:i:s') ?? '',
                 'bg' => 'radial-gradient(ellipse at 50% 50%,#1a1208 0%,#0a0610 100%)',
+<<<<<<< HEAD
                 'src' => media_url($a->path),
+=======
+                'src' => asset('storage/' . $a->path).'?v='.($a->updated_at?->timestamp ?? $a->id),
+>>>>>>> origin/main
                 'id' => $a->id,
             ];
         })->all();
@@ -797,7 +942,11 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
             'ok' => true,
             'archivo' => [
                 'id' => $archivo->id,
+<<<<<<< HEAD
                 'url' => media_url($archivo->path),
+=======
+                'url' => asset('storage/'.$archivo->path).'?v='.($archivo->updated_at?->timestamp ?? $archivo->id),
+>>>>>>> origin/main
                 'path' => $archivo->path,
             ],
         ]);
@@ -831,13 +980,18 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
             'ok' => true,
             'archivo' => [
                 'id' => $copy->id,
+<<<<<<< HEAD
                 'url' => media_url($copy->path),
+=======
+                'url' => asset('storage/'.$copy->path).'?v='.($copy->updated_at?->timestamp ?? $copy->id),
+>>>>>>> origin/main
                 'path' => $copy->path,
             ],
         ]);
     })->middleware('critical.password:studies')
         ->name('galeria.imagen.guardar-copia');
 
+<<<<<<< HEAD
     /* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Finanzas ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
     // Route::get('/finanzas', function () {
     //     return view('finanzas.index');
@@ -1927,11 +2081,53 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     Route::get('/agenda', [AgendaController::class, 'index'])->name('agenda');
     Route::get('/agendar', [AgendaController::class, 'create'])->name('agendar');
 
+=======
+    /* ── Finanzas ── */
+    Route::get('/finanzas', function () {
+        return view('finanzas.index');
+    })->name('finanzas');
+});
+
+
+Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
+    Route::resource('pacientes', PacienteController::class)
+        ->middlewareFor(['update', 'destroy'], 'critical.password:patients');
+<<<<<<< HEAD
+    Route::post('/pacientes/{paciente}/add-medico', [PacienteController::class, 'addMedico'])
+        ->name('pacientes.add-medico');
+    Route::post('/pacientes/{paciente}/update-campo', [PacienteController::class, 'updateCampo'])
+        ->name('pacientes.update-campo');
+=======
+>>>>>>> Ricardo-Galeria
+
+    Route::get('/qr', [QrRegistrationController::class, 'index'])->name('qr.index');
+    Route::post('/qr/enlaces', [QrRegistrationController::class, 'store'])->name('qr.links.store');
+    Route::get('/qr/enlaces/{link}/imagen', [QrRegistrationController::class, 'image'])->name('qr.links.image');
+    Route::delete('/qr/enlaces/{link}', [QrRegistrationController::class, 'destroy'])->name('qr.links.destroy');
+    Route::delete('/qr/enlaces/{link}/eliminar', [QrRegistrationController::class, 'archive'])->name('qr.links.archive');
+    Route::post('/qr/preregistros/{preregistration}/aceptar', [QrRegistrationController::class, 'accept'])
+        ->name('qr.preregistrations.accept');
+    Route::post('/qr/preregistros/{preregistration}/rechazar', [QrRegistrationController::class, 'reject'])
+        ->name('qr.preregistrations.reject');
+
+    Route::get('/agenda', [AgendaController::class, 'index'])->name('agenda');
+    Route::get('/agendar', [AgendaController::class, 'create'])->name('agendar');
+
+>>>>>>> origin/main
     Route::post('/agenda/citas', [AgendaController::class, 'store'])->name('agenda.citas.store');
     Route::put('/agenda/citas/{cita}', [AgendaController::class, 'update'])->name('agenda.citas.update');
     Route::patch('/agenda/citas/{cita}/estado', [AgendaController::class, 'cambiarEstado'])->name('agenda.citas.estado');
     Route::delete('/agenda/citas/{cita}', [AgendaController::class, 'destroy'])->name('agenda.citas.destroy');
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+    Route::post('/agenda/bloqueos', [AgendaController::class, 'storeBloqueo'])->name('agenda.bloqueos.store');
+    Route::delete('/agenda/bloqueos/{bloqueo}', [AgendaController::class, 'destroyBloqueo'])->name('agenda.bloqueos.destroy');
+
+=======
+>>>>>>> Ricardo-Galeria
+>>>>>>> origin/main
     Route::get('/finanzas', function () {
         return view('finanzas.index');
     })->name('finanzas');
@@ -1956,12 +2152,48 @@ Route::post('/forgot-password', function (Request $request) {
         : back()->withErrors(['email' => __($status)]);
 })->middleware('guest')->name('password.email');
 
+Route::get('/reset-password/{token}', function (string $token, Request $request) {
+    return view('auth.reset-password', [
+        'token' => $token,
+        'email' => $request->query('email'),
+    ]);
+})->middleware('guest')->name('password.reset');
+
+Route::post('/reset-password', function (Request $request) {
+    $request->validate([
+        'token' => ['required'],
+        'email' => ['required', 'email'],
+        'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
+    ]);
+
+    $status = Password::reset(
+        $request->only('email', 'password', 'password_confirmation', 'token'),
+        function ($user, $password) {
+            $user->forceFill([
+                'password' => \Illuminate\Support\Facades\Hash::make($password),
+            ])->setRememberToken(\Illuminate\Support\Str::random(60));
+
+            $user->save();
+        }
+    );
+
+    return $status === Password::PASSWORD_RESET
+        ? redirect()->route('login')->with('status', __($status))
+        : back()->withErrors(['email' => __($status)]);
+})->middleware('guest')->name('password.update');
+
 Route::post('/ia/chat', [AiAssistantController::class, 'chat'])
     ->name('ia.chat');
 
 
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('/soporte', [SoporteController::class, 'index'])->name('soporte');
+    Route::get('/soporte/tickets', [TicketController::class, 'tickets'])->name('soporte.tickets');
+    Route::post('/soporte/tickets', [TicketController::class, 'store'])->name('soporte.tickets.store');
+    Route::get('/soporte/chat/history', [SoporteChatController::class, 'history'])->name('soporte.chat.history');
+    Route::post('/soporte/chat', [SoporteChatController::class, 'chat'])->name('soporte.chat');
+
     Route::post('/ia/conversations/start', [AiAssistantController::class, 'start'])->name('ia.conversations.start');
     Route::get('/ia/conversations', [AiAssistantController::class, 'conversations'])->name('ia.conversations');
     Route::get('/ia/conversations/{conversation}', [AiAssistantController::class, 'show'])->name('ia.conversations.show');
@@ -1970,3 +2202,37 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/ia/history', [AiAssistantController::class, 'history'])->name('ia.history');
     Route::post('/ia/reset', [AiAssistantController::class, 'reset'])->name('ia.reset');
 });
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+
+// Customer Success API (sesión web, usado por el JS de las vistas CS)
+Route::middleware(['auth', 'customer.success'])->prefix('api/customer-success')->group(function () {
+    Route::apiResource('anuncios', \App\Http\Controllers\Api\CustomerSuccess\AnuncioController::class);
+    Route::get('/users', [\App\Http\Controllers\Api\CustomerSuccess\UserRoleController::class, 'index']);
+    Route::post('/users/{user}/assign-role', [\App\Http\Controllers\Api\CustomerSuccess\UserRoleController::class, 'assign']);
+    Route::post('/users/{user}/remove-role', [\App\Http\Controllers\Api\CustomerSuccess\UserRoleController::class, 'remove']);
+    Route::get('/notifications', [\App\Http\Controllers\Api\CustomerSuccess\NotificationController::class, 'index']);
+    Route::patch('/notifications/read-all', [\App\Http\Controllers\Api\CustomerSuccess\NotificationController::class, 'markAllRead']);
+});
+
+// Customer Success panel
+Route::middleware(['auth', 'customer.success'])->prefix('customer-success')->name('customer-success.')->group(function () {
+    Route::get('/dashboard', [CustomerSuccessController::class, 'dashboard'])->name('dashboard');
+    Route::get('/anuncios', [CustomerSuccessController::class, 'anuncios'])->name('anuncios');
+    Route::get('/gestion-usuarios', [CustomerSuccessController::class, 'gestionUsuarios'])->name('gestion-usuarios');
+    Route::post('/logout', [EndoCareAuthController::class, 'logoutCs'])->name('logout');
+
+    Route::get('/api/users', [CustomerSuccessController::class, 'users'])->name('api.users');
+    Route::post('/api/users/{user}/assign-role', [CustomerSuccessController::class, 'assignRole'])->name('api.users.assign-role');
+    Route::post('/api/users/{user}/remove-role', [CustomerSuccessController::class, 'removeRole'])->name('api.users.remove-role');
+});
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::post('/capture/pairing-code', [CapturePairingCodeController::class, 'store'])
+        ->name('capture.pairing-code.store');
+});
+=======
+>>>>>>> Ricardo-Galeria
+>>>>>>> origin/main

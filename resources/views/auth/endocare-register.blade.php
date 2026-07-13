@@ -592,7 +592,7 @@ body{
 
       {{-- Tarjeta: Imágenes en la nube --}}
       <div class="ec-card card-cloud" data-depth="18">
-        <h4>☁ Imágenes seguras</h4>
+        <h4>Imágenes seguras</h4>
         <div class="big"><span class="ec-count" data-target="48920">0</span></div>
         <div class="sub">Capturas endoscópicas en la nube</div>
         <div class="cloud-bar"><i></i></div>

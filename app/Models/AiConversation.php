@@ -10,6 +10,7 @@ class AiConversation extends Model
 {
     protected $fillable = [
         'user_id',
+        'type',
         'title',
         'status',
         'last_message_at',

@@ -158,6 +158,7 @@ html[data-theme="light"] .day-event-thumb.ev-cancel{background:#FDE8E8;border-co
 html[data-theme="light"] .day-event-thumb.ev-soon  {background:#F3ECFF;border-color:#B263FF}
 html[data-theme="light"] .day-event-thumb.ev-block {background:rgba(20,50,120,.12)}
 html[data-theme="light"] .day-event.ev-block{border-color:rgba(20,50,120,.25);box-shadow:0 0 0 1px rgba(20,50,120,.06),0 2px 40px rgba(20,50,120,.05)}
+html[data-theme="light"] .day-event-status.ev-block{color:#5B6A99}
 html[data-theme="light"] .day-panel-card{background:#F0F5FF;border-color:rgba(20,50,120,.15)}
 html[data-theme="light"] .day-panel-title{color:#0E1530}
 html[data-theme="light"] .day-pc-name{color:#0E1530}
@@ -338,8 +339,8 @@ html[data-theme="light"] .day-modal-overlay{
     <div class="del-confirm-title">¿Borrar esta cita?</div>
     <div class="del-confirm-sub">Esta acción eliminará la cita de la agenda. No se puede deshacer.</div>
     <div class="del-confirm-actions" style="width:100%">
-      <button class="del-confirm-yes" id="delGlobalYes">Sí, borrar cita</button>
-      <button class="del-confirm-no" id="delGlobalNo" style="margin-top:0">Cancelar</button>
+      <button class="del-confirm-yes" data-no-confirm id="delGlobalYes">Sí, borrar cita</button>
+      <button class="del-confirm-no" data-no-confirm id="delGlobalNo" style="margin-top:0">Cancelar</button>
     </div>
   </div>
 </div>
@@ -350,10 +351,10 @@ html[data-theme="light"] .day-modal-overlay{
     <div class="day-modal-header">
       <div class="day-modal-title" id="dayModalTitle">Detalle de cita</div>
       <div style="display:flex;gap:4px;align-items:center">
-        <button class="day-modal-del" id="dayModalDel" aria-label="Borrar cita" title="Borrar cita">
+        <button class="day-modal-del" id="dayModalDel" data-no-confirm aria-label="Borrar cita" title="Borrar cita">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
         </button>
-        <button class="day-modal-close" id="dayModalClose" aria-label="Cerrar">✕</button>
+        <button class="day-modal-close" id="dayModalClose" aria-label="Cerrar">×</button>
       </div>
     </div>
     <div class="day-modal-body" id="dayModalBody"></div>
@@ -373,10 +374,10 @@ html[data-theme="light"] .day-modal-overlay{
     'ev-done':'Completado','ev-wait':'En espera','ev-cancel':'Cancelado','ev-soon':'Próximos','ev-block':'',
   };
   const DAY_BUTTONS = {
-    'ev-done':  [{label:'Datos del paciente',cls:'primary'},{label:'Reprogramar nueva cita',cls:'secondary'},{label:'Ver Informe',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
-    'ev-wait':  [{label:'Iniciar Estudio',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
-    'ev-cancel':[{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
-    'ev-soon':  [{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
+    'ev-done':  [{label:'Datos del paciente',cls:'primary'},{label:'Reprogramar nueva cita',cls:'secondary'},{label:'Ver Informe',cls:'secondary'}],
+    'ev-wait':  [{label:'Iniciar Estudio',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'}],
+    'ev-cancel':[{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'}],
+    'ev-soon':  [{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'}],
   };
 
   function minutesTo12h(min) {
@@ -413,8 +414,8 @@ html[data-theme="light"] .day-modal-overlay{
       <div class="del-confirm-title">${isEliminar ? '¿Eliminar esta cita?' : '¿Cancelar esta cita?'}</div>
       <div class="del-confirm-sub">${isEliminar ? 'Esta acción eliminará la cita de la base de datos. No se puede deshacer.' : 'La cita se marcará como cancelada y seguirá visible en el historial.'}</div>
       <div class="del-confirm-actions">
-        <button class="del-confirm-yes" id="delConfirmYes">${isEliminar ? 'Sí, eliminar' : 'Sí, cancelar'}</button>
-        <button class="del-confirm-no" id="delConfirmNo">Cancelar</button>
+        <button class="del-confirm-yes" data-no-confirm id="delConfirmYes">${isEliminar ? 'Sí, eliminar' : 'Sí, cancelar'}</button>
+        <button class="del-confirm-no" data-no-confirm id="delConfirmNo">Cancelar</button>
       </div>
     `;
     dayModalWrap.appendChild(panel);
@@ -604,7 +605,6 @@ html[data-theme="light"] .day-modal-overlay{
   const STATUS_BADGE_KEY   = {'ev-done':'done','ev-wait':'wait','ev-cancel':'cancel','ev-soon':'soon'};
   const REPROG_LABELS_DIA  = ['Reprogramar nueva cita','Reprogramar Paciente'];
   const PACIENTE_LABELS_DIA = ['Datos del paciente','Datos del Paciente'];
-  const MENSAJE_LABELS_DIA = ['Enviar mensaje'];
   const INFORME_LABELS_DIA = ['Ver Informe'];
   const INICIAR_LABELS_DIA = ['Iniciar Estudio'];
 
@@ -647,12 +647,51 @@ html[data-theme="light"] .day-modal-overlay{
       return (h || 0) * 60 + (m || 0);
     })();
     const timeRange = `${time24To12h(time)} – ${minutesTo12h(startMin + duration)}`;
+
+    dayModalBody.innerHTML = '';
+
+    /* ---- Bloqueo de tiempo ---- */
+    if (ev.cls === 'ev-block') {
+      const blockLabel = ev.name || name.replace(/^\d+:\d+\s*/, '') || 'Bloqueo de Tiempo';
+      dayModalTitle.textContent = 'Bloqueo de Tiempo';
+      dayModalDel.style.display = 'none';
+      const card = document.createElement('div');
+      card.className = 'day-panel-card';
+      card.style.textAlign = 'center';
+      card.innerHTML = `
+        <div style="margin:8px auto 14px;width:48px;height:48px;border-radius:12px;background:rgba(110,160,255,.12);border:1.5px solid rgba(110,160,255,.25);display:flex;align-items:center;justify-content:center">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#8FA3CF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div style="font-size:15px;font-weight:700;color:#EAF1FF;margin-bottom:10px">${blockLabel}</div>
+        <div class="day-pc-info" style="text-align:left;margin-bottom:16px">
+          <b>Motivo:</b> ${blockLabel}<br>
+          <b>Hora:</b> ${timeRange}<br>
+          <b>Fecha:</b> ${dayNames[dow]} ${d} de ${MESES_DIA[m]}
+        </div>`;
+      const delBtn = document.createElement('button');
+      delBtn.className = 'ev-pop-btn danger';
+      delBtn.dataset.noConfirm = '';
+      delBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg> Eliminar bloqueo`;
+      delBtn.addEventListener('click', () => {
+        dayModalOverlay.classList.remove('open');
+        if (window.__openDeleteBloqueoConfirm) {
+          window.__openDeleteBloqueoConfirm(ev.blockId, key, blockLabel);
+        }
+      });
+      card.appendChild(delBtn);
+      dayModalBody.appendChild(card);
+      __currentDelEv = null;
+      dayModalOverlay.classList.add('open');
+      return;
+    }
+
+    /* ---- Cita normal ---- */
+    dayModalDel.style.display = '';
+    dayModalTitle.textContent = `${time24To12h(time)} – ${displayName}`;
+
     const cls = liveCls;
     const badgeKey = STATUS_BADGE_KEY[cls] || 'done';
     const badgeLabel = STATUS_LABELS_MODAL[cls] || 'Completado';
-
-    dayModalTitle.textContent = `${time24To12h(time)} – ${displayName}`;
-    dayModalBody.innerHTML = '';
 
     const card = document.createElement('div');
     card.className = 'day-panel-card';
@@ -693,11 +732,6 @@ html[data-theme="light"] .day-modal-overlay{
           } else {
             window.location.href = '{{ route('pacientes.index') }}?paciente=' + encodeURIComponent(name);
           }
-        });
-      }
-      if (MENSAJE_LABELS_DIA.includes(b.label)) {
-        btn.addEventListener('click', () => {
-          window.location.href = '{{ route('mensajes') }}?paciente=' + encodeURIComponent(displayName || name);
         });
       }
       if (INFORME_LABELS_DIA.includes(b.label)) {
@@ -791,7 +825,9 @@ html[data-theme="light"] .day-modal-overlay{
           if (ev.cls === 'ev-block' && ev.blockId !== undefined) {
             card.dataset.blockid    = ev.blockId;
             card.dataset.blockkey   = key;
-            card.dataset.blocklabel = name;
+            card.dataset.blocklabel = ev.name || name.replace(/^\d+:\d+\s*/,'');
+            card.dataset.time       = ev.hora || (ev.h ? String(ev.h).padStart(2,'0') + ':00' : '00:00');
+            card.dataset.duration   = ev.duracion || '60';
           }
 
           const thumb = document.createElement('div');
@@ -803,6 +839,10 @@ html[data-theme="light"] .day-modal-overlay{
             info2.className = 'day-event-info';
             info2.innerHTML = `<strong>Bloqueo de Tiempo</strong><span>${name.replace(/^\d+:\d+\s*/,'')}</span>`;
             card.appendChild(thumb); card.appendChild(info2);
+            card.addEventListener('click', e => {
+              e.stopPropagation();
+              if (window.openDayModal) window.openDayModal(ev, dayNames, dow, d, m, y);
+            });
           } else {
             const info = document.createElement('div');
             info.className = 'day-event-info';
@@ -891,11 +931,6 @@ html[data-theme="light"] .day-modal-overlay{
             } else {
               window.location.href = '{{ route('pacientes.index') }}?paciente=' + encodeURIComponent(name);
             }
-          });
-        }
-        if (MENSAJE_LABELS_DIA.includes(b.label)) {
-          btn.addEventListener('click', () => {
-            window.location.href = '{{ route('mensajes') }}?paciente=' + encodeURIComponent(displayName || name);
           });
         }
         if (INFORME_LABELS_DIA.includes(b.label)) {

@@ -1,10 +1,13 @@
-{{-- Widget: Resumen del día --}}
+{{-- Widget: Resumen del mes --}}
 @php
-  $proximas = $citasProximas ?? 0;
-  $completados = $citasCompletadas ?? 0;
-  $cancelados = $citasCanceladas ?? 0;
+  $proximas = $citasProximasMes ?? ($citasProximas ?? 0);
+  $completados = $citasCompletadasMes ?? ($citasCompletadas ?? 0);
+  $cancelados = $citasCanceladasMes ?? ($citasCanceladas ?? 0);
   $total = $proximas + $completados + $cancelados;
   $circ = 314.16;
+  $meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  $mesActual = $meses[($widgetMes ?? now()->month) - 1] ?? '';
+  $anioActual = $widgetAnio ?? now()->year;
 
   function donutSlice($value, $total, $circ) {
     if ($total <= 0) return ['dash' => '0 ' . $circ, 'offset' => 0];
@@ -24,7 +27,7 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="19" r="1"/></svg>
   </span>
   <article class="card">
-    <h3>RESUMEN DE ESTUDIOS</h3>
+    <h3>RESUMEN DE ESTUDIOS · {{ strtoupper($mesActual) }} {{ $anioActual }}</h3>
     <div class="donut-box">
       <div class="donut">
         <svg viewBox="0 0 120 120">
@@ -49,16 +52,20 @@
       </div>
     </div>
     <div class="next-list">
-      <h4>Próximos estudios</h4>
-      @forelse($pendientesHoy ?? [] as $cita)
+      <h4>Próximos estudios del mes</h4>
+      @forelse($pendientesMes ?? ($pendientesHoy ?? []) as $cita)
         @php
+<<<<<<< HEAD
+=======
+          $fecha = \Carbon\Carbon::parse($cita->fecha)->format('d/m');
+>>>>>>> origin/main
           $hora = format_user_time(\Carbon\Carbon::parse($cita->hora));
           $chip = $cita->estado === 'proximo' ? 'wait' : 'urgent';
           $chipText = $cita->estado === 'proximo' ? 'Próxima' : 'En espera';
         @endphp
-        <div class="next-item"><span class="t">{{ $hora }}</span><span class="n">{{ $cita->paciente->nombre_completo ?? 'Paciente' }}</span><span class="chip {{ $chip }}">{{ $chipText }}</span></div>
+        <div class="next-item"><span class="t">{{ $fecha }} {{ $hora }}</span><span class="n">{{ $cita->paciente->nombre_completo ?? 'Paciente' }}</span><span class="chip {{ $chip }}">{{ $chipText }}</span></div>
       @empty
-        <div class="next-item" style="opacity:.7"><span class="t">--</span><span class="n">No hay estudios próximos hoy</span></div>
+        <div class="next-item" style="opacity:.7"><span class="t">--</span><span class="n">No hay estudios próximos en este mes</span></div>
       @endforelse
     </div>
   </article>

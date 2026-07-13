@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('ia_reportes')) { return; }
         Schema::create('ia_reportes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('reporte_id')

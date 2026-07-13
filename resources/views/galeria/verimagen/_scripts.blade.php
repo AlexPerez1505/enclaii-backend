@@ -1029,7 +1029,7 @@
   /* Botón aplicar: guarda una copia editada en la galería del paciente */
   document.getElementById('viFilterApply').addEventListener('click', function(){
     if(!currentImg){
-      this.textContent = '⚠ Sin imagen cargada';
+      this.textContent = 'Sin imagen cargada';
       setTimeout(() => { this.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Aplicar filtros'; }, 2000);
       return;
     }
@@ -1089,7 +1089,7 @@
   const dlConfirmBtn = document.getElementById('viDlConfirm');
   if(dlConfirmBtn) dlConfirmBtn.addEventListener('click', function(){
     const fmt = document.querySelector('.vi-fmt-item.sel').dataset.fmt;
-    this.textContent = '✓ Descargando...';
+    this.textContent = 'Descargando...';
     this.style.background = 'var(--green)';
     setTimeout(() => {
       this.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Descargar imagen';
@@ -1103,7 +1103,7 @@
   if(obsSaveBtn) obsSaveBtn.addEventListener('click', function(){
     const area = document.getElementById('viObsArea');
     if(!area || !area.value.trim()) return;
-    this.textContent = '✓ Guardado';
+    this.textContent = 'Guardado';
     this.style.background = 'var(--green)';
     setTimeout(() => { this.textContent = 'Guardar observación'; this.style.background = ''; }, 2000);
   });

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\EstudioCompletado;
 use App\Models\Cita;
 use App\Models\Estudio;
 use App\Models\EstudioArchivo;
@@ -33,7 +34,7 @@ class NuevoEstudioController extends Controller
             ->latest()
             ->get();
 
-        return view('estudios.dashboard', compact('pacientes', 'estudios'));
+        return view('estudios.dashboard.index', compact('pacientes', 'estudios'));
     }
 
     public function crear(Request $request)
@@ -113,7 +114,10 @@ class NuevoEstudioController extends Controller
             $estudio->cita->update(['estado' => 'en_espera']);
         }
 
-        session(['estudio_activo_id' => $estudio->id]);
+        session([
+            'estudio_activo_id'              => $estudio->id,
+            'ultimo_estudio_completado_id'    => null,
+        ]);
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
@@ -137,7 +141,7 @@ class NuevoEstudioController extends Controller
             ? $estudio->archivos()->latest()->get()
             : collect();
 
-        return view('estudios.capturas', compact('estudio', 'archivos'));
+        return view('estudios.caputras.index', compact('estudio', 'archivos'));
     }
 
     public function guardarCapturas(Request $request)
@@ -262,9 +266,44 @@ class NuevoEstudioController extends Controller
 
     public function grabando(Request $request)
     {
-        $estudio = $this->resolverEstudio($request, true);
+        /* Resolver sin crear nunca en esta ruta */
+        $estudio = $this->resolverEstudio($request, false);
 
-        return view('estudios.grabando', compact('estudio'));
+        if (!$estudio) {
+            $ultimoId = session('ultimo_estudio_completado_id');
+            if ($ultimoId) $estudio = Estudio::find($ultimoId);
+        }
+
+        /* Estudio completado → redirigir a su propia página */
+        if ($estudio && $estudio->estado === 'completado') {
+            return redirect()->route('nuevo-estudio.finalizado', ['estudio_id' => $estudio->id]);
+        }
+
+        /* Sin estudio válido → inicio */
+        if (!$estudio) {
+            return redirect()->route('nuevo-estudio');
+        }
+
+        return view('estudios.grabando.index', compact('estudio'));
+    }
+
+    public function finalizado(Request $request)
+    {
+        $estudio = $this->resolverEstudio($request, false);
+
+        if (!$estudio) {
+            $ultimoId = session('ultimo_estudio_completado_id');
+            if ($ultimoId) $estudio = Estudio::find($ultimoId);
+        }
+
+        /* Si no hay estudio completado, redirigir al inicio */
+        if (!$estudio || $estudio->estado !== 'completado') {
+            return redirect()->route('nuevo-estudio');
+        }
+
+        $capturas = $estudio->capturas()->latest()->get();
+
+        return view('estudios.finalizado.index', compact('estudio', 'capturas'));
     }
 
     public function finalizarGrabacion(Request $request)
@@ -275,7 +314,7 @@ class NuevoEstudioController extends Controller
                 Rule::exists('estudios', 'id')->where('clinica_id', $request->user()->clinica_id),
             ],
             'duracion_segundos' => ['nullable', 'integer', 'min:0'],
-            'video' => ['nullable', 'file', 'mimes:mp4,mov,avi,mkv,webm', 'max:102400'],
+            'video' => ['nullable', 'file', 'mimes:mp4,mov,avi,mkv,webm', 'max:512000'],
         ]);
 
         $estudio = $this->resolverEstudio($request, true);
@@ -283,9 +322,22 @@ class NuevoEstudioController extends Controller
         $videoPath = $estudio->video_path;
 
         if ($request->hasFile('video')) {
+<<<<<<< HEAD
             $videoPath = media_store(
                 $request->file('video'),
                 "clinicas/{$request->user()->clinica_id}/estudios/{$estudio->id}/videos",
+=======
+            $videoPath = $request->file('video')->store(
+                "clinicas/{$request->user()->clinica_id}/estudios/{$estudio->id}/videos",
+                'public',
+            );
+
+            $this->guardarArchivoEstudio(
+                estudio: $estudio,
+                file: $request->file('video'),
+                categoria: 'grabacion',
+                descripcion: 'Grabación del estudio',
+>>>>>>> origin/main
             );
         }
 
@@ -308,6 +360,11 @@ class NuevoEstudioController extends Controller
             $estudio->cita->update(['estado' => 'completado']);
         }
 
+        broadcast(new EstudioCompletado($estudio->fresh()));
+
+        session([
+            'ultimo_estudio_completado_id' => $estudio->id,
+        ]);
         session()->forget('estudio_activo_id');
 
         if ($request->expectsJson() || $request->ajax()) {
@@ -328,7 +385,13 @@ class NuevoEstudioController extends Controller
     {
         $estudio = $archivo->estudio;
 
+<<<<<<< HEAD
         media_delete($archivo->path);
+=======
+        if ($archivo->path && Storage::disk('public')->exists($archivo->path)) {
+            Storage::disk('public')->delete($archivo->path);
+        }
+>>>>>>> origin/main
 
         $archivo->delete();
         $this->activity->record(
@@ -398,9 +461,15 @@ class NuevoEstudioController extends Controller
 
     private function guardarArchivoEstudio(Estudio $estudio, $file, ?string $categoria = null, ?string $descripcion = null): EstudioArchivo
     {
+<<<<<<< HEAD
         $path = media_store(
             $file,
             "clinicas/{$estudio->clinica_id}/estudios/{$estudio->id}/archivos",
+=======
+        $path = $file->store(
+            "clinicas/{$estudio->clinica_id}/estudios/{$estudio->id}/archivos",
+            'public',
+>>>>>>> origin/main
         );
         $mime = $file->getMimeType();
 

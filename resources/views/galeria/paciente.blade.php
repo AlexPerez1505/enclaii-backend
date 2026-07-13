@@ -154,8 +154,8 @@ $ultimaFecha = format_user_date($ultimoArchivo?->capturado_en) ?: '—';
               <div class="pa-name">{{ $v->nombre_original ?? 'Video del estudio' }}</div>
               <div class="pa-meta">Estudio {{ $v->estudio?->folio }}<br>{{ format_user_date($v->capturado_en) }}</div>
               <div class="pa-actions">
-                <a class="pa-btn primary" href="{{ route('galeria.video', ['id' => $v['id'], 'paciente' => $id]) }}">Ver</a>
-                <a class="pa-btn" href="{{ route('galeria.video.editar', ['id' => $v['id'], 'paciente' => $id]) }}">Editar</a>
+                <a class="pa-btn primary" href="{{ route('galeria.video', ['id' => $v->id, 'paciente' => $id]) }}">Ver</a>
+                <a class="pa-btn" href="{{ route('galeria.video.editar', ['id' => $v->id, 'paciente' => $id]) }}">Editar</a>
               </div>
             </div>
           </article>
@@ -172,7 +172,7 @@ $ultimaFecha = format_user_date($ultimoArchivo?->capturado_en) ?: '—';
       </div>
       <div class="pa-grid" id="paImagesGrid">
         @forelse($imagenes as $img)
-          <article class="pa-card" data-kind="imagen" data-title="{{ strtolower($img['titulo']) }}">
+          <article class="pa-card" data-kind="imagen" data-title="{{ strtolower($img->titulo ?? '') }}">
             <div class="pa-thumb">
               <img src="{{ media_url($img->path) }}" alt="{{ $img->nombre_original ?? 'Captura' }}">
               <span class="pa-badge image">IMG</span>
@@ -182,7 +182,7 @@ $ultimaFecha = format_user_date($ultimoArchivo?->capturado_en) ?: '—';
               <div class="pa-name">{{ $img->nombre_original ?? 'Captura' }}</div>
               <div class="pa-meta">Captura del estudio {{ $img->estudio?->folio }}<br>{{ format_user_date($img->capturado_en) }}</div>
               <div class="pa-actions">
-                <a class="pa-btn primary" href="{{ route('galeria.imagen', ['id' => $img['id'], 'paciente' => $id]) }}">Ver imagen</a>
+                <a class="pa-btn primary" href="{{ route('galeria.imagen', ['id' => $img->id, 'paciente' => $id]) }}">Ver imagen</a>
               </div>
             </div>
           </article>

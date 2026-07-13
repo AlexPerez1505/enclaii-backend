@@ -110,7 +110,24 @@
     <form id="scPaymentForm">
       <div id="payment-element" class="sc-element"></div>
       <div id="scError" class="sc-error" style="display:none"></div>
-      <button type="submit" id="scSubmit" class="sc-pay-btn">
+
+      {{-- Checkboxes legales --}}
+      <div class="sc-legal">
+        <label class="sc-legal-item">
+          <input type="checkbox" class="sc-legal-cb" data-doc="Términos y Condiciones" required>
+          <span>He leído y acepto los <a href="https://stripe.com/mx/privacy" target="_blank" rel="noopener">Términos y Condiciones</a></span>
+        </label>
+        <label class="sc-legal-item">
+          <input type="checkbox" class="sc-legal-cb" data-doc="Aviso de Privacidad" required>
+          <span>He leído y acepto el <a href="https://stripe.com/mx/privacy" target="_blank" rel="noopener">Aviso de Privacidad</a></span>
+        </label>
+        <label class="sc-legal-item">
+          <input type="checkbox" class="sc-legal-cb" data-doc="Políticas del Sistema" required>
+          <span>Acepto las <a href="https://stripe.com/mx/privacy" target="_blank" rel="noopener">Políticas del Sistema</a></span>
+        </label>
+      </div>
+
+      <button type="submit" id="scSubmit" class="sc-pay-btn" disabled>
         <span id="scSubmitText">Suscribirme</span>
         <span id="scSpinner" class="sc-spinner" style="display:none"></span>
       </button>
@@ -150,9 +167,10 @@
 .pl-card .pc-price{font-family:'Sora',sans-serif;font-size:26px;font-weight:800;margin-top:auto;padding-top:14px}
 .pl-card .pc-price span{font-size:13px;font-weight:500;color:var(--txt-soft)}
 
-.pl-card .pc-cta{margin-top:14px;padding:12px;border-radius:12px;font-size:14px;font-weight:700;text-align:center;border:1px solid var(--stroke-strong);color:var(--txt);transition:background-color .15s,opacity .15s;cursor:pointer;text-decoration:none;display:block}
+.pl-card .pc-cta{margin-top:14px;padding:12px;border-radius:12px;font-size:14px;font-weight:700;text-align:center;border:0;color:#fff;background:linear-gradient(135deg,#0B1A4A 0%,#12266B 55%,#1E5AE8 130%);box-shadow:0 10px 24px -10px rgba(11,26,74,.55);transition:opacity .15s,transform .1s;cursor:pointer;text-decoration:none;display:block}
 .pl-card .pc-cta.disabled{opacity:.45;cursor:default}
-@media(hover:hover){.pl-card .pc-cta:not(.disabled):hover{background:rgba(110,160,255,.1)}}
+.pl-card .pc-cta:not(.disabled):active{transform:scale(.97)}
+@media(hover:hover){.pl-card .pc-cta:not(.disabled):hover{opacity:.9}}
 
 /* Modal de pago (Payment Element) */
 .sc-modal{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center}
@@ -171,14 +189,22 @@
 .sc-secure svg{width:14px;height:14px;color:var(--green);flex:none}
 
 .sc-element{margin-bottom:16px;min-height:80px}
+.sc-element .p-LinkMoreInfoText,.sc-element .p-LinkTerms,.sc-element [class*="LinkTerms"]{display:none !important}
 .sc-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--red);font-size:13px;padding:10px 14px;border-radius:10px;margin-bottom:14px}
-.sc-pay-btn{width:100%;padding:14px;border-radius:12px;border:0;background:var(--cyan);color:#fff;font-family:'Sora',sans-serif;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:opacity .15s,transform .1s}
+.sc-pay-btn{width:100%;padding:14px;border-radius:12px;border:0;background:linear-gradient(135deg,#0B1A4A 0%,#12266B 55%,#1E5AE8 130%);color:#fff;font-family:'Sora',sans-serif;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:opacity .15s,transform .1s;box-shadow:0 10px 24px -10px rgba(11,26,74,.55)}
 .sc-pay-btn:hover{opacity:.9}
-.sc-pay-btn:active{transform:scale(.99)}
-.sc-pay-btn:disabled{opacity:.6;cursor:not-allowed}
+.sc-pay-btn:active{transform:scale(.97)}
+.sc-pay-btn:disabled{opacity:.5;cursor:not-allowed}
 .sc-spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:scSpin .6s linear infinite}
 @keyframes scSpin{to{transform:rotate(360deg)}}
 @media(max-width:600px){.sc-content{width:95%;padding:18px}}
+
+/* Checkboxes legales */
+.sc-legal{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;padding:14px 16px;background:var(--panel-2);border:1px solid var(--stroke);border-radius:12px}
+.sc-legal-item{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--txt-soft);cursor:pointer;line-height:1.45}
+.sc-legal-item input[type="checkbox"]{width:16px;height:16px;margin-top:2px;accent-color:#2E7BF6;cursor:pointer;flex-shrink:0}
+.sc-legal-item a{color:#2E7BF6;font-weight:600;text-decoration:none}
+.sc-legal-item a:hover{text-decoration:underline}
 </style>
 @endpush
 
@@ -272,13 +298,45 @@ document.addEventListener('DOMContentLoaded', function(){
     }
   }
 
+  // --- Checkboxes legales: habilitar/deshabilitar botón ---
+  const legalCheckboxes = document.querySelectorAll('.sc-legal-cb');
+  function updateSubmitState() {
+    const allChecked = [...legalCheckboxes].every(cb => cb.checked);
+    submitBtn.disabled = !allChecked;
+  }
+  legalCheckboxes.forEach(cb => cb.addEventListener('change', updateSubmitState));
+
   // Enviar el pago
   paymentForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!elements) return;
 
+    // Verificar checkboxes
+    const allChecked = [...legalCheckboxes].every(cb => cb.checked);
+    if (!allChecked) {
+      showError('Debes aceptar todos los términos y políticas para continuar.');
+      return;
+    }
+
     clearError();
     setLoading(true);
+
+    // Guardar evidencia legal antes de confirmar pago
+    try {
+      const documentos = [...legalCheckboxes].map(cb => cb.dataset.doc);
+      await fetch("{{ route('legal.acceptances.store') }}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': CSRF,
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ documentos })
+      });
+    } catch(err) {
+      console.error('Error guardando aceptaciones legales:', err);
+    }
 
     const { error } = await stripe.confirmPayment({
       elements,

@@ -56,11 +56,15 @@
 /* Contenido del reporte */
 .doc-content{white-space:pre-wrap;font-size:13px;line-height:1.55}
 .doc-content h4{color:var(--cyan);font-size:13px;font-weight:700;margin:16px 0 6px}
+/* Ocultar botones de edición de secciones en reportes guardados (por compatibilidad) */
+.vw-doc .sec-add,.vw-doc .sec-hide,.vw-doc .sec-delete{display:none!important}
 
 /* Impresión en tamaño carta (una sola hoja) */
 @media print{
   @page { size: letter; margin: 0.4in; }
   body { margin: 0; padding: 0; }
+  /* Ocultar botones de edición de secciones al imprimir */
+  .sec-add,.sec-hide,.sec-delete{display:none!important}
   /* Ocultar todo el layout de la app excepto el documento del informe */
   body > * { display: none !important; }
   .vw-doc { display: block !important; }
@@ -278,6 +282,8 @@
 
       window.downloadPdf = () => {
         const clone = doc.cloneNode(true);
+        // Remover botones de edición de secciones (compatibilidad con reportes antiguos)
+        clone.querySelectorAll('.sec-add, .sec-hide, .sec-delete, button').forEach(el => el.remove());
         clone.style.position = 'relative';
         clone.style.width = '7.7in';
         clone.style.height = 'auto';

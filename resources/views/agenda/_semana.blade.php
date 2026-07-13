@@ -30,6 +30,10 @@
 .wk-event.ev-wait{background:linear-gradient(to bottom,#351909 29%,#9B491A 100%);color:#fff;border:1.24px solid #E75D01}
 .wk-event.ev-cancel{background:linear-gradient(to bottom,#251117 38%,#D90000 100%);color:#fff;border:1.27px solid #D90000}
 .wk-event.ev-soon{background:linear-gradient(to bottom,#0B1331 43%,#B263FF 100%);color:#fff;border:1.27px solid #B263FF}
+.wk-event.ev-block{display:none}
+.wk-block-bar{position:absolute;border-radius:4px;background:repeating-linear-gradient(135deg,rgba(100,110,180,.18) 0px,rgba(100,110,180,.18) 3px,transparent 3px,transparent 8px);border:1px solid rgba(140,155,210,.4);box-sizing:border-box;pointer-events:all;cursor:pointer;transition:background 140ms ease;overflow:hidden;display:flex;align-items:center;padding:0 5px}
+.wk-block-bar:hover{background:repeating-linear-gradient(135deg,rgba(100,110,180,.32) 0px,rgba(100,110,180,.32) 3px,transparent 3px,transparent 8px)}
+.wk-block-bar-label{font-size:8.5px;color:rgba(180,190,220,.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
 
 /* Tema claro */
 html[data-theme="light"] .week-table thead tr th{background:linear-gradient(to bottom,#DDEAF8 30%,#B3D0F0 100%);color:#2E5CAA;border-bottom-color:rgba(20,50,120,.15)}
@@ -41,6 +45,9 @@ html[data-theme="light"] .wk-event.ev-done{background:#EBF7EA;color:#1B4518;bord
 html[data-theme="light"] .wk-event.ev-wait{background:#FEF3E7;color:#7A2F00;border-color:#E75D01}
 html[data-theme="light"] .wk-event.ev-cancel{background:#FDE8E8;color:#6B0000;border-color:#D90000}
 html[data-theme="light"] .wk-event.ev-soon{background:#F3ECFF;color:#4A1A8A;border-color:#B263FF}
+html[data-theme="light"] .wk-block-bar{background:repeating-linear-gradient(135deg,rgba(20,50,120,.12) 0px,rgba(20,50,120,.12) 3px,transparent 3px,transparent 8px);border-color:rgba(20,50,120,.28)}
+html[data-theme="light"] .wk-block-bar:hover{background:repeating-linear-gradient(135deg,rgba(20,50,120,.22) 0px,rgba(20,50,120,.22) 3px,transparent 3px,transparent 8px)}
+html[data-theme="light"] .wk-block-bar-label{color:rgba(30,45,90,.65)}
 html[data-theme="light"] .wk-line1{color:#0E1530}
 html[data-theme="light"] .wk-line2{color:rgba(14,21,48,.6)}
 
@@ -100,11 +107,12 @@ html[data-theme="light"] .wk-modal-badge.soon{background:#F3ECFF;color:#4A1A8A;b
 </style>
 
 {{-- ---- HTML ---- --}}
-<div class="week-grid" id="weekGrid">
+<div class="week-grid" id="weekGrid" style="position:relative">
   <table class="week-table">
     <thead id="weekHead"></thead>
     <tbody id="weekBody"></tbody>
   </table>
+  <div id="wkBlockOverlay" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:3"></div>
 </div>
 
 {{-- Modal de citas semana --}}
@@ -112,7 +120,7 @@ html[data-theme="light"] .wk-modal-badge.soon{background:#F3ECFF;color:#4A1A8A;b
   <div class="wk-modal">
     <div class="wk-modal-header">
       <div class="wk-modal-title" id="wkModalTitle"></div>
-      <button class="wk-modal-close" id="wkModalClose" aria-label="Cerrar">✕</button>
+      <button class="wk-modal-close" id="wkModalClose" aria-label="Cerrar">×</button>
     </div>
     <div class="wk-modal-body" id="wkModalBody"></div>
   </div>
@@ -173,8 +181,12 @@ html[data-theme="light"] .wk-modal-badge.soon{background:#F3ECFF;color:#4A1A8A;b
         if (d.toDateString() === today.toDateString()) td.classList.add('wk-today-col');
         const key = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
         const cellEvents = (EVENTS[key] || []).filter(ev => ev.h === hr);
+        const cellBlocks   = cellEvents.filter(ev => (typeof window.__recomputeClass === 'function' ? window.__recomputeClass(ev, key) : ev.cls) === 'ev-block');
+        const cellNonBlock = cellEvents.filter(ev => (typeof window.__recomputeClass === 'function' ? window.__recomputeClass(ev, key) : ev.cls) !== 'ev-block');
         const MAX_VISIBLE = 2;
-        cellEvents.slice(0, MAX_VISIBLE).forEach(ev => {
+
+
+        cellNonBlock.slice(0, MAX_VISIBLE).forEach(ev => {
           const liveCls = typeof window.__recomputeClass === 'function' ? window.__recomputeClass(ev, key) : ev.cls;
           const div = document.createElement('div');
           div.className = 'wk-event ' + liveCls;
@@ -191,20 +203,20 @@ html[data-theme="light"] .wk-modal-badge.soon{background:#F3ECFF;color:#4A1A8A;b
           div.innerHTML = `<div class="wk-line1">${displayName}</div><div class="wk-line2">${proc}</div>`;
           div.dataset.name = name;
           div.dataset.proc = proc;
-          div.dataset.cls = liveCls;
-          div.dataset.time = timeM ? timeM[1] : (ev.h ? String(ev.h).padStart(2,'0') + ':00' : '');
-          div.dataset.duration = ev.duracion || '60';
           div.dataset.citaId = ev.id || '';
           div.dataset.pacienteId = ev.paciente_id || '';
           div.dataset.deleteUrl = ev.delete_url || '';
           div.dataset.estado = ev.estado || '';
           div.dataset.estadoUrl = ev.estado_url || '';
+          div.dataset.cls = liveCls;
+          div.dataset.time = timeM ? timeM[1] : (ev.h ? String(ev.h).padStart(2,'0') + ':00' : '');
+          div.dataset.duration = ev.duracion || '60';
           td.appendChild(div);
         });
-        if (cellEvents.length > MAX_VISIBLE) {
+        if (cellNonBlock.length > MAX_VISIBLE) {
           const moreBtn = document.createElement('button');
           moreBtn.className = 'wk-more-btn';
-          moreBtn.textContent = `+${cellEvents.length - MAX_VISIBLE} más`;
+          moreBtn.textContent = `+${cellNonBlock.length - MAX_VISIBLE} más`;
           moreBtn.dataset.day = d.toDateString();
           moreBtn.dataset.hour = hr;
           moreBtn.dataset.key = key;
@@ -217,6 +229,66 @@ html[data-theme="light"] .wk-modal-badge.soon{background:#F3ECFF;color:#4A1A8A;b
         tr.appendChild(td);
       });
       tbody.appendChild(tr);
+    });
+
+    // Dibujar barras de bloqueo sobre el overlay con posición exacta
+    requestAnimationFrame(() => {
+      const overlay = document.getElementById('wkBlockOverlay');
+      if (!overlay) return;
+      overlay.innerHTML = '';
+      const gridRect = document.getElementById('weekGrid').getBoundingClientRect();
+      const HOURS = [8,9,10,11,12,13,14,15,16,17,18,19,20,21];
+      const HOUR_START = HOURS[0];
+
+      weekDays.forEach((d, colIdx) => {
+        const key = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+        const blocks = (EVENTS[key] || []).filter(ev =>
+          (typeof window.__recomputeClass === 'function' ? window.__recomputeClass(ev, key) : ev.cls) === 'ev-block'
+        );
+        if (!blocks.length) return;
+
+        // Medir posición de la celda de referencia (primer hora) de esta columna
+        const refRow = tbody.rows[0];
+        if (!refRow) return;
+        const refCell = refRow.cells[colIdx + 1]; // +1 por hr-label
+        if (!refCell) return;
+        const cellRect = refCell.getBoundingClientRect();
+        const cellH = cellRect.height;
+        const cellW = cellRect.width;
+        const cellLeft = cellRect.left - gridRect.left;
+        const headerH = document.getElementById('weekHead').getBoundingClientRect().height;
+        const scrollTop = document.getElementById('weekGrid').scrollTop;
+
+        blocks.forEach(ev => {
+          const [sh, sm] = (ev.hora || (ev.h ? String(ev.h).padStart(2,'0') + ':00' : '08:00')).split(':').map(Number);
+          const startMin = sh * 60 + (sm || 0);
+          const dur = parseInt(ev.duracion || '60', 10) || 60;
+          const endMin = startMin + dur;
+
+          const topPx  = headerH + (startMin - HOUR_START * 60) / 60 * cellH + scrollTop;
+          const heightPx = Math.max(8, dur / 60 * cellH);
+
+          const bar = document.createElement('div');
+          bar.className = 'wk-block-bar';
+          bar.style.cssText = `left:${cellLeft}px;top:${topPx}px;width:${cellW}px;height:${heightPx}px`;
+          const label = document.createElement('span');
+          label.className = 'wk-block-bar-label';
+          label.textContent = ev.name || 'Bloqueo';
+          bar.appendChild(label);
+          bar.addEventListener('click', e => {
+            e.stopPropagation();
+            if (window.__showBlockPopup) {
+              window.__showBlockPopup(
+                ev.blockId || '', key,
+                ev.name || 'Bloqueo de Tiempo',
+                ev.hora || (ev.h ? String(ev.h).padStart(2,'0') + ':00' : '00:00'),
+                ev.duracion || 60, e
+              );
+            }
+          });
+          overlay.appendChild(bar);
+        });
+      });
     });
   };
 

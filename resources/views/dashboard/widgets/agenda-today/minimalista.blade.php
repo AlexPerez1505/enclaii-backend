@@ -6,7 +6,7 @@
   $anioHoy = $hoy->format('Y');
   $mesLargoHoy = $hoy->translatedFormat('F Y');
 @endphp
-<div class="widget widget-minimal mode-hidden d3" data-widget-id="agenda-today-min" data-w="3">
+<div class="widget widget-minimal d3" data-widget-id="agenda-today-min" data-w="3">
   <span class="widget-drag-handle" aria-hidden="true">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="19" r="1"/></svg>
   </span>
@@ -19,6 +19,6 @@
       <div class="min-value" style="font-size:clamp(0.85em,4.5cqi,1.35em);line-height:1.1">{{ $diaHoy }} {{ $mesHoy }}</div>
       <div class="min-meta" style="font-size:clamp(0.65em,3cqi,0.9em)">{{ $mesLargoHoy }}</div>
     </div>
+    <span class="widget-resize-handle"></span>
   </article>
-  <span class="widget-resize-handle"></span>
 </div>

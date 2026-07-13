@@ -8,10 +8,58 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Schema;
+<<<<<<< HEAD
+=======
+use Spatie\Permission\Traits\HasRoles;
+>>>>>>> origin/main
 
 class User extends Authenticatable
 {
-    use Notifiable;
+    use HasRoles, Notifiable;
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user): void {
+            if (! $user->clinica_id && Schema::hasTable('clinicas')) {
+                $hasPlan = in_array($user->subscription_status, ['active', 'trialing'], true);
+                $clinica = $hasPlan
+                    ? Clinica::create([
+                        'nombre' => 'Clínica de '.$user->name,
+                        'is_shared' => false,
+                    ])
+                    : Clinica::shared();
+
+                $user->clinica_id = $clinica->id;
+                $user->clinica_rol = $hasPlan ? 'propietario' : 'usuario';
+            }
+        });
+
+        static::saved(function (User $user): void {
+            $user->ensurePrivateClinicForPlan();
+        });
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user): void {
+            if (! $user->clinica_id && Schema::hasTable('clinicas')) {
+                $hasPlan = in_array($user->subscription_status, ['active', 'trialing'], true);
+                $clinica = $hasPlan
+                    ? Clinica::create([
+                        'nombre' => 'Clínica de '.$user->name,
+                        'is_shared' => false,
+                    ])
+                    : Clinica::shared();
+
+                $user->clinica_id = $clinica->id;
+                $user->clinica_rol = $hasPlan ? 'propietario' : 'usuario';
+            }
+        });
+
+        static::saved(function (User $user): void {
+            $user->ensurePrivateClinicForPlan();
+        });
+    }
 
     protected static function booted(): void
     {
@@ -39,14 +87,32 @@ class User extends Authenticatable
         'clinica_id',
         'clinica_rol',
         'name',
+        'foto_perfil',
+        'apellido_paterno',
+        'apellido_materno',
+        'fecha_nacimiento',
+        'sexo',
         'email',
         'password',
         'password_changed_at',
         'phone',
         'specialty',
+        'subespecialidad',
+        'universidad',
         'professional_license',
         'medical_area',
         'position',
+        'clinica_nombre',
+        'clinica_ciudad',
+        'clinica_direccion',
+        'clinica_codigo_postal',
+        'clinica_telefono',
+        'clinica_estado',
+        'rfc',
+        'razon_social',
+        'regimen_fiscal',
+        'correo_facturacion',
+        'constancia_fiscal',
         'profile_completed',
         'settings',
         'signature_path',
@@ -270,6 +336,19 @@ class User extends Authenticatable
             'reading_mode' => false,
             'notif_email' => true,
             'notif_push' => true,
+            'notif_announcement_email' => false,
+            'notif_announcement_screen' => true,
+            'notif_new_studies_email' => true,
+            'notif_new_studies_screen' => true,
+            'notif_reminders_email' => false,
+            'notif_reminders_screen' => true,
+            'notif_updates_email' => false,
+            'notif_updates_screen' => true,
+            'notif_maintenance_email' => false,
+            'notif_maintenance_screen' => true,
+            'notif_privacy_email' => false,
+            'notif_privacy_screen' => true,
+            'notif_messages_screen' => true,
             'notif_new_studies' => true,
             'notif_reports' => true,
             'notif_reminders' => false,

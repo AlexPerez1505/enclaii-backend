@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\CitaEstadoChanged;
+use App\Models\Bloqueo;
 use App\Models\Cita;
 use App\Models\Paciente;
 use Carbon\Carbon;
@@ -38,7 +40,30 @@ class AgendaController extends Controller
             ->whereIn('estado', ['en_espera', 'proximo'])
             ->count();
 
-        return view('agenda.index', compact('citasAgenda', 'citasHoy'));
+        $bloqueos = Bloqueo::query()->orderBy('fecha')->orderBy('hora')->get();
+
+        $bloqueosData = $bloqueos->map(function ($b) {
+            $hI = (int) explode(':', $b->hora)[0];
+            $mI = (int) (explode(':', $b->hora)[1] ?? 0);
+            $duracion = 60;
+            if ($b->hora_fin) {
+                $hF = (int) explode(':', $b->hora_fin)[0];
+                $mF = (int) (explode(':', $b->hora_fin)[1] ?? 0);
+                $diff = ($hF * 60 + $mF) - ($hI * 60 + $mI);
+                if ($diff > 0) $duracion = $diff;
+            }
+            return [
+                'id'      => $b->id,
+                'label'   => $b->label,
+                'fecha'   => $b->fecha->format('Y-n-j'),
+                'hora'    => $b->hora,
+                'hora_fin'=> $b->hora_fin,
+                'h'       => $hI,
+                'duracion'=> $duracion,
+            ];
+        })->values();
+
+        return view('agenda.index', compact('citasAgenda', 'citasHoy', 'bloqueosData'));
     }
 
     public function create(Request $request)
@@ -77,7 +102,29 @@ class AgendaController extends Controller
             $pacienteSeleccionado = Paciente::find($request->query('paciente_id'));
         }
 
-        return view('agenda.agendar.index', compact('pacientes', 'citasAgenda', 'citasHoy', 'citaEditar', 'pacienteSeleccionado'));
+        $bloqueos = Bloqueo::query()->orderBy('fecha')->orderBy('hora')->get();
+        $bloqueosData = $bloqueos->map(function ($b) {
+            $hI = (int) explode(':', $b->hora)[0];
+            $mI = (int) (explode(':', $b->hora)[1] ?? 0);
+            $duracion = 60;
+            if ($b->hora_fin) {
+                $hF = (int) explode(':', $b->hora_fin)[0];
+                $mF = (int) (explode(':', $b->hora_fin)[1] ?? 0);
+                $diff = ($hF * 60 + $mF) - ($hI * 60 + $mI);
+                if ($diff > 0) $duracion = $diff;
+            }
+            return [
+                'id'      => $b->id,
+                'label'   => $b->label,
+                'fecha'   => $b->fecha->format('Y-n-j'),
+                'hora'    => $b->hora,
+                'hora_fin'=> $b->hora_fin,
+                'h'       => $hI,
+                'duracion'=> $duracion,
+            ];
+        })->values();
+
+        return view('agenda.agendar.index', compact('pacientes', 'citasAgenda', 'citasHoy', 'citaEditar', 'pacienteSeleccionado', 'bloqueosData'));
     }
 
     public function store(Request $request)
@@ -100,6 +147,8 @@ class AgendaController extends Controller
         $validated = $this->normalizarDatosCita($validated);
 
         $cita = Cita::create($validated);
+
+        broadcast(new CitaEstadoChanged($cita->fresh(), '', $cita->estado, 'nueva'));
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
@@ -154,7 +203,19 @@ class AgendaController extends Controller
             'estado' => ['required', 'in:completado,en_espera,cancelado,proximo'],
         ]);
 
+        $estadoAnterior = $cita->estado;
+
         $cita->update($validated);
+
+        if ($estadoAnterior !== $cita->estado) {
+            $tipo = match($cita->estado) {
+                'en_espera'  => 'pendiente',
+                'cancelado'  => 'cancelada',
+                'completado' => 'completada',
+                default      => 'estado',
+            };
+            broadcast(new CitaEstadoChanged($cita->fresh(), $estadoAnterior, $cita->estado, $tipo));
+        }
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
@@ -171,7 +232,10 @@ class AgendaController extends Controller
 
     public function destroy(Request $request, Cita $cita)
     {
+        $snapshot = clone $cita;
         $cita->delete();
+
+        broadcast(new CitaEstadoChanged($snapshot, $snapshot->estado, 'eliminada', 'eliminada'));
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
@@ -257,6 +321,60 @@ class AgendaController extends Controller
             'estado_url' => route('agenda.citas.estado', $cita),
             'reprogramar_url' => route('agendar', ['cita_id' => $cita->id]),
         ];
+    }
+
+    public function storeBloqueo(Request $request)
+    {
+        $validated = $request->validate([
+            'label'    => ['nullable', 'string', 'max:255'],
+            'fechas'   => ['required', 'array', 'min:1', 'max:400'],
+            'fechas.*' => ['required', 'date'],
+            'hora'     => ['required', 'date_format:H:i'],
+            'hora_fin' => ['nullable', 'date_format:H:i'],
+        ]);
+
+        $label   = $validated['label'] ?: 'Bloqueo de Tiempo';
+        $hora    = $validated['hora'];
+        $horaFin = $validated['hora_fin'] ?? null;
+
+        // Calcular duración en minutos
+        $duracion = 60;
+        if ($horaFin) {
+            [$hI, $mI] = array_map('intval', explode(':', $hora));
+            [$hF, $mF] = array_map('intval', explode(':', $horaFin));
+            $diff = ($hF * 60 + $mF) - ($hI * 60 + $mI);
+            if ($diff > 0) $duracion = $diff;
+        }
+
+        $fechas = array_unique($validated['fechas']);
+
+        $creados = [];
+        foreach ($fechas as $fecha) {
+            $bloqueo = Bloqueo::create([
+                'label'    => $label,
+                'fecha'    => $fecha,
+                'hora'     => $hora,
+                'hora_fin' => $horaFin,
+            ]);
+            $creados[] = [
+                'id'      => $bloqueo->id,
+                'label'   => $bloqueo->label,
+                'fecha'   => $bloqueo->fecha->format('Y-n-j'),
+                'hora'    => $bloqueo->hora,
+                'hora_fin'=> $bloqueo->hora_fin,
+                'h'       => (int) explode(':', $hora)[0],
+                'duracion'=> $duracion,
+            ];
+        }
+
+        return response()->json(['ok' => true, 'bloqueos' => $creados]);
+    }
+
+    public function destroyBloqueo(Request $request, Bloqueo $bloqueo)
+    {
+        $bloqueo->delete();
+
+        return response()->json(['ok' => true]);
     }
 
     private function normalizarHora(string $hora): string
