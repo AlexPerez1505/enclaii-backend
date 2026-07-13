@@ -30,6 +30,7 @@ use App\Http\Controllers\TicketController;
 Route::get('/storage/{path}', [StorageServeController::class, 'show'])
     ->where('path', '.*')
     ->name('storage.fallback');
+use App\Http\Controllers\ConfigurationBackupController;
 use App\Http\Controllers\SignatureController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\UserSessionController;
@@ -963,10 +964,13 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
 Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     Route::resource('pacientes', PacienteController::class)
         ->middlewareFor(['update', 'destroy'], 'critical.password:patients');
+<<<<<<< HEAD
     Route::post('/pacientes/{paciente}/add-medico', [PacienteController::class, 'addMedico'])
         ->name('pacientes.add-medico');
     Route::post('/pacientes/{paciente}/update-campo', [PacienteController::class, 'updateCampo'])
         ->name('pacientes.update-campo');
+=======
+>>>>>>> Ricardo-Galeria
 
     Route::get('/qr', [QrRegistrationController::class, 'index'])->name('qr.index');
     Route::post('/qr/enlaces', [QrRegistrationController::class, 'store'])->name('qr.links.store');
@@ -986,9 +990,12 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     Route::patch('/agenda/citas/{cita}/estado', [AgendaController::class, 'cambiarEstado'])->name('agenda.citas.estado');
     Route::delete('/agenda/citas/{cita}', [AgendaController::class, 'destroy'])->name('agenda.citas.destroy');
 
+<<<<<<< HEAD
     Route::post('/agenda/bloqueos', [AgendaController::class, 'storeBloqueo'])->name('agenda.bloqueos.store');
     Route::delete('/agenda/bloqueos/{bloqueo}', [AgendaController::class, 'destroyBloqueo'])->name('agenda.bloqueos.destroy');
 
+=======
+>>>>>>> Ricardo-Galeria
     Route::get('/finanzas', function () {
         return view('finanzas.index');
     })->name('finanzas');
@@ -1063,6 +1070,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/ia/history', [AiAssistantController::class, 'history'])->name('ia.history');
     Route::post('/ia/reset', [AiAssistantController::class, 'reset'])->name('ia.reset');
 });
+<<<<<<< HEAD
 
 // Customer Success API (sesión web, usado por el JS de las vistas CS)
 Route::middleware(['auth', 'customer.success'])->prefix('api/customer-success')->group(function () {
@@ -1091,3 +1099,5 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/capture/pairing-code', [CapturePairingCodeController::class, 'store'])
         ->name('capture.pairing-code.store');
 });
+=======
+>>>>>>> Ricardo-Galeria

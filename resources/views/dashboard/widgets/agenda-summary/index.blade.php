@@ -55,7 +55,10 @@
       <h4>Próximos estudios del mes</h4>
       @forelse($pendientesMes ?? ($pendientesHoy ?? []) as $cita)
         @php
+<<<<<<< HEAD
           $fecha = \Carbon\Carbon::parse($cita->fecha)->format('d/m');
+=======
+>>>>>>> Ricardo-Galeria
           $hora = format_user_time(\Carbon\Carbon::parse($cita->hora));
           $chip = $cita->estado === 'proximo' ? 'wait' : 'urgent';
           $chipText = $cita->estado === 'proximo' ? 'Próxima' : 'En espera';

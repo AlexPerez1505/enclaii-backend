@@ -6,7 +6,10 @@ use App\Models\LegalAcceptance;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+<<<<<<< HEAD
 use Illuminate\Support\Facades\Storage;
+=======
+>>>>>>> Ricardo-Galeria
 use Illuminate\Validation\Rule;
 
 class SettingsController extends Controller

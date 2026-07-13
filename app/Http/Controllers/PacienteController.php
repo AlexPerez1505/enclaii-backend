@@ -78,7 +78,11 @@ class PacienteController extends Controller
                 );
             }
 
+<<<<<<< HEAD
             $paciente = Paciente::create(collect($validated)->except('estudios_archivos')->toArray());
+=======
+            $paciente = Paciente::create($validated);
+>>>>>>> Ricardo-Galeria
             $this->activity->record(
                 'patient_created',
                 'patients',
@@ -86,6 +90,7 @@ class PacienteController extends Controller
                 $paciente,
                 request: $request,
             );
+<<<<<<< HEAD
 
             if ($request->hasFile('estudios_archivos')) {
                 foreach ($request->file('estudios_archivos') as $archivo) {
@@ -99,6 +104,8 @@ class PacienteController extends Controller
                     ]);
                 }
             }
+=======
+>>>>>>> Ricardo-Galeria
 
             if ($request->ajax() || $request->expectsJson()) {
                 return response()->json([
@@ -180,7 +187,11 @@ class PacienteController extends Controller
             );
         }
 
+<<<<<<< HEAD
         $paciente->update(collect($validated)->except('estudios_archivos')->toArray());
+=======
+        $paciente->update($validated);
+>>>>>>> Ricardo-Galeria
         $this->activity->record(
             'patient_updated',
             'patients',
@@ -188,6 +199,7 @@ class PacienteController extends Controller
             $paciente,
             request: $request,
         );
+<<<<<<< HEAD
 
         \Log::info('PACIENTE UPDATE - hasFile estudios_archivos: ' . ($request->hasFile('estudios_archivos') ? 'SI' : 'NO'));
         \Log::info('PACIENTE UPDATE - allFiles: ' . json_encode(array_keys($request->allFiles())));
@@ -209,6 +221,8 @@ class PacienteController extends Controller
         if ($request->ajax() || $request->expectsJson() || $request->hasHeader('X-Requested-With')) {
             return response()->json(['success' => true]);
         }
+=======
+>>>>>>> Ricardo-Galeria
 
         return redirect()
             ->route('pacientes.index')
