@@ -105,6 +105,7 @@ return [
             'Hola, somos ENCLAII. ¿Cómo podemos ayudarte?'
         ),
         'auto_reply_cooldown_hours' => env('WHATSAPP_AUTO_REPLY_COOLDOWN_HOURS', 24),
+<<<<<<< HEAD
     ],
 
     'whatsapp' => [
@@ -123,6 +124,8 @@ return [
             'Hola, somos ENCLAII. ¿Cómo podemos ayudarte?'
         ),
         'auto_reply_cooldown_hours' => env('WHATSAPP_AUTO_REPLY_COOLDOWN_HOURS', 24),
+=======
+>>>>>>> Ricardo-Galeria
     ],
 
     'whatsapp' => [

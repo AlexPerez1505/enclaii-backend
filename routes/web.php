@@ -17,6 +17,7 @@ use App\Models\Paciente;
 use App\Models\Reporte;
 use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\StripeController;
+<<<<<<< HEAD
 use App\Http\Controllers\StorageServeController;
 use App\Http\Controllers\CapturePairingCodeController;
 use App\Http\Controllers\NotificationController;
@@ -30,6 +31,8 @@ use App\Http\Controllers\TicketController;
 Route::get('/storage/{path}', [StorageServeController::class, 'show'])
     ->where('path', '.*')
     ->name('storage.fallback');
+=======
+>>>>>>> Ricardo-Galeria
 use App\Http\Controllers\ConfigurationBackupController;
 use App\Http\Controllers\SignatureController;
 use App\Http\Controllers\PasswordController;
@@ -54,12 +57,15 @@ Route::post('/webhooks/whatsapp', [WhatsAppController::class, 'webhook'])
 Route::post('/webhooks/stripe', [StripeController::class, 'webhook'])
     ->name('webhooks.stripe');
 
+<<<<<<< HEAD
 // Cron endpoint para cron-job.org (protegido por header X-Cron-Token)
 Route::get('/cron/notificaciones', [CronController::class, 'run'])
     ->name('cron.notificaciones');
 Route::get('/cron/anuncios', [CronController::class, 'runAnuncios'])
     ->name('cron.anuncios');
 
+=======
+>>>>>>> Ricardo-Galeria
 Route::get('/registro-paciente/completado', [PublicPatientPreregistrationController::class, 'success'])
     ->name('qr.public.success');
 Route::get('/registro-paciente/expirado', [PublicPatientPreregistrationController::class, 'expired'])
@@ -142,6 +148,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     Route::patch('/configuracion/general', [SettingsController::class, 'update'])
         ->name('configuracion.general.update');
 
+<<<<<<< HEAD
     Route::patch('/configuracion/perfil', [SettingsController::class, 'updatePerfil'])
         ->name('configuracion.perfil.update');
     Route::post('/configuracion/foto', [SettingsController::class, 'updateFoto'])
@@ -156,6 +163,8 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     // ===== Aceptaciones legales =====
     Route::post('/legal/acceptances', [SettingsController::class, 'storeLegalAcceptances'])
         ->name('legal.acceptances.store');
+=======
+>>>>>>> Ricardo-Galeria
     Route::post('/configuracion/copias', [ConfigurationBackupController::class, 'store'])
         ->name('configuracion.backups.store');
     Route::post('/configuracion/copias/{backup}/restaurar', [ConfigurationBackupController::class, 'restore'])
@@ -965,10 +974,13 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     Route::resource('pacientes', PacienteController::class)
         ->middlewareFor(['update', 'destroy'], 'critical.password:patients');
 <<<<<<< HEAD
+<<<<<<< HEAD
     Route::post('/pacientes/{paciente}/add-medico', [PacienteController::class, 'addMedico'])
         ->name('pacientes.add-medico');
     Route::post('/pacientes/{paciente}/update-campo', [PacienteController::class, 'updateCampo'])
         ->name('pacientes.update-campo');
+=======
+>>>>>>> Ricardo-Galeria
 =======
 >>>>>>> Ricardo-Galeria
 
@@ -991,9 +1003,12 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     Route::delete('/agenda/citas/{cita}', [AgendaController::class, 'destroy'])->name('agenda.citas.destroy');
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     Route::post('/agenda/bloqueos', [AgendaController::class, 'storeBloqueo'])->name('agenda.bloqueos.store');
     Route::delete('/agenda/bloqueos/{bloqueo}', [AgendaController::class, 'destroyBloqueo'])->name('agenda.bloqueos.destroy');
 
+=======
+>>>>>>> Ricardo-Galeria
 =======
 >>>>>>> Ricardo-Galeria
     Route::get('/finanzas', function () {
@@ -1071,6 +1086,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/ia/reset', [AiAssistantController::class, 'reset'])->name('ia.reset');
 });
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 // Customer Success API (sesión web, usado por el JS de las vistas CS)
 Route::middleware(['auth', 'customer.success'])->prefix('api/customer-success')->group(function () {
@@ -1099,5 +1115,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/capture/pairing-code', [CapturePairingCodeController::class, 'store'])
         ->name('capture.pairing-code.store');
 });
+=======
+>>>>>>> Ricardo-Galeria
 =======
 >>>>>>> Ricardo-Galeria
