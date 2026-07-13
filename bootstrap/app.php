@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'webhooks/whatsapp',
             'webhooks/stripe',
+            'tauri/*',
         ]);
 
         $middleware->web(\App\Http\Middleware\UserTimezone::class);

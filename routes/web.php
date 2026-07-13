@@ -193,13 +193,13 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     Route::get('/dashboard', function () {
         $estudiosSinReporte = \App\Models\Estudio::whereDoesntHave('reportes')->count();
 
-        // Auto-cancelar citas próximas cuya fecha/hora ya pasó
+        // Auto-cancelar citas prÃƒÆ’Ã‚Â³ximas cuya fecha/hora ya pasÃƒÆ’Ã‚Â³
         \App\Models\Cita::query()
             ->where('estado', 'proximo')
             ->whereRaw("CONCAT(fecha, ' ', hora) <= ?", [now()->format('Y-m-d H:i:s')])
             ->update(['estado' => 'cancelado']);
 
-        // Próximo paciente: la cita pendiente más cercana (solo futuras)
+        // PrÃƒÆ’Ã‚Â³ximo paciente: la cita pendiente mÃƒÆ’Ã‚Â¡s cercana (solo futuras)
         $proximaCita = \App\Models\Cita::with('paciente')
             ->whereNotIn('estado', ['cancelado', 'completado'])
             ->whereRaw("CONCAT(fecha, ' ', hora) >= ?", [now()->format('Y-m-d H:i:s')])
@@ -238,7 +238,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
         $inicioMesPrev = now()->subMonthNoOverflow()->startOfMonth();
         $finMesPrev = now()->subMonthNoOverflow()->endOfMonth();
 
-        // % de variación entre dos conteos
+        // % de variaciÃƒÆ’Ã‚Â³n entre dos conteos
         $pct = function (int $actual, int $previo): int {
             if ($previo === 0) {
                 return $actual > 0 ? 100 : 0;
@@ -254,7 +254,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
         // 2. Estudios sin reporte (pendientes reales)
         $estudiosSinReporte = \App\Models\Estudio::whereDoesntHave('reportes')->count();
 
-        // 3. Evidencias (imágenes) capturadas este mes
+        // 3. Evidencias (imÃƒÆ’Ã‚Â¡genes) capturadas este mes
         $evMes = \App\Models\EstudioArchivo::where('tipo', 'imagen')
             ->whereBetween('created_at', [$inicioMes, $finMes])->count();
         $evPrev = \App\Models\EstudioArchivo::where('tipo', 'imagen')
@@ -288,7 +288,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
         $paciente = $estudio?->paciente
             ?? ($pacienteId ? Paciente::find($pacienteId) : null);
 
-        // Si llega paciente sin estudio, usar su estudio más reciente
+        // Si llega paciente sin estudio, usar su estudio mÃƒÆ’Ã‚Â¡s reciente
         if ($paciente && ! $estudio) {
             $estudio = \App\Models\Estudio::where('paciente_id', $paciente->id)
                 ->latest()
@@ -312,7 +312,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
             'paciente' => $paciente?->nombre_completo ?? ($estudio?->paciente_nombre ?? ''),
             'iniciales' => collect(explode(' ', $paciente?->nombre_completo ?? 'NA'))
                 ->filter()->take(2)->map(fn ($x) => mb_strtoupper(mb_substr($x, 0, 1)))->implode('') ?: 'NA',
-            'edad' => $paciente?->edad ? $paciente->edad.' años' : '',
+            'edad' => $paciente?->edad ? $paciente->edad.' aÃƒÆ’Ã‚Â±os' : '',
             'sexo' => $paciente && $paciente->sexo ? ucfirst($paciente->sexo) : '',
             'folio' => $paciente?->folio ?? '',
             'identificacion' => $paciente?->identificacion ?? '',
@@ -324,8 +324,8 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
             'estudio_id' => $estudio?->id,
         ];
 
-        // Lista de estudios para el selector: solo los que NO tienen reporte aún
-        // (incluye el estudio actual aunque ya tuviera, para que la opción seleccionada aparezca).
+        // Lista de estudios para el selector: solo los que NO tienen reporte aÃƒÆ’Ã‚Âºn
+        // (incluye el estudio actual aunque ya tuviera, para que la opciÃƒÆ’Ã‚Â³n seleccionada aparezca).
         $estudiosLista = \App\Models\Estudio::with('paciente')
             ->where(function ($q) use ($estudio) {
                 $q->whereDoesntHave('reportes');
@@ -339,8 +339,8 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
             ->map(fn ($e) => [
                 'id' => $e->id,
                 'label' => trim(($e->paciente?->nombre_completo ?? $e->paciente_nombre ?? 'Paciente')
-                    .' · '.($e->tipo ?? 'Estudio')
-                    .' · '.(optional($e->fecha)->format('d/m/Y') ?? '')),
+                    .' Ãƒâ€šÃ‚Â· '.($e->tipo ?? 'Estudio')
+                    .' Ãƒâ€šÃ‚Â· '.(optional($e->fecha)->format('d/m/Y') ?? '')),
             ])
             ->values();
 
@@ -366,7 +366,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
             ? \App\Models\Estudio::with('paciente')->find($estudioId)
             : null;
 
-        // Si viene reporte, derivar estudio y paciente de él
+        // Si viene reporte, derivar estudio y paciente de ÃƒÆ’Ã‚Â©l
         if ($reporte && ! $estudio) {
             $estudio = $reporte->estudio;
         }
@@ -374,12 +374,12 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
             $paciente = $reporte->estudio?->paciente;
         }
 
-        // Si no llegó paciente explícito, derivarlo del estudio
+        // Si no llegÃƒÆ’Ã‚Â³ paciente explÃƒÆ’Ã‚Â­cito, derivarlo del estudio
         if (! $paciente && $estudio) {
             $paciente = $estudio->paciente;
         }
 
-        // Si hay paciente pero no estudio, usar su estudio más reciente
+        // Si hay paciente pero no estudio, usar su estudio mÃƒÆ’Ã‚Â¡s reciente
         if ($paciente && ! $estudio) {
             $estudio = \App\Models\Estudio::where('paciente_id', $paciente->id)
                 ->latest()
@@ -405,7 +405,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
         // Datos del estudio/paciente para precargar el editor
         $datosEstudio = [
             'paciente' => $paciente?->nombre_completo ?? ($estudio?->paciente_nombre ?? ''),
-            'edad' => $paciente?->edad ? $paciente->edad.' años' : '',
+            'edad' => $paciente?->edad ? $paciente->edad.' aÃƒÆ’Ã‚Â±os' : '',
             'sexo' => $paciente && $paciente->sexo ? ucfirst($paciente->sexo) : '',
             'nacimiento' => optional($paciente?->fecha_nacimiento)->format('d/m/Y') ?? '',
             'fecha_estudio' => optional($estudio?->fecha)->format('d/m/Y') ?? now()->format('d/m/Y'),
@@ -414,7 +414,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
             'medico' => $estudio?->medico ?? $paciente?->medico ?? '',
         ];
 
-        // Plantillas guardadas (configuración persistida por clave)
+        // Plantillas guardadas (configuraciÃƒÆ’Ã‚Â³n persistida por clave)
         $plantillasDb = \App\Models\Plantilla::all()->mapWithKeys(fn ($p) => [
             $p->clave => [
                 'id' => $p->id,
@@ -426,8 +426,8 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
             ],
         ]);
 
-        // Selector de estudio: solo los que NO tienen reporte aún
-        // (incluye el estudio actual para que la opción seleccionada aparezca).
+        // Selector de estudio: solo los que NO tienen reporte aÃƒÆ’Ã‚Âºn
+        // (incluye el estudio actual para que la opciÃƒÆ’Ã‚Â³n seleccionada aparezca).
         $estudiosLista = \App\Models\Estudio::with('paciente')
             ->where(function ($q) use ($estudio) {
                 $q->whereDoesntHave('reportes');
@@ -441,8 +441,8 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
             ->map(fn ($e) => [
                 'id' => $e->id,
                 'label' => trim(($e->paciente?->nombre_completo ?? $e->paciente_nombre ?? 'Paciente')
-                    .' · '.($e->tipo ?? 'Estudio')
-                    .' · '.(optional($e->fecha)->format('d/m/Y') ?? '')),
+                    .' Ãƒâ€šÃ‚Â· '.($e->tipo ?? 'Estudio')
+                    .' Ãƒâ€šÃ‚Â· '.(optional($e->fecha)->format('d/m/Y') ?? '')),
             ])
             ->values();
 
@@ -609,7 +609,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
         ->middleware('critical.password:studies')
         ->name('nuevo-estudio.configuracion.update');
 
-    /* ── Galería ── */
+    /* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ GalerÃƒÆ’Ã‚Â­a ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
     Route::get('/galeria', function () {
         $colores = [
             'linear-gradient(135deg,#c084fc,#a78bfa)',
@@ -654,7 +654,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
             $videos = $archivosPaciente->where('tipo', 'video')->count();
             $estudios = $estudiosDetalle->count();
             $ultimoTs = $archivosPaciente->max('capturado_en');
-            $ultimo = $ultimoTs ? \Illuminate\Support\Carbon::parse($ultimoTs)->format('d/m/Y') : '—';
+            $ultimo = $ultimoTs ? \Illuminate\Support\Carbon::parse($ultimoTs)->format('d/m/Y') : 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â';
             $ini = collect(explode(' ', $p->nombre_completo ?? ''))
                 ->filter()->take(2)
                 ->map(fn ($x) => mb_strtoupper(mb_substr($x, 0, 1)))
@@ -664,9 +664,9 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
                 'id' => $p->id,
                 'nombre' => $p->nombre_completo ?? 'Paciente',
                 'telefono' => $p->telefono ?? '',
-                'codigo' => $p->folio ?? $p->identificacion ?? '—',
-                'sexo' => $p->sexo ?? '—',
-                'edad' => $p->edad ? $p->edad . ' años' : '—',
+                'codigo' => $p->folio ?? $p->identificacion ?? 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â',
+                'sexo' => $p->sexo ?? 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â',
+                'edad' => $p->edad ? $p->edad . ' aÃƒÆ’Ã‚Â±os' : 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â',
                 'ultimo' => $ultimo,
                 'estudios' => $estudios,
                 'fotos' => $fotos,
@@ -838,7 +838,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     })->middleware('critical.password:studies')
         ->name('galeria.imagen.guardar-copia');
 
-    /* ── Finanzas ── */
+    /* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Finanzas ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
     // Route::get('/finanzas', function () {
     //     return view('finanzas.index');
     // })->name('finanzas');
@@ -858,7 +858,7 @@ Route::options('/tauri/{any}', function (\Illuminate\Http\Request $request) {
     $response = response('', $allowedOrigin ? 204 : 403)
         ->header('Access-Control-Allow-Credentials', 'true')
         ->header('Access-Control-Allow-Headers', 'Accept, Authorization, Content-Type, X-Requested-With')
-        ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+        ->header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         ->header('Vary', 'Origin');
 
     if ($allowedOrigin) {
@@ -918,7 +918,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
         if (! $user->subscribed()) {
             return $withCors(response()->json([
                 'ok' => false,
-                'message' => 'El usuario no tiene una suscripción activa.',
+                'message' => 'El usuario no tiene una suscripciÃƒÆ’Ã‚Â³n activa.',
             ], 403));
         }
 
@@ -1042,7 +1042,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
         if (! $user->subscribed()) {
             return $withCors(response()->json([
                 'ok' => false,
-                'message' => 'El usuario no tiene una suscripción activa.',
+                'message' => 'El usuario no tiene una suscripciÃƒÆ’Ã‚Â³n activa.',
             ], 403));
         }
 
@@ -1084,7 +1084,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
                 'id' => $paciente->id,
                 'name' => $paciente->nombre_completo,
                 'initials' => $initials,
-                'age' => $paciente->edad ? $paciente->edad.' años' : '',
+                'age' => $paciente->edad ? $paciente->edad.' aÃƒÆ’Ã‚Â±os' : '',
                 'gender' => $paciente->sexo ? ucfirst($paciente->sexo) : '',
                 'folio' => $paciente->folio,
                 'dob' => optional($paciente->fecha_nacimiento)->format('d/m/Y') ?? '',
@@ -1356,6 +1356,561 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
         ]));
     })->withoutMiddleware(['auth', 'auth.session', 'subscribed'])->name('tauri.reportes');
 
+    $tauriQrCors = function ($response, \Illuminate\Http\Request $request) {
+        $origin = $request->headers->get('Origin');
+        $allowedOrigin = $origin && (
+            $origin === 'null'
+            || preg_match('#^tauri://localhost$#', $origin)
+            || preg_match('#^https?://tauri\.localhost$#', $origin)
+            || preg_match('#^https?://localhost(:\d+)?$#', $origin)
+            || preg_match('#^https?://127\.0\.0\.1(:\d+)?$#', $origin)
+        );
+
+        if ($allowedOrigin) {
+            $response->headers->set('Access-Control-Allow-Origin', $origin);
+            $response->headers->set('Access-Control-Allow-Credentials', 'true');
+            $response->headers->set('Access-Control-Allow-Headers', 'Authorization, Content-Type, Accept, X-Requested-With');
+            $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+            $response->headers->set('Vary', 'Origin');
+        }
+
+        return $response;
+    };
+
+    $tauriQrUser = function (\Illuminate\Http\Request $request) {
+        if (! auth()->check()) {
+            $authorization = (string) $request->header('Authorization');
+
+            if (str_starts_with($authorization, 'Basic ')) {
+                $decoded = base64_decode(substr($authorization, 6), true);
+
+                if ($decoded && str_contains($decoded, ':')) {
+                    [$email, $password] = explode(':', $decoded, 2);
+
+                    auth()->once([
+                        'email' => $email,
+                        'password' => $password,
+                    ]);
+                }
+            }
+        }
+
+        return auth()->user();
+    };
+
+    $tauriQrStatusLabels = [
+        'active' => 'Activo',
+        'submitted' => 'Utilizado',
+        'expired' => 'Vencido',
+        'revoked' => 'Cancelado',
+        'pending' => 'Pendiente',
+        'accepted' => 'Aceptado',
+        'rejected' => 'Rechazado',
+    ];
+
+    $tauriQrHistoryStatus = function (\App\Models\PatientRegistrationLink $link): string {
+        return $link->status === 'active' && $link->expires_at->isPast()
+            ? 'expired'
+            : $link->status;
+    };
+
+    $tauriQrCode = fn (\App\Models\PatientRegistrationLink $link): string => 'QR-'.$link->created_at->format('Y').'-'.str_pad((string) $link->id, 4, '0', STR_PAD_LEFT);
+
+    $tauriQrDate = fn ($date): string => $date ? (function_exists('format_user_date') ? format_user_date($date) : $date->format('d/m/Y')) : '';
+    $tauriQrTime = fn ($date): string => $date ? (function_exists('format_user_time') ? format_user_time($date) : $date->format('H:i')) : '';
+
+    $tauriQrInitials = function (?string $name): string {
+        $parts = collect(explode(' ', trim((string) $name)))->filter()->take(2);
+
+        return $parts
+            ->map(fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)))
+            ->implode('') ?: 'P';
+    };
+
+    $tauriQrSvg = function (\App\Models\PatientRegistrationLink $link): string {
+        $url = route('qr.public.show', ['token' => $link->token]);
+        $qrCode = new \Endroid\QrCode\QrCode(
+            data: $url,
+            encoding: new \Endroid\QrCode\Encoding\Encoding('UTF-8'),
+            errorCorrectionLevel: \Endroid\QrCode\ErrorCorrectionLevel::High,
+            size: 360,
+            margin: 18,
+            roundBlockSizeMode: \Endroid\QrCode\RoundBlockSizeMode::Margin,
+            foregroundColor: new \Endroid\QrCode\Color\Color(6, 16, 50),
+            backgroundColor: new \Endroid\QrCode\Color\Color(255, 255, 255),
+        );
+
+        return (new \Endroid\QrCode\Writer\SvgWriter)->write($qrCode)->getString();
+    };
+
+    $tauriQrDuplicate = function (\App\Models\PatientPreregistration $preregistration): bool {
+        return Paciente::query()
+            ->where(function ($filter) use ($preregistration): void {
+                if ($preregistration->email) {
+                    $filter->orWhereRaw('LOWER(email) = ?', [\Illuminate\Support\Str::lower($preregistration->email)]);
+                }
+                if ($preregistration->telefono) {
+                    $filter->orWhere('telefono', $preregistration->telefono);
+                }
+            })
+            ->exists();
+    };
+
+    $tauriQrValidityLabel = function (\App\Models\PatientRegistrationLink $link): string {
+        $hours = (int) round($link->created_at->diffInHours($link->expires_at));
+
+        return $hours === 168 ? '7 dias' : $hours.' horas';
+    };
+
+    $tauriQrLinkPayload = function (\App\Models\PatientRegistrationLink $link, bool $includeSvg = false) use ($tauriQrCode, $tauriQrDate, $tauriQrTime, $tauriQrHistoryStatus, $tauriQrStatusLabels, $tauriQrValidityLabel, $tauriQrSvg) {
+        $status = $tauriQrHistoryStatus($link);
+        $publicUrl = route('qr.public.show', ['token' => $link->token]);
+        $settings = auth()->user()?->resolvedSettings() ?? [];
+        $template = $settings['qr_whatsapp_template'] ?? 'Hola, te comparto tu enlace de pre-registro de ENCLAII: {enlace}';
+        $shareText = strtr($template, [
+            '{enlace}' => $publicUrl,
+            '{codigo}' => $tauriQrCode($link),
+            '{mensaje}' => $link->patient_message ?: '',
+            '{clinica}' => auth()->user()?->clinica?->nombre ?? 'ENCLAII',
+        ]);
+
+        if (! str_contains($shareText, $publicUrl)) {
+            $shareText = trim($shareText.' '.$publicUrl);
+        }
+
+        return [
+            'id' => $link->id,
+            'code' => $tauriQrCode($link),
+            'status' => $status,
+            'status_text' => $tauriQrStatusLabels[$status] ?? ucfirst($status),
+            'is_available' => $link->isAvailable(),
+            'validity_label' => $tauriQrValidityLabel($link),
+            'created_date' => $tauriQrDate($link->created_at),
+            'expires_date' => $tauriQrDate($link->expires_at),
+            'created_label' => trim($tauriQrDate($link->created_at).' Ãƒâ€šÃ‚Â· '.$tauriQrTime($link->created_at)),
+            'expires_label' => trim($tauriQrDate($link->expires_at).' Ãƒâ€šÃ‚Â· '.$tauriQrTime($link->expires_at)),
+            'registrations' => $link->preregistration ? 1 : 0,
+            'public_url' => $publicUrl,
+            'share_text' => $shareText,
+            'patient_message' => $link->patient_message,
+            'qr_svg' => $includeSvg ? $tauriQrSvg($link) : null,
+        ];
+    };
+
+    $tauriQrPreregPayload = function (\App\Models\PatientPreregistration $item, array $duplicates) use ($tauriQrInitials, $tauriQrDate, $tauriQrStatusLabels) {
+        return [
+            'id' => $item->id,
+            'name' => $item->nombre_completo,
+            'initials' => $tauriQrInitials($item->nombre_completo),
+            'phone' => $item->telefono,
+            'email' => $item->email,
+            'status' => $item->status,
+            'status_text' => $tauriQrStatusLabels[$item->status] ?? ucfirst($item->status),
+            'received_label' => 'Recibido '.$item->created_at->diffForHumans(),
+            'photo_url' => $item->foto ? media_url($item->foto) : null,
+            'possible_duplicate' => (bool) ($duplicates[$item->id] ?? false),
+            'birth_date' => $tauriQrDate($item->fecha_nacimiento),
+            'age' => $item->edad,
+            'sex' => $item->sexo,
+            'weight' => $item->peso,
+            'height' => $item->altura,
+            'address' => $item->direccion,
+            'procedure' => $item->procedimiento,
+            'identification' => $item->identificacion,
+            'consent_label' => $tauriQrDate($item->consent_accepted_at),
+            'reason' => $item->motivo_consulta,
+            'allergies' => $item->alergias,
+            'conditions' => $item->enfermedades,
+            'medications' => $item->medicamentos_actuales,
+            'medical_history' => $item->antecedentes_medicos,
+            'observations' => $item->observaciones,
+            'patient_folio' => $item->patient?->folio,
+        ];
+    };
+
+    $tauriQrPayload = function (\Illuminate\Http\Request $request, ?int $selectedLinkId = null) use ($tauriQrHistoryStatus, $tauriQrLinkPayload, $tauriQrPreregPayload, $tauriQrDuplicate) {
+        $user = auth()->user();
+        $qrSettings = $user->resolvedSettings();
+        $links = \App\Models\PatientRegistrationLink::query()
+            ->with(['creator', 'preregistration'])
+            ->whereNull('archived_at')
+            ->latest()
+            ->limit(50)
+            ->get();
+
+        $preregistrations = \App\Models\PatientPreregistration::query()
+            ->with(['registrationLink.creator', 'patient', 'reviewer'])
+            ->latest()
+            ->limit(30)
+            ->get();
+
+        $duplicates = ($qrSettings['qr_duplicate_check'] ?? true)
+            ? $preregistrations
+                ->filter(fn (\App\Models\PatientPreregistration $item) => $item->status === 'pending')
+                ->mapWithKeys(fn (\App\Models\PatientPreregistration $item): array => [$item->id => $tauriQrDuplicate($item)])
+                ->all()
+            : [];
+
+        $selected = $selectedLinkId ?: (int) $request->query('qr');
+        $currentLink = $links->firstWhere('id', $selected)
+            ?? $links->first(fn (\App\Models\PatientRegistrationLink $link) => $link->isAvailable())
+            ?? $links->first();
+
+        $historyCounts = [
+            'active' => 0,
+            'submitted' => 0,
+            'expired' => 0,
+            'revoked' => 0,
+        ];
+
+        foreach ($links as $link) {
+            $status = $tauriQrHistoryStatus($link);
+            $historyCounts[$status] = ($historyCounts[$status] ?? 0) + 1;
+        }
+
+        $defaultHistory = $historyCounts['active'] > 0
+            ? 'active'
+            : ($historyCounts['submitted'] > 0 ? 'submitted' : ($historyCounts['expired'] > 0 ? 'expired' : 'revoked'));
+
+        return [
+            'ok' => true,
+            'kpis' => [
+                'active' => $historyCounts['active'],
+                'pending' => $preregistrations->where('status', 'pending')->count(),
+                'accepted' => $preregistrations->where('status', 'accepted')->count(),
+            ],
+            'settings' => [
+                'default_expiration_hours' => (string) ($qrSettings['qr_default_expiration_hours'] ?? '48'),
+                'default_patient_message' => (string) ($qrSettings['qr_default_patient_message'] ?? ''),
+            ],
+            'history_counts' => $historyCounts,
+            'default_history_status' => $defaultHistory,
+            'current_link' => $currentLink ? $tauriQrLinkPayload($currentLink, true) : null,
+            'links' => $links->map(fn (\App\Models\PatientRegistrationLink $link) => $tauriQrLinkPayload($link))->values(),
+            'preregistrations' => $preregistrations->map(fn (\App\Models\PatientPreregistration $item) => $tauriQrPreregPayload($item, $duplicates))->values(),
+        ];
+    };
+
+    Route::options('/tauri/qr/{any?}', function (\Illuminate\Http\Request $request) use ($tauriQrCors) {
+        return $tauriQrCors(response('', 204), $request);
+    })->where('any', '.*')->withoutMiddleware(['auth', 'auth.session', 'subscribed'])->name('tauri.qr.options');
+
+    Route::get('/tauri/qr', function (\Illuminate\Http\Request $request) use ($tauriQrCors, $tauriQrUser, $tauriQrPayload) {
+        $user = $tauriQrUser($request);
+
+        if (! $user) {
+            return $tauriQrCors(response()->json(['ok' => false, 'message' => 'Credenciales de Laravel requeridas.'], 401), $request);
+        }
+
+        if (! $user->subscribed()) {
+            return $tauriQrCors(response()->json(['ok' => false, 'message' => 'El usuario no tiene una suscripcion activa.'], 403), $request);
+        }
+
+        return $tauriQrCors(response()->json($tauriQrPayload($request)), $request);
+    })->withoutMiddleware(['auth', 'auth.session', 'subscribed'])->name('tauri.qr.index');
+
+    Route::post('/tauri/qr/enlaces', function (\Illuminate\Http\Request $request) use ($tauriQrCors, $tauriQrUser, $tauriQrPayload) {
+        $user = $tauriQrUser($request);
+
+        if (! $user) {
+            return $tauriQrCors(response()->json(['ok' => false, 'message' => 'Credenciales de Laravel requeridas.'], 401), $request);
+        }
+
+        if (! $user->subscribed()) {
+            return $tauriQrCors(response()->json(['ok' => false, 'message' => 'El usuario no tiene una suscripcion activa.'], 403), $request);
+        }
+
+        $validator = validator($request->all(), [
+            'expires_in_hours' => ['nullable', 'integer', 'in:24,48,168'],
+            'patient_message' => ['nullable', 'string', 'max:150'],
+        ]);
+
+        if ($validator->fails()) {
+            return $tauriQrCors(response()->json(['ok' => false, 'message' => $validator->errors()->first()], 422), $request);
+        }
+
+        $qrSettings = $user->resolvedSettings();
+        $validated = $validator->validated();
+        $expiresInHours = (int) ($validated['expires_in_hours'] ?? $qrSettings['qr_default_expiration_hours'] ?? 48);
+        $patientMessage = array_key_exists('patient_message', $validated)
+            ? $validated['patient_message']
+            : ($qrSettings['qr_default_patient_message'] ?? null);
+        $token = \Illuminate\Support\Str::random(64);
+        $link = \App\Models\PatientRegistrationLink::create([
+            'clinica_id' => $user->clinica_id,
+            'created_by' => $user->id,
+            'token' => $token,
+            'token_hash' => hash('sha256', $token),
+            'status' => 'active',
+            'patient_message' => $patientMessage ?: null,
+            'expires_at' => now()->addHours($expiresInHours),
+        ]);
+
+        return $tauriQrCors(response()->json($tauriQrPayload($request, $link->id)), $request);
+    })->withoutMiddleware(['auth', 'auth.session', 'subscribed'])->name('tauri.qr.links.store');
+
+    Route::post('/tauri/qr/preregistros/{preregistration}/aceptar', function (\Illuminate\Http\Request $request, int $preregistration) use ($tauriQrCors, $tauriQrUser, $tauriQrPayload, $tauriQrDuplicate) {
+        $user = $tauriQrUser($request);
+
+        if (! $user) {
+            return $tauriQrCors(response()->json(['ok' => false, 'message' => 'Credenciales de Laravel requeridas.'], 401), $request);
+        }
+
+        if (! $user->subscribed()) {
+            return $tauriQrCors(response()->json(['ok' => false, 'message' => 'El usuario no tiene una suscripcion activa.'], 403), $request);
+        }
+
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($user, $preregistration, $request, $tauriQrDuplicate): void {
+                $record = \App\Models\PatientPreregistration::query()
+                    ->whereKey($preregistration)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                if ($record->status !== 'pending') {
+                    throw new \RuntimeException('Este pre-registro ya fue revisado.');
+                }
+
+                $qrSettings = $user->resolvedSettings();
+                if (($qrSettings['qr_duplicate_check'] ?? true) && ($qrSettings['qr_duplicate_action'] ?? 'warn') === 'block_acceptance' && $tauriQrDuplicate($record)) {
+                    throw new \RuntimeException('Existe un paciente con el mismo telefono o correo.');
+                }
+
+                $patient = Paciente::create([
+                    'clinica_id' => $user->clinica_id,
+                    'folio' => app(\App\Services\PatientFolioGenerator::class)->next($user->clinica_id),
+                    'nombre_completo' => $record->nombre_completo,
+                    'identificacion' => $record->identificacion,
+                    'fecha_nacimiento' => $record->fecha_nacimiento,
+                    'edad' => $record->edad,
+                    'peso' => $record->peso,
+                    'altura' => $record->altura,
+                    'sexo' => $record->sexo,
+                    'direccion' => $record->direccion,
+                    'telefono' => $record->telefono,
+                    'email' => $record->email,
+                    'medico' => $user->name,
+                    'procedimiento' => $record->procedimiento,
+                    'diagnostico_preliminar' => $record->motivo_consulta,
+                    'alergias' => $record->alergias,
+                    'enfermedades' => $record->enfermedades,
+                    'medicamentos_actuales' => $record->medicamentos_actuales,
+                    'antecedentes_medicos' => $record->antecedentes_medicos,
+                    'foto' => $record->foto,
+                ]);
+
+                $record->update([
+                    'status' => 'accepted',
+                    'patient_id' => $patient->id,
+                    'reviewed_by' => $user->id,
+                    'reviewed_at' => now(),
+                ]);
+            });
+        } catch (\Throwable $exception) {
+            return $tauriQrCors(response()->json(['ok' => false, 'message' => $exception->getMessage()], 422), $request);
+        }
+
+        return $tauriQrCors(response()->json($tauriQrPayload($request)), $request);
+    })->withoutMiddleware(['auth', 'auth.session', 'subscribed'])->name('tauri.qr.preregistrations.accept');
+
+    Route::post('/tauri/qr/preregistros/{preregistration}/rechazar', function (\Illuminate\Http\Request $request, int $preregistration) use ($tauriQrCors, $tauriQrUser, $tauriQrPayload) {
+        $user = $tauriQrUser($request);
+
+        if (! $user) {
+            return $tauriQrCors(response()->json(['ok' => false, 'message' => 'Credenciales de Laravel requeridas.'], 401), $request);
+        }
+
+        if (! $user->subscribed()) {
+            return $tauriQrCors(response()->json(['ok' => false, 'message' => 'El usuario no tiene una suscripcion activa.'], 403), $request);
+        }
+
+        try {
+            $photoToDelete = \Illuminate\Support\Facades\DB::transaction(function () use ($user, $preregistration): ?string {
+                $record = \App\Models\PatientPreregistration::query()
+                    ->whereKey($preregistration)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                if ($record->status !== 'pending') {
+                    throw new \RuntimeException('Este pre-registro ya fue revisado.');
+                }
+
+                $photo = $record->foto;
+                $record->update([
+                    'status' => 'rejected',
+                    'reviewed_by' => $user->id,
+                    'reviewed_at' => now(),
+                    'foto' => null,
+                ]);
+
+                return $photo;
+            });
+
+            if ($photoToDelete && function_exists('media_delete')) {
+                media_delete($photoToDelete);
+            }
+        } catch (\Throwable $exception) {
+            return $tauriQrCors(response()->json(['ok' => false, 'message' => $exception->getMessage()], 422), $request);
+        }
+
+        return $tauriQrCors(response()->json($tauriQrPayload($request)), $request);
+    })->withoutMiddleware(['auth', 'auth.session', 'subscribed'])->name('tauri.qr.preregistrations.reject');
+
+
+    $tauriConfigPayload = function (\App\Models\User $user): array {
+        $settings = $user->resolvedSettings();
+        $security = $user->securityPreferences();
+        $billingUser = $user->billingUser();
+        $planLabels = [
+            'clinica' => 'Clinica',
+            'hospital' => 'Hospital',
+            'red_medica' => 'Red Medica',
+        ];
+        $statusLabels = [
+            'active' => 'Activo',
+            'trialing' => 'Prueba',
+            'past_due' => 'Pago pendiente',
+            'canceled' => 'Cancelado',
+        ];
+        $parts = collect(preg_split('/\s+/', trim((string) $user->name)) ?: [])
+            ->filter()
+            ->take(2)
+            ->map(fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)))
+            ->implode('');
+
+        return [
+            'ok' => true,
+            'settings' => $settings,
+            'security' => $security,
+            'user' => [
+                'name' => $user->name,
+                'email' => $user->email,
+                'initials' => $parts ?: 'DR',
+                'role' => $user->specialty ?: ($user->position ?: 'Medico'),
+                'specialty' => $user->specialty,
+                'professional_license' => $user->professional_license,
+                'clinic' => $user->clinica?->nombre ?? 'ENCLAII',
+                'has_signature' => (bool) $user->signature_path,
+                'signature_updated_at' => optional($user->signature_updated_at)->format('d/m/Y H:i'),
+            ],
+            'plan' => [
+                'label' => $planLabels[$billingUser->stripe_plan] ?? 'Basico',
+                'status' => $billingUser->subscription_status,
+                'status_label' => $statusLabels[$billingUser->subscription_status] ?? ucfirst((string) ($billingUser->subscription_status ?: 'activo')),
+                'member_limit' => $billingUser->clinicMemberLimit(),
+                'renews_at' => optional($billingUser->subscription_renews_at)->format('d/m/Y'),
+            ],
+        ];
+    };
+
+    Route::get('/tauri/configuracion', function (\Illuminate\Http\Request $request) use ($tauriQrCors, $tauriQrUser, $tauriConfigPayload) {
+        $user = $tauriQrUser($request);
+
+        if (! $user) {
+            return $tauriQrCors(response()->json(['ok' => false, 'message' => 'Credenciales de Laravel requeridas.'], 401), $request);
+        }
+
+        if (! $user->subscribed()) {
+            return $tauriQrCors(response()->json(['ok' => false, 'message' => 'El usuario no tiene una suscripcion activa.'], 403), $request);
+        }
+
+        return $tauriQrCors(response()->json($tauriConfigPayload($user)), $request);
+    })->withoutMiddleware(['auth', 'auth.session', 'subscribed'])->name('tauri.configuracion.index');
+
+    Route::post('/tauri/configuracion', function (\Illuminate\Http\Request $request) use ($tauriQrCors, $tauriQrUser, $tauriConfigPayload) {
+        $user = $tauriQrUser($request);
+
+        if (! $user) {
+            return $tauriQrCors(response()->json(['ok' => false, 'message' => 'Credenciales de Laravel requeridas.'], 401), $request);
+        }
+
+        if (! $user->subscribed()) {
+            return $tauriQrCors(response()->json(['ok' => false, 'message' => 'El usuario no tiene una suscripcion activa.'], 403), $request);
+        }
+
+        $validator = validator($request->all(), [
+            'timezone' => ['sometimes', 'timezone', 'max:50'],
+            'date_format' => ['sometimes', 'string', 'max:20'],
+            'time_format' => ['sometimes', 'in:12 horas (AM/PM),24 horas', 'max:30'],
+            'autosave' => ['sometimes', 'boolean'],
+            'confirm_delete' => ['sometimes', 'boolean'],
+            'default_view' => ['sometimes', 'string', 'max:50'],
+            'items_per_page' => ['sometimes', 'string', 'max:10'],
+            'animations' => ['sometimes', 'boolean'],
+            'compact' => ['sometimes', 'boolean'],
+            'reading_mode' => ['sometimes', 'boolean'],
+            'notif_email' => ['sometimes', 'boolean'],
+            'notif_push' => ['sometimes', 'boolean'],
+            'notif_new_studies' => ['sometimes', 'boolean'],
+            'notif_reports' => ['sometimes', 'boolean'],
+            'notif_reminders' => ['sometimes', 'boolean'],
+            'qr_default_expiration_hours' => ['sometimes', 'string', \Illuminate\Validation\Rule::in(['24', '48', '168'])],
+            'qr_default_patient_message' => ['sometimes', 'nullable', 'string', 'max:150'],
+            'qr_whatsapp_template' => ['sometimes', 'nullable', 'string', 'max:500'],
+            'qr_patient_photo_enabled' => ['sometimes', 'boolean'],
+            'qr_patient_photo_required' => ['sometimes', 'boolean'],
+            'qr_allow_camera_photo' => ['sometimes', 'boolean'],
+            'qr_allow_gallery_photo' => ['sometimes', 'boolean'],
+            'qr_required_fields' => ['sometimes', 'array'],
+            'qr_required_fields.*' => [
+                'string',
+                \Illuminate\Validation\Rule::in([
+                    'identificacion',
+                    'sexo',
+                    'email',
+                    'direccion',
+                    'peso',
+                    'altura',
+                    'procedimiento',
+                    'motivo_consulta',
+                    'alergias',
+                    'enfermedades',
+                    'medicamentos_actuales',
+                    'antecedentes_medicos',
+                    'observaciones',
+                ]),
+            ],
+            'qr_consent_text' => ['sometimes', 'nullable', 'string', 'max:700'],
+            'qr_duplicate_check' => ['sometimes', 'boolean'],
+            'qr_duplicate_action' => ['sometimes', 'string', \Illuminate\Validation\Rule::in(['warn', 'block_acceptance'])],
+            'capture_auto_capture' => ['sometimes', 'boolean'],
+            'capture_auto_save' => ['sometimes', 'boolean'],
+            'capture_auto_interval' => ['sometimes', 'integer', 'min:5', 'max:300'],
+            'require_password_for_studies' => ['sometimes', 'boolean'],
+            'require_password_for_patients' => ['sometimes', 'boolean'],
+            'audit_sensitive_actions' => ['sometimes', 'boolean'],
+        ]);
+
+        if ($validator->fails()) {
+            return $tauriQrCors(response()->json(['ok' => false, 'message' => $validator->errors()->first()], 422), $request);
+        }
+
+        $validated = $validator->validated();
+        $allowedSettings = array_keys(\App\Models\User::defaultSettings());
+        $incomingSettings = array_intersect_key($validated, array_flip($allowedSettings));
+
+        if ($incomingSettings !== []) {
+            $user->settings = array_merge($user->settings ?? [], $incomingSettings);
+            $user->save();
+        }
+
+        $securityKeys = [
+            'require_password_for_studies',
+            'require_password_for_patients',
+            'audit_sensitive_actions',
+        ];
+        $incomingSecurity = array_intersect_key($validated, array_flip($securityKeys));
+
+        if ($incomingSecurity !== []) {
+            $security = $user->securitySetting()->updateOrCreate(
+                ['user_id' => $user->id],
+                array_merge($user->securityPreferences(), $incomingSecurity)
+            );
+            $user->setRelation('securitySetting', $security);
+        }
+
+        return $tauriQrCors(response()->json($tauriConfigPayload($user->fresh() ?? $user)), $request);
+    })->withoutMiddleware(['auth', 'auth.session', 'subscribed'])->name('tauri.configuracion.update');
     Route::resource('pacientes', PacienteController::class)
         ->middlewareFor(['update', 'destroy'], 'critical.password:patients');
 
