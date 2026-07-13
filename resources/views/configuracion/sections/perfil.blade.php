@@ -191,21 +191,12 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
     <article class="card rise d4">
       <div class="pf-title">3.- Información de la clínica</div>
       <div class="pf-2">
-<<<<<<< HEAD
         <div class="pf-field"><label>Nombre de la clínica</label><input class="pf-input" type="text" name="clinica_nombre" value="{{ $u->clinica_nombre }}"></div>
         <div class="pf-field"><label>Ciudad</label><input class="pf-input" type="text" name="clinica_ciudad" value="{{ $u->clinica_ciudad }}"></div>
         <div class="pf-field"><label>Dirección</label><input class="pf-input" type="text" name="clinica_direccion" value="{{ $u->clinica_direccion }}"></div>
         <div class="pf-field"><label>Código postal</label><input class="pf-input" type="text" name="clinica_codigo_postal" value="{{ $u->clinica_codigo_postal }}"></div>
         <div class="pf-field"><label>Teléfono de la clínica u hospital</label><input class="pf-input" type="tel" name="clinica_telefono" value="{{ $u->clinica_telefono }}"></div>
         <div class="pf-field"><label>Estado</label><input class="pf-input" type="text" name="clinica_estado" value="{{ $u->clinica_estado }}"></div>
-=======
-        <div class="pf-field"><label>Nombre de la clínica</label><input class="pf-input" type="text" value="{{ auth()->user()->clinica?->nombre }}" readonly></div>
-        <div class="pf-field"><label>Rol en la clínica</label><input class="pf-input" type="text" value="{{ ucfirst(auth()->user()->clinica_rol) }}" readonly></div>
-        <div class="pf-field"><label>Dirección</label><input class="pf-input" type="text" value="Av. Partidas Las torres 123, Consultorio 121"></div>
-        <div class="pf-field"><label>Código postal</label><input class="pf-input" type="text" value="50080"></div>
-        <div class="pf-field"><label>Teléfono de la clínica u hospital</label><input class="pf-input" type="tel" value="722 364 4758"></div>
-        <div class="pf-field"><label>Estado</label><input class="pf-input" type="text" value="Estado de Mexico"></div>
->>>>>>> Ricardo-Galeria
       </div>
     </article>
 
