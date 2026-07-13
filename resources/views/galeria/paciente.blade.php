@@ -146,7 +146,7 @@ $ultimaFecha = format_user_date($ultimoArchivo?->capturado_en) ?: '—';
         @forelse($videos as $v)
           <article class="pa-card" data-kind="video" data-title="{{ strtolower($v->nombre_original ?? 'video') }}">
             <div class="pa-thumb">
-              <video src="{{ media_url($v->path) }}" preload="metadata" muted style="width:100%;height:100%;object-fit:cover"></video>
+              <video src="{{ asset('storage/'.$v->path) }}" preload="metadata" muted style="width:100%;height:100%;object-fit:cover"></video>
               <span class="pa-badge video">VIDEO</span>
               <div class="pa-play"><span><svg width="17" height="17" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg></span></div>
             </div>
@@ -174,7 +174,7 @@ $ultimaFecha = format_user_date($ultimoArchivo?->capturado_en) ?: '—';
         @forelse($imagenes as $img)
           <article class="pa-card" data-kind="imagen" data-title="{{ strtolower($img->titulo ?? '') }}">
             <div class="pa-thumb">
-              <img src="{{ media_url($img->path) }}" alt="{{ $img->nombre_original ?? 'Captura' }}">
+              <img src="{{ asset('storage/'.$img->path) }}" alt="{{ $img->nombre_original ?? 'Captura' }}">
               <span class="pa-badge image">IMG</span>
               <span class="pa-duration">{{ format_user_time($img->capturado_en) }}</span>
             </div>

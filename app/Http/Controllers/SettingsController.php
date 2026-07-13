@@ -6,6 +6,7 @@ use App\Models\LegalAcceptance;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class SettingsController extends Controller
@@ -138,14 +139,16 @@ class SettingsController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        media_delete($user->foto_perfil);
+        if ($user->foto_perfil && Storage::disk('public')->exists($user->foto_perfil)) {
+            Storage::disk('public')->delete($user->foto_perfil);
+        }
 
-        $path = media_store($request->file('foto'), 'fotos_perfil');
+        $path = $request->file('foto')->store('fotos_perfil', 'public');
         $user->update(['foto_perfil' => $path]);
 
         return response()->json([
             'ok' => true,
-            'url' => media_url($path),
+            'url' => Storage::disk('public')->url($path),
         ]);
     }
 
@@ -158,16 +161,18 @@ class SettingsController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        media_delete($user->constancia_fiscal);
+        if ($user->constancia_fiscal && Storage::disk('public')->exists($user->constancia_fiscal)) {
+            Storage::disk('public')->delete($user->constancia_fiscal);
+        }
 
-        $path = media_store($request->file('constancia'), 'constancias_fiscales');
+        $path = $request->file('constancia')->store('constancias_fiscales', 'public');
         $user->update(['constancia_fiscal' => $path]);
 
         $ext = strtolower($request->file('constancia')->getClientOriginalExtension());
 
         return response()->json([
             'ok'   => true,
-            'url'  => media_url($path),
+            'url'  => Storage::disk('public')->url($path),
             'ext'  => $ext,
             'name' => $request->file('constancia')->getClientOriginalName(),
         ]);
@@ -178,7 +183,9 @@ class SettingsController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        media_delete($user->constancia_fiscal);
+        if ($user->constancia_fiscal && Storage::disk('public')->exists($user->constancia_fiscal)) {
+            Storage::disk('public')->delete($user->constancia_fiscal);
+        }
 
         $user->update(['constancia_fiscal' => null]);
 
@@ -190,7 +197,9 @@ class SettingsController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        media_delete($user->foto_perfil);
+        if ($user->foto_perfil && Storage::disk('public')->exists($user->foto_perfil)) {
+            Storage::disk('public')->delete($user->foto_perfil);
+        }
 
         $user->update(['foto_perfil' => null]);
 

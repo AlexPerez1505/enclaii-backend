@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -143,7 +144,10 @@ class PublicPatientPreregistrationController extends Controller
                 }
 
                 if ($photo) {
-                    $photoPath = media_store($photo, 'clinicas/'.$link->clinica_id.'/pacientes');
+                    $photoPath = $photo->store(
+                        'clinicas/'.$link->clinica_id.'/pacientes',
+                        'public',
+                    );
                 }
 
                 $birthDate = Carbon::parse($validated['fecha_nacimiento']);
@@ -183,7 +187,7 @@ class PublicPatientPreregistrationController extends Controller
             });
         } catch (\Throwable $exception) {
             if ($photoPath) {
-                media_delete($photoPath);
+                Storage::disk('public')->delete($photoPath);
             }
 
             throw $exception;

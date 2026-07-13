@@ -1,43 +1,44 @@
 <?php
 
-use App\Http\Controllers\AgendaController;
-use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\Auth\EndoCareAuthController;
-use App\Http\Controllers\CapturePairingCodeController;
-use App\Http\Controllers\ClinicaMemberController;
-use App\Http\Controllers\ConfigurationBackupController;
-use App\Http\Controllers\CronController;
-use App\Http\Controllers\CriticalSecurityController;
 use App\Http\Controllers\CustomerSuccess\AnuncioDashboardController;
 use App\Http\Controllers\CustomerSuccess\DashboardController;
 use App\Http\Controllers\CustomerSuccess\RolesController;
-use App\Http\Controllers\CustomerSuccessController;
 use App\Http\Controllers\IaReporteController;
-use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\NuevoEstudioController;
-use App\Http\Controllers\PacienteController;
-use App\Http\Controllers\PasswordController;
-use App\Http\Controllers\PublicPatientPreregistrationController;
-use App\Http\Controllers\QrRegistrationController;
-use App\Http\Controllers\SecuritySettingsController;
 use App\Http\Controllers\SettingsController;
-use App\Http\Controllers\SignatureController;
-use App\Http\Controllers\SoporteChatController;
-use App\Http\Controllers\SoporteController;
-use App\Http\Controllers\StorageServeController;
-use App\Http\Controllers\StripeController;
-use App\Http\Controllers\TicketController;
-use App\Http\Controllers\UserSessionController;
 use App\Http\Controllers\WhatsAppController;
-use App\Models\Paciente;
-use App\Models\Reporte;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AgendaController;
+use App\Http\Controllers\PacienteController;
+use App\Http\Controllers\NuevoEstudioController;
+use App\Models\Paciente;
+use App\Models\Reporte;
+use App\Http\Controllers\AiAssistantController;
+use App\Http\Controllers\StripeController;
+use App\Http\Controllers\StorageServeController;
+use App\Http\Controllers\CapturePairingCodeController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\CronController;
+use App\Http\Controllers\CustomerSuccessController;
+use App\Http\Controllers\ConfigurationBackupController;
+use App\Http\Controllers\SoporteChatController;
+use App\Http\Controllers\SoporteController;
+use App\Http\Controllers\TicketController;
 
 Route::get('/storage/{path}', [StorageServeController::class, 'show'])
     ->where('path', '.*')
     ->name('storage.fallback');
+use App\Http\Controllers\ConfigurationBackupController;
+use App\Http\Controllers\SignatureController;
+use App\Http\Controllers\PasswordController;
+use App\Http\Controllers\UserSessionController;
+use App\Http\Controllers\ClinicaMemberController;
+use App\Http\Controllers\CriticalSecurityController;
+use App\Http\Controllers\SecuritySettingsController;
+use App\Http\Controllers\QrRegistrationController;
+use App\Http\Controllers\PublicPatientPreregistrationController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -496,7 +497,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
                 ->get()
                 ->map(fn ($a) => [
                     'id' => $a->id,
-                    'url' => media_url($a->path),
+                    'url' => asset('storage/'.$a->path).'?v='.($a->updated_at?->timestamp ?? $a->id),
                     'titulo' => $a->nombre_original,
                 ])
                 ->values();
@@ -607,7 +608,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
                     ->where('tipo', 'imagen')
                     ->orderByDesc('capturado_en')
                     ->get()
-                    ->map(fn ($a) => ['url' => media_url($a->path), 'titulo' => $a->nombre_original]);
+                    ->map(fn ($a) => ['url' => asset('storage/' . $a->path).'?v='.($a->updated_at?->timestamp ?? $a->id), 'titulo' => $a->nombre_original]);
             }
             // Si el reporte no tiene plantilla asignada, cargar la que corresponda al tipo de estudio
             if ($reporte && ! $reporte->plantilla && $reporte->estudio?->tipo) {
@@ -862,7 +863,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
                 'n' => $i + 1,
                 'ts' => optional($a->capturado_en)->format('H:i:s') ?? '',
                 'bg' => 'radial-gradient(ellipse at 50% 50%,#1a1208 0%,#0a0610 100%)',
-                'src' => media_url($a->path),
+                'src' => asset('storage/' . $a->path).'?v='.($a->updated_at?->timestamp ?? $a->id),
                 'id' => $a->id,
             ];
         })->all();
@@ -894,7 +895,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
 
         $file = $request->file('image');
         $oldPath = $archivo->path;
-        $path = media_store($file, "estudios/{$archivo->estudio_id}/archivos");
+        $path = $file->store("estudios/{$archivo->estudio_id}/archivos", 'public');
 
         $archivo->update([
             'path' => $path,
@@ -904,15 +905,15 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
             'nombre' => pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
         ]);
 
-        if ($oldPath && $oldPath !== $path) {
-            media_delete($oldPath);
+        if ($oldPath && $oldPath !== $path && \Illuminate\Support\Facades\Storage::disk('public')->exists($oldPath)) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($oldPath);
         }
 
         return response()->json([
             'ok' => true,
             'archivo' => [
                 'id' => $archivo->id,
-                'url' => media_url($archivo->path),
+                'url' => asset('storage/'.$archivo->path).'?v='.($archivo->updated_at?->timestamp ?? $archivo->id),
                 'path' => $archivo->path,
             ],
         ]);
@@ -927,7 +928,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
         ]);
 
         $file = $request->file('image');
-        $path = media_store($file, "estudios/{$archivo->estudio_id}/archivos");
+        $path = $file->store("estudios/{$archivo->estudio_id}/archivos", 'public');
         $copy = \App\Models\EstudioArchivo::create([
             'estudio_id' => $archivo->estudio_id,
             'paciente_id' => $archivo->paciente_id,
@@ -946,7 +947,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
             'ok' => true,
             'archivo' => [
                 'id' => $copy->id,
-                'url' => media_url($copy->path),
+                'url' => asset('storage/'.$copy->path).'?v='.($copy->updated_at?->timestamp ?? $copy->id),
                 'path' => $copy->path,
             ],
         ]);
@@ -963,10 +964,13 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
 Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     Route::resource('pacientes', PacienteController::class)
         ->middlewareFor(['update', 'destroy'], 'critical.password:patients');
+<<
     Route::post('/pacientes/{paciente}/add-medico', [PacienteController::class, 'addMedico'])
         ->name('pacientes.add-medico');
     Route::post('/pacientes/{paciente}/update-campo', [PacienteController::class, 'updateCampo'])
         ->name('pacientes.update-campo');
+=======
+>>>>>>> Ricardo-Galeria
 
     Route::get('/qr', [QrRegistrationController::class, 'index'])->name('qr.index');
     Route::post('/qr/enlaces', [QrRegistrationController::class, 'store'])->name('qr.links.store');
@@ -986,8 +990,10 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     Route::patch('/agenda/citas/{cita}/estado', [AgendaController::class, 'cambiarEstado'])->name('agenda.citas.estado');
     Route::delete('/agenda/citas/{cita}', [AgendaController::class, 'destroy'])->name('agenda.citas.destroy');
 
+
     Route::post('/agenda/bloqueos', [AgendaController::class, 'storeBloqueo'])->name('agenda.bloqueos.store');
     Route::delete('/agenda/bloqueos/{bloqueo}', [AgendaController::class, 'destroyBloqueo'])->name('agenda.bloqueos.destroy');
+
 
     Route::get('/finanzas', function () {
         return view('finanzas.index');
@@ -1091,3 +1097,4 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/capture/pairing-code', [CapturePairingCodeController::class, 'store'])
         ->name('capture.pairing-code.store');
 });
+

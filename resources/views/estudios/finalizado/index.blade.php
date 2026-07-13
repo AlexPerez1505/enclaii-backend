@@ -66,7 +66,7 @@
       {{-- Video Player --}}
       <div class="sf-video-player" style="flex:1">
         <div class="sf-video-bg"></div>
-        <video id="sfVideoEl" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;z-index:1;display:block" preload="metadata"@if($estudio?->video_path) src="{{ media_url($estudio->video_path) }}"@endif></video>
+        <video id="sfVideoEl" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;z-index:1;display:block" preload="metadata"@if($estudio?->video_path) src="{{ asset('storage/'.$estudio->video_path) }}"@endif></video>
         <img id="sfMainImg" alt="Imagen capturada" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;z-index:2">
         <div class="sf-video-center" id="sfVideoCenter">
           <button class="sf-play-big" id="sfPlayBigFinal">
@@ -119,7 +119,7 @@
               Correo electrónico
             </a>
             @if($estudio?->video_path)
-            <a class="sf-share-item" href="{{ media_url($estudio->video_path) }}" download="estudio_{{ $estudio->folio ?? $estudio->id }}.{{ pathinfo($estudio->video_path, PATHINFO_EXTENSION) }}">
+            <a class="sf-share-item" href="{{ asset('storage/'.$estudio->video_path) }}" download="estudio_{{ $estudio->folio ?? $estudio->id }}.{{ pathinfo($estudio->video_path, PATHINFO_EXTENSION) }}">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Descargar video
             </a>
@@ -147,7 +147,7 @@
           @forelse($capturas as $i => $cap)
           <div class="studio-final-cap-item {{ $i===0 ? 'sel' : '' }}" data-id="{{ $cap->id }}">
             <div class="studio-final-cap-thumb">
-              <img src="{{ media_url($cap->path) }}" alt="captura" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+              <img src="{{ asset('storage/'.$cap->path) }}" alt="captura" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
               <span class="studio-final-cap-num">{{ $i+1 }}</span>
               <span class="studio-final-cap-check"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
             </div>

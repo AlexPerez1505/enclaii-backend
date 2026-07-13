@@ -114,7 +114,7 @@
           @forelse($capturas as $cap)
           <div class="studio-thumb" data-id="{{ $cap->id }}">
             <div class="studio-thumb-inner" style="padding:0;overflow:hidden">
-              <img src="{{ media_url($cap->path) }}" alt="captura" style="width:100%;height:100%;object-fit:cover;border-radius:8px">
+              <img src="{{ asset('storage/'.$cap->path) }}" alt="captura" style="width:100%;height:100%;object-fit:cover;border-radius:8px">
             </div>
             @php $tsTl = is_numeric($cap->descripcion) ? gmdate('H:i:s',(int)$cap->descripcion) : (optional($cap->capturado_en)->format('H:i:s') ?? ''); @endphp
             <span class="studio-thumb-time">{{ $tsTl }}</span>
@@ -246,7 +246,7 @@
       {{-- Video Player --}}
       <div class="sf-video-player" style="flex:1">
         <div class="sf-video-bg"></div>
-        <video id="sfVideoEl" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;z-index:1;display:block" preload="metadata"@if($estudio?->video_path) src="{{ media_url($estudio->video_path) }}"@endif></video>
+        <video id="sfVideoEl" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;z-index:1;display:block" preload="metadata"@if($estudio?->video_path) src="{{ asset('storage/'.$estudio->video_path) }}"@endif></video>
         <img id="sfMainImg" alt="Imagen capturada" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;z-index:2">
         <div class="sf-video-center" id="sfVideoCenter">
           <button class="sf-play-big" id="sfPlayBigFinal">
@@ -313,7 +313,7 @@
           @forelse($capturas as $i => $cap)
           <div class="studio-final-cap-item {{ $i===0 ? 'sel' : '' }}" data-id="{{ $cap->id }}">
             <div class="studio-final-cap-thumb">
-              <img src="{{ media_url($cap->path) }}" alt="captura" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+              <img src="{{ asset('storage/'.$cap->path) }}" alt="captura" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
               <span class="studio-final-cap-num">{{ $i+1 }}</span>
               <span class="studio-final-cap-check"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
             </div>

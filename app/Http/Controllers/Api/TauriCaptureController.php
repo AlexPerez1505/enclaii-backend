@@ -9,6 +9,7 @@ use App\Models\CaptureSession;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class TauriCaptureController extends Controller
@@ -126,10 +127,10 @@ class TauriCaptureController extends Controller
 
         $this->ensureSameTenant($device, $session);
 
-        $path = media_store_as(
-            $request->file('frame'),
+        $path = $request->file('frame')->storeAs(
             'endoscopy/live/' . $session->id,
-            'latest.jpg'
+            'latest.jpg',
+            'public'
         );
 
         $session->update([
@@ -147,7 +148,7 @@ class TauriCaptureController extends Controller
             'message' => 'Frame actualizado.',
             'data' => [
                 'session_id' => $session->id,
-                'url' => media_url($path),
+                'url' => Storage::disk('public')->url($path),
                 'live_frame_at' => now()->toDateTimeString(),
             ],
         ]);
@@ -173,7 +174,7 @@ class TauriCaptureController extends Controller
 
         $folder = $this->getSessionMediaFolder($session, 'images');
 
-        $path = media_store($request->file('image'), $folder);
+        $path = $request->file('image')->store($folder, 'public');
 
         /*
          |--------------------------------------------------------------------------
@@ -205,7 +206,7 @@ class TauriCaptureController extends Controller
                 'estudio_id' => $session->estudio_id ?? null,
                 'study_id' => $session->study_id ?? null,
                 'path' => $path,
-                'url' => media_url($path),
+                'url' => Storage::disk('public')->url($path),
             ],
         ]);
     }
@@ -230,7 +231,7 @@ class TauriCaptureController extends Controller
 
         $folder = $this->getSessionMediaFolder($session, 'videos');
 
-        $path = media_store($request->file('video'), $folder);
+        $path = $request->file('video')->store($folder, 'public');
 
         /*
          |--------------------------------------------------------------------------
@@ -262,7 +263,7 @@ class TauriCaptureController extends Controller
                 'estudio_id' => $session->estudio_id ?? null,
                 'study_id' => $session->study_id ?? null,
                 'path' => $path,
-                'url' => media_url($path),
+                'url' => Storage::disk('public')->url($path),
             ],
         ]);
     }

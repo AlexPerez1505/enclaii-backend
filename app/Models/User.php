@@ -36,6 +36,49 @@ class User extends Authenticatable
         });
     }
 
+    protected static function booted(): void
+    {
+        static::creating(function (User $user): void {
+            if (! $user->clinica_id && Schema::hasTable('clinicas')) {
+                $hasPlan = in_array($user->subscription_status, ['active', 'trialing'], true);
+                $clinica = $hasPlan
+                    ? Clinica::create([
+                        'nombre' => 'Clínica de '.$user->name,
+                        'is_shared' => false,
+                    ])
+                    : Clinica::shared();
+
+                $user->clinica_id = $clinica->id;
+                $user->clinica_rol = $hasPlan ? 'propietario' : 'usuario';
+            }
+        });
+
+        static::saved(function (User $user): void {
+            $user->ensurePrivateClinicForPlan();
+        });
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user): void {
+            if (! $user->clinica_id && Schema::hasTable('clinicas')) {
+                $hasPlan = in_array($user->subscription_status, ['active', 'trialing'], true);
+                $clinica = $hasPlan
+                    ? Clinica::create([
+                        'nombre' => 'Clínica de '.$user->name,
+                        'is_shared' => false,
+                    ])
+                    : Clinica::shared();
+
+                $user->clinica_id = $clinica->id;
+                $user->clinica_rol = $hasPlan ? 'propietario' : 'usuario';
+            }
+        });
+
+        static::saved(function (User $user): void {
+            $user->ensurePrivateClinicForPlan();
+        });
+    }
 
     protected $fillable = [
         'clinica_id',
