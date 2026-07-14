@@ -340,26 +340,11 @@
   tabs.forEach(t => t.addEventListener('click', () => activateTab(t.dataset.tab)));
 
   const urlParams = new URLSearchParams(window.location.search);
-  const initialTab = urlParams.get('tab');
-  if (initialTab) activateTab(initialTab);
-
-  const requestedTab = new URLSearchParams(window.location.search).get('tab');
+  const requestedTab = urlParams.get('tab');
   const requestedTabButton = requestedTab
     ? document.querySelector(`.cfg-tab[data-tab="${requestedTab}"]`)
     : null;
-  if (requestedTabButton) requestedTabButton.click();
-
-  const requestedTab = new URLSearchParams(window.location.search).get('tab');
-  const requestedTabButton = requestedTab
-    ? document.querySelector(`.cfg-tab[data-tab="${requestedTab}"]`)
-    : null;
-  if (requestedTabButton) requestedTabButton.click();
-
-  const requestedTab = new URLSearchParams(window.location.search).get('tab');
-  const requestedTabButton = requestedTab
-    ? document.querySelector(`.cfg-tab[data-tab="${requestedTab}"]`)
-    : null;
-  if (requestedTabButton) requestedTabButton.click();
+  if (requestedTabButton) activateTab(requestedTab);
 
   /* Barras de almacenamiento */
   const bars = document.querySelectorAll('.store-bar i');
