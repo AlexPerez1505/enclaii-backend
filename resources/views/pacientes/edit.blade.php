@@ -925,13 +925,8 @@ textarea{
       <div class="personal-photo-col">
         <div class="patient-photo-container" id="patientPhotoContainer">
           @if($paciente->foto)
-<<<<<<< HEAD
             <img id="patientPhoto" src="{{ media_url($paciente->foto) }}" alt="Foto del paciente">
-            <div class="patient-photo-placeholder" id="patientPhotoPlaceholder" style="display:none;">👤</div>
-=======
-            <img id="patientPhoto" src="{{ asset('storage/' . $paciente->foto) }}" alt="Foto del paciente">
             <div class="patient-photo-placeholder" id="patientPhotoPlaceholder" style="display:none;"></div>
->>>>>>> origin/main
           @else
             <div class="patient-photo-placeholder" id="patientPhotoPlaceholder"></div>
             <img id="patientPhoto" style="display:none;" alt="Foto del paciente">
@@ -1147,7 +1142,7 @@ textarea{
               $isPdf = $ext === 'pdf';
               $isVideo = in_array($ext, ['mp4','mov','avi','mkv','webm']);
               $isDoc = in_array($ext, ['doc','docx']);
-              $url = asset('storage/'.$doc->path);
+              $url = media_url($doc->path);
               $nombre = $doc->nombre_original ?? basename($doc->path);
               $tipo = $isImg ? 'imagen' : ($isPdf ? 'pdf' : ($isVideo ? 'video' : 'otro'));
               $kb = $doc->size_bytes ?? 0;
@@ -1541,8 +1536,6 @@ document.addEventListener('DOMContentLoaded', function() {
     pacienteForm.addEventListener('submit', async function(e) {
       e.preventDefault();
 
-<<<<<<< HEAD
-=======
       const archivoInput = document.getElementById('estudiosArchivos');
       const numArchivos = archivoInput ? archivoInput.files.length : 0;
       console.log('[Guardar] Archivos en input:', numArchivos);
@@ -1550,7 +1543,6 @@ document.addEventListener('DOMContentLoaded', function() {
       const formData = new FormData(pacienteForm);
       console.log('[Guardar] FormData keys:', [...formData.keys()]);
 
->>>>>>> origin/main
       const criticalToken = await window.CriticalSecurity.authorize(
         'patients',
         'Confirma tu contraseña para editar la información de este paciente.'

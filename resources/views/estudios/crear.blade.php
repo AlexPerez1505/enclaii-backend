@@ -983,11 +983,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
         {{-- Foto --}}
         <div class="np-foto-col">
           @php
-<<<<<<< HEAD
             $pacFoto = $paciente && $paciente->foto ? media_url($paciente->foto) : '';
-=======
-            $pacFoto = $paciente && $paciente->foto ? asset('storage/'.$paciente->foto) : '';
->>>>>>> origin/main
           @endphp
           <div class="np-foto-box" id="npFotoBox">
             <img id="npFotoPreview" src="{{ $pacFoto }}" alt="{{ $paciente?->nombre_completo }}" @if($pacFoto) style="display:block;" @endif>

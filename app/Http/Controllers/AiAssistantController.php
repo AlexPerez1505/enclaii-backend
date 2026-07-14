@@ -64,7 +64,7 @@ class AiAssistantController extends Controller
                     'attachments' => $m->attachments->map(fn ($a) => [
                         'name' => $a->original_name,
                         'mime_type' => $a->mime_type,
-                        'url' => Storage::disk('public')->url($a->path),
+                        'url' => media_url($a->path),
                     ])->values(),
                 ]);
 
@@ -149,7 +149,7 @@ class AiAssistantController extends Controller
                 'attachments' => $m->attachments->map(fn ($a) => [
                     'name' => $a->original_name,
                     'mime_type' => $a->mime_type,
-                    'url' => Storage::disk('public')->url($a->path),
+                    'url' => media_url($a->path),
                 ]),
             ]);
 
@@ -186,7 +186,7 @@ class AiAssistantController extends Controller
                 'attachments' => $m->attachments->map(fn ($a) => [
                     'name' => $a->original_name,
                     'mime_type' => $a->mime_type,
-                    'url' => Storage::disk('public')->url($a->path),
+                    'url' => media_url($a->path),
                 ]),
             ]);
 
@@ -302,17 +302,14 @@ class AiAssistantController extends Controller
     }
 
     /* ============================================================
-     |  Guarda adjuntos en storage/app/public/ai_uploads
+     |  Guarda adjuntos en el disco de medios configurado.
      |============================================================ */
     private function storeAttachments(Request $request, int $messageId): array
     {
         $saved = [];
 
         foreach ($request->file('attachments', []) as $file) {
-            $path = $file->store(
-                'clinicas/'.$request->user()->clinica_id.'/ai_uploads/'.now()->format('Y/m'),
-                'public',
-            );
+            $path = media_store($file, 'clinicas/'.$request->user()->clinica_id.'/ai_uploads/'.now()->format('Y/m'));
 
             $attachment = AiAttachment::create([
                 'ai_message_id' => $messageId,
@@ -415,12 +412,11 @@ class AiAssistantController extends Controller
             return null;
         }
 
-        if (!Storage::disk('public')->exists($path)) {
+        if (! media_exists($path)) {
             return null;
         }
 
-        $absolute = Storage::disk('public')->path($path);
-        $base64 = base64_encode(file_get_contents($absolute));
+        $base64 = base64_encode(Storage::disk(media_disk())->get($path));
 
         return 'data:'.$mime.';base64,'.$base64;
     }

@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\Estudio;
+
 class EstudioObserver
 {
     /**

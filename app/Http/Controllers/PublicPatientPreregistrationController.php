@@ -9,10 +9,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-<<<<<<< HEAD
-=======
-use Illuminate\Support\Facades\Storage;
->>>>>>> origin/main
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -147,15 +143,8 @@ class PublicPatientPreregistrationController extends Controller
                 }
 
                 if ($photo) {
-<<<<<<< HEAD
                     $photoPath = media_store(
                         $photo,
-                        'clinicas/'.$link->clinica_id.'/pacientes',
-=======
-                    $photoPath = $photo->store(
-                        'clinicas/'.$link->clinica_id.'/pacientes',
-                        'public',
->>>>>>> origin/main
                     );
                 }
 
@@ -196,11 +185,7 @@ class PublicPatientPreregistrationController extends Controller
             });
         } catch (\Throwable $exception) {
             if ($photoPath) {
-<<<<<<< HEAD
                 media_delete($photoPath);
-=======
-                Storage::disk('public')->delete($photoPath);
->>>>>>> origin/main
             }
 
             throw $exception;

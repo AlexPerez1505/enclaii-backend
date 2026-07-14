@@ -1,11 +1,8 @@
 <?php
 
 use Illuminate\Support\Carbon;
-<<<<<<< HEAD
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-=======
->>>>>>> origin/main
 
 if (! function_exists('user_date_format')) {
     function user_date_format(): string
@@ -86,7 +83,6 @@ if (! function_exists('format_user_datetime')) {
         return format_user_date_time($date);
     }
 }
-<<<<<<< HEAD
 
 if (! function_exists('media_disk')) {
     function media_disk(): string
@@ -99,6 +95,13 @@ if (! function_exists('media_store')) {
     function media_store($file, string $directory): string
     {
         return $file->store($directory, media_disk());
+    }
+}
+
+if (! function_exists('media_store_as')) {
+    function media_store_as($file, string $directory, string $name): string
+    {
+        return $file->storeAs($directory, $name, media_disk());
     }
 }
 
@@ -148,5 +151,3 @@ if (! function_exists('media_delete')) {
         return Storage::disk(media_disk())->delete($path);
     }
 }
-=======
->>>>>>> origin/main

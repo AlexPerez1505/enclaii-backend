@@ -40,6 +40,15 @@
     <span class="nav-label">Auditoría</span>
   </a>
 
+  <a class="nav-item {{ $active === 'customer-success-soporte' ? 'active' : '' }}" href="{{ route('customer-success.soporte') }}" title="Soporte" style="position:relative">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <span class="nav-label">Soporte</span>
+    @php $pendingCount = \App\Models\AiConversation::where('type','soporte')->where('mode','pending_agent')->count(); @endphp
+    @if($pendingCount > 0)
+      <span style="position:absolute;top:6px;right:6px;background:#f59e0b;color:#fff;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:99px;display:flex;align-items:center;justify-content:center;padding:0 4px">{{ $pendingCount }}</span>
+    @endif
+  </a>
+
   <div class="side-help">
     <div class="orb">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>

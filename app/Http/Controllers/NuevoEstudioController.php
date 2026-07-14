@@ -322,14 +322,9 @@ class NuevoEstudioController extends Controller
         $videoPath = $estudio->video_path;
 
         if ($request->hasFile('video')) {
-<<<<<<< HEAD
             $videoPath = media_store(
                 $request->file('video'),
-                "clinicas/{$request->user()->clinica_id}/estudios/{$estudio->id}/videos",
-=======
-            $videoPath = $request->file('video')->store(
-                "clinicas/{$request->user()->clinica_id}/estudios/{$estudio->id}/videos",
-                'public',
+                "clinicas/{$request->user()->clinica_id}/estudios/{$estudio->id}/videos"
             );
 
             $this->guardarArchivoEstudio(
@@ -337,7 +332,6 @@ class NuevoEstudioController extends Controller
                 file: $request->file('video'),
                 categoria: 'grabacion',
                 descripcion: 'Grabación del estudio',
->>>>>>> origin/main
             );
         }
 
@@ -385,13 +379,7 @@ class NuevoEstudioController extends Controller
     {
         $estudio = $archivo->estudio;
 
-<<<<<<< HEAD
         media_delete($archivo->path);
-=======
-        if ($archivo->path && Storage::disk('public')->exists($archivo->path)) {
-            Storage::disk('public')->delete($archivo->path);
-        }
->>>>>>> origin/main
 
         $archivo->delete();
         $this->activity->record(
@@ -461,16 +449,7 @@ class NuevoEstudioController extends Controller
 
     private function guardarArchivoEstudio(Estudio $estudio, $file, ?string $categoria = null, ?string $descripcion = null): EstudioArchivo
     {
-<<<<<<< HEAD
-        $path = media_store(
-            $file,
-            "clinicas/{$estudio->clinica_id}/estudios/{$estudio->id}/archivos",
-=======
-        $path = $file->store(
-            "clinicas/{$estudio->clinica_id}/estudios/{$estudio->id}/archivos",
-            'public',
->>>>>>> origin/main
-        );
+        $path = media_store($file, "clinicas/{$estudio->clinica_id}/estudios/{$estudio->id}/archivos");
         $mime = $file->getMimeType();
 
         $tipo = match (true) {

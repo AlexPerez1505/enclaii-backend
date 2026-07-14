@@ -29,10 +29,7 @@ class Paciente extends Model
         'referido_por',
         'equipo_utilizado',
         'diagnostico_preliminar',
-<<<<<<< HEAD
-=======
         'enfermedad',
->>>>>>> origin/main
         'alergias',
         'enfermedades',
         'medicamentos_actuales',

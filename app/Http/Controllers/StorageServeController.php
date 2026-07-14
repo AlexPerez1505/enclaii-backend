@@ -4,12 +4,19 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class StorageServeController extends Controller
 {
-    public function show(string $path): StreamedResponse
+    public function show(string $path): RedirectResponse|StreamedResponse
     {
+        if (media_disk() !== 'public') {
+            abort_unless(media_exists($path), 404);
+
+            return redirect()->away(media_url($path));
+        }
+
         $disk = Storage::disk('public');
         $exists = $disk->exists($path);
 

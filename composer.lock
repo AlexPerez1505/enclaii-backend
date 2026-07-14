@@ -1,15 +1,10 @@
-
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-<<<<<<< HEAD
-    "content-hash": "fffcc59f89707245ad4aeb301950691a",
-=======
-    "content-hash": "b6d1937916267e7e9083953f4c311d73",
->>>>>>> origin/main
+    "content-hash": "2d6fd616e4aa8dbbb018aa8a7eedf79d",
     "packages": [
         {
             "name": "afatmustafa/blade-hugeicons",
@@ -74,7 +69,6 @@
             "time": "2026-03-21T12:00:39+00:00"
         },
         {
-<<<<<<< HEAD
             "name": "aws/aws-crt-php",
             "version": "v1.2.7",
             "source": {
@@ -130,16 +124,16 @@
         },
         {
             "name": "aws/aws-sdk-php",
-            "version": "3.388.4",
+            "version": "3.388.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/aws/aws-sdk-php.git",
-                "reference": "a4614092693b5f81b04ad7bdc9fbdc58df3dc27c"
+                "reference": "6104783c60d9134e7ceaeef03997767a547462b8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/a4614092693b5f81b04ad7bdc9fbdc58df3dc27c",
-                "reference": "a4614092693b5f81b04ad7bdc9fbdc58df3dc27c",
+                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/6104783c60d9134e7ceaeef03997767a547462b8",
+                "reference": "6104783c60d9134e7ceaeef03997767a547462b8",
                 "shasum": ""
             },
             "require": {
@@ -221,72 +215,13 @@
             "support": {
                 "forum": "https://github.com/aws/aws-sdk-php/discussions",
                 "issues": "https://github.com/aws/aws-sdk-php/issues",
-                "source": "https://github.com/aws/aws-sdk-php/tree/3.388.4"
+                "source": "https://github.com/aws/aws-sdk-php/tree/3.388.5"
             },
-            "time": "2026-07-10T18:10:31+00:00"
+            "time": "2026-07-13T18:09:02+00:00"
         },
         {
             "name": "bacon/bacon-qr-code",
             "version": "v3.1.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Bacon/BaconQrCode.git",
-                "reference": "4da2233e72eeecd9be3b62e0dc2cc9ed8e2e31c2"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Bacon/BaconQrCode/zipball/4da2233e72eeecd9be3b62e0dc2cc9ed8e2e31c2",
-                "reference": "4da2233e72eeecd9be3b62e0dc2cc9ed8e2e31c2",
-                "shasum": ""
-            },
-            "require": {
-                "dasprid/enum": "^1.0.3",
-                "ext-iconv": "*",
-                "php": "^8.1"
-            },
-            "require-dev": {
-                "phly/keep-a-changelog": "^2.12",
-                "phpunit/phpunit": "^10.5.11 || ^11.0.4",
-                "spatie/phpunit-snapshot-assertions": "^5.1.5",
-                "spatie/pixelmatch-php": "^1.2.0",
-                "squizlabs/php_codesniffer": "^3.9"
-            },
-            "suggest": {
-                "ext-imagick": "to generate QR code images"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "BaconQrCode\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "BSD-2-Clause"
-            ],
-            "authors": [
-                {
-                    "name": "Ben Scholzen 'DASPRiD'",
-                    "email": "mail@dasprids.de",
-                    "homepage": "https://dasprids.de/",
-                    "role": "Developer"
-                }
-            ],
-            "description": "BaconQrCode is a QR code generator for PHP.",
-            "homepage": "https://github.com/Bacon/BaconQrCode",
-            "support": {
-                "issues": "https://github.com/Bacon/BaconQrCode/issues",
-                "source": "https://github.com/Bacon/BaconQrCode/tree/v3.1.1"
-            },
-            "time": "2026-04-05T21:06:35+00:00"
-        },
-        {
-            "name": "blade-ui-kit/blade-icons",
-            "version": "1.10.0",
-=======
-            "name": "bacon/bacon-qr-code",
-            "version": "v3.1.1",
->>>>>>> origin/main
             "source": {
                 "type": "git",
                 "url": "https://github.com/Bacon/BaconQrCode.git",
@@ -1247,8 +1182,6 @@
             "time": "2025-07-13T19:59:45+00:00"
         },
         {
-<<<<<<< HEAD
-=======
             "name": "evenement/evenement",
             "version": "v3.0.2",
             "source": {
@@ -1296,7 +1229,6 @@
             "time": "2023-08-08T05:53:35+00:00"
         },
         {
->>>>>>> origin/main
             "name": "fruitcake/php-cors",
             "version": "v1.4.0",
             "source": {
@@ -1431,40 +1363,22 @@
         },
         {
             "name": "guzzlehttp/guzzle",
-<<<<<<< HEAD
-            "version": "7.14.0",
+            "version": "7.14.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/guzzle.git",
-                "reference": "aef242412e13128b5049864867bb49fc37dd39de"
+                "reference": "6b1d2429a2c312474c523aa9017fba0c07b5f4a0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/guzzle/zipball/aef242412e13128b5049864867bb49fc37dd39de",
-                "reference": "aef242412e13128b5049864867bb49fc37dd39de",
-=======
-            "version": "7.13.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/guzzle/guzzle.git",
-                "reference": "bcd989ad36c92d42a3715379af91f2defee5b8dd"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/guzzle/zipball/bcd989ad36c92d42a3715379af91f2defee5b8dd",
-                "reference": "bcd989ad36c92d42a3715379af91f2defee5b8dd",
->>>>>>> origin/main
+                "url": "https://api.github.com/repos/guzzle/guzzle/zipball/6b1d2429a2c312474c523aa9017fba0c07b5f4a0",
+                "reference": "6b1d2429a2c312474c523aa9017fba0c07b5f4a0",
                 "shasum": ""
             },
             "require": {
                 "ext-json": "*",
-<<<<<<< HEAD
                 "guzzlehttp/promises": "^2.5.1",
-                "guzzlehttp/psr7": "^2.12.4",
-=======
-                "guzzlehttp/promises": "^2.5",
-                "guzzlehttp/psr7": "^2.12.3",
->>>>>>> origin/main
+                "guzzlehttp/psr7": "^2.12.5",
                 "php": "^7.2.5 || ^8.0",
                 "psr/http-client": "^1.0",
                 "symfony/deprecation-contracts": "^2.5 || ^3.0",
@@ -1557,11 +1471,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/guzzle/issues",
-<<<<<<< HEAD
-                "source": "https://github.com/guzzle/guzzle/tree/7.14.0"
-=======
-                "source": "https://github.com/guzzle/guzzle/tree/7.13.2"
->>>>>>> origin/main
+                "source": "https://github.com/guzzle/guzzle/tree/7.14.1"
             },
             "funding": [
                 {
@@ -1577,8 +1487,7 @@
                     "type": "tidelift"
                 }
             ],
-<<<<<<< HEAD
-            "time": "2026-07-08T22:54:09+00:00"
+            "time": "2026-07-13T01:32:54+00:00"
         },
         {
             "name": "guzzlehttp/promises",
@@ -1592,22 +1501,6 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/guzzle/promises/zipball/9ad1e4fc607446a055b95870c7f668e93b5cff29",
                 "reference": "9ad1e4fc607446a055b95870c7f668e93b5cff29",
-=======
-            "time": "2026-07-05T19:00:11+00:00"
-        },
-        {
-            "name": "guzzlehttp/promises",
-            "version": "2.5.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/guzzle/promises.git",
-                "reference": "4360e982f87f5f258bf872d094647791db2f4c8e"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/promises/zipball/4360e982f87f5f258bf872d094647791db2f4c8e",
-                "reference": "4360e982f87f5f258bf872d094647791db2f4c8e",
->>>>>>> origin/main
                 "shasum": ""
             },
             "require": {
@@ -1662,11 +1555,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/promises/issues",
-<<<<<<< HEAD
                 "source": "https://github.com/guzzle/promises/tree/2.5.1"
-=======
-                "source": "https://github.com/guzzle/promises/tree/2.5.0"
->>>>>>> origin/main
             },
             "funding": [
                 {
@@ -1682,37 +1571,20 @@
                     "type": "tidelift"
                 }
             ],
-<<<<<<< HEAD
             "time": "2026-07-08T15:48:39+00:00"
         },
         {
             "name": "guzzlehttp/psr7",
-            "version": "2.12.4",
+            "version": "2.12.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/psr7.git",
-                "reference": "51e27f9e2b332ab3e72f4520d5ff4f3c68c3577c"
+                "reference": "9365d578a9fd1552ad6ca9c3cb530708526feb09"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/psr7/zipball/51e27f9e2b332ab3e72f4520d5ff4f3c68c3577c",
-                "reference": "51e27f9e2b332ab3e72f4520d5ff4f3c68c3577c",
-=======
-            "time": "2026-06-02T12:23:43+00:00"
-        },
-        {
-            "name": "guzzlehttp/psr7",
-            "version": "2.12.3",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/guzzle/psr7.git",
-                "reference": "7ec62dc3f44aa218487dbed81a9bf9bc647be55d"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/psr7/zipball/7ec62dc3f44aa218487dbed81a9bf9bc647be55d",
-                "reference": "7ec62dc3f44aa218487dbed81a9bf9bc647be55d",
->>>>>>> origin/main
+                "url": "https://api.github.com/repos/guzzle/psr7/zipball/9365d578a9fd1552ad6ca9c3cb530708526feb09",
+                "reference": "9365d578a9fd1552ad6ca9c3cb530708526feb09",
                 "shasum": ""
             },
             "require": {
@@ -1802,11 +1674,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/psr7/issues",
-<<<<<<< HEAD
-                "source": "https://github.com/guzzle/psr7/tree/2.12.4"
-=======
-                "source": "https://github.com/guzzle/psr7/tree/2.12.3"
->>>>>>> origin/main
+                "source": "https://github.com/guzzle/psr7/tree/2.12.5"
             },
             "funding": [
                 {
@@ -1822,23 +1690,7 @@
                     "type": "tidelift"
                 }
             ],
-<<<<<<< HEAD
-            "time": "2026-07-08T15:56:20+00:00"
-        },
-        {
-            "name": "guzzlehttp/uri-template",
-            "version": "v1.0.9",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/guzzle/uri-template.git",
-                "reference": "d7580af6d3f8384325d9cd3e99b21c3ed1848176"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/uri-template/zipball/d7580af6d3f8384325d9cd3e99b21c3ed1848176",
-                "reference": "d7580af6d3f8384325d9cd3e99b21c3ed1848176",
-=======
-            "time": "2026-06-23T15:21:08+00:00"
+            "time": "2026-07-13T01:27:20+00:00"
         },
         {
             "name": "guzzlehttp/uri-template",
@@ -1852,7 +1704,6 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/guzzle/uri-template/zipball/9c19128923b05a5d7355e5d2318d7808b7e33bbd",
                 "reference": "9c19128923b05a5d7355e5d2318d7808b7e33bbd",
->>>>>>> origin/main
                 "shasum": ""
             },
             "require": {
@@ -1909,11 +1760,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/uri-template/issues",
-<<<<<<< HEAD
-                "source": "https://github.com/guzzle/uri-template/tree/v1.0.9"
-=======
                 "source": "https://github.com/guzzle/uri-template/tree/v1.0.8"
->>>>>>> origin/main
             },
             "funding": [
                 {
@@ -1929,11 +1776,7 @@
                     "type": "tidelift"
                 }
             ],
-<<<<<<< HEAD
-            "time": "2026-07-08T16:19:22+00:00"
-=======
             "time": "2026-06-23T13:02:23+00:00"
->>>>>>> origin/main
         },
         {
             "name": "laravel/framework",
@@ -2215,8 +2058,6 @@
                 "source": "https://github.com/laravel/prompts/tree/v0.3.21"
             },
             "time": "2026-06-26T00:11:25+00:00"
-<<<<<<< HEAD
-=======
         },
         {
             "name": "laravel/reverb",
@@ -2359,7 +2200,6 @@
                 "source": "https://github.com/laravel/sanctum"
             },
             "time": "2026-04-30T11:46:25+00:00"
->>>>>>> origin/main
         },
         {
             "name": "laravel/serializable-closure",
@@ -2759,7 +2599,6 @@
                 "source": "https://github.com/thephpleague/flysystem/tree/3.35.2"
             },
             "time": "2026-07-06T14:42:07+00:00"
-<<<<<<< HEAD
         },
         {
             "name": "league/flysystem-aws-s3-v3",
@@ -2815,8 +2654,6 @@
                 "source": "https://github.com/thephpleague/flysystem-aws-s3-v3/tree/3.35.2"
             },
             "time": "2026-07-01T23:25:49+00:00"
-=======
->>>>>>> origin/main
         },
         {
             "name": "league/flysystem-local",
@@ -3209,7 +3046,6 @@
             "time": "2026-01-02T08:56:05+00:00"
         },
         {
-<<<<<<< HEAD
             "name": "mtdowling/jmespath.php",
             "version": "2.9.2",
             "source": {
@@ -3277,18 +3113,6 @@
         },
         {
             "name": "nesbot/carbon",
-            "version": "3.13.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/CarbonPHP/carbon.git",
-                "reference": "2937ad3d1d2c506fd2bc97d571438a95641f44e2"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/CarbonPHP/carbon/zipball/2937ad3d1d2c506fd2bc97d571438a95641f44e2",
-                "reference": "2937ad3d1d2c506fd2bc97d571438a95641f44e2",
-=======
-            "name": "nesbot/carbon",
             "version": "3.13.0",
             "source": {
                 "type": "git",
@@ -3299,7 +3123,6 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/CarbonPHP/carbon/zipball/40f6618f052df16b545f626fbf9a878e6497d16a",
                 "reference": "40f6618f052df16b545f626fbf9a878e6497d16a",
->>>>>>> origin/main
                 "shasum": ""
             },
             "require": {
@@ -3391,11 +3214,7 @@
                     "type": "tidelift"
                 }
             ],
-<<<<<<< HEAD
-            "time": "2026-07-09T18:23:49+00:00"
-=======
             "time": "2026-06-18T13:49:15+00:00"
->>>>>>> origin/main
         },
         {
             "name": "nette/schema",
@@ -4582,8 +4401,6 @@
                 "source": "https://github.com/ramsey/uuid/tree/4.9.3"
             },
             "time": "2026-06-18T03:57:49+00:00"
-<<<<<<< HEAD
-=======
         },
         {
             "name": "ratchet/rfc6455",
@@ -5257,7 +5074,6 @@
                 }
             ],
             "time": "2026-03-17T22:46:46+00:00"
->>>>>>> origin/main
         },
         {
             "name": "stripe/stripe-php",
@@ -5885,7 +5701,6 @@
             "time": "2026-06-05T06:23:12+00:00"
         },
         {
-<<<<<<< HEAD
             "name": "symfony/filesystem",
             "version": "v7.4.11",
             "source": {
@@ -5965,17 +5780,6 @@
             },
             "dist": {
                 "type": "zip",
-=======
-            "name": "symfony/finder",
-            "version": "v7.4.14",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/symfony/finder.git",
-                "reference": "13b38720174286f55d1761152b575a8d1436fc25"
-            },
-            "dist": {
-                "type": "zip",
->>>>>>> origin/main
                 "url": "https://api.github.com/repos/symfony/finder/zipball/13b38720174286f55d1761152b575a8d1436fc25",
                 "reference": "13b38720174286f55d1761152b575a8d1436fc25",
                 "shasum": ""
@@ -10698,4 +10502,3 @@
     "platform-dev": {},
     "plugin-api-version": "2.9.0"
 }
-

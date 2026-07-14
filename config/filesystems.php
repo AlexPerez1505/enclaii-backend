@@ -15,6 +15,12 @@ return [
 
     'default' => env('FILESYSTEM_DISK', 'local'),
 
+    'media_disk' => env('MEDIA_DISK', 'public'),
+
+    'media_signed_urls' => env('MEDIA_SIGNED_URLS', env('MEDIA_DISK', 'public') === 's3'),
+
+    'media_url_ttl' => env('MEDIA_URL_TTL', 60),
+
     /*
     |--------------------------------------------------------------------------
     | Media Disk

@@ -1,47 +1,43 @@
 <?php
 
+use App\Http\Controllers\AgendaController;
+use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\Auth\EndoCareAuthController;
+use App\Http\Controllers\CapturePairingCodeController;
+use App\Http\Controllers\ClinicaMemberController;
+use App\Http\Controllers\ConfigurationBackupController;
+use App\Http\Controllers\CronController;
+use App\Http\Controllers\CriticalSecurityController;
 use App\Http\Controllers\CustomerSuccess\AnuncioDashboardController;
 use App\Http\Controllers\CustomerSuccess\DashboardController;
 use App\Http\Controllers\CustomerSuccess\RolesController;
-use App\Http\Controllers\IaReporteController;
-use App\Http\Controllers\SettingsController;
-use App\Http\Controllers\WhatsAppController;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Password;
-use App\Http\Controllers\AgendaController;
-use App\Http\Controllers\PacienteController;
-use App\Http\Controllers\NuevoEstudioController;
-use App\Models\Paciente;
-use App\Models\Reporte;
-use App\Http\Controllers\AiAssistantController;
-use App\Http\Controllers\StripeController;
-<<<<<<< HEAD
-=======
-use App\Http\Controllers\StorageServeController;
-use App\Http\Controllers\CapturePairingCodeController;
-use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\CronController;
 use App\Http\Controllers\CustomerSuccessController;
-use App\Http\Controllers\ConfigurationBackupController;
+use App\Http\Controllers\IaReporteController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\NuevoEstudioController;
+use App\Http\Controllers\PacienteController;
+use App\Http\Controllers\PasswordController;
+use App\Http\Controllers\PublicPatientPreregistrationController;
+use App\Http\Controllers\QrRegistrationController;
+use App\Http\Controllers\SecuritySettingsController;
+use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\SignatureController;
 use App\Http\Controllers\SoporteChatController;
 use App\Http\Controllers\SoporteController;
+use App\Http\Controllers\StorageServeController;
+use App\Http\Controllers\StripeController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\UserSessionController;
+use App\Http\Controllers\WhatsAppController;
+use App\Models\Paciente;
+use App\Models\Reporte;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/storage/{path}', [StorageServeController::class, 'show'])
     ->where('path', '.*')
     ->name('storage.fallback');
->>>>>>> origin/main
-use App\Http\Controllers\ConfigurationBackupController;
-use App\Http\Controllers\SignatureController;
-use App\Http\Controllers\PasswordController;
-use App\Http\Controllers\UserSessionController;
-use App\Http\Controllers\ClinicaMemberController;
-use App\Http\Controllers\CriticalSecurityController;
-use App\Http\Controllers\SecuritySettingsController;
-use App\Http\Controllers\QrRegistrationController;
-use App\Http\Controllers\PublicPatientPreregistrationController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -57,15 +53,12 @@ Route::post('/webhooks/whatsapp', [WhatsAppController::class, 'webhook'])
 Route::post('/webhooks/stripe', [StripeController::class, 'webhook'])
     ->name('webhooks.stripe');
 
-<<<<<<< HEAD
-=======
 // Cron endpoint para cron-job.org (protegido por header X-Cron-Token)
 Route::get('/cron/notificaciones', [CronController::class, 'run'])
     ->name('cron.notificaciones');
 Route::get('/cron/anuncios', [CronController::class, 'runAnuncios'])
     ->name('cron.anuncios');
 
->>>>>>> origin/main
 Route::get('/registro-paciente/completado', [PublicPatientPreregistrationController::class, 'success'])
     ->name('qr.public.success');
 Route::get('/registro-paciente/expirado', [PublicPatientPreregistrationController::class, 'expired'])
@@ -148,8 +141,6 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     Route::patch('/configuracion/general', [SettingsController::class, 'update'])
         ->name('configuracion.general.update');
 
-<<<<<<< HEAD
-=======
     Route::patch('/configuracion/perfil', [SettingsController::class, 'updatePerfil'])
         ->name('configuracion.perfil.update');
     Route::post('/configuracion/foto', [SettingsController::class, 'updateFoto'])
@@ -164,7 +155,6 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     // ===== Aceptaciones legales =====
     Route::post('/legal/acceptances', [SettingsController::class, 'storeLegalAcceptances'])
         ->name('legal.acceptances.store');
->>>>>>> origin/main
     Route::post('/configuracion/copias', [ConfigurationBackupController::class, 'store'])
         ->name('configuracion.backups.store');
     Route::post('/configuracion/copias/{backup}/restaurar', [ConfigurationBackupController::class, 'restore'])
@@ -413,11 +403,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
                 ->orderByDesc('capturado_en')
                 ->orderByDesc('id')
                 ->get()
-<<<<<<< HEAD
                 ->map(fn ($a) => media_url($a->path))
-=======
-                ->map(fn ($a) => 'storage/'.$a->path.'?v='.($a->updated_at?->timestamp ?? $a->id))
->>>>>>> origin/main
                 ->values();
         }
 
@@ -510,11 +496,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
                 ->get()
                 ->map(fn ($a) => [
                     'id' => $a->id,
-<<<<<<< HEAD
                     'url' => media_url($a->path),
-=======
-                    'url' => asset('storage/'.$a->path).'?v='.($a->updated_at?->timestamp ?? $a->id),
->>>>>>> origin/main
                     'titulo' => $a->nombre_original,
                 ])
                 ->values();
@@ -625,11 +607,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
                     ->where('tipo', 'imagen')
                     ->orderByDesc('capturado_en')
                     ->get()
-<<<<<<< HEAD
                     ->map(fn ($a) => ['url' => media_url($a->path), 'titulo' => $a->nombre_original]);
-=======
-                    ->map(fn ($a) => ['url' => asset('storage/' . $a->path).'?v='.($a->updated_at?->timestamp ?? $a->id), 'titulo' => $a->nombre_original]);
->>>>>>> origin/main
             }
             // Si el reporte no tiene plantilla asignada, cargar la que corresponda al tipo de estudio
             if ($reporte && ! $reporte->plantilla && $reporte->estudio?->tipo) {
@@ -746,11 +724,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
         ->middleware('critical.password:studies')
         ->name('nuevo-estudio.configuracion.update');
 
-<<<<<<< HEAD
-    /* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ GalerÃƒÆ’Ã‚Â­a ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
-=======
     /* ── Galería ── */
->>>>>>> origin/main
     Route::get('/galeria', function () {
         $colores = [
             'linear-gradient(135deg,#c084fc,#a78bfa)',
@@ -888,11 +862,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
                 'n' => $i + 1,
                 'ts' => optional($a->capturado_en)->format('H:i:s') ?? '',
                 'bg' => 'radial-gradient(ellipse at 50% 50%,#1a1208 0%,#0a0610 100%)',
-<<<<<<< HEAD
                 'src' => media_url($a->path),
-=======
-                'src' => asset('storage/' . $a->path).'?v='.($a->updated_at?->timestamp ?? $a->id),
->>>>>>> origin/main
                 'id' => $a->id,
             ];
         })->all();
@@ -942,11 +912,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
             'ok' => true,
             'archivo' => [
                 'id' => $archivo->id,
-<<<<<<< HEAD
                 'url' => media_url($archivo->path),
-=======
-                'url' => asset('storage/'.$archivo->path).'?v='.($archivo->updated_at?->timestamp ?? $archivo->id),
->>>>>>> origin/main
                 'path' => $archivo->path,
             ],
         ]);
@@ -980,22 +946,13 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
             'ok' => true,
             'archivo' => [
                 'id' => $copy->id,
-<<<<<<< HEAD
                 'url' => media_url($copy->path),
-=======
-                'url' => asset('storage/'.$copy->path).'?v='.($copy->updated_at?->timestamp ?? $copy->id),
->>>>>>> origin/main
                 'path' => $copy->path,
             ],
         ]);
     })->middleware('critical.password:studies')
         ->name('galeria.imagen.guardar-copia');
 
-<<<<<<< HEAD
-    /* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Finanzas ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
-    // Route::get('/finanzas', function () {
-    //     return view('finanzas.index');
-    // })->name('finanzas');
 });
 
 
@@ -2067,38 +2024,10 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     })->withoutMiddleware(['auth', 'auth.session', 'subscribed'])->name('tauri.configuracion.update');
     Route::resource('pacientes', PacienteController::class)
         ->middlewareFor(['update', 'destroy'], 'critical.password:patients');
-
-    Route::get('/qr', [QrRegistrationController::class, 'index'])->name('qr.index');
-    Route::post('/qr/enlaces', [QrRegistrationController::class, 'store'])->name('qr.links.store');
-    Route::get('/qr/enlaces/{link}/imagen', [QrRegistrationController::class, 'image'])->name('qr.links.image');
-    Route::delete('/qr/enlaces/{link}', [QrRegistrationController::class, 'destroy'])->name('qr.links.destroy');
-    Route::delete('/qr/enlaces/{link}/eliminar', [QrRegistrationController::class, 'archive'])->name('qr.links.archive');
-    Route::post('/qr/preregistros/{preregistration}/aceptar', [QrRegistrationController::class, 'accept'])
-        ->name('qr.preregistrations.accept');
-    Route::post('/qr/preregistros/{preregistration}/rechazar', [QrRegistrationController::class, 'reject'])
-        ->name('qr.preregistrations.reject');
-
-    Route::get('/agenda', [AgendaController::class, 'index'])->name('agenda');
-    Route::get('/agendar', [AgendaController::class, 'create'])->name('agendar');
-
-=======
-    /* ── Finanzas ── */
-    Route::get('/finanzas', function () {
-        return view('finanzas.index');
-    })->name('finanzas');
-});
-
-
-Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
-    Route::resource('pacientes', PacienteController::class)
-        ->middlewareFor(['update', 'destroy'], 'critical.password:patients');
-<<<<<<< HEAD
     Route::post('/pacientes/{paciente}/add-medico', [PacienteController::class, 'addMedico'])
         ->name('pacientes.add-medico');
     Route::post('/pacientes/{paciente}/update-campo', [PacienteController::class, 'updateCampo'])
         ->name('pacientes.update-campo');
-=======
->>>>>>> Ricardo-Galeria
 
     Route::get('/qr', [QrRegistrationController::class, 'index'])->name('qr.index');
     Route::post('/qr/enlaces', [QrRegistrationController::class, 'store'])->name('qr.links.store');
@@ -2113,21 +2042,14 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     Route::get('/agenda', [AgendaController::class, 'index'])->name('agenda');
     Route::get('/agendar', [AgendaController::class, 'create'])->name('agendar');
 
->>>>>>> origin/main
     Route::post('/agenda/citas', [AgendaController::class, 'store'])->name('agenda.citas.store');
     Route::put('/agenda/citas/{cita}', [AgendaController::class, 'update'])->name('agenda.citas.update');
     Route::patch('/agenda/citas/{cita}/estado', [AgendaController::class, 'cambiarEstado'])->name('agenda.citas.estado');
     Route::delete('/agenda/citas/{cita}', [AgendaController::class, 'destroy'])->name('agenda.citas.destroy');
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
     Route::post('/agenda/bloqueos', [AgendaController::class, 'storeBloqueo'])->name('agenda.bloqueos.store');
     Route::delete('/agenda/bloqueos/{bloqueo}', [AgendaController::class, 'destroyBloqueo'])->name('agenda.bloqueos.destroy');
 
-=======
->>>>>>> Ricardo-Galeria
->>>>>>> origin/main
     Route::get('/finanzas', function () {
         return view('finanzas.index');
     })->name('finanzas');
@@ -2193,6 +2115,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/soporte/tickets', [TicketController::class, 'store'])->name('soporte.tickets.store');
     Route::get('/soporte/chat/history', [SoporteChatController::class, 'history'])->name('soporte.chat.history');
     Route::post('/soporte/chat', [SoporteChatController::class, 'chat'])->name('soporte.chat');
+    Route::get('/soporte/chat/poll', [SoporteChatController::class, 'poll'])->name('soporte.chat.poll');
+    Route::post('/soporte/chat/new', [SoporteChatController::class, 'newConversation'])->name('soporte.chat.new');
 
     Route::post('/ia/conversations/start', [AiAssistantController::class, 'start'])->name('ia.conversations.start');
     Route::get('/ia/conversations', [AiAssistantController::class, 'conversations'])->name('ia.conversations');
@@ -2202,9 +2126,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/ia/history', [AiAssistantController::class, 'history'])->name('ia.history');
     Route::post('/ia/reset', [AiAssistantController::class, 'reset'])->name('ia.reset');
 });
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
 
 // Customer Success API (sesión web, usado por el JS de las vistas CS)
 Route::middleware(['auth', 'customer.success'])->prefix('api/customer-success')->group(function () {
@@ -2226,6 +2147,14 @@ Route::middleware(['auth', 'customer.success'])->prefix('customer-success')->nam
     Route::get('/api/users', [CustomerSuccessController::class, 'users'])->name('api.users');
     Route::post('/api/users/{user}/assign-role', [CustomerSuccessController::class, 'assignRole'])->name('api.users.assign-role');
     Route::post('/api/users/{user}/remove-role', [CustomerSuccessController::class, 'removeRole'])->name('api.users.remove-role');
+
+    Route::get('/soporte', [\App\Http\Controllers\CustomerSuccess\SoporteAgentController::class, 'index'])->name('soporte');
+    Route::get('/soporte/{conversation}', [\App\Http\Controllers\CustomerSuccess\SoporteAgentController::class, 'show'])->name('soporte.chat');
+    Route::post('/soporte/{conversation}/tomar', [\App\Http\Controllers\CustomerSuccess\SoporteAgentController::class, 'take'])->name('soporte.take');
+    Route::post('/soporte/{conversation}/responder', [\App\Http\Controllers\CustomerSuccess\SoporteAgentController::class, 'reply'])->name('soporte.reply');
+    Route::get('/api/soporte/pendientes', [\App\Http\Controllers\CustomerSuccess\SoporteAgentController::class, 'pending'])->name('api.soporte.pending');
+    Route::get('/api/soporte/{conversation}/poll', [\App\Http\Controllers\CustomerSuccess\SoporteAgentController::class, 'poll'])->name('api.soporte.poll');
+    Route::post('/api/soporte/{conversation}/cerrar', [\App\Http\Controllers\CustomerSuccess\SoporteAgentController::class, 'close'])->name('api.soporte.close');
 });
 
 
@@ -2233,6 +2162,3 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/capture/pairing-code', [CapturePairingCodeController::class, 'store'])
         ->name('capture.pairing-code.store');
 });
-=======
->>>>>>> Ricardo-Galeria
->>>>>>> origin/main

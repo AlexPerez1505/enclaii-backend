@@ -6,8 +6,8 @@ Esta guia deja Laravel en Hostinger y envia fotos, capturas y videos a AWS S3.
 
 1. En AWS, crea un bucket privado para produccion, por ejemplo `enclaii-prod-media`.
 2. Deja activado **Block Public Access**.
-3. Activa versionado si quieres recuperar archivos eliminados accidentalmente.
-4. Recomendado: usa cifrado SSE-S3 o SSE-KMS.
+3. Activa versionado para poder recuperar archivos eliminados accidentalmente.
+4. Usa cifrado predeterminado **SSE-S3**.
 
 ## 2. Crear usuario IAM
 
@@ -38,7 +38,7 @@ Crea un usuario o rol con acceso solo al bucket de medios. Politica minima:
 }
 ```
 
-Cambia `enclaii-prod-media` por el nombre real del bucket.
+Cambia `enclaii-prod-media` por el nombre real del bucket si usaste otro.
 
 ## 3. Variables en Hostinger
 
@@ -51,7 +51,7 @@ MEDIA_URL_TTL=120
 
 AWS_ACCESS_KEY_ID=REEMPLAZAR
 AWS_SECRET_ACCESS_KEY=REEMPLAZAR
-AWS_DEFAULT_REGION=us-east-1
+AWS_DEFAULT_REGION=us-east-2
 AWS_BUCKET=enclaii-prod-media
 AWS_USE_PATH_STYLE_ENDPOINT=false
 ```

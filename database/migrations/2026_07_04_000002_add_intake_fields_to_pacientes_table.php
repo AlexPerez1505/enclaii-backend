@@ -9,12 +9,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('pacientes', function (Blueprint $table) {
-<<<<<<< HEAD
-            $table->text('alergias')->nullable()->after('diagnostico_preliminar');
-            $table->text('enfermedades')->nullable()->after('alergias');
-            $table->text('medicamentos_actuales')->nullable()->after('enfermedades');
-            $table->text('antecedentes_medicos')->nullable()->after('medicamentos_actuales');
-=======
             if (! Schema::hasColumn('pacientes', 'alergias')) {
                 $table->text('alergias')->nullable()->after('diagnostico_preliminar');
             }
@@ -27,21 +21,12 @@ return new class extends Migration
             if (! Schema::hasColumn('pacientes', 'antecedentes_medicos')) {
                 $table->text('antecedentes_medicos')->nullable()->after('medicamentos_actuales');
             }
->>>>>>> origin/main
         });
     }
 
     public function down(): void
     {
         Schema::table('pacientes', function (Blueprint $table) {
-<<<<<<< HEAD
-            $table->dropColumn([
-                'alergias',
-                'enfermedades',
-                'medicamentos_actuales',
-                'antecedentes_medicos',
-            ]);
-=======
             $columns = [];
             if (Schema::hasColumn('pacientes', 'alergias')) {
                 $columns[] = 'alergias';
@@ -58,7 +43,6 @@ return new class extends Migration
             if ($columns !== []) {
                 $table->dropColumn($columns);
             }
->>>>>>> origin/main
         });
     }
 };

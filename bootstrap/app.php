@@ -27,10 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'subscribed' => \App\Http\Middleware\EnsureSubscribed::class,
             'clinic.owner' => \App\Http\Middleware\EnsureClinicaOwner::class,
             'critical.password' => \App\Http\Middleware\RequireCriticalPassword::class,
-<<<<<<< HEAD
-=======
             'customer.success' => \App\Http\Middleware\EnsureCustomerSuccess::class,
->>>>>>> origin/main
         ]);
 
         // Usuarios ya autenticados que visitan /login o /registro:

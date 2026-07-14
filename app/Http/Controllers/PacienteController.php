@@ -5,10 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Paciente;
 use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
-<<<<<<< HEAD
-=======
-use Illuminate\Support\Facades\Storage;
->>>>>>> origin/main
 use Illuminate\Validation\Rule;
 
 class PacienteController extends Controller
@@ -75,23 +71,13 @@ class PacienteController extends Controller
             ]);
 
             if ($request->hasFile('foto')) {
-<<<<<<< HEAD
                 $validated['foto'] = media_store(
                     $request->file('foto'),
-                    'clinicas/'.$request->user()->clinica_id.'/pacientes',
-                );
-            }
-
-            $paciente = Paciente::create($validated);
-=======
-                $validated['foto'] = $request->file('foto')->store(
-                    'clinicas/'.$request->user()->clinica_id.'/pacientes',
-                    'public',
+                    'clinicas/'.$request->user()->clinica_id.'/pacientes'
                 );
             }
 
             $paciente = Paciente::create(collect($validated)->except('estudios_archivos')->toArray());
->>>>>>> origin/main
             $this->activity->record(
                 'patient_created',
                 'patients',
@@ -99,12 +85,10 @@ class PacienteController extends Controller
                 $paciente,
                 request: $request,
             );
-<<<<<<< HEAD
-=======
 
             if ($request->hasFile('estudios_archivos')) {
                 foreach ($request->file('estudios_archivos') as $archivo) {
-                    $path = $archivo->store('paciente_docs/' . $paciente->id, 'public');
+                    $path = media_store($archivo, 'paciente_docs/' . $paciente->id);
                     \App\Models\PacienteDocumento::create([
                         'paciente_id' => $paciente->id,
                         'path' => $path,
@@ -114,7 +98,6 @@ class PacienteController extends Controller
                     ]);
                 }
             }
->>>>>>> origin/main
 
             if ($request->ajax() || $request->expectsJson()) {
                 return response()->json([
@@ -188,23 +171,13 @@ class PacienteController extends Controller
         if ($request->hasFile('foto')) {
             media_delete($paciente->foto);
 
-<<<<<<< HEAD
             $validated['foto'] = media_store(
                 $request->file('foto'),
-                'clinicas/'.$request->user()->clinica_id.'/pacientes',
-            );
-        }
-
-        $paciente->update($validated);
-=======
-            $validated['foto'] = $request->file('foto')->store(
-                'clinicas/'.$request->user()->clinica_id.'/pacientes',
-                'public',
+                'clinicas/'.$request->user()->clinica_id.'/pacientes'
             );
         }
 
         $paciente->update(collect($validated)->except('estudios_archivos')->toArray());
->>>>>>> origin/main
         $this->activity->record(
             'patient_updated',
             'patients',
@@ -212,8 +185,6 @@ class PacienteController extends Controller
             $paciente,
             request: $request,
         );
-<<<<<<< HEAD
-=======
 
         \Log::info('PACIENTE UPDATE - hasFile estudios_archivos: ' . ($request->hasFile('estudios_archivos') ? 'SI' : 'NO'));
         \Log::info('PACIENTE UPDATE - allFiles: ' . json_encode(array_keys($request->allFiles())));
@@ -221,7 +192,7 @@ class PacienteController extends Controller
         if ($request->hasFile('estudios_archivos')) {
             foreach ($request->file('estudios_archivos') as $archivo) {
                 \Log::info('Guardando archivo: ' . $archivo->getClientOriginalName());
-                $path = $archivo->store('paciente_docs/' . $paciente->id, 'public');
+                $path = media_store($archivo, 'paciente_docs/' . $paciente->id);
                 \App\Models\PacienteDocumento::create([
                     'paciente_id' => $paciente->id,
                     'path' => $path,
@@ -235,7 +206,6 @@ class PacienteController extends Controller
         if ($request->ajax() || $request->expectsJson() || $request->hasHeader('X-Requested-With')) {
             return response()->json(['success' => true]);
         }
->>>>>>> origin/main
 
         return redirect()
             ->route('pacientes.index')
@@ -288,7 +258,6 @@ class PacienteController extends Controller
                 });
 
                 media_delete($estudio->reporte_path);
-
                 media_delete($estudio->video_path);
 
                 $estudio->delete();

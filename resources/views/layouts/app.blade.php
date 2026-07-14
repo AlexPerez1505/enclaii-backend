@@ -3,10 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<<<<<<< HEAD
-=======
 <meta name="csrf-token" content="{{ csrf_token() }}">
->>>>>>> origin/main
 <meta name="google" content="notranslate">
 <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}?v=20260627-2">
 <script>
@@ -1325,7 +1322,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
           $userInitials = collect($userParts)->take(2)->map(fn($p) => mb_substr($p, 0, 1))->join('');
           $userInitials = mb_strtoupper($userInitials ?: mb_substr($userName, 0, 2));
           $userFoto = auth()->check() && auth()->user()->foto_perfil
-              ? asset('storage/' . auth()->user()->foto_perfil)
+              ? media_url(auth()->user()->foto_perfil)
               : null;
         @endphp
         <div class="profile-wrap">
@@ -2405,7 +2402,6 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeEditor(); });
   })();
 </script>
-<<<<<<< HEAD
 {{-- Modal genérico de confirmación de eliminación --}}
 <div id="enclaiiConfirmDeleteModal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
   <div style="background:var(--card,#0E1740);border:1px solid var(--stroke-strong);border-radius:16px;padding:28px 24px;max-width:420px;width:90%;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.5);">
@@ -2532,7 +2528,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
     el.removeAttribute('data-delete-confirmed');
   }, true);
 })();
-=======
+</script>
 
 {{-- Modal de alerta genérico --}}
 <div class="app-alert-overlay" id="appAlertOverlay" onclick="if(event.target===this) hideAppAlert();">
@@ -2571,7 +2567,6 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
       hideAppAlert();
     }
   });
->>>>>>> origin/main
 </script>
 
 @stack('scripts')
