@@ -71,6 +71,9 @@ class PublicPatientPreregistrationController extends Controller
             'medicamentos_actuales' => ['nullable', 'string', 'max:3000'],
             'antecedentes_medicos' => ['nullable', 'string', 'max:5000'],
             'observaciones' => ['nullable', 'string', 'max:3000'],
+            'foto_upload' => ($cameraAllowed || $galleryAllowed)
+                ? ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096']
+                : ['prohibited'],
             'foto' => $galleryAllowed
                 ? ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096']
                 : ['prohibited'],
@@ -104,6 +107,10 @@ class PublicPatientPreregistrationController extends Controller
             'medicamentos_actuales.required' => 'Indica tus medicamentos actuales o escribe “Ninguno”.',
             'antecedentes_medicos.required' => 'Ingresa tus antecedentes médicos.',
             'observaciones.required' => 'Agrega tus observaciones.',
+            'foto_upload.image' => 'La foto debe ser una imagen válida.',
+            'foto_upload.mimes' => 'La foto debe estar en formato JPG, PNG o WebP.',
+            'foto_upload.max' => 'La foto no puede pesar más de 4 MB.',
+            'foto_upload.prohibited' => 'La fotografía no está habilitada para este pre-registro.',
             'foto.image' => 'La foto debe ser una imagen válida.',
             'foto.mimes' => 'La foto debe estar en formato JPG, PNG o WebP.',
             'foto.max' => 'La foto no puede pesar más de 4 MB.',
@@ -115,7 +122,8 @@ class PublicPatientPreregistrationController extends Controller
             'privacy_consent.accepted' => 'Debes aceptar el aviso de privacidad para enviar tus datos.',
         ]);
 
-        $photo = ($cameraAllowed ? $request->file('foto_camera') : null)
+        $photo = (($cameraAllowed || $galleryAllowed) ? $request->file('foto_upload') : null)
+            ?? ($cameraAllowed ? $request->file('foto_camera') : null)
             ?? ($galleryAllowed ? $request->file('foto') : null);
 
         if (
