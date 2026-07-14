@@ -42,7 +42,7 @@ class StoreAnuncioRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'titulo' => ['required', 'string', 'max:255'],
+            'titulo' => ['required', 'string', 'max:80'],
             'contenido' => ['required', 'string'],
             'tipo' => ['required', 'string', 'in:' . implode(',', self::TIPOS)],
             'publico_objetivo' => ['required', 'string', 'in:' . implode(',', self::PUBLICOS)],

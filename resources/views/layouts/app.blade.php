@@ -405,8 +405,8 @@ html[data-theme="light"] .side-help { background: var(--bg); border:none; }
 .notif-item.read .notif-ico{opacity:.55}
 .notif-item.read .notif-body strong{color:var(--txt-soft);font-weight:600}
 .notif-body{flex:1;min-width:0}
-.notif-body strong{display:block;font-size:13px;font-weight:700;color:var(--txt);line-height:1.3}
-.notif-body span{display:block;font-size:11.5px;color:var(--txt-soft);margin-top:2px;line-height:1.4}
+.notif-body strong{display:block;font-size:13px;font-weight:700;color:var(--txt);line-height:1.3;max-width:100%;word-break:break-word;overflow-wrap:break-word;hyphens:auto}
+.notif-body span{display:block;font-size:11.5px;color:var(--txt-soft);margin-top:2px;line-height:1.4;max-width:100%;word-break:break-word;overflow-wrap:break-word}
 .notif-body time{display:block;font-size:10.5px;color:var(--txt-soft);margin-top:4px;opacity:.7}
 .notif-item[data-preview="1"]{cursor:pointer}
 html[data-theme="light"] .notif-item:not(.read){background:linear-gradient(90deg, rgba(37,99,235,.12) 0%, rgba(37,99,235,.05) 60%, transparent 100%);border-left-color:#2563eb}
@@ -439,9 +439,12 @@ html[data-theme="light"] .notif-item.read:hover{background:linear-gradient(90deg
 html[data-theme="light"] .notif-pv-close{background:rgba(0,0,0,.08);color:#1e293b}
 html[data-theme="light"] .notif-pv-close:hover{background:rgba(0,0,0,.15)}
 .notif-pv-card{width:100%;border-radius:16px;padding:28px;color:var(--txt);transition:all .2s;user-select:none}
-.notif-pv-card h2{margin:0 0 12px;font-size:18px;font-weight:800}
+.notif-pv-card h2{
+  margin:0 0 12px;font-size:18px;font-weight:800;
+  max-width:100%;word-break:break-word;overflow-wrap:break-word;hyphens:auto;line-height:1.25
+}
 .notif-pv-card .meta{font-size:12px;margin-bottom:16px;background:none !important}
-.notif-pv-card .body{font-size:13px;line-height:1.7}
+.notif-pv-card .body{font-size:13px;line-height:1.7;word-break:break-word;overflow-wrap:break-word}
 .notif-pv-card .body ul,.notif-pv-card .body ol{padding-left:20px}
 .notif-pv-card .pv-badge{display:inline-flex;align-items:center;gap:6px;border-radius:20px;font-size:11px;font-weight:700;padding:4px 12px;margin-bottom:14px}
 .notif-pv-card .pv-icon{font-size:28px;margin-bottom:12px;display:block}

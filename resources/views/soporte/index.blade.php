@@ -418,7 +418,7 @@ html[data-theme="light"] .call-card{background:#fff;border-color:#dbe5f5;box-sha
         <button class="sop-quick-opt" data-key="subir_estudio" type="button">¿Cómo subo un estudio?</button>
         <button class="sop-quick-opt" data-key="problema_cuenta" type="button">Problema con mi cuenta</button>
         <button class="sop-quick-opt sop-quick-more" id="btnMoreOpts" type="button">Más ▾</button>
-        <button class="sop-quick-opt agent" data-key="hablar_agente" type="button">💬 Hablar con un agente</button>
+        <button class="sop-quick-opt agent" data-key="hablar_agente" type="button"> Hablar con un agente</button>
         <div class="sop-quick-extra hidden" id="soporteExtraOpts">
           <button class="sop-quick-opt" data-key="facturacion" type="button">Facturación</button>
           <button class="sop-quick-opt" data-key="suscripcion" type="button">Mi suscripción / cobros</button>

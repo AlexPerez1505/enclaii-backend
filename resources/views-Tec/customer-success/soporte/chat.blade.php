@@ -43,14 +43,12 @@
       </a>
       <span style="font-size:12px;color:var(--txt-soft)">Conversación #{{ $conversation->id }} · {{ $conversation->user?->email }}</span>
     </div>
-    @if($conversation->isWithAgent())
-    <button id="btnCloseChat" type="button" style="padding:6px 14px;border-radius:var(--r-md);border:1px solid rgba(239,68,68,.4);background:transparent;color:#ef4444;font-size:12px;font-weight:600;cursor:pointer">✓ Marcar como resuelto</button>
-    @endif
+    <button id="btnCloseChat" type="button" style="padding:6px 14px;border-radius:var(--r-md);border:1px solid rgba(239,68,68,.4);background:transparent;color:#ef4444;font-size:12px;font-weight:600;cursor:pointer;{{ $conversation->isWithAgent() || $conversation->status === 'closed' ? '' : 'display:none;' }}">Marcar como resuelto</button>
   </div>
 
   @if($conversation->isPendingAgent())
   <div class="ag-take-banner" id="takeBanner">
-    <p>⏳ Este chat está esperando un agente. Tómalo para comenzar a responder.</p>
+    <p>Este chat está esperando un agente. Tómalo para comenzar a responder.</p>
     <button class="ag-take-btn" id="btnTakeChat" type="button">Tomar chat</button>
   </div>
   @endif
@@ -136,6 +134,7 @@
         if(d.ok){
           if(takeBanner) takeBanner.remove();
           if(inputBar){ inputBar.style.opacity=''; inputBar.style.pointerEvents=''; }
+          if(btnCloseChat){ btnCloseChat.style.display=''; }
           addMsg('system', 'Has tomado el chat. Ahora puedes responder.', '');
           isPending = false;
         }
@@ -181,8 +180,11 @@
           isClosed = true;
           addMsg('system', 'Conversación marcada como resuelta.', '');
           if(inputBar){ inputBar.style.opacity='.4'; inputBar.style.pointerEvents='none'; }
-          btnCloseChat.textContent = '✓ Resuelta';
+          btnCloseChat.textContent = 'Resuelta';
           btnCloseChat.disabled = true;
+          setTimeout(function(){
+            window.location.href = "{{ route('customer-success.soporte') }}";
+          }, 600);
         }
       } catch(e){ btnCloseChat.disabled = false; }
     });

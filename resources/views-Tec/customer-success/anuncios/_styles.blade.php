@@ -452,6 +452,11 @@ html[data-theme="light"] .cs-filter-option:hover,html[data-theme="light"] .cs-fi
 .cs-table td{color:#cbd5e1}
 .cs-table td:first-child{
   display:flex;align-items:center;gap:8px;
+  max-width:260px;min-width:0;
+}
+.cs-table td:first-child span,
+.cs-table td:first-child .cs-title-text{
+  max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
 .cs-table td:first-child svg{
   width:15px;height:15px;color:#818cf8;flex-shrink:0;
@@ -626,9 +631,12 @@ html[data-theme="light"] .cs-filter-option:hover,html[data-theme="light"] .cs-fi
 .pv-title{font-size:14px;font-weight:700;color:var(--txt)}
 .pv-scroll{flex:1;overflow:auto;padding:26px 16px;display:flex;justify-content:center;align-items:flex-start}
 .pv-card{width:100%;max-width:640px;border-radius:16px;padding:28px;color:var(--txt);transition:all .2s}
-.pv-card h2{margin:0 0 12px;font-size:20px;font-weight:800}
+.pv-card h2{
+  margin:0 0 12px;font-size:20px;font-weight:800;
+  max-width:100%;word-break:break-word;overflow-wrap:break-word;hyphens:auto;line-height:1.25
+}
 .pv-card .meta{font-size:12px;margin-bottom:16px}
-.pv-card .body{font-size:13px;line-height:1.7}
+.pv-card .body{font-size:13px;line-height:1.7;word-break:break-word;overflow-wrap:break-word}
 .pv-card .body ul,.pv-card .body ol{padding-left:20px}
 .pv-card .pv-badge{display:inline-flex;align-items:center;gap:6px;border-radius:20px;font-size:11px;font-weight:700;padding:4px 12px;margin-bottom:14px}
 .pv-card .pv-icon{font-size:28px;margin-bottom:12px;display:block}

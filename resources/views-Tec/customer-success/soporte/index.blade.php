@@ -83,7 +83,7 @@ html[data-theme="light"] .ag-delete-resolved:hover{background:#e11d48;color:#fff
     </div>
 
     @if($pending->isEmpty())
-      <div class="ag-empty">No hay chats pendientes 🎉</div>
+      <div class="ag-empty">No hay chats pendientes </div>
     @else
       @foreach($pending as $conv)
         <a class="ag-conv-item" href="{{ route('customer-success.soporte.chat', $conv) }}">
