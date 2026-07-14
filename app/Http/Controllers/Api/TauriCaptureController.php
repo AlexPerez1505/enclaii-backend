@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\CaptureDevice;
 use App\Models\CapturePairingCode;
 use App\Models\CaptureSession;
+use App\Models\Estudio;
+use App\Models\EstudioArchivo;
+use App\Models\Paciente;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
@@ -173,7 +176,17 @@ class TauriCaptureController extends Controller
 
         $folder = $this->getSessionMediaFolder($session, 'images');
 
-        $path = media_store($request->file('image'), $folder);
+        $file = $request->file('image');
+        $path = media_store($file, $folder);
+        $archivo = $this->createStudyArchive(
+            session: $session,
+            file: $file,
+            path: $path,
+            type: 'imagen',
+            category: 'tauri-capture',
+            capturedAt: $request->date('captured_at') ?? now(),
+            description: 'Captura enviada desde la aplicacion Tauri',
+        );
 
         /*
          |--------------------------------------------------------------------------
@@ -206,6 +219,7 @@ class TauriCaptureController extends Controller
                 'study_id' => $session->study_id ?? null,
                 'path' => $path,
                 'url' => media_url($path),
+                'archivo_id' => $archivo?->id,
             ],
         ]);
     }
@@ -230,7 +244,25 @@ class TauriCaptureController extends Controller
 
         $folder = $this->getSessionMediaFolder($session, 'videos');
 
-        $path = media_store($request->file('video'), $folder);
+        $file = $request->file('video');
+        $path = media_store($file, $folder);
+        $archivo = $this->createStudyArchive(
+            session: $session,
+            file: $file,
+            path: $path,
+            type: 'video',
+            category: 'tauri-recording',
+            capturedAt: $request->date('ended_at') ?? now(),
+            description: 'Video enviado desde la aplicacion Tauri',
+        );
+
+        $studyId = $session->estudio_id ?? $session->study_id ?? null;
+        if ($studyId) {
+            Estudio::withoutGlobalScopes()
+                ->whereKey($studyId)
+                ->whereNull('video_path')
+                ->update(['video_path' => $path]);
+        }
 
         /*
          |--------------------------------------------------------------------------
@@ -263,6 +295,7 @@ class TauriCaptureController extends Controller
                 'study_id' => $session->study_id ?? null,
                 'path' => $path,
                 'url' => media_url($path),
+                'archivo_id' => $archivo?->id,
             ],
         ]);
     }
@@ -335,5 +368,46 @@ class TauriCaptureController extends Controller
         }
 
         return 'endoscopy/sessions/' . $session->id . '/' . $type;
+    }
+
+    private function createStudyArchive(
+        CaptureSession $session,
+        $file,
+        string $path,
+        string $type,
+        string $category,
+        mixed $capturedAt,
+        string $description,
+    ): ?EstudioArchivo {
+        $studyId = $session->estudio_id ?? $session->study_id ?? null;
+        $study = $studyId
+            ? Estudio::withoutGlobalScopes()->find($studyId)
+            : null;
+
+        $patientId = $session->paciente_id ?? $study?->paciente_id;
+        $patient = $patientId
+            ? Paciente::withoutGlobalScopes()->find($patientId)
+            : null;
+
+        if (! $study && ! $patient) {
+            return null;
+        }
+
+        $originalName = $file->getClientOriginalName() ?: basename($path);
+
+        return EstudioArchivo::withoutGlobalScopes()->create([
+            'clinica_id' => $study?->clinica_id ?? $patient?->clinica_id,
+            'estudio_id' => $study?->id,
+            'paciente_id' => $patient?->id ?? $study?->paciente_id,
+            'tipo' => $type,
+            'categoria' => $category,
+            'nombre_original' => $originalName,
+            'nombre' => pathinfo($originalName, PATHINFO_FILENAME),
+            'path' => $path,
+            'mime_type' => $file->getMimeType(),
+            'size_bytes' => $file->getSize(),
+            'descripcion' => $description,
+            'capturado_en' => $capturedAt,
+        ]);
     }
 }
