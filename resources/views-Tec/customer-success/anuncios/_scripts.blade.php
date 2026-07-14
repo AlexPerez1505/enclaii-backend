@@ -40,6 +40,97 @@
     setTimeout(() => { alert.style.display = 'none'; }, 4000);
   }
 
+  // ── nc-card: contador título ──────────────────────────────
+  const ncTituloInput = document.getElementById('csTitulo');
+  const ncTituloCount = document.getElementById('ncTituloCount');
+  if (ncTituloInput && ncTituloCount) {
+    ncTituloInput.addEventListener('input', () => {
+      ncTituloCount.textContent = ncTituloInput.value.length;
+    });
+  }
+
+  // ── nc-card: contador contenido ───────────────────────────
+  const ncContentCount = document.getElementById('ncContentCount');
+  if (editor && ncContentCount) {
+    editor.addEventListener('input', () => {
+      ncContentCount.textContent = editor.innerText.replace(/\n$/, '').length;
+    });
+  }
+
+  // ── nc-card: público objetivo ─────────────────────────────
+  document.querySelectorAll('.nc-radio-opt').forEach(opt => {
+    opt.addEventListener('click', () => {
+      document.querySelectorAll('.nc-radio-opt').forEach(o => o.classList.remove('nc-radio-opt--active'));
+      opt.classList.add('nc-radio-opt--active');
+      const radio = opt.querySelector('input[type=radio]');
+      if (radio) {
+        radio.checked = true;
+        const hidden = document.getElementById('csPublico');
+        if (hidden) hidden.value = radio.value;
+      }
+    });
+  });
+
+  // ── nc-card: canales toggle visual ───────────────────────
+  document.querySelectorAll('.nc-channel-opt').forEach(opt => {
+    opt.addEventListener('click', () => {
+      const cb = opt.querySelector('input[type=checkbox]');
+      if (!cb) return;
+      // Evita doble toggle (el click ya cambia el checkbox hidden)
+      // Solo actualizamos la advertencia email
+      const emailWarn = document.getElementById('csEmailWarning');
+      if (emailWarn) {
+        const emailCb = document.getElementById('csCanalesEmail');
+        emailWarn.style.display = emailCb && emailCb.checked ? 'block' : 'none';
+      }
+    });
+  });
+
+  // ── nc-card: programar publicación ───────────────────────
+  const ncSchedInm  = document.getElementById('ncSchedInm');
+  const ncSchedProg = document.getElementById('ncSchedProg');
+  const ncFechaWrap = document.getElementById('ncFechaWrap');
+
+  function setSchedActive(el) {
+    [ncSchedInm, ncSchedProg].forEach(o => {
+      if (o) o.classList.remove('nc-sched-opt--active');
+    });
+    if (el) el.classList.add('nc-sched-opt--active');
+  }
+
+  if (ncSchedInm) {
+    ncSchedInm.addEventListener('click', () => {
+      setSchedActive(ncSchedInm);
+      if (ncFechaWrap) ncFechaWrap.style.display = 'none';
+      const fi = document.getElementById('csFecha');
+      if (fi) fi.value = '';
+    });
+  }
+  if (ncSchedProg) {
+    ncSchedProg.addEventListener('click', () => {
+      setSchedActive(ncSchedProg);
+      if (ncFechaWrap) ncFechaWrap.style.display = 'block';
+      const fi = document.getElementById('csFecha');
+      if (fi) fi.focus();
+    });
+  }
+
+  // ── nc-card: botón cerrar/mostrar ─────────────────────────
+  const ncCard       = document.querySelector('.nc-card');
+  const ncHeaderClose = document.getElementById('ncHeaderClose');
+  const ncBody        = document.querySelector('.nc-body');
+  const ncFooter      = document.querySelector('.nc-footer');
+  let ncCollapsed = false;
+  if (ncHeaderClose && ncCard) {
+    ncHeaderClose.addEventListener('click', () => {
+      ncCollapsed = !ncCollapsed;
+      if (ncBody)   ncBody.style.display   = ncCollapsed ? 'none' : '';
+      if (ncFooter) ncFooter.style.display = ncCollapsed ? 'none' : '';
+      ncHeaderClose.style.transform = ncCollapsed ? 'rotate(45deg)' : '';
+      ncHeaderClose.title = ncCollapsed ? 'Abrir formulario' : 'Cerrar';
+    });
+  }
+
   function refreshToolbar(){
     toolbar.querySelectorAll('button[data-cmd]').forEach(btn => {
       const cmd = btn.dataset.cmd;
@@ -162,7 +253,8 @@
     const tipoVal = tipo.value;
     const tipoLabel = tipo.options[tipo.selectedIndex].text;
     const publico = document.getElementById('csPublico');
-    const publicoLabel = publico.options[publico.selectedIndex].text;
+    const publicoMap = { todos: 'Todos', doctores: 'Doctores', administradores: 'Administradores', segmentos: 'Segmentos personalizados' };
+    const publicoLabel = publicoMap[publico?.value] ?? publico?.value ?? 'Todos';
     const theme = THEMES[tipoVal] || { cls: '', badge: tipoLabel, icon: null };
 
     const pvCard = document.getElementById('pvCard');
@@ -223,9 +315,25 @@
     editor.innerHTML = '';
     hiddenInput.value = '';
     if (flatpickrInstance) flatpickrInstance.clear();
+    // Reset canales
     document.querySelectorAll('input[name="csCanales"]').forEach(cb => {
       cb.checked = cb.value === 'web';
     });
+    // Reset público objetivo visual
+    document.querySelectorAll('.nc-radio-opt').forEach(opt => {
+      const r = opt.querySelector('input[type=radio]');
+      opt.classList.toggle('nc-radio-opt--active', r?.value === 'todos');
+      if (r) r.checked = r.value === 'todos';
+    });
+    const hiddenPub = document.getElementById('csPublico');
+    if (hiddenPub) hiddenPub.value = 'todos';
+    // Reset programación visual
+    const ncSchedInmReset  = document.getElementById('ncSchedInm');
+    const ncSchedProgReset = document.getElementById('ncSchedProg');
+    const ncFechaWrapReset = document.getElementById('ncFechaWrap');
+    if (ncSchedInmReset)  ncSchedInmReset.classList.add('nc-sched-opt--active');
+    if (ncSchedProgReset) ncSchedProgReset.classList.remove('nc-sched-opt--active');
+    if (ncFechaWrapReset) ncFechaWrapReset.style.display = 'none';
   }
 
   if (cancelBtn) cancelBtn.addEventListener('click', exitEditMode);
@@ -275,9 +383,16 @@
         return;
       }
       if (res.ok) {
+        const anuncio = await res.json();
+        console.info(
+          isEdit ? '[Anuncios] Anuncio actualizado en la tabla anuncios.' : '[Anuncios] Anuncio creado en la tabla anuncios.',
+          { id: anuncio.id, anuncio }
+        );
         showAlert(isEdit ? 'Anuncio actualizado correctamente.' : 'Anuncio enviado correctamente.', 'success');
         exitEditMode();
-        setTimeout(() => location.reload(), 800);
+        setTimeout(() => {
+          window.location.assign(isEdit ? window.location.href : window.location.pathname);
+        }, 800);
       } else {
         const data = await res.json();
         if (res.status === 422 && data.errors) {
@@ -297,11 +412,14 @@
 
   function bindPaginationLinks() {
     if (!listaWrap) return;
-    listaWrap.querySelectorAll('[data-pagination] a, nav a, .pagination a').forEach(a => {
+    listaWrap.querySelectorAll('[data-pagination] a, nav a, .pagination a, .paginacion-item[href]').forEach(a => {
       a.addEventListener('click', async function(e) {
         e.preventDefault();
-        const url = this.href;
-        if (!url) return;
+        // Fusionar filtros activos con los parámetros de la página
+        const pageUrl   = new URL(this.href, window.location.origin);
+        const filterParams = typeof getFilterParams === 'function' ? getFilterParams() : new URLSearchParams();
+        filterParams.forEach((v, k) => pageUrl.searchParams.set(k, v));
+        const url = pageUrl.toString();
         try {
           const res = await fetch(url, {
             headers: {
@@ -321,6 +439,7 @@
             const newWrap = tmp.querySelector('#csListaWrap');
             if (newWrap) {
               listaWrap.innerHTML = newWrap.innerHTML;
+              if (typeof restoreFilterValues === 'function') restoreFilterValues();
               bindDeleteButtons();
               bindViewButtons();
               bindEditButtons();
@@ -418,17 +537,38 @@
 
         tipoSelect.disabled = true;
         tipoSelect.value = row.dataset.tipo;
-        document.getElementById('csPublico').value = row.dataset.publico;
 
+        // Público objetivo: hidden + visual
+        const pubVal = row.dataset.publico || 'todos';
+        const hiddenPub = document.getElementById('csPublico');
+        if (hiddenPub) hiddenPub.value = pubVal;
+        document.querySelectorAll('.nc-radio-opt').forEach(opt => {
+          const r = opt.querySelector('input[type=radio]');
+          const active = r?.value === pubVal;
+          opt.classList.toggle('nc-radio-opt--active', active);
+          if (r) r.checked = active;
+        });
+
+        // Canales: checked + visual (CSS :has lo maneja)
         const canales = (row.dataset.canales || 'web').split(',').map(s => s.trim()).filter(Boolean);
         document.querySelectorAll('input[name="csCanales"]').forEach(cb => {
           cb.checked = canales.includes(cb.value);
         });
 
-        if (flatpickrInstance && row.dataset.fecha) {
-          flatpickrInstance.setDate(row.dataset.fecha, false);
-        } else if (flatpickrInstance) {
-          flatpickrInstance.clear();
+        // Programación: mostrar fecha si existe
+        const ncSchedInmE  = document.getElementById('ncSchedInm');
+        const ncSchedProgE = document.getElementById('ncSchedProg');
+        const ncFechaWrapE = document.getElementById('ncFechaWrap');
+        if (row.dataset.fecha) {
+          if (ncSchedInmE)  ncSchedInmE.classList.remove('nc-sched-opt--active');
+          if (ncSchedProgE) ncSchedProgE.classList.add('nc-sched-opt--active');
+          if (ncFechaWrapE) ncFechaWrapE.style.display = 'block';
+          if (flatpickrInstance) flatpickrInstance.setDate(row.dataset.fecha, false);
+        } else {
+          if (ncSchedInmE)  ncSchedInmE.classList.add('nc-sched-opt--active');
+          if (ncSchedProgE) ncSchedProgE.classList.remove('nc-sched-opt--active');
+          if (ncFechaWrapE) ncFechaWrapE.style.display = 'none';
+          if (flatpickrInstance) flatpickrInstance.clear();
         }
 
         const contenidoEdit = (() => { try { return JSON.parse(row.dataset.contenido || '""'); } catch { return row.dataset.contenido || ''; } })();
@@ -479,6 +619,77 @@
 
   document.querySelectorAll('input[name="csCanales"]').forEach(cb => {
     cb.checked = cb.value === 'web';
+  });
+
+  // Barra de filtros — lectura siempre en vivo para sobrevivir reemplazos de innerHTML
+  const fEl = (id) => document.getElementById(id);
+  let filterTimer = null;
+
+  function getFilterParams() {
+    const params = new URLSearchParams();
+    const q      = fEl('csFilterQ')?.value.trim();
+    const tipo   = fEl('csFilterTipo')?.value;
+    const canal  = fEl('csFilterCanal')?.value;
+    const estado = fEl('csFilterEstado')?.value;
+    if (q)      params.set('q', q);
+    if (tipo)   params.set('tipo', tipo);
+    if (canal)  params.set('canal', canal);
+    if (estado) params.set('estado', estado);
+    return params;
+  }
+
+  function restoreFilterValues() {
+    const params = new URLSearchParams(window.location.search);
+    const fq = fEl('csFilterQ');      if (fq      && params.get('q'))      fq.value      = params.get('q');
+    const ft = fEl('csFilterTipo');   if (ft      && params.get('tipo'))   ft.value      = params.get('tipo');
+    const fc = fEl('csFilterCanal');  if (fc      && params.get('canal'))  fc.value      = params.get('canal');
+    const fe = fEl('csFilterEstado'); if (fe      && params.get('estado')) fe.value      = params.get('estado');
+  }
+
+  async function applyFilters() {
+    const params = getFilterParams();
+    const base = window.location.pathname;
+    const url  = base + (params.toString() ? '?' + params.toString() : '');
+
+    try {
+      const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html' } });
+      if (!res.ok) return;
+      const html = await res.text();
+      const tmp  = document.createElement('div');
+      tmp.innerHTML = html;
+      const newWrap = tmp.querySelector('#csListaWrap');
+      if (newWrap && listaWrap) {
+        listaWrap.innerHTML = newWrap.innerHTML;
+        restoreFilterValues();
+        bindDeleteButtons();
+        bindViewButtons();
+        bindEditButtons();
+        bindPaginationLinks();
+        window.history.replaceState({}, '', url);
+      }
+    } catch {}
+  }
+
+  // Delegación de eventos en document para sobrevivir reemplazos de innerHTML
+  document.addEventListener('input', (e) => {
+    if (e.target.id === 'csFilterQ') {
+      clearTimeout(filterTimer);
+      filterTimer = setTimeout(applyFilters, 380);
+    }
+  });
+  document.addEventListener('change', (e) => {
+    if (['csFilterTipo','csFilterCanal','csFilterEstado'].includes(e.target.id)) {
+      applyFilters();
+    }
+  });
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('#csFilterClear')) {
+      const fq = fEl('csFilterQ');      if (fq)  fq.value  = '';
+      const ft = fEl('csFilterTipo');   if (ft)  ft.value  = '';
+      const fc = fEl('csFilterCanal');  if (fc)  fc.value  = '';
+      const fe = fEl('csFilterEstado'); if (fe)  fe.value  = '';
+      applyFilters();
+    }
   });
 
   // Calendario personalizado para fecha de publicación

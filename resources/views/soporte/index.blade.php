@@ -14,9 +14,29 @@
 .sop-side{display:flex;flex-direction:column;gap:20px}
 
 /* Card base */
-.sop-card{background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-lg);padding:24px}
+.sop-card{
+  background:var(--panel-2);
+  border:1px solid var(--stroke);
+  border-radius:var(--r-lg);
+  padding:24px;
+  box-shadow:0 1px 3px rgba(0,0,0,.04),0 1px 2px rgba(0,0,0,.02);
+  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+}
+.sop-card:hover{
+  transform:translateY(-1px);
+  box-shadow:0 8px 24px rgba(0,0,0,.08),0 2px 6px rgba(0,0,0,.04);
+  border-color:rgba(110,160,255,.25);
+}
 .sop-card h2{font-size:16px;font-weight:700;margin-bottom:4px}
 .sop-card .sub{font-size:13px;color:var(--txt-soft);margin-bottom:16px}
+.sop-card-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:10px}
+.sop-card-head-ico{
+  width:44px;height:44px;border-radius:12px;flex-shrink:0;
+  background:rgba(16,185,129,.18);display:grid;place-items:center;
+  margin-top:2px;
+}
+.sop-card-head-ico svg{color:#10b981}
+.sop-card-head h2{font-size:16px;font-weight:700;margin:0;line-height:1.3}
 
 /* Canales */
 .sop-canal{
@@ -27,32 +47,179 @@
 }
 .sop-canal:hover{background:rgba(110,160,255,.06)}
 .sop-canal .icon-wrap{
-  width:38px;height:38px;border-radius:50%;
+  width:40px;height:40px;border-radius:50%;
   display:grid;place-items:center;flex-shrink:0;
 }
-.sop-canal .icon-wrap.wa{background:rgba(37,211,102,.15)}
-.sop-canal .icon-wrap.phone{background:rgba(168,130,255,.15)}
+.sop-canal .icon-wrap.wa{background:rgba(16,185,129,.15)}
+.sop-canal .icon-wrap.wa svg{color:#10b981}
+.sop-canal .icon-wrap.phone{background:rgba(139,92,246,.15)}
+.sop-canal .icon-wrap.phone svg{color:#a78bfa}
 .sop-canal .canal-info{flex:1}
 .sop-canal .canal-info strong{font-size:13px;display:block}
 .sop-canal .canal-info span{font-size:12px;color:var(--txt-soft)}
-.sop-canal .canal-arrow{color:var(--txt-soft);font-size:14px}
+.sop-canal .canal-arrow{color:var(--txt-soft);font-size:18px;font-weight:300}
+.sop-canal:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+/* Canal de chat de soporte - acción primaria */
+#btnCanalChatSoporte.sop-canal{
+  width:100%;text-align:left;
+  background:linear-gradient(135deg,rgba(59,130,246,.10),rgba(6,182,212,.08));
+  border-color:rgba(59,130,246,.40);
+  color:inherit;
+  position:relative;
+  overflow:hidden;
+}
+#btnCanalChatSoporte.sop-canal::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(6,182,212,.06));
+  opacity:0;transition:opacity .2s ease;
+}
+#btnCanalChatSoporte.sop-canal:hover{
+  background:linear-gradient(135deg,rgba(59,130,246,.16),rgba(6,182,212,.12));
+  border-color:rgba(59,130,246,.65);
+  transform:translateY(-2px);
+  box-shadow:0 8px 22px rgba(59,130,246,.18);
+}
+#btnCanalChatSoporte.sop-canal:hover::before{opacity:1}
+#btnCanalChatSoporte.sop-canal:active{transform:translateY(0)}
+#btnCanalChatSoporte.sop-canal .icon-wrap{
+  background:linear-gradient(135deg,rgba(59,130,246,.20),rgba(6,182,212,.16));
+  transition:transform .25s ease,background .25s ease;
+}
+#btnCanalChatSoporte.sop-canal:hover .icon-wrap{
+  transform:scale(1.1) rotate(6deg);
+  background:linear-gradient(135deg,rgba(59,130,246,.28),rgba(6,182,212,.22));
+}
+#btnCanalChatSoporte.sop-canal .icon-wrap svg{
+  color:var(--blue);
+  transition:color .2s ease;
+}
+#btnCanalChatSoporte.sop-canal:hover .icon-wrap svg{color:var(--cyan)}
+#btnCanalChatSoporte.sop-canal .canal-arrow{
+  color:var(--blue);
+  transition:transform .2s ease,color .2s ease;
+}
+#btnCanalChatSoporte.sop-canal:hover .canal-arrow{
+  color:var(--cyan);
+  transform:translateX(4px);
+}
+#btnCanalChatSoporte.sop-canal .canal-info strong{
+  color:var(--txt);
+  transition:color .2s ease;
+}
+#btnCanalChatSoporte.sop-canal:hover .canal-info strong{color:var(--blue)}
+#btnCanalChatSoporte.sop-canal .canal-info span{
+  transition:color .2s ease;
+}
+#btnCanalChatSoporte.sop-canal:hover .canal-info span{color:var(--cyan)}
+#btnCanalChatSoporte.sop-canal::after{
+  content:'';position:absolute;top:10px;right:10px;width:8px;height:8px;border-radius:50%;
+  background:#22c55e;box-shadow:0 0 0 2px var(--panel-2);
+  animation:pulseDot 1.6s ease-in-out infinite;
+}
+
+/* Canal de llamada - acción secundaria destacada */
+#btnLlamar.sop-canal{
+  width:100%;text-align:left;
+  background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(139,92,246,.06));
+  border-color:rgba(16,185,129,.35);
+  color:inherit;
+  position:relative;
+  overflow:hidden;
+}
+#btnLlamar.sop-canal::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(16,185,129,.06),rgba(139,92,246,.04));
+  opacity:0;transition:opacity .2s ease;
+}
+#btnLlamar.sop-canal:hover{
+  background:linear-gradient(135deg,rgba(16,185,129,.14),rgba(139,92,246,.10));
+  border-color:rgba(16,185,129,.55);
+  transform:translateY(-1px);
+  box-shadow:0 4px 14px rgba(16,185,129,.12);
+}
+#btnLlamar.sop-canal:hover::before{opacity:1}
+#btnLlamar.sop-canal:active{transform:translateY(0)}
+#btnLlamar.sop-canal .icon-wrap{
+  background:linear-gradient(135deg,rgba(16,185,129,.18),rgba(139,92,246,.15));
+  transition:transform .2s ease,background .2s ease;
+}
+#btnLlamar.sop-canal:hover .icon-wrap{
+  transform:scale(1.08) rotate(-6deg);
+  background:linear-gradient(135deg,rgba(16,185,129,.24),rgba(139,92,246,.20));
+}
+#btnLlamar.sop-canal .icon-wrap svg{
+  color:#10b981;
+  transition:color .2s ease;
+}
+#btnLlamar.sop-canal:hover .icon-wrap svg{color:#059669}
+#btnLlamar.sop-canal .canal-arrow{
+  color:#10b981;
+  transition:transform .2s ease,color .2s ease;
+}
+#btnLlamar.sop-canal:hover .canal-arrow{
+  color:#059669;
+  transform:translateX(3px);
+}
+#btnLlamar.sop-canal .canal-info strong{
+  color:var(--txt);
+  transition:color .2s ease;
+}
+#btnLlamar.sop-canal:hover .canal-info strong{color:#059669}
+#btnLlamar.sop-canal::after{
+  content:'';position:absolute;top:10px;right:10px;width:7px;height:7px;border-radius:50%;
+  background:#22c55e;box-shadow:0 0 0 2px var(--panel-2);
+  animation:pulseDot 1.8s ease-in-out infinite;
+}
+@keyframes pulseDot{
+  0%,100%{opacity:1;transform:scale(1)}
+  50%{opacity:.55;transform:scale(1.35)}
+}
+
+.sop-schedule{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--txt-soft);margin-top:4px}
 
 /* Mis Tickets card */
 .sop-tickets-btn{
-  background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-lg);padding:20px;
-  display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;
+  background:linear-gradient(145deg,#0b1120,#0f172a);
+  border:1px solid rgba(59,130,246,.22);
+  border-radius:var(--r-lg);
+  padding:20px;
+  display:flex;flex-direction:column;align-items:flex-start;gap:12px;
+  box-shadow:0 4px 20px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.03);
+  transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
 }
-.sop-tickets-btn svg{color:var(--blue)}
-.sop-tickets-btn h3{font-size:15px;font-weight:700;margin:0}
-.sop-tickets-btn p{font-size:12px;color:var(--txt-soft);margin:0}
+.sop-tickets-btn:hover{
+  transform:translateY(-2px);
+  border-color:rgba(59,130,246,.38);
+  box-shadow:0 8px 28px rgba(0,0,0,.32),0 0 18px rgba(59,130,246,.08),inset 0 1px 0 rgba(255,255,255,.04);
+}
+.sop-tickets-ico{
+  width:48px;height:48px;border-radius:14px;flex-shrink:0;
+  background:rgba(59,130,246,.16);
+  border:1px solid rgba(59,130,246,.22);
+  display:grid;place-items:center;
+  box-shadow:0 2px 8px rgba(59,130,246,.12);
+}
+.sop-tickets-ico svg{color:#60a5fa}
+.sop-tickets-btn h3{font-size:15px;font-weight:700;margin:0 0 2px;color:#e2e8f0}
+.sop-tickets-btn p{font-size:12px;color:#94a3b8;margin:0}
 .sop-tickets-btn .btn-tickets{
   width:100%;padding:11px;border-radius:var(--r-md);
-  border:1px solid var(--stroke);background:transparent;color:var(--txt);
+  border:1px solid rgba(59,130,246,.45);
+  background:rgba(59,130,246,.06);
+  color:#60a5fa;
   font-size:13px;font-weight:600;text-decoration:none;
   display:flex;align-items:center;justify-content:center;gap:6px;
-  transition:background .15s;margin-top:4px;
+  transition:background .15s ease,color .15s ease,border-color .15s ease,box-shadow .15s ease;
+  margin-top:4px;
+  box-shadow:0 1px 2px rgba(0,0,0,.08);
 }
-.sop-tickets-btn .btn-tickets:hover{background:rgba(110,160,255,.1)}
+.sop-tickets-btn .btn-tickets:hover{
+  background:rgba(59,130,246,.14);
+  border-color:rgba(96,165,250,.65);
+  color:#93c5fd;
+  box-shadow:0 4px 12px rgba(59,130,246,.18);
+}
 
 /* Temas de ayuda - Accordion */
 .sop-temas h2{font-size:16px;font-weight:700;margin-bottom:16px}
@@ -124,12 +291,12 @@
 }
 .sop-chat-btn:hover{opacity:.9}
 .sop-chat-panel{
-  display:none;flex-direction:column;
+  display:none;flex-direction:column;position:relative;
   background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-lg);
   height:420px;overflow:hidden;margin-bottom:24px;
 }
 .sop-chat-panel.open{display:flex}
-.sop-chat-skeleton{position:absolute;inset:0;display:flex;flex-direction:column;gap:12px;padding:16px;background:var(--panel-2);z-index:2;justify-content:flex-end}
+.sop-chat-skeleton{position:absolute;inset:0;display:flex;flex-direction:column;gap:12px;padding:16px;background:var(--panel-2);z-index:10;justify-content:flex-end;border-radius:var(--r-lg)}
 .sop-sk-row{display:flex;gap:8px;align-items:flex-end}
 .sop-sk-row.right{flex-direction:row-reverse}
 .sop-sk-bubble{border-radius:14px;background:var(--stroke);animation:skPulse 1.4s ease-in-out infinite}
@@ -149,9 +316,9 @@
 .sop-chat-messages{
   position:relative;flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;
 }
-.sop-chat-msg{max-width:80%;padding:11px 14px;border-radius:14px;font-size:13px;line-height:1.5}
+.sop-chat-msg{max-width:80%;min-width:64px;padding:11px 14px;border-radius:14px;font-size:13px;line-height:1.5;word-break:break-word;overflow-wrap:break-word;white-space:pre-wrap}
 .sop-chat-msg.user{align-self:flex-end;background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff}
-.sop-chat-msg.assistant{align-self:flex-start;background:var(--panel);border:1px solid var(--stroke);color:var(--txt)}
+.sop-chat-msg.assistant{align-self:flex-start;background:var(--panel);border:1px solid var(--stroke);color:var(--txt);min-width:120px}
 .sop-chat-input{
   display:flex;gap:10px;padding:12px 16px;border-top:1px solid var(--stroke);background:var(--panel)
 }
@@ -226,7 +393,7 @@
     </div>
 
     {{-- Formulario de ticket --}}
-    <div class="sop-card">
+    <div class="sop-card sop-card-ticket">
       <h2>Crear ticket</h2>
       <p class="sub">Selecciona una categoría y proporciona los detalles de tu problema.</p>
 
@@ -343,7 +510,9 @@
 
     {{-- Mis Tickets --}}
     <div class="sop-tickets-btn">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H2V6h2a2 2 0 0 0 2-2V2"/><path d="M22 12h-2a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2V6h-2a2 2 0 0 1-2-2V2"/><path d="M7 2h10"/><path d="M7 22h10"/><rect x="7" y="6" width="10" height="12" rx="1"/></svg>
+      <div class="sop-tickets-ico">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H2V6h2a2 2 0 0 0 2-2V2"/><path d="M22 12h-2a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2V6h-2a2 2 0 0 1-2-2V2"/><path d="M7 2h10"/><path d="M7 22h10"/><rect x="7" y="6" width="10" height="12" rx="1"/></svg>
+      </div>
       <div>
         <h3>Mis Tickets</h3>
         <p>Consulta el historial y estado de todos tus tickets de soporte.</p>
@@ -353,13 +522,18 @@
 
     {{-- Canales de soporte --}}
     <div class="sop-card">
-      <h2>¿Es urgente? Contáctanos por otros canales</h2>
+      <div class="sop-card-head">
+        <div class="sop-card-head-ico">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+        </div>
+        <h2>¿Es urgente? Contáctanos por otros canales</h2>
+      </div>
       <p class="sub">Elige el medio que prefieras para obtener ayuda más rápido.</p>
 
       <div class="sop-canales">
-        <button class="sop-canal" id="btnCanalChatSoporte" type="button" style="width:100%;text-align:left;background:transparent;border:none;color:inherit">
+        <button class="sop-canal" id="btnCanalChatSoporte" type="button">
           <div class="icon-wrap wa">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           </div>
           <div class="canal-info">
             <strong>Chat de soporte</strong>
@@ -379,7 +553,10 @@
           <span class="canal-arrow">›</span>
         </div>
 
-        <p style="font-size:12px;color:var(--txt-soft);margin-top:6px">Lun – Vie de 9am a 6pm</p>
+        <div class="sop-schedule">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Lun – Vie de 9am a 6pm
+        </div>
       </div>
     </div>
 
@@ -510,21 +687,24 @@
       sys.textContent = text;
       return sys;
     }
-    var wrap = document.createElement('div');
-    wrap.style.cssText = 'display:flex;flex-direction:column;max-width:80%;'
-      + (role === 'user' ? 'align-self:flex-end;align-items:flex-end' : 'align-self:flex-start;align-items:flex-start');
     if(role === 'agent'){
+      var wrap = document.createElement('div');
+      wrap.style.cssText = 'display:flex;flex-direction:column;align-self:flex-start;align-items:flex-start;max-width:80%';
       var lbl = document.createElement('div');
       lbl.style.cssText = 'font-size:11px;color:var(--txt-soft);margin-bottom:3px';
       lbl.textContent = 'Agente ENCLAII';
+      var div = document.createElement('div');
+      div.className = 'sop-chat-msg assistant';
+      div.style.borderLeft = '3px solid #16a34a';
+      div.textContent = text;
       wrap.appendChild(lbl);
+      wrap.appendChild(div);
+      return wrap;
     }
     var div = document.createElement('div');
-    div.className = 'sop-chat-msg ' + (role === 'agent' ? 'assistant' : role);
-    if(role === 'agent') div.style.borderLeft = '3px solid #16a34a';
+    div.className = 'sop-chat-msg ' + role;
     div.textContent = text;
-    wrap.appendChild(div);
-    return wrap;
+    return div;
   }
 
   function addChatMessage(role, text){
@@ -602,7 +782,6 @@
           frag.appendChild(buildChatMessage(m.role, m.content));
         });
         chatMessages.appendChild(frag);
-        if(chatConversationId) startPolling(chatConversationId);
         updateQuickOptions();
         hasMessages = true;
       }
@@ -620,7 +799,7 @@
       + '<div class="sop-sk-row right"><div class="sop-sk-bubble short"></div></div>'
       + '<div class="sop-sk-row"><div class="sop-sk-bubble mid"></div></div>'
       + '<div class="sop-sk-row right"><div class="sop-sk-bubble wide"></div></div>';
-    chatMessages.appendChild(sk);
+    chatPanel.appendChild(sk);
   }
 
   function hideSkeleton(){
@@ -631,6 +810,7 @@
   async function openSoporteChat(){
     if(chatPanel.classList.contains('open')) return;
     chatPanel.classList.add('open');
+    void chatPanel.offsetHeight;
     try {
       if(chatMessages.children.length === 0){
         showSkeleton();
@@ -641,20 +821,28 @@
           chatMode = 'bot';
           updateQuickOptions();
         } else {
-          var sk = document.getElementById('soporteSkeleton');
-          if(sk){
-            sk.style.transition = 'opacity .25s';
-            sk.style.opacity = '0';
+          if(chatConversationId){
+            try {
+              var pr = await fetch(pollUrl + '?conversation_id=' + chatConversationId + '&last_id=' + lastMessageId, {
+                headers: { 'Accept': 'application/json' }
+              });
+              var pd = await pr.json();
+              if(pd.ok && pd.messages && pd.messages.length){
+                pd.messages.forEach(function(m){
+                  if(m.id > lastMessageId) lastMessageId = m.id;
+                  chatMessages.appendChild(buildChatMessage(m.role, m.content));
+                });
+              }
+              if(pd.mode && pd.mode !== chatMode){
+                chatMode = pd.mode;
+                updateQuickOptions();
+              }
+            } catch(e){}
           }
           requestAnimationFrame(function(){
             chatMessages.scrollTop = chatMessages.scrollHeight;
-            requestAnimationFrame(function(){
-              chatMessages.scrollTop = chatMessages.scrollHeight;
-              setTimeout(function(){
-                var sk2 = document.getElementById('soporteSkeleton');
-                if(sk2) sk2.remove();
-              }, 280);
-            });
+            hideSkeleton();
+            if(chatConversationId) startPolling(chatConversationId);
           });
         }
       }
@@ -725,7 +913,7 @@
           chatConversationId = d.conversation_id;
           chatMode = 'bot';
           chatMessages.innerHTML = '';
-          if(pollInterval){ clearInterval(pollInterval); pollInterval = null; }
+          if(pollInterval){ clearTimeout(pollInterval); pollInterval = null; }
           lastMessageId = 0;
           addChatMessage('assistant', 'Hola, soy el asistente de soporte de ENCLAII. ¿En qué puedo ayudarte?');
           updateQuickOptions();
@@ -739,57 +927,45 @@
   var lastMessageId = 0;
   var pollUrl = "{{ route('soporte.chat.poll') }}";
 
+  function getPollDelay(){
+    return (chatMode === 'with_agent' || chatMode === 'pending_agent') ? 1500 : 4000;
+  }
+
   function startPolling(convId){
     if(pollInterval) return;
-    pollInterval = setInterval(async function(){
-      try {
-        var r = await fetch(pollUrl + '?conversation_id=' + convId + '&last_id=' + lastMessageId, {
-          headers: { 'Accept': 'application/json' }
-        });
-        var data = await r.json();
-        if(!data.ok) return;
+    function schedulePoll(){
+      pollInterval = setTimeout(async function(){
+        try {
+          var r = await fetch(pollUrl + '?conversation_id=' + convId + '&last_id=' + lastMessageId, {
+            headers: { 'Accept': 'application/json' }
+          });
+          var data = await r.json();
+          if(data.ok){
+            data.messages.forEach(function(m){
+              if(m.id > lastMessageId) lastMessageId = m.id;
+              chatMessages.appendChild(buildChatMessage(m.role, m.content));
+              chatMessages.scrollTop = chatMessages.scrollHeight;
+            });
 
-        data.messages.forEach(function(m){
-          if(m.id > lastMessageId) lastMessageId = m.id;
-          if(m.role === 'system'){
-            var div = document.createElement('div');
-            div.style.cssText = 'text-align:center;font-size:11px;color:var(--txt-soft);padding:6px 0;font-style:italic';
-            div.textContent = m.content;
-            chatMessages.appendChild(div);
-            var badge = document.createElement('div');
-            badge.style.cssText = 'text-align:center;font-size:12px;color:#16a34a;padding:4px 0;font-weight:600';
-            badge.textContent = '✓ Agente conectado';
-            chatMessages.appendChild(badge);
-          } else if(m.role === 'agent'){
-            var wrap = document.createElement('div');
-            var lbl = document.createElement('div');
-            lbl.style.cssText = 'font-size:11px;color:var(--txt-soft);margin-bottom:3px';
-            lbl.textContent = 'Agente ENCLAII';
-            var msg = document.createElement('div');
-            msg.className = 'sop-chat-msg assistant';
-            msg.style.borderLeft = '3px solid #16a34a';
-            msg.textContent = m.content;
-            wrap.appendChild(lbl);
-            wrap.appendChild(msg);
-            chatMessages.appendChild(wrap);
+            if(data.mode && data.mode !== chatMode){
+              chatMode = data.mode;
+              updateQuickOptions();
+              if(data.mode === 'closed' || data.status === 'closed'){
+                pollInterval = null;
+                var resolved = document.createElement('div');
+                resolved.style.cssText = 'text-align:center;padding:12px;font-size:12px;color:var(--txt-soft)';
+                resolved.innerHTML = 'Conversaci\u00f3n resuelta. <button onclick="document.getElementById(\'btnNuevaConv\').click()" style="color:var(--blue);background:none;border:none;cursor:pointer;font-size:12px;text-decoration:underline">Iniciar nueva</button>';
+                chatMessages.appendChild(resolved);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                return;
+              }
+            }
           }
-          chatMessages.scrollTop = chatMessages.scrollHeight;
-        });
-
-        if(data.mode && data.mode !== chatMode){
-          chatMode = data.mode;
-          updateQuickOptions();
-          if(data.mode === 'closed' || data.status === 'closed'){
-            clearInterval(pollInterval); pollInterval = null;
-            var resolved = document.createElement('div');
-            resolved.style.cssText = 'text-align:center;padding:12px;font-size:12px;color:var(--txt-soft)';
-            resolved.innerHTML = 'Conversaci\u00f3n resuelta. <button onclick="document.getElementById(\'btnNuevaConv\').click()" style="color:var(--blue);background:none;border:none;cursor:pointer;font-size:12px;text-decoration:underline">Iniciar nueva</button>';
-            chatMessages.appendChild(resolved);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-          }
-        }
-      } catch(e){}
-    }, 4000);
+        } catch(e){}
+        schedulePoll();
+      }, getPollDelay());
+    }
+    schedulePoll();
   }
 
 })();

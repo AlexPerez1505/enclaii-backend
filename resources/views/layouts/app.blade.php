@@ -32,12 +32,13 @@
 window.enclaiiSettings = @json(array_merge(auth()->user()->resolvedSettings(), ['user_id' => auth()->id()]));
 </script>
 @endauth
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap"></noscript>
 <script defer src="{{ asset('js/i18n.js') }}?v=20260702-1"></script>
 <script defer src="{{ asset('js/preferences.js') }}"></script>
 @vite(['resources/js/app.js'])
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ================= TOKENS Y BASE (compartido por toda la app) ================= */
 :root{

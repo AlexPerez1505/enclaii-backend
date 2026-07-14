@@ -1,46 +1,155 @@
 @push('styles')
 <style>
 /* ── Ticket form ── */
+.sop-card-ticket{
+  background:linear-gradient(145deg,#050914,#0a0f1c);
+  border:1px solid rgba(59,130,246,.18);
+  border-radius:var(--r-lg);
+  box-shadow:0 8px 32px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.03);
+  transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease;
+}
+.sop-card-ticket:hover{
+  transform:translateY(-2px);
+  border-color:rgba(59,130,246,.32);
+  box-shadow:0 12px 40px rgba(0,0,0,.42),0 0 24px rgba(59,130,246,.08),inset 0 1px 0 rgba(255,255,255,.04);
+}
+.sop-card-ticket h2{color:#e2e8f0;font-size:18px;font-weight:700;margin:0 0 4px}
+.sop-card-ticket .sub{color:#94a3b8;font-size:13px;margin-bottom:20px}
+
 .tkt-form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px}
 .tkt-form-row.full{grid-template-columns:1fr}
-.tkt-field label{font-size:13px;font-weight:600;color:var(--txt-soft);display:block;margin-bottom:6px}
+.tkt-field label{
+  font-size:13px;font-weight:600;color:#cbd5e1;display:flex;align-items:center;gap:8px;margin-bottom:6px;
+}
+.tkt-field label svg{
+  width:16px;height:16px;color:#60a5fa;flex-shrink:0;
+  filter:drop-shadow(0 0 4px rgba(96,165,250,.25));
+}
 .tkt-field select,
 .tkt-field input,
 .tkt-field textarea{
   width:100%;padding:10px 14px;border-radius:var(--r-md);
-  border:1px solid var(--stroke);background:var(--panel);color:var(--txt);
-  font-size:14px;resize:vertical;transition:border-color .15s,box-shadow .15s;
+  border:1px solid rgba(59,130,246,.22);
+  background:rgba(15,23,42,.65);
+  color:#e2e8f0;
+  font-size:14px;resize:vertical;
+  transition:border-color .2s ease,box-shadow .2s ease,background .2s ease;
 }
+
+/* Custom select - Categoría */
+.tkt-select-wrap{position:relative}
+.tkt-select-trigger{
+  width:100%;padding:10px 14px;border-radius:var(--r-md);
+  border:1px solid rgba(59,130,246,.22);
+  background:rgba(15,23,42,.65);
+  color:#e2e8f0;
+  font-size:14px;
+  display:flex;align-items:center;justify-content:space-between;
+  cursor:pointer;
+  transition:border-color .2s ease,background .2s ease,box-shadow .2s ease;
+}
+.tkt-select-trigger:hover{
+  background:rgba(15,23,42,.85);
+  border-color:rgba(96,165,250,.45);
+}
+.tkt-select-trigger:focus{outline:none}
+.tkt-select-trigger.open{
+  border-color:rgba(139,92,246,.65);
+  background:rgba(15,23,42,.85);
+  box-shadow:0 0 0 3px rgba(139,92,246,.15),0 0 12px rgba(139,92,246,.12);
+}
+.tkt-select-trigger svg{
+  color:#60a5fa;
+  transition:transform .2s ease,color .2s ease;
+}
+.tkt-select-trigger.open svg{transform:rotate(180deg);color:#a78bfa}
+.tkt-select-options{
+  position:absolute;top:calc(100% + 6px);left:0;right:0;
+  background:linear-gradient(180deg,#0f172a,#0b1221);
+  border:1px solid rgba(59,130,246,.35);
+  border-radius:var(--r-md);
+  box-shadow:0 8px 24px rgba(0,0,0,.45),0 0 16px rgba(59,130,246,.10);
+  max-height:0;overflow:hidden;opacity:0;visibility:hidden;
+  transition:max-height .25s ease,opacity .2s ease,visibility .2s ease;
+  z-index:100;
+}
+.tkt-select-options.open{
+  max-height:240px;opacity:1;visibility:visible;
+  overflow-y:auto;
+}
+.tkt-option{
+  padding:10px 14px;color:#cbd5e1;font-size:14px;cursor:pointer;
+  display:flex;align-items:center;gap:8px;
+  transition:background .15s ease,color .15s ease;
+  border-bottom:1px solid rgba(59,130,246,.08);
+}
+.tkt-option:last-child{border-bottom:0}
+.tkt-option:hover{
+  background:rgba(59,130,246,.14);
+  color:#e2e8f0;
+}
+.tkt-option.selected{
+  background:rgba(139,92,246,.18);
+  color:#fff;
+}
+.tkt-option.selected::before{
+  content:'';width:6px;height:6px;border-radius:50%;
+  background:#a78bfa;box-shadow:0 0 6px rgba(167,139,250,.5);
+}
+.tkt-field select::placeholder,
+.tkt-field input::placeholder,
+.tkt-field textarea::placeholder{color:#64748b}
 .tkt-field select:focus,
 .tkt-field input:focus,
 .tkt-field textarea:focus{
-  outline:none;border-color:var(--blue);
-  box-shadow:0 0 0 2px rgba(110,160,255,.25);
+  outline:none;
+  border-color:rgba(139,92,246,.65);
+  background:rgba(15,23,42,.85);
+  box-shadow:0 0 0 3px rgba(139,92,246,.15),0 0 12px rgba(139,92,246,.12);
 }
 .tkt-field textarea{min-height:100px}
-.tkt-form-footer{display:flex;align-items:center;justify-content:space-between;margin-top:16px}
+.tkt-form-footer{display:flex;align-items:center;justify-content:space-between;margin-top:18px;padding-top:18px;border-top:1px solid rgba(59,130,246,.12)}
 .tkt-adjuntar{
   display:flex;align-items:center;gap:8px;
-  padding:8px 14px;border-radius:var(--r-md);
-  border:1px solid var(--stroke);background:var(--panel);
-  font-size:13px;color:var(--txt-soft);cursor:pointer;
+  padding:10px 16px;border-radius:var(--r-md);
+  border:1px dashed rgba(59,130,246,.35);
+  background:rgba(15,23,42,.45);
+  font-size:13px;color:#94a3b8;cursor:pointer;
+  transition:background .2s ease,border-color .2s ease,color .2s ease;
 }
-.tkt-adjuntar span{font-size:11px;color:var(--txt-soft)}
+.tkt-adjuntar:hover{
+  background:rgba(59,130,246,.10);
+  border-color:rgba(96,165,250,.55);
+  color:#cbd5e1;
+}
+.tkt-adjuntar svg{color:#60a5fa}
+.tkt-adjuntar span{font-size:11px;color:#64748b}
 .tkt-btn-enviar{
-  padding:10px 24px;border-radius:var(--r-md);border:0;
-  background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff;
+  padding:11px 26px;border-radius:var(--r-md);border:0;
+  background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;
   font-size:14px;font-weight:600;cursor:pointer;
-  display:flex;align-items:center;gap:8px;transition:opacity .15s;
+  display:flex;align-items:center;gap:8px;
+  transition:transform .15s ease,box-shadow .15s ease,opacity .15s ease;
+  box-shadow:0 4px 14px rgba(59,130,246,.28);
 }
-.tkt-btn-enviar:hover{opacity:.85}
+.tkt-btn-enviar:hover{
+  opacity:.95;
+  transform:translateY(-1px);
+  box-shadow:0 6px 20px rgba(59,130,246,.38);
+}
+.tkt-btn-enviar svg{stroke-width:2.2}
 .tkt-form-actions{display:flex;align-items:center;gap:10px}
 .tkt-btn-mis-tickets{
   padding:10px 24px;border-radius:var(--r-md);
-  border:1px solid var(--stroke);background:transparent;color:var(--txt);
+  border:1px solid rgba(59,130,246,.30);background:transparent;color:#94a3b8;
   font-size:14px;font-weight:600;text-decoration:none;
-  display:flex;align-items:center;gap:8px;transition:background .15s;
+  display:flex;align-items:center;gap:8px;transition:background .15s ease,color .15s ease,border-color .15s ease;
 }
-.tkt-btn-mis-tickets:hover{background:rgba(110,160,255,.1)}
+.tkt-btn-mis-tickets:hover{
+  background:rgba(59,130,246,.10);
+  border-color:rgba(96,165,250,.50);
+  color:#cbd5e1;
+}
 
 @media (max-width:600px){
   .tkt-form-row{grid-template-columns:1fr}
@@ -146,32 +255,58 @@
 
   <div class="tkt-form-row">
     <div class="tkt-field">
-      <label>Categoría</label>
-      <select id="tktCategoria">
-        <option value="">Selecciona una categoría</option>
-        <option value="facturacion">Facturación</option>
-        <option value="tecnico">Problema técnico</option>
-        <option value="funcion">Solicitud de función</option>
-        <option value="como-hacer">Cómo hacer</option>
-        <option value="otro">Otro</option>
-      </select>
+      <label>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+        Categoría
+      </label>
+      <div class="tkt-select-wrap">
+        <select id="tktCategoria" style="display:none">
+          <option value="">Selecciona una categoría</option>
+          <option value="facturacion">Facturación</option>
+          <option value="tecnico">Problema técnico</option>
+          <option value="funcion">Solicitud de función</option>
+          <option value="como-hacer">Cómo hacer</option>
+          <option value="otro">Otro</option>
+        </select>
+        <button type="button" class="tkt-select-trigger" id="tktCategoriaTrigger">
+          <span id="tktCategoriaLabel">Selecciona una categoría</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="tkt-select-options" id="tktCategoriaOptions">
+          <div class="tkt-option" data-value="">Selecciona una categoría</div>
+          <div class="tkt-option" data-value="facturacion">Facturación</div>
+          <div class="tkt-option" data-value="tecnico">Problema técnico</div>
+          <div class="tkt-option" data-value="funcion">Solicitud de función</div>
+          <div class="tkt-option" data-value="como-hacer">Cómo hacer</div>
+          <div class="tkt-option" data-value="otro">Otro</div>
+        </div>
+      </div>
     </div>
     <div class="tkt-field">
-      <label>Datos de la operación</label>
+      <label>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Datos de la operación
+      </label>
       <input type="text" id="tktOperacion" value="{{ $operationData }}" readonly placeholder="Folio único, fecha y hora de la compra">
     </div>
   </div>
 
   <div class="tkt-form-row full">
     <div class="tkt-field">
-      <label>Asunto</label>
+      <label>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+        Asunto
+      </label>
       <input type="text" id="tktAsunto" placeholder="Describe brevemente tu problema">
     </div>
   </div>
 
   <div class="tkt-form-row full">
     <div class="tkt-field">
-      <label>Descripción</label>
+      <label>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+        Descripción
+      </label>
       <textarea id="tktDescripcion" placeholder="Proporciona tantos detalles como sea posible..."></textarea>
     </div>
   </div>
@@ -179,14 +314,20 @@
   {{-- Datos del negocio (solo lectura, vienen de la BD) --}}
   <div class="tkt-form-row full">
     <div class="tkt-field">
-      <label>Datos del negocio</label>
+      <label>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4 8 4v14"/><path d="M9 21v-10"/><path d="M15 21v-10"/><path d="M9 7h6"/></svg>
+        Datos del negocio
+      </label>
       <input type="text" id="tktNegocio" value="{{ $businessData }}" readonly placeholder="Nombre o razón social, domicilio fiscal, RFC">
     </div>
   </div>
 
   <div class="tkt-form-row full" id="tktPaymentMethodRow" style="display:none">
     <div class="tkt-field">
-      <label>Método de pago</label>
+      <label>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Método de pago
+      </label>
       <select id="tktMetodoPago">
         <option value="">Selecciona método de pago</option>
         <option value="efectivo">Efectivo</option>
@@ -312,6 +453,52 @@
   }
   if(cat) cat.addEventListener('change', togglePayment);
   togglePayment();
+
+  // Custom dropdown - Categoría
+  var catTrigger = document.getElementById('tktCategoriaTrigger');
+  var catOptions = document.getElementById('tktCategoriaOptions');
+  var catLabel = document.getElementById('tktCategoriaLabel');
+
+  function closeCatDropdown(){
+    if(catTrigger) catTrigger.classList.remove('open');
+    if(catOptions) catOptions.classList.remove('open');
+  }
+
+  function openCatDropdown(){
+    if(catTrigger) catTrigger.classList.add('open');
+    if(catOptions) catOptions.classList.add('open');
+  }
+
+  function setCatValue(value, text){
+    if(!cat) return;
+    cat.value = value;
+    if(catLabel) catLabel.textContent = text || (value === '' ? 'Selecciona una categoría' : value);
+    cat.dispatchEvent(new Event('change'));
+  }
+
+  if(catTrigger && catOptions){
+    catTrigger.addEventListener('click', function(e){
+      e.stopPropagation();
+      var isOpen = catTrigger.classList.contains('open');
+      if(isOpen) closeCatDropdown(); else openCatDropdown();
+    });
+
+    catOptions.querySelectorAll('.tkt-option').forEach(function(opt){
+      opt.addEventListener('click', function(e){
+        e.stopPropagation();
+        catOptions.querySelectorAll('.tkt-option').forEach(function(o){ o.classList.remove('selected'); });
+        opt.classList.add('selected');
+        setCatValue(opt.dataset.value, opt.textContent.trim());
+        closeCatDropdown();
+      });
+    });
+
+    document.addEventListener('click', function(e){
+      if(!catTrigger.contains(e.target) && !catOptions.contains(e.target)){
+        closeCatDropdown();
+      }
+    });
+  }
 })();
 </script>
 @endpush
