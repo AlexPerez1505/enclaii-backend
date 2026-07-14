@@ -300,12 +300,12 @@
 
   {{-- Pestañas --}}
   <div class="cfg-tabs rise d1">
-    <button class="cfg-tab active" data-tab="general">General</button>
-    <button class="cfg-tab" data-tab="qr-preregistro">QR y Pre-registro</button>
-    <button class="cfg-tab" data-tab="plan">Plan y almacenamiento</button>
-    <button class="cfg-tab" data-tab="integraciones">Integraciones</button>
-    <button class="cfg-tab" data-tab="seguridad">Seguridad</button>
-    <button class="cfg-tab" data-tab="perfil">Perfil</button>
+    <button type="button" class="cfg-tab active" data-tab="general">General</button>
+    <button type="button" class="cfg-tab" data-tab="qr-preregistro">QR y Pre-registro</button>
+    <button type="button" class="cfg-tab" data-tab="plan">Plan y almacenamiento</button>
+    <button type="button" class="cfg-tab" data-tab="integraciones">Integraciones</button>
+    <button type="button" class="cfg-tab" data-tab="seguridad">Seguridad</button>
+    <button type="button" class="cfg-tab" data-tab="perfil">Perfil</button>
   </div>
 
   @include('configuracion.sections.general')
@@ -340,26 +340,11 @@
   tabs.forEach(t => t.addEventListener('click', () => activateTab(t.dataset.tab)));
 
   const urlParams = new URLSearchParams(window.location.search);
-  const initialTab = urlParams.get('tab');
-  if (initialTab) activateTab(initialTab);
-
-  const requestedTab = new URLSearchParams(window.location.search).get('tab');
-  const requestedTabButton = requestedTab
-    ? document.querySelector(`.cfg-tab[data-tab="${requestedTab}"]`)
-    : null;
-  if (requestedTabButton) requestedTabButton.click();
-
-  const requestedTab = new URLSearchParams(window.location.search).get('tab');
-  const requestedTabButton = requestedTab
-    ? document.querySelector(`.cfg-tab[data-tab="${requestedTab}"]`)
-    : null;
-  if (requestedTabButton) requestedTabButton.click();
-
-  const requestedTab = new URLSearchParams(window.location.search).get('tab');
-  const requestedTabButton = requestedTab
-    ? document.querySelector(`.cfg-tab[data-tab="${requestedTab}"]`)
-    : null;
-  if (requestedTabButton) requestedTabButton.click();
+  const requestedTab = urlParams.get('tab') || 'general';
+  const initialTab = document.querySelector(`.cfg-tab[data-tab="${requestedTab}"]`)
+    ? requestedTab
+    : 'general';
+  activateTab(initialTab);
 
   /* Barras de almacenamiento */
   const bars = document.querySelectorAll('.store-bar i');
