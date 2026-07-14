@@ -80,15 +80,15 @@
   });
 
   document.getElementById('citaEspecialista')?.addEventListener('change', function() {
-    document.getElementById('cfmEspecialista').textContent = this.value;
+    document.getElementById('cfmEspecialista').textContent = this.value || 'Especialista';
   });
 
   document.getElementById('citaProcedimiento')?.addEventListener('change', function() {
-    document.getElementById('cfmProcedimiento').textContent = this.value;
+    document.getElementById('cfmProcedimiento').textContent = this.value || 'Procedimiento';
   });
 
   document.getElementById('citaSala')?.addEventListener('change', function() {
-    document.getElementById('cfmSala').textContent = this.value;
+    document.getElementById('cfmSala').textContent = this.value || 'Sala';
   });
 
   function setSelectValue(selectId, value) {
