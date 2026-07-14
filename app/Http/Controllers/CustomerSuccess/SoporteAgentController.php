@@ -25,14 +25,23 @@ class SoporteAgentController extends Controller
             ->latest('last_message_at')
             ->get();
 
-        return view('customer-success.soporte.index', compact('pending', 'active'));
+        $resolved = AiConversation::where('type', 'soporte')
+            ->where('status', 'closed')
+            ->where('agent_id', auth()->id())
+            ->with(['user', 'latestMessage'])
+            ->latest('closed_at')
+            ->get();
+
+        return view('customer-success.soporte.index', compact('pending', 'active', 'resolved'));
     }
 
     public function show(AiConversation $conversation): View
     {
         abort_unless(
-            $conversation->type === 'soporte' &&
-            in_array($conversation->mode, ['pending_agent', 'with_agent']),
+            $conversation->type === 'soporte' && (
+                in_array($conversation->mode, ['pending_agent', 'with_agent']) ||
+                ($conversation->status === 'closed' && $conversation->agent_id === auth()->id())
+            ),
             404
         );
 
@@ -81,7 +90,12 @@ class SoporteAgentController extends Controller
 
     public function close(AiConversation $conversation): JsonResponse
     {
-        abort_unless($conversation->type === 'soporte', 404);
+        abort_unless(
+            $conversation->type === 'soporte' &&
+            $conversation->isWithAgent() &&
+            $conversation->agent_id === auth()->id(),
+            404
+        );
 
         $conversation->messages()->create([
             'role'    => 'system',
@@ -94,6 +108,20 @@ class SoporteAgentController extends Controller
             'closed_at' => now(),
             'last_message_at' => now(),
         ]);
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function destroy(AiConversation $conversation): JsonResponse
+    {
+        abort_unless(
+            $conversation->type === 'soporte' &&
+            $conversation->status === 'closed' &&
+            $conversation->agent_id === auth()->id(),
+            404
+        );
+
+        $conversation->delete();
 
         return response()->json(['ok' => true]);
     }

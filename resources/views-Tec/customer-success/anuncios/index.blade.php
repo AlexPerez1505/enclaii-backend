@@ -85,11 +85,21 @@
                 <option value="mantenimiento">Mantenimiento</option>
                 <option value="politicas">Políticas</option>
               </select>
+              <button class="nc-tipo-trigger" id="csTipoTrigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+                <span class="nc-tipo-trigger-label" id="csTipoLabel">Notificación</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="nc-tipo-menu" id="csTipoMenu" role="listbox">
+                <button type="button" class="nc-tipo-option is-selected" data-value="notificacion"><span class="nc-tipo-option-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span><span><strong>Notificación</strong><small>Actualización importante para usuarios</small></span></button>
+                <button type="button" class="nc-tipo-option" data-value="anuncios_internos"><span class="nc-tipo-option-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg></span><span><strong>Anuncio interno</strong><small>Comunicación para el equipo</small></span></button>
+                <button type="button" class="nc-tipo-option" data-value="mejoras"><span class="nc-tipo-option-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><span><strong>Mejoras en Enclaii</strong><small>Nuevas funciones y cambios</small></span></button>
+                <button type="button" class="nc-tipo-option" data-value="mantenimiento"><span class="nc-tipo-option-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span><span><strong>Mantenimiento</strong><small>Aviso de servicio programado</small></span></button>
+                <button type="button" class="nc-tipo-option" data-value="politicas"><span class="nc-tipo-option-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span><span><strong>Políticas</strong><small>Documentos y lineamientos</small></span></button>
+              </div>
               <span class="cs-tipo-lock" id="csTipoLock" title="El tipo no puede cambiarse al editar">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
               </span>
             </div>
-            <svg class="nc-select-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
 
           <div class="nc-section-title" style="margin-top:14px">

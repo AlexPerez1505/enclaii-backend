@@ -77,9 +77,9 @@
     @endforeach
   </div>
 
-  <div class="ag-chat-input-bar" id="agInputBar" @if($conversation->isPendingAgent()) style="opacity:.4;pointer-events:none" @endif>
-    <textarea id="agChatInput" placeholder="Escribe tu respuesta..." rows="1"></textarea>
-    <button type="button" id="btnAgSend">Enviar</button>
+  <div class="ag-chat-input-bar" id="agInputBar" @if($conversation->isPendingAgent() || $conversation->status === 'closed') style="opacity:.4;pointer-events:none" @endif>
+    <textarea id="agChatInput" placeholder="Escribe tu respuesta..." rows="1" @disabled($conversation->status === 'closed')></textarea>
+    <button type="button" id="btnAgSend" @disabled($conversation->status === 'closed')>Enviar</button>
   </div>
 
 </div>
@@ -90,6 +90,7 @@
 (function(){
   var convId = {{ $conversation->id }};
   var isPending = {{ $conversation->isPendingAgent() ? 'true' : 'false' }};
+  var isClosed = {{ $conversation->status === 'closed' ? 'true' : 'false' }};
   var csrfToken = "{{ csrf_token() }}";
   var takeUrl = "{{ route('customer-success.soporte.take', $conversation) }}";
   var replyUrl = "{{ route('customer-success.soporte.reply', $conversation) }}";
@@ -144,7 +145,7 @@
 
   async function sendReply(){
     var text = inputEl.value.trim();
-    if(!text || isPending) return;
+    if(!text || isPending || isClosed) return;
     inputEl.value = '';
     btnSend.disabled = true;
     addMsg('agent', text, 'Tú (agente)');
@@ -177,6 +178,7 @@
         });
         var d = await r.json();
         if(d.ok){
+          isClosed = true;
           addMsg('system', 'Conversación marcada como resuelta.', '');
           if(inputBar){ inputBar.style.opacity='.4'; inputBar.style.pointerEvents='none'; }
           btnCloseChat.textContent = '✓ Resuelta';
@@ -189,7 +191,7 @@
   var lastUserId = {{ $messages->where('role','user')->max('id') ?? 0 }};
   var agentPollUrl = "{{ route('customer-success.api.soporte.poll', $conversation) }}";
 
-  (function schedulePoll(){
+  if (!isClosed) (function schedulePoll(delay){
     setTimeout(async function(){
       try {
         var r = await fetch(agentPollUrl + '?last_id=' + lastUserId, {
@@ -203,9 +205,9 @@
           });
         }
       } catch(e){}
-      schedulePoll();
-    }, 1500);
-  })();
+      if (!isClosed) schedulePoll(1000);
+    }, delay);
+  })(0);
 })();
 </script>
 @endpush

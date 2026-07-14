@@ -378,24 +378,41 @@ html[data-theme="light"] .side-help { background: var(--bg); border:none; }
   display:flex;align-items:flex-start;gap:12px;
   padding:12px 16px;border-bottom:1px solid var(--stroke);
   animation:notif-in .25s var(--ease-out);
+  position:relative;transition:background .15s ease;
 }
+.notif-item:not(.read){background:linear-gradient(90deg, rgba(59,130,246,.10) 0%, rgba(59,130,246,.04) 60%, transparent 100%);border-left:3px solid var(--blue)}
+.notif-item:not(.read):hover{background:linear-gradient(90deg, rgba(59,130,246,.16) 0%, rgba(59,130,246,.07) 60%, transparent 100%)}
+.notif-item.read{background:linear-gradient(90deg, rgba(255,255,255,.04) 0%, rgba(255,255,255,.02) 60%, transparent 100%);border-left:3px solid transparent;opacity:.72}
+.notif-item.read:hover{background:linear-gradient(90deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,.04) 60%, transparent 100%)}
 .notif-item:last-child{border-bottom:0}
+.notif-item::before{
+  content:'';position:absolute;left:5px;top:50%;transform:translateY(-50%);
+  width:6px;height:6px;border-radius:50%;background:var(--blue);
+  box-shadow:0 0 0 2px rgba(59,130,246,.25);opacity:0;transition:opacity .15s ease
+}
+.notif-item:not(.read)::before{opacity:1}
 @keyframes notif-in{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:none}}
 .notif-ico{
   width:34px;height:34px;flex:none;border-radius:10px;
   display:grid;place-items:center;
   background:rgba(59,130,246,.15);color:var(--blue);
+  margin-left:4px
 }
 .notif-ico.amber{background:rgba(245,158,45,.15);color:var(--orange)}
 .notif-ico.red{background:rgba(239,68,68,.15);color:var(--red)}
 .notif-ico.green{background:rgba(16,185,129,.15);color:var(--green)}
 .notif-ico svg{width:16px;height:16px}
-.notif-item.read{opacity:.55}
+.notif-item.read .notif-ico{opacity:.55}
+.notif-item.read .notif-body strong{color:var(--txt-soft);font-weight:600}
 .notif-body{flex:1;min-width:0}
 .notif-body strong{display:block;font-size:13px;font-weight:700;color:var(--txt);line-height:1.3}
 .notif-body span{display:block;font-size:11.5px;color:var(--txt-soft);margin-top:2px;line-height:1.4}
 .notif-body time{display:block;font-size:10.5px;color:var(--txt-soft);margin-top:4px;opacity:.7}
 .notif-item[data-preview="1"]{cursor:pointer}
+html[data-theme="light"] .notif-item:not(.read){background:linear-gradient(90deg, rgba(37,99,235,.12) 0%, rgba(37,99,235,.05) 60%, transparent 100%);border-left-color:#2563eb}
+html[data-theme="light"] .notif-item:not(.read):hover{background:linear-gradient(90deg, rgba(37,99,235,.18) 0%, rgba(37,99,235,.08) 60%, transparent 100%)}
+html[data-theme="light"] .notif-item.read{background:linear-gradient(90deg, rgba(15,23,42,.05) 0%, rgba(15,23,42,.02) 60%, transparent 100%);opacity:.75}
+html[data-theme="light"] .notif-item.read:hover{background:linear-gradient(90deg, rgba(15,23,42,.09) 0%, rgba(15,23,42,.04) 60%, transparent 100%)}
 .notif-preview-ov{
   position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:3000;
   display:flex;align-items:center;justify-content:center;
@@ -2526,6 +2543,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
       eliminada:          { title: 'Cita eliminada',             type: 'red',    icon: 'trash' },
       estudio_completado: { title: 'Estudio completado',         type: 'green',  icon: 'check' },
       estado:             { title: 'Estado de cita cambiado',    type: 'blue',   icon: 'bell' },
+      reprogramada:       { title: 'Cita reprogramada',          type: 'amber',  icon: 'bell' },
       recordatorio_1h:    { title: 'Recordatorio: cita en 1h',  type: 'amber',  icon: 'bell' },
       recordatorio_24h:   { title: 'Recordatorio: cita mañana', type: 'blue',   icon: 'bell' },
       anuncio:            { title: e.titulo || 'Nuevo anuncio',  type: 'blue',   icon: 'megaphone' },
@@ -2546,6 +2564,14 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
     const tipo = item.categoria || item.tipo;
     if (tipo === 'anuncio' || ['notificacion','anuncios_internos','mejoras','mantenimiento','politicas'].includes(tipo)) {
       return TIPO_LABELS[tipo] || TIPO_LABELS[item.categoria] || 'Anuncio';
+    }
+    if (tipo === 'reprogramada') {
+      const paciente = item.paciente || 'Paciente';
+      const fecha = item.fecha || '';
+      const hora = item.hora || '';
+      const horaAnterior = item.hora_anterior || '';
+      const fechaAnterior = item.fecha_anterior || '';
+      return `${paciente} — Fecha: ${fecha} — Hora anterior: ${horaAnterior} — Nueva: ${hora}`;
     }
     const parts = [item.paciente, item.fecha, item.hora].filter(Boolean);
     return parts.length ? parts.join(' — ') : (item.message || item.body || '');

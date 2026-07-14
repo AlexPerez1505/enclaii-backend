@@ -355,6 +355,46 @@
   padding-top:6px;
 }
 .sop-quick-extra.hidden{display:none}
+
+html[data-theme="light"] .sop-card{
+  background:#fff;border-color:#dbe5f5;box-shadow:0 2px 8px rgba(15,23,42,.05)
+}
+html[data-theme="light"] .sop-card:hover{
+  border-color:rgba(59,130,246,.35);box-shadow:0 10px 26px rgba(15,23,42,.09)
+}
+html[data-theme="light"] .sop-canal{
+  background:#fff;border-color:#dbe5f5
+}
+html[data-theme="light"] .sop-canal:hover{background:#f5f9ff}
+html[data-theme="light"] #btnCanalChatSoporte.sop-canal{
+  background:linear-gradient(135deg,#eff6ff,#ecfeff);border-color:#93c5fd
+}
+html[data-theme="light"] #btnCanalChatSoporte.sop-canal:hover{
+  background:linear-gradient(135deg,#dbeafe,#cffafe);border-color:#60a5fa;box-shadow:0 8px 22px rgba(59,130,246,.14)
+}
+html[data-theme="light"] #btnLlamar.sop-canal{
+  background:linear-gradient(135deg,#ecfdf5,#f5f3ff);border-color:#86efac
+}
+html[data-theme="light"] #btnLlamar.sop-canal:hover{
+  background:linear-gradient(135deg,#d1fae5,#ede9fe);border-color:#4ade80;box-shadow:0 4px 14px rgba(16,185,129,.12)
+}
+html[data-theme="light"] .sop-tickets-btn{
+  background:linear-gradient(145deg,#fff,#f5f9ff);border-color:#dbe5f5;box-shadow:0 4px 16px rgba(15,23,42,.06)
+}
+html[data-theme="light"] .sop-tickets-btn:hover{box-shadow:0 10px 26px rgba(15,23,42,.1),0 0 18px rgba(59,130,246,.07)}
+html[data-theme="light"] .sop-tickets-btn h3{color:#172554}
+html[data-theme="light"] .sop-tickets-btn p{color:#64748b}
+html[data-theme="light"] .sop-tickets-btn .btn-tickets{background:#eff6ff;color:#2563eb}
+html[data-theme="light"] .sop-chat-panel{background:#fff;border-color:#dbe5f5;box-shadow:0 12px 30px rgba(15,23,42,.08)}
+html[data-theme="light"] .sop-chat-header{background:#f8fbff;border-color:#dbe5f5}
+html[data-theme="light"] .sop-chat-msg.assistant{background:#f8fafc;border-color:#dbe5f5;color:#1e293b}
+html[data-theme="light"] .sop-chat-input{background:#f8fbff;border-color:#dbe5f5}
+html[data-theme="light"] .sop-chat-input input{background:#fff;border-color:#cbd5e1;color:#0f172a}
+html[data-theme="light"] .sop-quick-options{border-color:#dbe5f5}
+html[data-theme="light"] .sop-quick-opt{background:#fff;border-color:#cbd5e1;color:#334155}
+html[data-theme="light"] .sop-quick-opt:hover{background:#eff6ff;border-color:#60a5fa}
+html[data-theme="light"] .sop-quick-more{background:#eff6ff;color:#2563eb}
+html[data-theme="light"] .call-card{background:#fff;border-color:#dbe5f5;box-shadow:0 16px 48px rgba(15,23,42,.18)}
 </style>
 @endpush
 
@@ -371,7 +411,6 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v14a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v4a7 7 0 0 1-7 7"/><path d="M5 10v4a7 7 0 0 0 7 7"/></svg>
           Asistente de soporte ENCLAII
         </h3>
-        <button id="btnNuevaConv" type="button" style="background:none;border:none;color:var(--txt-soft);font-size:11px;cursor:pointer;padding:4px 8px;border-radius:var(--r-md);border:1px solid var(--stroke)" title="Iniciar nueva conversación">+ Nueva</button>
         <button class="close" id="btnCloseSoporteChat" type="button">×</button>
       </div>
       <div class="sop-chat-messages" id="soporteChatMessages"></div>
@@ -731,7 +770,7 @@
     if(!text) return;
     addChatMessage('user', text);
     chatInput.value = '';
-    if(chatMode !== 'with_agent') addChatLoading();
+    if(chatMode === 'bot' && quickOption !== 'hablar_agente') addChatLoading();
     btnSendChat.disabled = true;
 
     var body = { message: text, conversation_id: chatConversationId };
@@ -899,30 +938,6 @@
     });
   });
 
-  var btnNuevaConv = document.getElementById('btnNuevaConv');
-  if(btnNuevaConv){
-    btnNuevaConv.addEventListener('click', async function(){
-      if(!confirm('¿Iniciar una nueva conversación? La actual quedará cerrada.')) return;
-      try {
-        var r = await fetch("{{ route('soporte.chat.new') }}", {
-          method: 'POST',
-          headers: {'X-CSRF-TOKEN': "{{ csrf_token() }}", 'Accept': 'application/json'}
-        });
-        var d = await r.json();
-        if(d.ok){
-          chatConversationId = d.conversation_id;
-          chatMode = 'bot';
-          chatMessages.innerHTML = '';
-          if(pollInterval){ clearTimeout(pollInterval); pollInterval = null; }
-          lastMessageId = 0;
-          addChatMessage('assistant', 'Hola, soy el asistente de soporte de ENCLAII. ¿En qué puedo ayudarte?');
-          updateQuickOptions();
-          startPolling(d.conversation_id);
-        }
-      } catch(e){}
-    });
-  }
-
   var pollInterval = null;
   var lastMessageId = 0;
   var pollUrl = "{{ route('soporte.chat.poll') }}";
@@ -954,7 +969,7 @@
                 pollInterval = null;
                 var resolved = document.createElement('div');
                 resolved.style.cssText = 'text-align:center;padding:12px;font-size:12px;color:var(--txt-soft)';
-                resolved.innerHTML = 'Conversaci\u00f3n resuelta. <button onclick="document.getElementById(\'btnNuevaConv\').click()" style="color:var(--blue);background:none;border:none;cursor:pointer;font-size:12px;text-decoration:underline">Iniciar nueva</button>';
+                resolved.innerHTML = 'Conversaci\u00f3n resuelta.';
                 chatMessages.appendChild(resolved);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
                 return;

@@ -228,8 +228,46 @@
   };
 
   const tipoSelect = document.getElementById('csTipo');
+  const tipoWrap = tipoSelect.closest('.cs-tipo-wrap');
+  const tipoTrigger = document.getElementById('csTipoTrigger');
+  const tipoLabel = document.getElementById('csTipoLabel');
+  const tipoMenu = document.getElementById('csTipoMenu');
+
+  function syncTipoVisual(){
+    const selected = tipoSelect.options[tipoSelect.selectedIndex];
+    if(tipoLabel && selected) tipoLabel.textContent = selected.text;
+    document.querySelectorAll('.nc-tipo-option').forEach(option => {
+      option.classList.toggle('is-selected', option.dataset.value === tipoSelect.value);
+    });
+  }
+
+  function closeTipoMenu(){
+    tipoWrap.classList.remove('is-open');
+    tipoTrigger.setAttribute('aria-expanded', 'false');
+  }
+
+  if(tipoTrigger && tipoMenu){
+    tipoTrigger.addEventListener('click', function(){
+      if(tipoSelect.disabled) return;
+      const isOpen = tipoWrap.classList.toggle('is-open');
+      tipoTrigger.setAttribute('aria-expanded', String(isOpen));
+    });
+    tipoMenu.querySelectorAll('.nc-tipo-option').forEach(option => {
+      option.addEventListener('click', function(){
+        tipoSelect.value = option.dataset.value;
+        syncTipoVisual();
+        closeTipoMenu();
+        tipoSelect.dispatchEvent(new Event('change'));
+      });
+    });
+    document.addEventListener('click', function(event){
+      if(!tipoWrap.contains(event.target)) closeTipoMenu();
+    });
+  }
+  syncTipoVisual();
 
   tipoSelect.addEventListener('change', async function(){
+    syncTipoVisual();
     const boilerplate = BOILERPLATES[this.value];
     if (!boilerplate) {
       if (editor.innerHTML.trim() !== '') {
@@ -293,7 +331,9 @@
     editingId = id;
     submitBtn.textContent = 'Guardar cambios';
     tipoSelect.disabled = true;
+    tipoTrigger.disabled = true;
     tipoSelect.closest('.cs-tipo-wrap')?.classList.add('locked');
+    closeTipoMenu();
     if (bannerTitle) bannerTitle.textContent = titulo || '—';
     if (editBanner)  editBanner.classList.add('visible');
     if (emailWarning) emailWarning.style.display = 'none';
@@ -307,11 +347,13 @@
     editingId = null;
     submitBtn.textContent = 'Publicar anuncio';
     tipoSelect.disabled = false;
+    tipoTrigger.disabled = false;
     tipoSelect.closest('.cs-tipo-wrap')?.classList.remove('locked');
     if (editBanner)  editBanner.classList.remove('visible');
     if (emailWarning) emailWarning.style.display = 'none';
     if (bannerTitle) bannerTitle.textContent = '—';
     form.reset();
+    syncTipoVisual();
     editor.innerHTML = '';
     hiddenInput.value = '';
     if (flatpickrInstance) flatpickrInstance.clear();
@@ -638,12 +680,100 @@
     return params;
   }
 
+  const filterIcons = {
+    csFilterTipo: {
+      '': '<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>',
+      notificacion: '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>',
+      anuncios_internos: '<path d="M3 11l19-9-9 19-2-8-8-2z"/>',
+      mejoras: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+      mantenimiento: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+      politicas: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'
+    },
+    csFilterCanal: {
+      '': '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+      web: '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+      email: '<rect x="3" y="5" width="18" height="14" rx="2"/><polyline points="3 7 12 13 21 7"/>'
+    },
+    csFilterEstado: {
+      '': '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+      activo: '<circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/>',
+      inactivo: '<circle cx="12" cy="12" r="9"/><line x1="8" y1="8" x2="16" y2="16"/><line x1="16" y1="8" x2="8" y2="16"/>',
+      programado: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'
+    }
+  };
+
+  function filterIconMarkup(select) {
+    const paths = filterIcons[select.id]?.[select.value] ?? '';
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + paths + '</svg>';
+  }
+
+  function syncFilterIcon(select) {
+    const wrap = select.closest('.cs-filter-select-wrap');
+    const triggerIcon = wrap?.querySelector('.cs-filter-trigger-icon');
+    const triggerLabel = wrap?.querySelector('.cs-filter-trigger-label');
+    if (triggerIcon) triggerIcon.innerHTML = filterIconMarkup(select);
+    if (triggerLabel) triggerLabel.textContent = select.options[select.selectedIndex].text;
+    wrap?.querySelectorAll('.cs-filter-option').forEach(option => {
+      option.classList.toggle('is-selected', option.dataset.value === select.value);
+    });
+  }
+
+  function enhanceFilterSelects() {
+    ['csFilterTipo', 'csFilterCanal', 'csFilterEstado'].forEach(id => {
+      const select = fEl(id);
+      const wrap = select?.closest('.cs-filter-select-wrap');
+      if (!select || !wrap || wrap.classList.contains('is-enhanced')) return;
+
+      wrap.classList.add('is-enhanced');
+      const trigger = document.createElement('button');
+      trigger.type = 'button';
+      trigger.className = 'cs-filter-trigger';
+      trigger.setAttribute('aria-haspopup', 'listbox');
+      trigger.setAttribute('aria-expanded', 'false');
+      trigger.innerHTML = '<span class="cs-filter-trigger-icon"></span><span class="cs-filter-trigger-label"></span><svg class="cs-filter-trigger-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+
+      const menu = document.createElement('div');
+      menu.className = 'cs-filter-menu';
+      menu.setAttribute('role', 'listbox');
+      Array.from(select.options).forEach(option => {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'cs-filter-option';
+        item.dataset.value = option.value;
+        item.innerHTML = '<span class="cs-filter-option-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (filterIcons[id]?.[option.value] ?? '') + '</svg></span><span>' + option.text + '</span>';
+        item.addEventListener('click', function(){
+          select.value = option.value;
+          wrap.classList.remove('is-open');
+          trigger.setAttribute('aria-expanded', 'false');
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+        menu.appendChild(item);
+      });
+
+      trigger.addEventListener('click', function(){
+        const isOpen = wrap.classList.toggle('is-open');
+        trigger.setAttribute('aria-expanded', String(isOpen));
+      });
+      wrap.append(trigger, menu);
+      syncFilterIcon(select);
+    });
+  }
+
+  function syncFilterIcons() {
+    enhanceFilterSelects();
+    ['csFilterTipo', 'csFilterCanal', 'csFilterEstado'].forEach(id => {
+      const select = fEl(id);
+      if (select) syncFilterIcon(select);
+    });
+  }
+
   function restoreFilterValues() {
     const params = new URLSearchParams(window.location.search);
     const fq = fEl('csFilterQ');      if (fq      && params.get('q'))      fq.value      = params.get('q');
     const ft = fEl('csFilterTipo');   if (ft      && params.get('tipo'))   ft.value      = params.get('tipo');
     const fc = fEl('csFilterCanal');  if (fc      && params.get('canal'))  fc.value      = params.get('canal');
     const fe = fEl('csFilterEstado'); if (fe      && params.get('estado')) fe.value      = params.get('estado');
+    syncFilterIcons();
   }
 
   async function applyFilters() {
@@ -679,10 +809,17 @@
   });
   document.addEventListener('change', (e) => {
     if (['csFilterTipo','csFilterCanal','csFilterEstado'].includes(e.target.id)) {
+      syncFilterIcon(e.target);
       applyFilters();
     }
   });
   document.addEventListener('click', (e) => {
+    document.querySelectorAll('.cs-filter-select-wrap.is-open').forEach(wrap => {
+      if (!wrap.contains(e.target)) {
+        wrap.classList.remove('is-open');
+        wrap.querySelector('.cs-filter-trigger')?.setAttribute('aria-expanded', 'false');
+      }
+    });
     if (e.target.closest('#csFilterClear')) {
       const fq = fEl('csFilterQ');      if (fq)  fq.value  = '';
       const ft = fEl('csFilterTipo');   if (ft)  ft.value  = '';
@@ -691,6 +828,8 @@
       applyFilters();
     }
   });
+
+  syncFilterIcons();
 
   // Calendario personalizado para fecha de publicación
   if (typeof flatpickr !== 'undefined') {
