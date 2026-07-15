@@ -268,55 +268,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     })->name('dashboard.widget');
 
 
-    Route::get('/ia-reportes', function () {
-        $reportes = Reporte::with(['estudio.paciente', 'usuario'])
-            ->latest()
-            ->get();
-
-        // ===== KPIs con datos reales =====
-        $inicioMes = now()->startOfMonth();
-        $finMes = now()->endOfMonth();
-        $inicioMesPrev = now()->subMonthNoOverflow()->startOfMonth();
-        $finMesPrev = now()->subMonthNoOverflow()->endOfMonth();
-
-        // % de variación entre dos conteos
-        $pct = function (int $actual, int $previo): int {
-            if ($previo === 0) {
-                return $actual > 0 ? 100 : 0;
-            }
-
-            return (int) round((($actual - $previo) / $previo) * 100);
-        };
-
-        // 1. Reportes generados (este mes)
-        $repMes = Reporte::whereBetween('created_at', [$inicioMes, $finMes])->count();
-        $repPrev = Reporte::whereBetween('created_at', [$inicioMesPrev, $finMesPrev])->count();
-
-        // 2. Estudios sin reporte (pendientes reales)
-        $estudiosSinReporte = \App\Models\Estudio::whereDoesntHave('reportes')->count();
-
-        // 3. Evidencias (imágenes) capturadas este mes
-        $evMes = \App\Models\EstudioArchivo::where('tipo', 'imagen')
-            ->whereBetween('created_at', [$inicioMes, $finMes])->count();
-        $evPrev = \App\Models\EstudioArchivo::where('tipo', 'imagen')
-            ->whereBetween('created_at', [$inicioMesPrev, $finMesPrev])->count();
-
-        // 4. Estudios realizados este mes
-        $estMes = \App\Models\Estudio::whereBetween('created_at', [$inicioMes, $finMes])->count();
-        $estPrev = \App\Models\Estudio::whereBetween('created_at', [$inicioMesPrev, $finMesPrev])->count();
-
-        $kpis = [
-            'reportes' => ['valor' => $repMes, 'trend' => $pct($repMes, $repPrev)],
-            'sin_reporte' => ['valor' => $estudiosSinReporte],
-            'evidencias' => ['valor' => $evMes, 'trend' => $pct($evMes, $evPrev)],
-            'estudios' => ['valor' => $estMes, 'trend' => $pct($estMes, $estPrev)],
-        ];
-
-        $hallazgosData = app(\App\Http\Controllers\IaReporteController::class)->hallazgosData();
-        $hallazgos = collect($hallazgosData['hallazgos'])->take(5)->all();
-
-        return view('ia-reportes.index', compact('reportes', 'kpis', 'hallazgos'));
-    })->name('ia-reportes');
+    Route::get('/ia-reportes', [IaReporteController::class, 'index'])->name('ia-reportes');
 
     Route::get('/ia-reportes/generar', function () {
         $estudioId = request()->query('estudio');
