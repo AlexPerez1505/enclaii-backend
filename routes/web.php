@@ -692,9 +692,14 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     Route::post('/nuevo-estudio', [NuevoEstudioController::class, 'store'])
         ->name('nuevo-estudio.store');
 
+<<<<<<< Updated upstream
     Route::get('/nuevo-estudio/capturas', function () {
         return view('estudios.caputras.index');
     })->name('nuevo-estudio.capturas');
+=======
+    Route::get('/nuevo-estudio/capturas', [NuevoEstudioController::class, 'capturas'])
+        ->name('nuevo-estudio.capturas');
+>>>>>>> Stashed changes
 
     Route::post('/nuevo-estudio/capturas', [NuevoEstudioController::class, 'guardarCapturas'])
         ->name('nuevo-estudio.capturas.store');
