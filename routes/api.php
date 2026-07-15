@@ -15,6 +15,7 @@ Route::post('/tauri/pair/redeem', [TauriCaptureController::class, 'redeemCode'])
 Route::post('/tauri/login', [TauriAuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->prefix('tauri')->group(function () {
+    Route::post('/estudios/iniciar', [TauriCaptureController::class, 'startSession']);
     Route::post('/live-frame', [TauriCaptureController::class, 'liveFrame']);
     Route::post('/images', [TauriCaptureController::class, 'storeImage']);
     Route::post('/videos', [TauriCaptureController::class, 'storeVideo']);
