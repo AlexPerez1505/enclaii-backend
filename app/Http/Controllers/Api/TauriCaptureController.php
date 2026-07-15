@@ -96,6 +96,13 @@ class TauriCaptureController extends Controller
             'capture:video',
         ])->plainTextToken;
 
+        $paciente = $pairing->paciente_id
+            ? Paciente::withoutGlobalScopes()->find($pairing->paciente_id)
+            : null;
+        $estudio = ($pairing->estudio_id ?? $pairing->study_id ?? null)
+            ? Estudio::withoutGlobalScopes()->find($pairing->estudio_id ?? $pairing->study_id)
+            : null;
+
         return response()->json([
             'ok' => true,
             'message' => 'Dispositivo vinculado correctamente.',
@@ -104,7 +111,9 @@ class TauriCaptureController extends Controller
                 'tenant_id' => $pairing->tenant_id,
                 'user_id' => $pairing->user_id,
                 'paciente_id' => $pairing->paciente_id ?? null,
+                'paciente_nombre' => $paciente?->nombre_completo,
                 'estudio_id' => $pairing->estudio_id ?? null,
+                'estudio_tipo' => $estudio?->tipo,
                 'study_id' => $pairing->study_id ?? null,
                 'device_id' => $device->id,
                 'session_id' => $session->id,
@@ -162,7 +171,10 @@ class TauriCaptureController extends Controller
 
         $request->validate([
             'session_id' => ['required', 'integer', 'exists:capture_sessions,id'],
-            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:20480'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:20480'],
+            'data_base64' => ['nullable', 'string'],
+            'filename' => ['nullable', 'string', 'max:255'],
+            'mime_type' => ['nullable', 'string', 'max:100'],
             'captured_at' => ['nullable', 'date'],
         ]);
 
@@ -176,7 +188,19 @@ class TauriCaptureController extends Controller
 
         $folder = $this->getSessionMediaFolder($session, 'images');
 
-        $file = $request->file('image');
+        $file = $request->file('image') ?: $this->uploadedFileFromBase64(
+            $request->input('data_base64'),
+            $request->input('filename', 'captura.jpg'),
+            $request->input('mime_type', 'image/jpeg'),
+        );
+
+        if (! $file) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'No se recibio ninguna imagen.',
+            ], 422);
+        }
+
         $path = media_store($file, $folder);
         $archivo = $this->createStudyArchive(
             session: $session,
@@ -230,7 +254,10 @@ class TauriCaptureController extends Controller
 
         $request->validate([
             'session_id' => ['required', 'integer', 'exists:capture_sessions,id'],
-            'video' => ['required', 'file', 'mimes:webm,mp4,mov,avi,mkv', 'max:1048576'],
+            'video' => ['nullable', 'file', 'mimes:webm,mp4,mov,avi,mkv', 'max:1048576'],
+            'data_base64' => ['nullable', 'string'],
+            'filename' => ['nullable', 'string', 'max:255'],
+            'mime_type' => ['nullable', 'string', 'max:100'],
             'ended_at' => ['nullable', 'date'],
         ]);
 
@@ -244,7 +271,19 @@ class TauriCaptureController extends Controller
 
         $folder = $this->getSessionMediaFolder($session, 'videos');
 
-        $file = $request->file('video');
+        $file = $request->file('video') ?: $this->uploadedFileFromBase64(
+            $request->input('data_base64'),
+            $request->input('filename', 'video.webm'),
+            $request->input('mime_type', 'video/webm'),
+        );
+
+        if (! $file) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'No se recibio ningun video.',
+            ], 422);
+        }
+
         $path = media_store($file, $folder);
         $archivo = $this->createStudyArchive(
             session: $session,
@@ -330,6 +369,29 @@ class TauriCaptureController extends Controller
             'ok' => true,
             'message' => 'Sesión finalizada correctamente.',
         ]);
+    }
+
+    private function uploadedFileFromBase64(?string $base64, string $filename, string $mimeType): ?\Illuminate\Http\UploadedFile
+    {
+        if (! $base64) {
+            return null;
+        }
+
+        $decoded = base64_decode($base64, true);
+        if ($decoded === false || $decoded === '') {
+            return null;
+        }
+
+        $tempPath = tempnam(sys_get_temp_dir(), 'tauri_capture_');
+        file_put_contents($tempPath, $decoded);
+
+        return new \Illuminate\Http\UploadedFile(
+            $tempPath,
+            $filename,
+            $mimeType,
+            null,
+            true,
+        );
     }
 
     private function ensureSameTenant(CaptureDevice $device, CaptureSession $session): void
