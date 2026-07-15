@@ -233,66 +233,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
 
 Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
 
-    Route::get('/dashboard', function () {
-        $estudiosSinReporte = \App\Models\Estudio::whereDoesntHave('reportes')->count();
-
-        // Auto-cancelar citas próximas cuya fecha/hora ya pasó
-        \App\Models\Cita::query()
-            ->where('estado', 'proximo')
-            ->whereRaw("CONCAT(fecha, ' ', hora) <= ?", [now()->format('Y-m-d H:i:s')])
-            ->update(['estado' => 'cancelado']);
-
-        // Próximo paciente: la cita pendiente más cercana (solo futuras)
-        $proximaCita = \App\Models\Cita::with('paciente')
-            ->whereNotIn('estado', ['cancelado', 'completado'])
-            ->whereRaw("CONCAT(fecha, ' ', hora) >= ?", [now()->format('Y-m-d H:i:s')])
-            ->orderBy('fecha')
-            ->orderBy('hora')
-            ->first();
-
-        // Pacientes pendientes HOY: citas de hoy futuras y no completadas/canceladas
-        $pendientesHoy = \App\Models\Cita::with('paciente')
-            ->whereDate('fecha', now()->toDateString())
-            ->whereNotIn('estado', ['completado', 'cancelado'])
-            ->whereTime('hora', '>=', now()->format('H:i:s'))
-            ->orderBy('hora')
-            ->get();
-
-        // Citas por estado para el donut del resumen
-        $citasProximas = \App\Models\Cita::where('estado', 'proximo')->count();
-        $citasCompletadas = \App\Models\Cita::where('estado', 'completado')->count();
-        $citasCanceladas = \App\Models\Cita::where('estado', 'cancelado')->count();
-
-        // Resumen del mes (coincide con el mes mostrado en el widget de agenda)
-        $widgetMes = (int) request()->query('widget_mes', now()->month);
-        $widgetAnio = (int) request()->query('widget_anio', now()->year);
-        $inicioMes = \Carbon\Carbon::create($widgetAnio, $widgetMes, 1)->startOfDay();
-        $finMes = $inicioMes->copy()->endOfMonth();
-
-        $citasProximasMes = \App\Models\Cita::where('estado', 'proximo')
-            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
-            ->count();
-        $citasCompletadasMes = \App\Models\Cita::where('estado', 'completado')
-            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
-            ->count();
-        $citasCanceladasMes = \App\Models\Cita::where('estado', 'cancelado')
-            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
-            ->count();
-
-        $pendientesMes = \App\Models\Cita::with('paciente')
-            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
-            ->whereNotIn('estado', ['completado', 'cancelado'])
-            ->orderBy('fecha')
-            ->orderBy('hora')
-            ->get();
-
-        return view('dashboard.index', compact(
-            'estudiosSinReporte', 'proximaCita', 'pendientesHoy',
-            'citasProximas', 'citasCompletadas', 'citasCanceladas',
-            'citasProximasMes', 'citasCompletadasMes', 'citasCanceladasMes',
-            'pendientesMes', 'widgetMes', 'widgetAnio'
-        ));
-    })->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/dashboard/widget/{widget}', function ($widget) {
         $allowed = ['agenda-today', 'agenda-summary'];

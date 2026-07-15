@@ -13,9 +13,61 @@ class PacienteController extends Controller
         private readonly ActivityLogger $activity,
     ) {}
 
-    public function index()
+    public function index(Request $request)
     {
         $pacientes = Paciente::latest()->get();
+
+        if ($request->expectsJson()) {
+            $pacientes->load(['estudios' => fn ($q) => $q->latest('fecha')]);
+
+            $data = $pacientes->map(function (Paciente $paciente) {
+                $ultimoEstudio = $paciente->estudios->first();
+
+                $proximaCita = \App\Models\Cita::where('paciente_id', $paciente->id)
+                    ->whereNotIn('estado', ['completado', 'cancelado'])
+                    ->orderBy('fecha')
+                    ->orderBy('hora')
+                    ->first();
+
+                $iniciales = collect(explode(' ', $paciente->nombre_completo ?? ''))
+                    ->filter()
+                    ->take(2)
+                    ->map(fn ($x) => mb_strtoupper(mb_substr($x, 0, 1)))
+                    ->implode('');
+
+                return [
+                    'id' => $paciente->id,
+                    'patient_id' => $paciente->id,
+                    'name' => $paciente->nombre_completo,
+                    'initials' => $iniciales ?: 'PX',
+                    'age' => $paciente->edad ? $paciente->edad.' años' : null,
+                    'gender' => $paciente->sexo,
+                    'folio' => $paciente->folio,
+                    'dob' => optional($paciente->fecha_nacimiento)->format('d/m/Y'),
+                    'phone' => $paciente->telefono,
+                    'email' => $paciente->email,
+                    'address' => $paciente->direccion,
+                    'medico' => $paciente->medico,
+                    'foto_url' => $paciente->foto ? media_url($paciente->foto) : null,
+                    'status' => $ultimoEstudio?->estado,
+                    'study_date' => optional($ultimoEstudio?->fecha)->format('d/m/Y'),
+                    'study_type' => $ultimoEstudio?->tipo,
+                    'estudios' => $paciente->estudios->map(fn ($estudio) => [
+                        'tipo' => $estudio->tipo,
+                        'fecha' => optional($estudio->fecha)->format('d/m/Y'),
+                    ])->values(),
+                    'proxima_cita' => $proximaCita ? [
+                        'fecha' => optional($proximaCita->fecha)->format('d/m/Y'),
+                        'hora' => $proximaCita->hora,
+                    ] : null,
+                ];
+            })->values();
+
+            return response()->json([
+                'ok' => true,
+                'pacientes' => $data,
+            ]);
+        }
 
         return view('pacientes.index', compact('pacientes'));
     }
