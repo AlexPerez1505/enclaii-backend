@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\CustomerSuccess\NotificationController as CsNotific
 use App\Http\Controllers\Api\CustomerSuccess\UserRoleController;
 use App\Http\Controllers\Api\TauriAuthController;
 use App\Http\Controllers\Api\TauriCaptureController;
+use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PacienteController;
 use Illuminate\Support\Facades\Route;
@@ -20,4 +21,5 @@ Route::middleware('auth:sanctum')->prefix('tauri')->group(function () {
     Route::post('/logout', [TauriAuthController::class, 'logout']);
     Route::get('/dashboard', [DashboardController::class, 'index']);
     Route::get('/pacientes', [PacienteController::class, 'index']);
+    Route::get('/agenda', [AgendaController::class, 'index']);
 });
