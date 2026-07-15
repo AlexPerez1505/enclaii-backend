@@ -75,7 +75,7 @@ class PacientesDemoSeeder extends Seeder
                 'fecha_nacimiento' => $fechaNacimiento->toDateString(),
                 'edad' => $edad,
                 'peso' => random_int(50, 100),
-                'altura' => random_int(150, 190),
+                'altura' => round(random_int(150, 190) / 100, 2),
                 'sexo' => $sexo,
                 'direccion' => 'Calle Falsa '.random_int(1, 999).', Col. Centro',
                 'telefono' => $telefono,
