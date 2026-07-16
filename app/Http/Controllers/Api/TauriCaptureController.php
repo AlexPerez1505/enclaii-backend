@@ -51,6 +51,27 @@ class TauriCaptureController extends Controller
                 ->value('id');
         }
 
+        // `estudio_archivos.estudio_id` es obligatorio en la base de datos, asi
+        // que si el paciente no tiene un estudio "en_proceso" creamos uno minimo
+        // para poder guardar las fotos/videos capturados desde Tauri.
+        if (! $estudioId) {
+            $paciente = Paciente::withoutGlobalScopes()->find($pacienteId);
+
+            $estudio = Estudio::create([
+                'clinica_id' => $user->clinica_id,
+                'paciente_id' => $pacienteId,
+                'paciente_nombre' => $paciente?->nombre_completo,
+                'folio' => $this->generarFolioEstudio(),
+                'tipo' => 'Endoscopia',
+                'fecha' => now()->toDateString(),
+                'hora_inicio' => now()->format('H:i:s'),
+                'estado' => 'en_proceso',
+                'medico' => $user->name ?? null,
+            ]);
+
+            $estudioId = $estudio->id;
+        }
+
         $session = CaptureSession::query()
             ->where('user_id', $user->id)
             ->whereNull('capture_device_id')
@@ -538,6 +559,27 @@ class TauriCaptureController extends Controller
             return null;
         }
 
+        // `estudio_archivos.estudio_id` es obligatorio en la base de datos. Si la
+        // sesion de captura no tiene un estudio asociado (por ejemplo, un codigo
+        // de vinculacion generado sin estudio especifico), creamos uno minimo
+        // para no perder la captura.
+        if (! $study && $patient) {
+            $study = Estudio::create([
+                'clinica_id' => $patient->clinica_id,
+                'paciente_id' => $patient->id,
+                'paciente_nombre' => $patient->nombre_completo,
+                'folio' => $this->generarFolioEstudio(),
+                'tipo' => 'Endoscopia',
+                'fecha' => now()->toDateString(),
+                'hora_inicio' => now()->format('H:i:s'),
+                'estado' => 'en_proceso',
+            ]);
+
+            if (Schema::hasColumn('capture_sessions', 'estudio_id')) {
+                $session->forceFill(['estudio_id' => $study->id])->save();
+            }
+        }
+
         $originalName = $file->getClientOriginalName() ?: basename($path);
 
         return EstudioArchivo::withoutGlobalScopes()->create([
@@ -554,5 +596,17 @@ class TauriCaptureController extends Controller
             'descripcion' => $description,
             'capturado_en' => $capturedAt,
         ]);
+    }
+
+    private function generarFolioEstudio(): string
+    {
+        $ultimoId = (int) Estudio::withoutGlobalScopes()->max('id') + 1;
+
+        do {
+            $folio = 'E-'.str_pad((string) $ultimoId, 4, '0', STR_PAD_LEFT);
+            $ultimoId++;
+        } while (Estudio::withoutGlobalScopes()->where('folio', $folio)->exists());
+
+        return $folio;
     }
 }
