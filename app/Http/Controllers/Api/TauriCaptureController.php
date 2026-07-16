@@ -438,6 +438,19 @@ class TauriCaptureController extends Controller
             'ended_at' => now(),
         ]);
 
+        $estudioId = $session->estudio_id ?? $session->study_id ?? null;
+
+        if ($estudioId) {
+            $estudio = Estudio::withoutGlobalScopes()->find($estudioId);
+
+            if ($estudio && $estudio->estado !== 'completado') {
+                $estudio->update([
+                    'estado' => 'completado',
+                    'hora_fin' => now()->format('H:i:s'),
+                ]);
+            }
+        }
+
         $this->touchActor($actor, $request);
 
         return response()->json([
