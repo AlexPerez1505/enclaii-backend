@@ -13,11 +13,18 @@ class TicketController extends Controller
 {
     public function tickets(): View
     {
-        $tickets = Ticket::where('user_id', auth()->id())
-            ->orderBy('updated_at', 'desc')
+        $ticketQuery = Ticket::where('user_id', auth()->id())
+            ->orderByDesc('updated_at');
+
+        $activeTickets = (clone $ticketQuery)
+            ->whereNotIn('status', ['respondido', 'resuelto', 'cerrado'])
             ->get();
 
-        return view('soporte.tickets', compact('tickets'));
+        $answeredTickets = (clone $ticketQuery)
+            ->whereIn('status', ['respondido', 'resuelto', 'cerrado'])
+            ->get();
+
+        return view('soporte.tickets', compact('activeTickets', 'answeredTickets'));
     }
 
     public function store(Request $request): JsonResponse
@@ -46,6 +53,40 @@ class TicketController extends Controller
             $user->razon_social,
             $user->rfc,
         ]));
+
+        // Reabrir ticket reciente resuelto si el usuario envía el mismo asunto/categoría en menos de 24h
+        $latestResolved = Ticket::where('user_id', $user->id)
+            ->whereIn('status', ['resuelto', 'cerrado'])
+            ->where('resolved_at', '>=', now()->subHours(24))
+            ->latest('resolved_at')
+            ->first();
+
+        if (
+            $latestResolved &&
+            $latestResolved->category === $validated['category'] &&
+            mb_strtolower(trim($latestResolved->subject)) === mb_strtolower(trim($validated['subject']))
+        ) {
+            $latestResolved->update([
+                'status' => 'abierto',
+                'description' => $latestResolved->description . "\n\n--- Reapertura ---\n" . $validated['description'],
+                'payment_method' => $validated['payment_method'] ?? $latestResolved->payment_method,
+                'attachment_path' => $attachmentPath ?: $latestResolved->attachment_path,
+                'resolved_by' => null,
+                'resolved_at' => null,
+                'resolution_type' => null,
+                'resolution_summary' => null,
+                'client_message' => null,
+                'evidence_path' => null,
+            ]);
+
+            $this->notifyCustomerSuccess($latestResolved);
+
+            return response()->json([
+                'ok' => true,
+                'ticket' => $latestResolved->fresh(),
+                'reopened' => true,
+            ], 200);
+        }
 
         $ticket = Ticket::create([
             'user_id' => $user->id,

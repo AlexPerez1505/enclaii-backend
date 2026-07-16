@@ -5,8 +5,10 @@ namespace App\Http\Controllers\CustomerSuccess;
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use App\Models\Ticket;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -106,14 +108,18 @@ class TicketController extends Controller
         ]);
     }
 
-    public function resolveForm(Ticket $ticket): View
+    public function resolveForm(Ticket $ticket): Response
     {
         if (in_array($ticket->status, ['nuevo', 'abierto'])) {
             $ticket->update(['status' => 'en_proceso']);
         }
 
         $ticket->load('user');
-        return view('customer-success.tickets.resolve', compact('ticket'));
+        return response()
+            ->view('customer-success.tickets.resolve', compact('ticket'))
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
     }
 
     public function resolve(Request $request, Ticket $ticket): JsonResponse
@@ -122,12 +128,10 @@ class TicketController extends Controller
             'status' => ['required', 'string', 'in:resuelto,cerrado'],
             'resolution_type' => ['required', 'string', 'in:problema_corregido,configuracion_realizada,error_usuario,capacitacion,incidencia_externa,otro'],
             'resolution_summary' => ['required', 'string', 'max:2000'],
-            'send_message' => ['nullable', 'boolean'],
-            'client_message' => ['nullable', 'required_if:send_message,true', 'string', 'max:2000'],
             'evidence' => ['nullable', 'file', 'max:10240'],
         ]);
 
-        $evidencePath = null;
+        $evidencePath = $ticket->evidence_path;
         if ($request->hasFile('evidence')) {
             $evidencePath = $request->file('evidence')->store('tickets/evidence', 'public');
         }
@@ -136,26 +140,11 @@ class TicketController extends Controller
             'status' => $validated['status'],
             'resolution_type' => $validated['resolution_type'],
             'resolution_summary' => $validated['resolution_summary'],
-            'client_message' => $validated['client_message'] ?? null,
             'evidence_path' => $evidencePath,
             'resolved_by' => Auth::id(),
             'resolved_at' => now(),
         ]);
 
-        if (! empty($validated['send_message']) && ! empty($validated['client_message']) && $ticket->user_id) {
-            Notification::create([
-                'user_id' => $ticket->user_id,
-                'tipo' => 'ticket',
-                'data' => json_encode([
-                    'tipo' => 'ticket',
-                    'titulo' => 'Tu ticket fue resuelto',
-                    'folio' => $ticket->operation_folio,
-                    'subject' => $ticket->subject,
-                    'message' => $validated['client_message'],
-                ]),
-                'read' => false,
-            ]);
-        }
 
         return response()->json([
             'ok' => true,
@@ -166,18 +155,52 @@ class TicketController extends Controller
     public function reopen(Ticket $ticket): JsonResponse
     {
         $ticket->update([
-            'status' => 'abierto',
-            'resolution_type' => null,
-            'resolution_summary' => null,
-            'client_message' => null,
-            'evidence_path' => null,
-            'resolved_by' => null,
-            'resolved_at' => null,
+            'status' => 'en_proceso',
         ]);
 
         return response()->json([
             'ok' => true,
-            'ticket' => $ticket->fresh(),
+            'ticket' => $ticket->fresh(['user']),
+            'redirect_url' => route('customer-success.tickets.show', $ticket),
         ]);
+    }
+
+    private function generarFolioTicket(): string
+    {
+        $ultimoId = (int) Ticket::max('id') + 1;
+
+        do {
+            $folio = 'T-' . str_pad((string) $ultimoId, 4, '0', STR_PAD_LEFT);
+            $ultimoId++;
+        } while (Ticket::where('operation_folio', $folio)->exists());
+
+        return $folio;
+    }
+
+    private function notifyCustomerSuccess(Ticket $ticket): void
+    {
+        $customerSuccessUsers = User::role(['Customer Success'])->get();
+
+        if ($customerSuccessUsers->isEmpty()) {
+            return;
+        }
+
+        $notifications = $customerSuccessUsers->map(fn (User $user) => [
+            'user_id' => $user->id,
+            'tipo' => 'ticket',
+            'data' => json_encode([
+                'ticket_id' => $ticket->id,
+                'folio' => $ticket->operation_folio,
+                'subject' => $ticket->subject,
+                'category' => $ticket->category,
+                'user_name' => $ticket->user?->name.' '.($ticket->user?->apellido_paterno ?? ''),
+                'user_email' => $ticket->user?->email,
+            ]),
+            'read' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ])->all();
+
+        Notification::insert($notifications);
     }
 }

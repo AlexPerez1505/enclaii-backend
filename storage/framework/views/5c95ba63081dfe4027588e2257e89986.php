@@ -196,7 +196,6 @@ html[data-theme="light"] .tk-card-title-icon{background:rgba(59,130,246,.1)}
           <div class="tk-dropdown-menu" id="filterStatusMenu">
             <div class="tk-dropdown-item active" data-value="">Todos los estados</div>
             <div class="tk-dropdown-item" data-value="nuevo"><span class="tk-dot" style="background:#c084fc"></span>Nuevo</div>
-            <div class="tk-dropdown-item" data-value="abierto"><span class="tk-dot" style="background:#60a5fa"></span>Abierto</div>
             <div class="tk-dropdown-item" data-value="en_proceso"><span class="tk-dot" style="background:#fbbf24"></span>En proceso</div>
             <div class="tk-dropdown-item" data-value="respondido"><span class="tk-dot" style="background:#4ade80"></span>Respondido</div>
             <div class="tk-dropdown-item" data-value="cerrado"><span class="tk-dot" style="background:#94a3b8"></span>Cerrado</div>

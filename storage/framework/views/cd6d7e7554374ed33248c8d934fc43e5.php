@@ -295,15 +295,19 @@ html[data-theme="light"] .side-help { background: var(--bg); border:none; }
   z-index:1000;
 }
 .profile-wrap.open{z-index:2000}
+.head > div:first-child{flex:1;min-width:0}
 .head h1{
   font-family:'Sora',sans-serif;
   font-size:24px; 
   font-weight:700;
   letter-spacing:-0.01em;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 .head .sub{margin-top:4px;font-size:14px;color:var(--txt-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:600px}
 .head .sub b{color:var(--cyan);font-weight:700}
-.head-right{display:flex;align-items:center;gap:12px}
+.head-right{display:flex;align-items:center;gap:12px;flex-shrink:0}
 .btn-ai{
   display:flex;align-items:center;gap:8px;
   padding:10px 16px;
@@ -804,6 +808,12 @@ html[data-theme="light"] .db-editor-body::-webkit-scrollbar-thumb{background:rgb
   .profile{padding:8px}
   .head{margin-bottom:18px}
 }
+@media (max-width:400px){
+  .head{gap:8px}
+  .head-right{gap:6px}
+  .btn-ai{padding:9px}
+}
+
 
 /* Toggle de tema: luna en modo oscuro (ir a claro: sol), y viceversa */
 #themeToggle .icon-moon{display:none}
