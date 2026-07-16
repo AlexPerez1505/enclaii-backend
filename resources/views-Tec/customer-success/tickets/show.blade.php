@@ -17,10 +17,7 @@
 <style>
 .tk-page{--tk-bg:#060b14;--tk-panel:#0f1629;--tk-panel-2:#131b32;--tk-border:#1e293b;--tk-border-soft:#253047;--tk-text:#e2e8f0;--tk-text-soft:#94a3b8;--tk-blue:#3b82f6;--tk-blue-soft:#1d4ed8;--tk-cyan:#06b6d4;--tk-amber:#f59e0b;--tk-green:#22c55e;--tk-red:#ef4444;--tk-radius:18px;--tk-shadow:0 10px 30px rgba(0,0,0,.25)}
 .tk-page{display:grid;gap:22px;grid-template-columns:1fr;max-width:1200px;margin:0 auto}
-<<<<<<< HEAD
-=======
 .tk-col{min-width:0}
->>>>>>> origin/Carlos-Soporte
 @media(min-width:900px){.tk-page{grid-template-columns:1.4fr .6fr}}
 .tk-card{background:var(--tk-panel);border:1px solid var(--tk-border);border-radius:var(--tk-radius);box-shadow:var(--tk-shadow);overflow:hidden;position:relative;margin-bottom:22px}
 .tk-card:last-child{margin-bottom:0}
@@ -34,13 +31,8 @@
 .tk-field:last-child{margin-bottom:0}
 .tk-field-label{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--tk-text-soft);margin-bottom:8px;text-transform:uppercase;letter-spacing:.03em}
 .tk-field-label svg{color:var(--tk-blue)}
-<<<<<<< HEAD
-.tk-field-value{font-size:15px;color:var(--tk-text);line-height:1.5}
-.tk-field-value pre{white-space:pre-wrap;word-break:break-word;font-family:inherit;margin:0;font-size:15px;line-height:1.5}
-=======
 .tk-field-value{font-size:15px;color:var(--tk-text);line-height:1.5;word-break:break-word;overflow-wrap:break-word}
 .tk-field-value pre{white-space:pre-wrap;word-break:break-word;overflow-wrap:break-word;font-family:inherit;margin:0;font-size:15px;line-height:1.5}
->>>>>>> origin/Carlos-Soporte
 .tk-field-value .method{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:var(--tk-panel-2);border:1px solid var(--tk-border);border-radius:10px;font-size:14px;font-weight:600;color:var(--tk-text)}
 
 .tk-attachment{display:flex;align-items:center;gap:14px;padding:16px;background:var(--tk-panel-2);border:1px solid var(--tk-border);border-radius:14px}
@@ -70,11 +62,7 @@
 .tk-info-row{display:flex;align-items:center;justify-content:space-between;gap:16px}
 .tk-info-row > div:first-child{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--tk-text-soft)}
 .tk-info-row > div:first-child svg{color:var(--tk-blue);width:16px;height:16px}
-<<<<<<< HEAD
-.tk-info-row > div:last-child{font-size:13px;font-weight:600;color:var(--tk-text);text-align:right}
-=======
 .tk-info-row > div:last-child{font-size:13px;font-weight:600;color:var(--tk-text);text-align:right;word-break:break-word;overflow-wrap:break-word;min-width:0}
->>>>>>> origin/Carlos-Soporte
 .tk-info-row .tk-user-email{font-size:11px;color:var(--tk-blue);font-weight:500}
 .tk-estado{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;font-size:12px;font-weight:700}
 .tk-estado::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
@@ -98,18 +86,12 @@
 .tk-resolution-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding-bottom:18px;border-bottom:1px solid var(--tk-border-soft)}
 .tk-resolution-row:last-child{border-bottom:none;padding-bottom:0}
 .tk-resolution-label{font-size:12px;color:var(--tk-text-soft);text-transform:uppercase;letter-spacing:.03em;min-width:120px;flex-shrink:0}
-<<<<<<< HEAD
-.tk-resolution-value{font-size:14px;color:var(--tk-text);text-align:right;flex:1}
-=======
 .tk-resolution-value{font-size:14px;color:var(--tk-text);text-align:right;flex:1;word-break:break-word;overflow-wrap:break-word;min-width:0}
->>>>>>> origin/Carlos-Soporte
 .tk-sent-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(34,197,94,.12);border-radius:8px;font-size:12px;font-weight:600;color:var(--tk-green)}
 .tk-reopen-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:12px;border:1px solid var(--tk-border);background:var(--tk-panel-2);color:var(--tk-text-soft);font-size:13px;font-weight:600;cursor:pointer;transition:all 150ms;margin-top:16px}
 .tk-reopen-btn:hover{border-color:var(--tk-amber);color:var(--tk-amber)}
 
 
-<<<<<<< HEAD
-=======
 /* ===== TEMA CLARO ===== */
 html[data-theme="light"] .tk-page{--tk-bg:#f8fafc;--tk-panel:#ffffff;--tk-panel-2:#f1f5f9;--tk-border:#e2e8f0;--tk-border-soft:#e2e8f0;--tk-text:#0f172a;--tk-text-soft:#64748b;--tk-shadow:0 4px 16px rgba(15,23,42,.06)}
 html[data-theme="light"] .tk-card-glow::before{background:linear-gradient(180deg,rgba(59,130,246,.3),transparent)}
@@ -133,7 +115,6 @@ html[data-theme="light"] .tk-icon-btn:hover{border-color:#3b82f6;color:#3b82f6}
 html[data-theme="light"] .tk-reopen-btn{background:#f8fafc;border-color:#e2e8f0;color:#64748b}
 html[data-theme="light"] .tk-reopen-btn:hover{border-color:#f59e0b;color:#b45309}
 
->>>>>>> origin/Carlos-Soporte
 @media(max-width:900px){
   .tk-actions-grid{grid-template-columns:1fr}
   .tk-info-row{flex-direction:column;align-items:flex-start;gap:4px}

@@ -301,11 +301,7 @@ html[data-theme="light"] .side-help { background: var(--bg); border:none; }
   font-weight:700;
   letter-spacing:-0.01em;
 }
-<<<<<<< HEAD
-.head .sub{margin-top:4px;font-size:14px;color:var(--txt-soft)}
-=======
 .head .sub{margin-top:4px;font-size:14px;color:var(--txt-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:600px}
->>>>>>> origin/Carlos-Soporte
 .head .sub b{color:var(--cyan);font-weight:700}
 .head-right{display:flex;align-items:center;gap:12px}
 .btn-ai{
