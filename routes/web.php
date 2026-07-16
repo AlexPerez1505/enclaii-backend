@@ -89,18 +89,18 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
         return view('configuracion.index', [
             'billingUser' => request()->user()->billingUser(),
             'clinicMembers' => request()->user()->clinica
-                ->usuarios()
-                ->withMax('connectedSessions', 'last_activity')
-                ->orderByRaw("CASE WHEN clinica_rol = 'propietario' THEN 0 ELSE 1 END")
-                ->orderBy('name')
-                ->get(),
+                ?->usuarios()
+                ?->withMax('connectedSessions', 'last_activity')
+                ?->orderByRaw("CASE WHEN clinica_rol = 'propietario' THEN 0 ELSE 1 END")
+                ?->orderBy('name')
+                ?->get() ?? collect(),
             'clinicInvitations' => request()->user()->clinica
-                ->invitations()
-                ->whereNull('accepted_at')
-                ->whereNull('revoked_at')
-                ->where('expires_at', '>', now())
-                ->latest()
-                ->get(),
+                ?->invitations()
+                ?->whereNull('accepted_at')
+                ?->whereNull('revoked_at')
+                ?->where('expires_at', '>', now())
+                ?->latest()
+                ?->get() ?? collect(),
             'clinicMemberLimit' => request()->user()->clinicMemberLimit(),
             'userSettings' => request()->user()->resolvedSettings(),
             'securitySettings' => request()->user()->securityPreferences(),
@@ -692,14 +692,8 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     Route::post('/nuevo-estudio', [NuevoEstudioController::class, 'store'])
         ->name('nuevo-estudio.store');
 
-<<<<<<< Updated upstream
-    Route::get('/nuevo-estudio/capturas', function () {
-        return view('estudios.caputras.index');
-    })->name('nuevo-estudio.capturas');
-=======
     Route::get('/nuevo-estudio/capturas', [NuevoEstudioController::class, 'capturas'])
         ->name('nuevo-estudio.capturas');
->>>>>>> Stashed changes
 
     Route::post('/nuevo-estudio/capturas', [NuevoEstudioController::class, 'guardarCapturas'])
         ->name('nuevo-estudio.capturas.store');
@@ -838,12 +832,176 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     })->name('galeria.paciente');
 
     Route::get('/galeria/video/{id}', function ($id) {
-        return view('galeria.vervideo', ['id' => $id]);
+        $archivo = \App\Models\EstudioArchivo::with(['estudio.paciente', 'estudio.hallazgos'])
+            ->where('tipo', 'video')
+            ->findOrFail($id);
+        $estudio = $archivo->estudio;
+        $paciente = $estudio?->paciente ?? Paciente::find($archivo->paciente_id);
+        $capturas = \App\Models\EstudioArchivo::query()
+            ->where('tipo', 'imagen')
+            ->when(
+                $archivo->estudio_id,
+                fn ($q) => $q->where('estudio_id', $archivo->estudio_id),
+                fn ($q) => $q->where('paciente_id', $archivo->paciente_id)
+            )
+            ->orderBy('capturado_en')
+            ->orderBy('id')
+            ->get();
+        $editorConfig = data_get($estudio?->configuracion_video ?? [], 'editor.'.$archivo->id, []);
+
+        return view('galeria.vervideo', compact('archivo', 'estudio', 'paciente', 'capturas', 'editorConfig'));
     })->name('galeria.video');
 
     Route::get('/galeria/video/{id}/editar', function ($id) {
-        return view('galeria.editarvideo', ['id' => $id]);
+        $archivo = \App\Models\EstudioArchivo::with(['estudio.paciente', 'estudio.hallazgos'])
+            ->where('tipo', 'video')
+            ->findOrFail($id);
+        $estudio = $archivo->estudio;
+        $paciente = $estudio?->paciente ?? Paciente::find($archivo->paciente_id);
+        $capturas = \App\Models\EstudioArchivo::query()
+            ->where('tipo', 'imagen')
+            ->when(
+                $archivo->estudio_id,
+                fn ($q) => $q->where('estudio_id', $archivo->estudio_id),
+                fn ($q) => $q->where('paciente_id', $archivo->paciente_id)
+            )
+            ->orderBy('capturado_en')
+            ->orderBy('id')
+            ->get();
+        $editorConfig = data_get($estudio?->configuracion_video ?? [], 'editor.'.$archivo->id, []);
+
+        return view('galeria.editarvideo', compact('archivo', 'estudio', 'paciente', 'capturas', 'editorConfig'));
     })->name('galeria.video.editar');
+
+    Route::patch('/galeria/video/{id}', function ($id, \Illuminate\Http\Request $request) {
+        $archivo = \App\Models\EstudioArchivo::with('estudio')
+            ->where('tipo', 'video')
+            ->findOrFail($id);
+
+        $validated = $request->validate([
+            'nombre' => ['nullable', 'string', 'max:255'],
+            'descripcion' => ['nullable', 'string', 'max:5000'],
+            'categoria' => ['nullable', 'string', 'max:255'],
+            'hallazgos' => ['nullable', 'string', 'max:5000'],
+            'observaciones' => ['nullable', 'string', 'max:5000'],
+            'diagnostico' => ['nullable', 'string', 'max:5000'],
+            'ajustes' => ['nullable', 'array'],
+            'ajustes.brillo' => ['nullable', 'integer', 'min:0', 'max:200'],
+            'ajustes.contraste' => ['nullable', 'integer', 'min:0', 'max:200'],
+            'ajustes.saturacion' => ['nullable', 'integer', 'min:0', 'max:200'],
+            'ajustes.nitidez' => ['nullable', 'integer', 'min:0', 'max:100'],
+            'ajustes.zoom' => ['nullable', 'integer', 'min:50', 'max:250'],
+            'ajustes.rotacion' => ['nullable', 'integer', 'min:0', 'max:270'],
+            'ajustes.flip_h' => ['nullable', 'boolean'],
+            'ajustes.flip_v' => ['nullable', 'boolean'],
+            'ajustes.trim_start' => ['nullable', 'numeric', 'min:0'],
+            'ajustes.trim_end' => ['nullable', 'numeric', 'min:0'],
+        ]);
+
+        $archivoUpdates = [];
+        if ($request->has('nombre')) {
+            $displayName = trim($validated['nombre'] ?? '');
+            if ($displayName !== '') {
+                $extension = pathinfo($archivo->nombre_original ?: $archivo->path, PATHINFO_EXTENSION);
+                $archivoUpdates['nombre'] = pathinfo($displayName, PATHINFO_FILENAME) ?: $displayName;
+                $archivoUpdates['nombre_original'] = str_contains($displayName, '.') || ! $extension
+                    ? $displayName
+                    : $displayName.'.'.$extension;
+            }
+        }
+        foreach (['descripcion', 'categoria'] as $field) {
+            if ($request->has($field)) {
+                $archivoUpdates[$field] = $validated[$field] ?? null;
+            }
+        }
+        if ($archivoUpdates) {
+            $archivo->update($archivoUpdates);
+        }
+
+        if ($estudio = $archivo->estudio) {
+            $estudioUpdates = [];
+            if ($request->has('hallazgos')) {
+                $estudioUpdates['descripcion'] = $validated['hallazgos'] ?? null;
+            }
+            if ($request->has('observaciones')) {
+                $estudioUpdates['observaciones'] = $validated['observaciones'] ?? null;
+            }
+            if ($request->has('diagnostico')) {
+                $estudioUpdates['diagnostico'] = $validated['diagnostico'] ?? null;
+            }
+            if ($request->has('ajustes')) {
+                $ajustes = [
+                    'brillo' => (int) data_get($validated, 'ajustes.brillo', 100),
+                    'contraste' => (int) data_get($validated, 'ajustes.contraste', 100),
+                    'saturacion' => (int) data_get($validated, 'ajustes.saturacion', 100),
+                    'nitidez' => (int) data_get($validated, 'ajustes.nitidez', 0),
+                    'zoom' => (int) data_get($validated, 'ajustes.zoom', 100),
+                    'rotacion' => (int) data_get($validated, 'ajustes.rotacion', 0),
+                    'flip_h' => (bool) data_get($validated, 'ajustes.flip_h', false),
+                    'flip_v' => (bool) data_get($validated, 'ajustes.flip_v', false),
+                    'trim_start' => data_get($validated, 'ajustes.trim_start'),
+                    'trim_end' => data_get($validated, 'ajustes.trim_end'),
+                    'updated_at' => now()->toIso8601String(),
+                ];
+                $config = $estudio->configuracion_video ?? [];
+                $config['editor'] ??= [];
+                $config['editor'][(string) $archivo->id] = $ajustes;
+                $estudioUpdates['configuracion_video'] = $config;
+            }
+            if ($estudioUpdates) {
+                $estudio->update($estudioUpdates);
+            }
+        }
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Video actualizado correctamente.',
+            'redirect' => route('galeria.video', ['id' => $archivo->id, 'paciente' => $archivo->paciente_id]),
+        ]);
+    })->middleware('critical.password:studies')
+        ->name('galeria.video.update');
+
+    Route::post('/galeria/video/{id}/captura', function ($id, \Illuminate\Http\Request $request) {
+        $archivo = \App\Models\EstudioArchivo::with('estudio')
+            ->where('tipo', 'video')
+            ->findOrFail($id);
+        $estudio = $archivo->estudio;
+        abort_unless($estudio, 422, 'El video necesita un estudio asociado para guardar capturas.');
+
+        $request->validate([
+            'image' => ['required', 'file', 'mimes:jpg,jpeg,png,webp', 'max:51200'],
+            'capturado_en_video' => ['nullable', 'numeric', 'min:0'],
+        ]);
+
+        $file = $request->file('image');
+        $path = media_store($file, "clinicas/{$estudio->clinica_id}/estudios/{$estudio->id}/archivos");
+        $seconds = (float) $request->input('capturado_en_video', 0);
+        $copy = \App\Models\EstudioArchivo::create([
+            'estudio_id' => $estudio->id,
+            'paciente_id' => $archivo->paciente_id,
+            'tipo' => 'imagen',
+            'categoria' => 'fotograma-video',
+            'nombre_original' => $file->getClientOriginalName(),
+            'nombre' => pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
+            'path' => $path,
+            'mime_type' => $file->getMimeType(),
+            'size_bytes' => $file->getSize(),
+            'descripcion' => 'Fotograma capturado desde el video '.$archivo->nombre_original.' en '.gmdate('H:i:s', (int) $seconds),
+            'capturado_en' => now(),
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Fotograma guardado en la galería.',
+            'archivo' => [
+                'id' => $copy->id,
+                'url' => media_url($copy->path),
+                'path' => $copy->path,
+                'show_url' => route('galeria.imagen', ['id' => $copy->id, 'paciente' => $copy->paciente_id]),
+            ],
+        ]);
+    })->middleware('critical.password:studies')
+        ->name('galeria.video.capture');
 
     Route::get('/galeria/imagen/{id}', function ($id) {
         $archivo = \App\Models\EstudioArchivo::with('estudio')->find($id);

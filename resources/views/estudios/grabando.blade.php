@@ -1895,14 +1895,10 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
     stopRecorder();
     if (webcamStream) { webcamStream.getTracks().forEach(t => t.stop()); webcamStream = null; }
   }
-<<<<<<< Updated upstream
-  if (!MOSTRAR_FINALIZADO) initWebcam();
-=======
 
   deviceSelect?.addEventListener('change', () => startWebcam(deviceSelect.value));
 
   initWebcam();
->>>>>>> Stashed changes
 
   /* Quitar mensaje "aún no hay fotos" al agregar la primera */
   function removeEmptyHint() {
