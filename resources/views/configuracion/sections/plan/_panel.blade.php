@@ -1,4 +1,37 @@
 {{-- ============ PANEL: PLAN Y ALMACENAMIENTO ============ --}}
+@php
+  $fmtGb = function ($value) {
+    $formatted = number_format((float) $value, 2, '.', ',');
+    return rtrim(rtrim($formatted, '0'), '.') . ' GB';
+  };
+  $storagePlans = $storageSummary['plans'];
+  $currentPlan = $storageSummary['plan'];
+  $storageCategories = $storageSummary['categories'];
+  $storageHistory = collect($storageSummary['history']);
+  $chartMaxGb = max((float) $storageSummary['quota_gb'], (float) ($storageHistory->max('gb') ?? 0), 1);
+  $chartBaseY = 118;
+  $chartTopY = 13;
+  $chartHeight = $chartBaseY - $chartTopY;
+  $chartPointList = $storageHistory->values()->map(function ($item, $index) use ($chartBaseY, $chartHeight, $chartMaxGb) {
+    $x = 20 + ($index * 52);
+    $y = $chartBaseY - min(1, ((float) $item['gb'] / $chartMaxGb)) * $chartHeight;
+    return [
+      'x' => round($x, 1),
+      'y' => round($y, 1),
+      'label' => $item['label'],
+    ];
+  });
+  $chartPoints = $chartPointList->map(fn ($point) => $point['x'] . ',' . $point['y'])->implode(' ');
+  $chartPath = $chartPointList->map(fn ($point) => $point['x'] . ',' . $point['y'])->implode(' L');
+  $chartArea = $chartPath ? 'M' . $chartPath . ' L280,118 L20,118 Z' : '';
+  $chartLabels = [
+    $fmtGb($chartMaxGb),
+    $fmtGb($chartMaxGb * 0.75),
+    $fmtGb($chartMaxGb * 0.5),
+    $fmtGb($chartMaxGb * 0.25),
+    '0 GB',
+  ];
+@endphp
 <div class="cfg-panel" data-panel="plan">
   <div class="pl-grid">
 
@@ -14,27 +47,28 @@
         <div class="pl-plan">
           <span class="pl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4 3 5-7 5 7 4-3-2 12H5L3 8z"/></svg></span>
           <div class="pl-info">
-            <b>Plan {{ ucfirst(str_replace('_', ' ', $planUser->stripe_plan ?? 'Gratuito')) }}</b>
+            <b>Plan {{ $storageSummary['plan_label'] }}</b>
             <span class="badge" style="background:{{ $planUser->subscription_status === 'active' ? 'rgba(61,220,151,.14)' : 'rgba(255,160,0,.14)' }};color:{{ $planUser->subscription_status === 'active' ? 'var(--green)' : 'var(--orange)' }}">
               {{ ucfirst($planUser->subscription_status ?? 'Inactivo') }}
             </span>
             @if($planUser->subscription_renews_at)
               <p>Renovación {{ format_user_date($planUser->subscription_renews_at) }}</p>
             @endif
+            <p>{{ $fmtGb($storageSummary['quota_per_person_gb']) }} por persona &middot; {{ $storageSummary['person_count'] }} {{ $storageSummary['person_count'] === 1 ? 'persona activa' : 'personas activas' }}</p>
           </div>
           <a href="#" class="pl-btn" id="gpOpen">Gestionar plan</a>
         </div>
 
         <div class="pl-detail" style="margin-top:18px">
           <div class="store-top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg> Almacenamiento en la nube</div>
-          <div class="store-meta" style="margin-top:11px"><span>78.5 GB de 100 GB utilizados</span></div>
-          <div class="store-bar"><i data-w="78.5"></i></div>
-          <div class="store-legend"><span><i class="used"></i>Usado: 78.5 GB</span><span><i class="free"></i>Disponible: 21.5 GB</span></div>
+          <div class="store-meta" style="margin-top:11px"><span>{{ $fmtGb($storageSummary['used_gb']) }} de {{ $fmtGb($storageSummary['quota_gb']) }} utilizados</span></div>
+          <div class="store-bar"><i data-w="{{ $storageSummary['used_percent'] }}"></i></div>
+          <div class="store-legend"><span><i class="used"></i>Usado: {{ $fmtGb($storageSummary['used_gb']) }}</span><span><i class="free"></i>Disponible: {{ $fmtGb($storageSummary['available_gb']) }}</span></div>
 
           <div class="pl-files">
-            <div class="pl-file"><span class="fi c2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></span><div class="ft">Imágenes</div><div class="fv">45.8 GB</div><div class="fp">58%</div></div>
-            <div class="pl-file"><span class="fi c3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span><div class="ft">Videos</div><div class="fv">18.2 GB</div><div class="fp">23%</div></div>
-            <div class="pl-file"><span class="fi c4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span><div class="ft">Otros archivos</div><div class="fv">2.0 GB</div><div class="fp">3%</div></div>
+            <div class="pl-file"><span class="fi c2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></span><div class="ft">{{ $storageCategories['images']['label'] }}</div><div class="fv">{{ $fmtGb($storageCategories['images']['gb']) }}</div><div class="fp">{{ $storageCategories['images']['percent'] }}%</div></div>
+            <div class="pl-file"><span class="fi c3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span><div class="ft">{{ $storageCategories['videos']['label'] }}</div><div class="fv">{{ $fmtGb($storageCategories['videos']['gb']) }}</div><div class="fp">{{ $storageCategories['videos']['percent'] }}%</div></div>
+            <div class="pl-file"><span class="fi c4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span><div class="ft">{{ $storageCategories['other']['label'] }}</div><div class="fv">{{ $fmtGb($storageCategories['other']['gb']) }}</div><div class="fp">{{ $storageCategories['other']['percent'] }}%</div></div>
           </div>
 
           <div class="pl-detail">
@@ -53,14 +87,15 @@
         </div>
 
         <div class="pl-plans">
-          <div class="pl-card {{ $planUser->stripe_plan === 'clinica' ? 'current' : '' }}" data-card="clinica">
+          <div class="pl-card {{ $currentPlan === 'clinica' ? 'current' : '' }}" data-card="clinica">
             <div class="pc-top">
               <span class="pc-ico" style="color:var(--green)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg></span>
-              @if($planUser->stripe_plan === 'clinica')
+              @if($currentPlan === 'clinica')
                 <span class="pc-badge">Plan actual</span>
               @endif
             </div>
-            <h4>Clinica</h4><div class="pc-gb">50 GB</div>
+            <h4>{{ $storagePlans['clinica']['label'] }}</h4><div class="pc-gb">{{ $fmtGb($storagePlans['clinica']['gb_per_person']) }} por persona</div>
+            <div class="pc-gb">{{ $fmtGb($storagePlans['clinica']['total_gb_for_current_people']) }} para {{ $storageSummary['person_count'] }} {{ $storageSummary['person_count'] === 1 ? 'persona activa' : 'personas activas' }}</div>
             <ul class="pc-feat">
               <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Almacenamiento en la nube</li>
               <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>IA Reportes básica</li>
@@ -72,19 +107,20 @@
               <button class="pc-int-btn" data-interval="year" data-price="$85,000" data-label="/año">Anual</button>
             </div>
             <div class="pc-price">$10,000<span> /mes</span></div>
-            <a href="#" class="pc-cta {{ $planUser->stripe_plan === 'clinica' || !$isClinicOwner ? 'disabled' : '' }}" data-plan="clinica" data-interval="month">
-              {{ $planUser->stripe_plan === 'clinica' ? 'Plan actual' : ($isClinicOwner ? 'Cambiar a Clinica' : 'Solo el propietario') }}
+            <a href="#" class="pc-cta {{ $currentPlan === 'clinica' || !$isClinicOwner ? 'disabled' : '' }}" data-plan="clinica" data-interval="month">
+              {{ $currentPlan === 'clinica' ? 'Plan actual' : ($isClinicOwner ? 'Cambiar a Clinica' : 'Solo el propietario') }}
             </a>
           </div>
 
-          <div class="pl-card {{ $planUser->stripe_plan === 'hospital' ? 'current' : '' }}" data-card="hospital">
+          <div class="pl-card {{ $currentPlan === 'hospital' ? 'current' : '' }}" data-card="hospital">
             <div class="pc-top">
               <span class="pc-ico" style="color:#a47bff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4 3 5-7 5 7 4-3-2 12H5L3 8z"/></svg></span>
-              @if($planUser->stripe_plan === 'hospital')
+              @if($currentPlan === 'hospital')
                 <span class="pc-badge">Plan actual</span>
               @endif
             </div>
-            <h4>Hospital</h4><div class="pc-gb">100 GB</div>
+            <h4>{{ $storagePlans['hospital']['label'] }}</h4><div class="pc-gb">{{ $fmtGb($storagePlans['hospital']['gb_per_person']) }} por persona</div>
+            <div class="pc-gb">{{ $fmtGb($storagePlans['hospital']['total_gb_for_current_people']) }} para {{ $storageSummary['person_count'] }} {{ $storageSummary['person_count'] === 1 ? 'persona activa' : 'personas activas' }}</div>
             <ul class="pc-feat">
               <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>IA Reportes avanzada</li>
               <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Almacenamiento ampliado</li>
@@ -97,19 +133,20 @@
               <button class="pc-int-btn" data-interval="year" data-price="$200,000" data-label="/año">Anual</button>
             </div>
             <div class="pc-price">$25,000<span> /mes</span></div>
-            <a href="#" class="pc-cta {{ $planUser->stripe_plan === 'hospital' || !$isClinicOwner ? 'disabled' : '' }}" data-plan="hospital" data-interval="month">
-              {{ $planUser->stripe_plan === 'hospital' ? 'Plan actual' : ($isClinicOwner ? 'Cambiar a Hospital' : 'Solo el propietario') }}
+            <a href="#" class="pc-cta {{ $currentPlan === 'hospital' || !$isClinicOwner ? 'disabled' : '' }}" data-plan="hospital" data-interval="month">
+              {{ $currentPlan === 'hospital' ? 'Plan actual' : ($isClinicOwner ? 'Cambiar a Hospital' : 'Solo el propietario') }}
             </a>
           </div>
 
-          <div class="pl-card {{ $planUser->stripe_plan === 'red_medica' ? 'current' : '' }}" data-card="red_medica">
+          <div class="pl-card {{ $currentPlan === 'red_medica' ? 'current' : '' }}" data-card="red_medica">
             <div class="pc-top">
               <span class="pc-ico" style="color:var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
-              @if($planUser->stripe_plan === 'red_medica')
+              @if($currentPlan === 'red_medica')
                 <span class="pc-badge">Plan actual</span>
               @endif
             </div>
-            <h4>Red medica</h4><div class="pc-gb">250 GB</div>
+            <h4>{{ $storagePlans['red_medica']['label'] }}</h4><div class="pc-gb">{{ $fmtGb($storagePlans['red_medica']['gb_per_person']) }} por persona</div>
+            <div class="pc-gb">{{ $fmtGb($storagePlans['red_medica']['total_gb_for_current_people']) }} para {{ $storageSummary['person_count'] }} {{ $storageSummary['person_count'] === 1 ? 'persona activa' : 'personas activas' }}</div>
             <ul class="pc-feat">
               <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Todo lo del plan Profesional</li>
               <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Más almacenamiento</li>
@@ -122,8 +159,8 @@
               <button class="pc-int-btn" data-interval="year" data-price="$385,000" data-label="/año">Anual</button>
             </div>
             <div class="pc-price">$35,000<span> /mes</span></div>
-            <a href="#" class="pc-cta {{ $planUser->stripe_plan === 'red_medica' || !$isClinicOwner ? 'disabled' : '' }}" data-plan="red_medica" data-interval="month">
-              {{ $planUser->stripe_plan === 'red_medica' ? 'Plan actual' : ($isClinicOwner ? 'Cambiar a Red Médica' : 'Solo el propietario') }}
+            <a href="#" class="pc-cta {{ $currentPlan === 'red_medica' || !$isClinicOwner ? 'disabled' : '' }}" data-plan="red_medica" data-interval="month">
+              {{ $currentPlan === 'red_medica' ? 'Plan actual' : ($isClinicOwner ? 'Cambiar a Red Médica' : 'Solo el propietario') }}
             </a>
           </div>
 
@@ -138,7 +175,19 @@
         <div class="cfg-card-head"><h2>Resumen de tu plan</h2></div>
         <div class="pl-summary-row">
           <span class="k">Plan actual</span>
-          <span class="v">Plan {{ ucfirst(str_replace('_', ' ', $planUser->stripe_plan ?? 'Gratuito')) }}</span>
+          <span class="v">Plan {{ $storageSummary['plan_label'] }}</span>
+        </div>
+        <div class="pl-summary-row">
+          <span class="k">Personas activas</span>
+          <span class="v">{{ $storageSummary['person_count'] }}</span>
+        </div>
+        <div class="pl-summary-row">
+          <span class="k">Almacenamiento/persona</span>
+          <span class="v">{{ $fmtGb($storageSummary['quota_per_person_gb']) }}</span>
+        </div>
+        <div class="pl-summary-row">
+          <span class="k">Almacenamiento total</span>
+          <span class="v">{{ $fmtGb($storageSummary['quota_gb']) }}</span>
         </div>
         <div class="pl-summary-row">
           <span class="k">Estado</span>
@@ -192,7 +241,11 @@
       <article class="card rise d5">
         <div class="cfg-card-head"><h2>Historial de uso</h2><p>Tu consumo de almacenamiento en los últimos 6 meses</p></div>
         <div class="pl-chart-wrap">
-          <div class="pl-chart-y"><span>100 GB</span><span>75 GB</span><span>50 GB</span><span>25 GB</span><span>0 GB</span></div>
+          <div class="pl-chart-y">
+            @foreach($chartLabels as $label)
+              <span>{{ $label }}</span>
+            @endforeach
+          </div>
           <div class="pl-chart">
             <svg viewBox="0 0 300 130" preserveAspectRatio="none">
               <defs>
@@ -205,15 +258,20 @@
               <line x1="0" y1="42" x2="300" y2="42" stroke="rgba(110,160,255,.1)" stroke-width="1"/>
               <line x1="0" y1="71" x2="300" y2="71" stroke="rgba(110,160,255,.1)" stroke-width="1"/>
               <line x1="0" y1="100" x2="300" y2="100" stroke="rgba(110,160,255,.1)" stroke-width="1"/>
-              <path d="M20,92 L72,82 L124,70 L176,55 L228,42 L280,33 L280,118 L20,118 Z" fill="url(#plArea)"/>
-              <polyline points="20,92 72,82 124,70 176,55 228,42 280,33" fill="none" stroke="var(--cyan)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              @if($chartArea)
+                <path d="{{ $chartArea }}" fill="url(#plArea)"/>
+              @endif
+              <polyline points="{{ $chartPoints }}" fill="none" stroke="var(--cyan)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
               <g fill="var(--cyan)">
-                <circle cx="20" cy="92" r="3.5"/><circle cx="72" cy="82" r="3.5"/><circle cx="124" cy="70" r="3.5"/>
-                <circle cx="176" cy="55" r="3.5"/><circle cx="228" cy="42" r="3.5"/><circle cx="280" cy="33" r="3.5"/>
+                @foreach($chartPointList as $point)
+                  <circle cx="{{ $point['x'] }}" cy="{{ $point['y'] }}" r="3.5"/>
+                @endforeach
               </g>
             </svg>
             <div style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--txt-soft);margin-top:4px;padding:0 10px">
-              <span>Nov 24</span><span>Dic 24</span><span>Ene 25</span><span>Feb 25</span>
+              @foreach($storageHistory as $item)
+                <span>{{ $item['label'] }}</span>
+              @endforeach
             </div>
           </div>
         </div>
@@ -224,7 +282,7 @@
           <span class="ri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></span>
           <h2 style="font-family:'Sora',sans-serif;font-size:15px;font-weight:700">Recomendaciones</h2>
         </div>
-        <p style="font-size:12px;color:var(--txt-soft);margin:6px 0 12px">Estás por llegar al 0% de tu almacenamiento. Considera liberar espacio o actualizar tu plan para evitar interrupciones.</p>
+        <p style="font-size:12px;color:var(--txt-soft);margin:6px 0 12px">{{ $storageSummary['recommendation']['message'] }}</p>
         <a href="#" class="pl-wide-btn">Ver recomendaciones <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
       </article>
     </div>

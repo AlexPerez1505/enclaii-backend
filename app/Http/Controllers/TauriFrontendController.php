@@ -821,6 +821,7 @@ class TauriFrontendController extends Controller
             'storage' => [
                 'used_gb' => $usedGb,
                 'total_gb' => $totalGb,
+                'per_person_gb' => (float) ($current['storage_per_person_gb'] ?? $current['storage_gb']),
                 'available_gb' => max($totalGb - $usedGb, 0),
                 'percent' => $percent,
                 'categories' => [
@@ -845,6 +846,8 @@ class TauriFrontendController extends Controller
 
     private function planOptions(string $selected): array
     {
+        $selected = str_replace('-', '_', $selected);
+
         return array_map(fn (array $plan) => [
             ...$plan,
             'current' => $plan['id'] === $selected,
@@ -852,7 +855,8 @@ class TauriFrontendController extends Controller
             [
                 'id' => 'clinica',
                 'name' => 'Clinica',
-                'storage_gb' => 50,
+                'storage_gb' => 5,
+                'storage_per_person_gb' => 5,
                 'accent' => 'cyan',
                 'prices' => ['monthly' => 10000, 'quarterly' => 27000, 'annual' => 96000],
                 'features' => ['Almacenamiento en la nube', 'IA Reportes basica', 'Soporte por email'],
@@ -860,15 +864,17 @@ class TauriFrontendController extends Controller
             [
                 'id' => 'hospital',
                 'name' => 'Hospital',
-                'storage_gb' => 100,
+                'storage_gb' => 10,
+                'storage_per_person_gb' => 10,
                 'accent' => 'purple',
                 'prices' => ['monthly' => 25000, 'quarterly' => 67500, 'annual' => 240000],
                 'features' => ['IA Reportes avanzada', 'Almacenamiento ampliado', 'Soporte prioritario', 'Exportacion de reportes'],
             ],
             [
-                'id' => 'red-medica',
+                'id' => 'red_medica',
                 'name' => 'Red medica',
-                'storage_gb' => 250,
+                'storage_gb' => 15,
+                'storage_per_person_gb' => 15,
                 'accent' => 'red',
                 'prices' => ['monthly' => 35000, 'quarterly' => 94500, 'annual' => 336000],
                 'features' => ['Todo lo del plan Profesional', 'Mas almacenamiento', 'Integraciones avanzadas', 'Soporte 24/7'],

@@ -10,6 +10,7 @@ use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class EndoCareAuthController extends Controller
 {
@@ -37,6 +38,7 @@ class EndoCareAuthController extends Controller
             $request->session()->regenerate();
 
             $user = Auth::user();
+            $this->syncCurrentDatabaseSession($request, $user);
             $this->activity->record(
                 'login',
                 'authentication',
@@ -121,6 +123,9 @@ class EndoCareAuthController extends Controller
         });
 
         Auth::login($user);
+        $request->session()->regenerate();
+        $this->syncCurrentDatabaseSession($request, $user);
+
         $this->activity->record(
             'account_created',
             'authentication',
@@ -153,6 +158,29 @@ class EndoCareAuthController extends Controller
             'Galería' => 'galeria',
             default => 'dashboard',
         };
+    }
+
+    private function syncCurrentDatabaseSession(Request $request, User $user): void
+    {
+        if (config('session.driver') !== 'database') {
+            return;
+        }
+
+        $table = (string) config('session.table', 'sessions');
+        if (! Schema::hasTable($table)) {
+            return;
+        }
+
+        DB::table($table)->updateOrInsert(
+            ['id' => $request->session()->getId()],
+            [
+                'user_id' => $user->id,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'payload' => '',
+                'last_activity' => now()->timestamp,
+            ]
+        );
     }
 
     public function logout(Request $request)

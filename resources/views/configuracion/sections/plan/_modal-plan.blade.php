@@ -1,4 +1,11 @@
 {{-- ============ MODAL: GESTIONAR PLAN ============ --}}
+@php
+  $fmtGb = $fmtGb ?? function ($value) {
+    $formatted = number_format((float) $value, 2, '.', ',');
+    return rtrim(rtrim($formatted, '0'), '.') . ' GB';
+  };
+  $storagePlans = $storagePlans ?? $storageSummary['plans'];
+@endphp
 <div class="gp-ov" id="gpModal" aria-hidden="true">
   <div class="gp-modal" role="dialog" aria-modal="true" aria-labelledby="gpTitle">
     <button class="gp-x" id="gpClose" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
@@ -27,7 +34,7 @@
               <span class="gp-crown"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4 3 5-7 5 7 4-3-2 12H5L3 8z"/></svg></span>
               <div class="gp-plan-info">
                 <div class="gp-plan-name">
-                  <b>Plan {{ ucfirst(str_replace('_', ' ', $planUser->stripe_plan ?? 'Gratuito')) }}</b>
+                  <b>Plan {{ $storageSummary['plan_label'] }}</b>
                   <span class="gp-badge" style="background:{{ $planUser->subscription_status === 'active' ? 'rgba(61,220,151,.14)' : 'rgba(255,160,0,.14)' }};color:{{ $planUser->subscription_status === 'active' ? 'var(--green)' : 'var(--orange)' }}">
                     {{ ucfirst($planUser->subscription_status ?? 'Inactivo') }}
                   </span>
@@ -38,15 +45,16 @@
                 @if($planUser->pm_last_four)
                   <p>Tarjeta: {{ ucfirst($planUser->pm_brand) }} ····{{ $planUser->pm_last_four }}</p>
                 @endif
+                <p>{{ $fmtGb($storageSummary['quota_gb']) }} totales &middot; {{ $fmtGb($storageSummary['quota_per_person_gb']) }} por persona</p>
               </div>
               <ul class="gp-feat">
                 @php
                   $planFeatures = [
-                    'clinica' => ['50 GB de almacenamiento en la nube', 'IA Reportes basica', 'Soporte por email'],
-                    'hospital' => ['100 GB de almacenamiento en la nube', 'IA Reportes avanzada', 'Soporte prioritario', 'Exportacion de reportes'],
-                    'red_medica' => ['250 GB de almacenamiento en la nube', 'Integraciones avanzadas', 'Soporte 24/7'],
+                    'clinica' => [$fmtGb($storagePlans['clinica']['gb_per_person']) . ' por persona en almacenamiento en la nube', 'IA Reportes basica', 'Soporte por email'],
+                    'hospital' => [$fmtGb($storagePlans['hospital']['gb_per_person']) . ' por persona en almacenamiento en la nube', 'IA Reportes avanzada', 'Soporte prioritario', 'Exportacion de reportes'],
+                    'red_medica' => [$fmtGb($storagePlans['red_medica']['gb_per_person']) . ' por persona en almacenamiento en la nube', 'Integraciones avanzadas', 'Soporte 24/7'],
                   ];
-                  $currentPlan = $planUser->stripe_plan;
+                  $currentPlan = str_replace('-', '_', $planUser->stripe_plan ?? 'clinica');
                   $features = $planFeatures[$currentPlan] ?? ['Plan gratuito'];
                 @endphp
                 @foreach($features as $feat)
@@ -143,7 +151,7 @@
           <h3>Facturacion y pago</h3>
           <div class="gp-summary-row">
             <span class="gp-soft">Plan actual</span>
-            <span>Plan {{ ucfirst(str_replace('_', ' ', $planUser->stripe_plan ?? 'Gratuito')) }}</span>
+            <span>Plan {{ $storageSummary['plan_label'] }}</span>
           </div>
           <div class="gp-summary-row">
             <span class="gp-soft">Estado</span>
