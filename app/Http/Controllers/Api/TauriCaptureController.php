@@ -72,10 +72,23 @@ class TauriCaptureController extends Controller
             $estudioId = $estudio->id;
         }
 
+        $hasEstudioIdColumn = Schema::hasColumn('capture_sessions', 'estudio_id');
+        $hasStudyIdColumn = Schema::hasColumn('capture_sessions', 'study_id');
+
         $session = CaptureSession::query()
             ->where('user_id', $user->id)
             ->whereNull('capture_device_id')
             ->where('paciente_id', $pacienteId)
+            ->where(function ($query) use ($estudioId, $hasEstudioIdColumn, $hasStudyIdColumn) {
+                if ($hasEstudioIdColumn) {
+                    $query->where('estudio_id', $estudioId);
+                }
+
+                if ($hasStudyIdColumn) {
+                    $method = $hasEstudioIdColumn ? 'orWhere' : 'where';
+                    $query->{$method}('study_id', $estudioId);
+                }
+            })
             ->where('status', 'active')
             ->latest()
             ->first();
