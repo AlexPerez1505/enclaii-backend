@@ -163,7 +163,7 @@
 }
 .tkt-modal{
   background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-lg);
-  width:100%;max-width:560px;max-height:80vh;overflow-y:auto;
+  width:100%;max-width:560px;max-height:80vh;overflow-y:auto;overflow-x:hidden;
   box-shadow:0 20px 60px rgba(0,0,0,.4);
 }
 .tkt-modal-header{
@@ -186,11 +186,12 @@
 }
 .tkt-modal-body .tkt-resumen{
   background:var(--panel);border:1px solid var(--stroke);border-radius:var(--r-md);
-  padding:16px;display:flex;flex-direction:column;gap:10px;
+  padding:20px 22px;display:flex;flex-direction:column;gap:0;overflow:hidden;
 }
-.tkt-modal-body .tkt-resumen .row{display:flex;gap:8px}
-.tkt-modal-body .tkt-resumen .row .lbl{font-weight:600;color:var(--txt-soft);min-width:140px;flex-shrink:0}
-.tkt-modal-body .tkt-resumen .row .val{color:var(--txt)}
+.tkt-modal-body .tkt-resumen .row{display:flex;gap:12px;overflow:hidden;max-width:100%;padding:10px 0;border-bottom:1px solid rgba(148,163,184,.08)}
+.tkt-modal-body .tkt-resumen .row:last-child{border-bottom:none}
+.tkt-modal-body .tkt-resumen .row .lbl{font-weight:600;color:var(--txt-soft);min-width:130px;max-width:130px;flex-shrink:0;font-size:12px}
+.tkt-modal-body .tkt-resumen .row .val{color:var(--txt);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}
 
 .tkt-modal-actions{
   padding:16px 24px 24px;display:flex;gap:10px;flex-wrap:wrap;
@@ -345,7 +346,7 @@ html[data-theme="light"] .tkt-contactos{background:#fff;border-color:#dbe5f5;box
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
         Asunto
       </label>
-      <input type="text" id="tktAsunto" placeholder="Describe brevemente tu problema">
+      <input type="text" id="tktAsunto" maxlength="255" placeholder="Describe brevemente tu problema">
     </div>
   </div>
 
@@ -355,7 +356,8 @@ html[data-theme="light"] .tkt-contactos{background:#fff;border-color:#dbe5f5;box
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
         Descripción
       </label>
-      <textarea id="tktDescripcion" placeholder="Proporciona tantos detalles como sea posible..."></textarea>
+      <textarea id="tktDescripcion" maxlength="4000" placeholder="Proporciona tantos detalles como sea posible..."></textarea>
+      <span id="tktDescCount" style="font-size:11px;color:var(--txt-soft,#64748b);text-align:right;display:block;margin-top:4px">0 / 4000</span>
     </div>
   </div>
 
@@ -501,6 +503,17 @@ html[data-theme="light"] .tkt-contactos{background:#fff;border-color:#dbe5f5;box
   }
   if(cat) cat.addEventListener('change', togglePayment);
   togglePayment();
+
+  // Contador de caracteres - Descripción
+  var descArea = document.getElementById('tktDescripcion');
+  var descCount = document.getElementById('tktDescCount');
+  if(descArea && descCount){
+    descArea.addEventListener('input', function(){
+      var len = descArea.value.length;
+      descCount.textContent = len + ' / 4000';
+      descCount.style.color = len >= 3800 ? '#f87171' : '';
+    });
+  }
 
   // Custom dropdown - Categoría
   var catTrigger = document.getElementById('tktCategoriaTrigger');

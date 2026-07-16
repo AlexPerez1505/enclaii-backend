@@ -11,6 +11,7 @@ use App\Http\Controllers\CriticalSecurityController;
 use App\Http\Controllers\CustomerSuccess\AnuncioDashboardController;
 use App\Http\Controllers\CustomerSuccess\DashboardController;
 use App\Http\Controllers\CustomerSuccess\RolesController;
+use App\Http\Controllers\CustomerSuccess\TicketController as CsTicketController;
 use App\Http\Controllers\CustomerSuccessController;
 use App\Http\Controllers\IaReporteController;
 use App\Http\Controllers\NotificationController;
@@ -1086,6 +1087,14 @@ Route::middleware(['auth', 'customer.success'])->prefix('customer-success')->nam
     Route::get('/api/users', [CustomerSuccessController::class, 'users'])->name('api.users');
     Route::post('/api/users/{user}/assign-role', [CustomerSuccessController::class, 'assignRole'])->name('api.users.assign-role');
     Route::post('/api/users/{user}/remove-role', [CustomerSuccessController::class, 'removeRole'])->name('api.users.remove-role');
+
+    Route::get('/tickets', [CsTicketController::class, 'index'])->name('tickets');
+    Route::get('/api/tickets/poll', [CsTicketController::class, 'poll'])->name('api.tickets.poll');
+    Route::get('/tickets/{ticket}', [CsTicketController::class, 'show'])->name('tickets.show');
+    Route::post('/tickets/{ticket}', [CsTicketController::class, 'update'])->name('tickets.update');
+    Route::get('/tickets/{ticket}/resolve', [CsTicketController::class, 'resolveForm'])->name('tickets.resolve.form');
+    Route::post('/tickets/{ticket}/resolve', [CsTicketController::class, 'resolve'])->name('tickets.resolve');
+    Route::post('/tickets/{ticket}/reopen', [CsTicketController::class, 'reopen'])->name('tickets.reopen');
 
     Route::get('/soporte', [\App\Http\Controllers\CustomerSuccess\SoporteAgentController::class, 'index'])->name('soporte');
     Route::get('/soporte/{conversation}', [\App\Http\Controllers\CustomerSuccess\SoporteAgentController::class, 'show'])->name('soporte.chat');

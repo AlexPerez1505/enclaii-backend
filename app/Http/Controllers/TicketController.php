@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Notification;
 use App\Models\Ticket;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -20,12 +22,16 @@ class TicketController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        $request->merge(array_filter([
+            'payment_method' => $request->input('payment_method') === '' ? null : $request->input('payment_method'),
+        ], fn($v) => $v !== null));
+
         $validated = $request->validate([
             'category' => ['required', 'string', 'max:100'],
             'subject' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:4000'],
             'payment_method' => ['nullable', 'string', 'max:100'],
-            'attachment' => ['nullable', 'file', 'max:10240'],
+            'attachment' => ['nullable', 'file', 'max:10240', 'mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx,zip'],
         ]);
 
         $user = $request->user();
@@ -52,8 +58,10 @@ class TicketController extends Controller
             'operation_datetime' => now(),
             'payment_method' => $validated['payment_method'] ?? null,
             'attachment_path' => $attachmentPath,
-            'status' => 'abierto',
+            'status' => 'nuevo',
         ]);
+
+        $this->notifyCustomerSuccess($ticket);
 
         return response()->json([
             'ok' => true,
@@ -71,5 +79,32 @@ class TicketController extends Controller
         } while (Ticket::where('operation_folio', $folio)->exists());
 
         return $folio;
+    }
+
+    private function notifyCustomerSuccess(Ticket $ticket): void
+    {
+        $customerSuccessUsers = User::role(['Customer Success'])->get();
+
+        if ($customerSuccessUsers->isEmpty()) {
+            return;
+        }
+
+        $notifications = $customerSuccessUsers->map(fn (User $user) => [
+            'user_id' => $user->id,
+            'tipo' => 'ticket',
+            'data' => json_encode([
+                'ticket_id' => $ticket->id,
+                'folio' => $ticket->operation_folio,
+                'subject' => $ticket->subject,
+                'category' => $ticket->category,
+                'user_name' => $ticket->user?->name.' '.($ticket->user?->apellido_paterno ?? ''),
+                'user_email' => $ticket->user?->email,
+            ]),
+            'read' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ])->all();
+
+        Notification::insert($notifications);
     }
 }
