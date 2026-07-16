@@ -300,12 +300,12 @@
 
   {{-- Pestañas --}}
   <div class="cfg-tabs rise d1">
-    <button class="cfg-tab active" data-tab="general">General</button>
-    <button class="cfg-tab" data-tab="qr-preregistro">QR y Pre-registro</button>
-    <button class="cfg-tab" data-tab="plan">Plan y almacenamiento</button>
-    <button class="cfg-tab" data-tab="integraciones">Integraciones</button>
-    <button class="cfg-tab" data-tab="seguridad">Seguridad</button>
-    <button class="cfg-tab" data-tab="perfil">Perfil</button>
+    <button type="button" class="cfg-tab active" data-tab="general">General</button>
+    <button type="button" class="cfg-tab" data-tab="qr-preregistro">QR y Pre-registro</button>
+    <button type="button" class="cfg-tab" data-tab="plan">Plan y almacenamiento</button>
+    <button type="button" class="cfg-tab" data-tab="integraciones">Integraciones</button>
+    <button type="button" class="cfg-tab" data-tab="seguridad">Seguridad</button>
+    <button type="button" class="cfg-tab" data-tab="perfil">Perfil</button>
   </div>
 
   @include('configuracion.sections.general')
@@ -329,37 +329,35 @@
   /* Pestañas */
   const tabs = document.querySelectorAll('.cfg-tab');
   const panels = document.querySelectorAll('.cfg-panel');
-  function activateTab(tabName){
+  function activateTab(tabName, updateUrl = false){
+    const panel = document.querySelector(`.cfg-panel[data-panel="${tabName}"]`);
+    if (!panel) tabName = 'general';
+
     tabs.forEach(x => x.classList.remove('active'));
     panels.forEach(p => p.classList.remove('active'));
     const tab = document.querySelector(`.cfg-tab[data-tab="${tabName}"]`);
-    const panel = document.querySelector(`.cfg-panel[data-panel="${tabName}"]`);
+    const activePanel = document.querySelector(`.cfg-panel[data-panel="${tabName}"]`);
     if (tab) tab.classList.add('active');
-    if (panel) panel.classList.add('active');
+    if (activePanel) activePanel.classList.add('active');
+
+    if (updateUrl) {
+      const url = new URL(window.location.href);
+      if (tabName === 'general') {
+        url.searchParams.delete('tab');
+      } else {
+        url.searchParams.set('tab', tabName);
+      }
+      window.history.replaceState({}, '', url);
+    }
   }
-  tabs.forEach(t => t.addEventListener('click', () => activateTab(t.dataset.tab)));
+  tabs.forEach(t => t.addEventListener('click', () => activateTab(t.dataset.tab, true)));
 
   const urlParams = new URLSearchParams(window.location.search);
-  const initialTab = urlParams.get('tab');
-  if (initialTab) activateTab(initialTab);
-
-  const requestedTab = new URLSearchParams(window.location.search).get('tab');
+  const requestedTab = urlParams.get('tab');
   const requestedTabButton = requestedTab
     ? document.querySelector(`.cfg-tab[data-tab="${requestedTab}"]`)
     : null;
-  if (requestedTabButton) requestedTabButton.click();
-
-  const requestedTab = new URLSearchParams(window.location.search).get('tab');
-  const requestedTabButton = requestedTab
-    ? document.querySelector(`.cfg-tab[data-tab="${requestedTab}"]`)
-    : null;
-  if (requestedTabButton) requestedTabButton.click();
-
-  const requestedTab = new URLSearchParams(window.location.search).get('tab');
-  const requestedTabButton = requestedTab
-    ? document.querySelector(`.cfg-tab[data-tab="${requestedTab}"]`)
-    : null;
-  if (requestedTabButton) requestedTabButton.click();
+  if (requestedTabButton) activateTab(requestedTab);
 
   /* Barras de almacenamiento */
   const bars = document.querySelectorAll('.store-bar i');

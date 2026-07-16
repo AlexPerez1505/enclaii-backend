@@ -1,6 +1,20 @@
 var __tktData = {};
 var __tktOverlay, __tktBody;
 
+function __tktToast(msg){
+  var el = document.getElementById('__tktToast');
+  if(!el){
+    el = document.createElement('div');
+    el.id = '__tktToast';
+    el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:#1e293b;color:#f87171;border:1px solid #f87171;padding:12px 22px;border-radius:12px;font-size:13px;font-weight:600;z-index:99999;box-shadow:0 12px 30px rgba(0,0,0,.5);opacity:0;transition:opacity .2s,transform .2s;pointer-events:none';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.style.opacity = '1'; el.style.transform = 'translateX(-50%) translateY(0)';
+  clearTimeout(el._h);
+  el._h = setTimeout(function(){ el.style.opacity = '0'; el.style.transform = 'translateX(-50%) translateY(10px)'; }, 3500);
+}
+
 function __tktValor(id, def){
   var el = document.getElementById(id);
   return el ? el.value : (def || '');
@@ -63,12 +77,16 @@ window.__enviarTicket = function(){
   var desc = __tktValor('tktDescripcion');
 
   if(!cat || !asunto || !desc){
-    alert('Por favor completa al menos categoria, asunto y descripcion.');
+    var missing = [];
+    if(!cat) missing.push('categoría');
+    if(!asunto) missing.push('asunto');
+    if(!desc) missing.push('descripción');
+    __tktToast('Completa: ' + missing.join(', '));
     return;
   }
 
   if(cat === 'facturacion' && !__tktValor('tktMetodoPago')){
-    alert('Por favor selecciona un método de pago para la categoría Facturación.');
+    __tktToast('Selecciona un método de pago para Facturación.');
     return;
   }
 
@@ -97,8 +115,19 @@ window.__enviarTicket = function(){
     },
     body: formData
   })
-  .then(function(r){ return r.json(); })
+  .then(function(r){
+    if(!r.ok){
+      return r.json().then(function(errData){
+        if(btn){ btn.disabled = false; btn.innerHTML = 'Enviar ticket <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>'; }
+        var msgs = errData.errors ? Object.values(errData.errors).flat() : [errData.message || 'Error desconocido'];
+        __tktToast(msgs[0]);
+        throw new Error('validation');
+      });
+    }
+    return r.json();
+  })
   .then(function(data){
+    if(!data) return;
     if(btn){
       btn.disabled = false;
       btn.innerHTML = 'Enviar ticket <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
@@ -110,6 +139,11 @@ window.__enviarTicket = function(){
         var el = document.getElementById(id);
         if(el) el.value = '';
       });
+      // resetear custom dropdown visual
+      var catLabel = document.getElementById('tktCategoriaLabel');
+      if(catLabel) catLabel.textContent = 'Selecciona una categoría';
+      var catOptions = document.getElementById('tktCategoriaOptions');
+      if(catOptions) catOptions.querySelectorAll('.tkt-option').forEach(function(o){ o.classList.remove('selected'); });
       var paymentRow = document.getElementById('tktPaymentMethodRow');
       if(paymentRow) paymentRow.style.display = 'none';
       var attachmentName = document.getElementById('tktAttachmentName');

@@ -2,7 +2,7 @@
 
 @section('title', 'Agendar Cita')
 @section('active', 'agenda')
-@section('header-title', 'Buenos días, Dr. Victor')
+@section('header-title', 'Buenos días, '.(auth()->user()?->name ?? 'Doctor'))
 @section('header-sub')
   Tiene <b>{{ $citasHoy ?? 0 }}</b> pacientes el día de hoy
 @endsection
@@ -80,15 +80,15 @@
   });
 
   document.getElementById('citaEspecialista')?.addEventListener('change', function() {
-    document.getElementById('cfmEspecialista').textContent = this.value;
+    document.getElementById('cfmEspecialista').textContent = this.value || 'Especialista';
   });
 
   document.getElementById('citaProcedimiento')?.addEventListener('change', function() {
-    document.getElementById('cfmProcedimiento').textContent = this.value;
+    document.getElementById('cfmProcedimiento').textContent = this.value || 'Procedimiento';
   });
 
   document.getElementById('citaSala')?.addEventListener('change', function() {
-    document.getElementById('cfmSala').textContent = this.value;
+    document.getElementById('cfmSala').textContent = this.value || 'Sala';
   });
 
   function setSelectValue(selectId, value) {

@@ -32,12 +32,13 @@
 window.enclaiiSettings = @json(array_merge(auth()->user()->resolvedSettings(), ['user_id' => auth()->id()]));
 </script>
 @endauth
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap"></noscript>
 <script defer src="{{ asset('js/i18n.js') }}?v=20260702-1"></script>
 <script defer src="{{ asset('js/preferences.js') }}"></script>
 @vite(['resources/js/app.js'])
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ================= TOKENS Y BASE (compartido por toda la app) ================= */
 :root{
@@ -377,24 +378,41 @@ html[data-theme="light"] .side-help { background: var(--bg); border:none; }
   display:flex;align-items:flex-start;gap:12px;
   padding:12px 16px;border-bottom:1px solid var(--stroke);
   animation:notif-in .25s var(--ease-out);
+  position:relative;transition:background .15s ease;
 }
+.notif-item:not(.read){background:linear-gradient(90deg, rgba(59,130,246,.10) 0%, rgba(59,130,246,.04) 60%, transparent 100%);border-left:3px solid var(--blue)}
+.notif-item:not(.read):hover{background:linear-gradient(90deg, rgba(59,130,246,.16) 0%, rgba(59,130,246,.07) 60%, transparent 100%)}
+.notif-item.read{background:linear-gradient(90deg, rgba(255,255,255,.04) 0%, rgba(255,255,255,.02) 60%, transparent 100%);border-left:3px solid transparent;opacity:.72}
+.notif-item.read:hover{background:linear-gradient(90deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,.04) 60%, transparent 100%)}
 .notif-item:last-child{border-bottom:0}
+.notif-item::before{
+  content:'';position:absolute;left:5px;top:50%;transform:translateY(-50%);
+  width:6px;height:6px;border-radius:50%;background:var(--blue);
+  box-shadow:0 0 0 2px rgba(59,130,246,.25);opacity:0;transition:opacity .15s ease
+}
+.notif-item:not(.read)::before{opacity:1}
 @keyframes notif-in{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:none}}
 .notif-ico{
   width:34px;height:34px;flex:none;border-radius:10px;
   display:grid;place-items:center;
   background:rgba(59,130,246,.15);color:var(--blue);
+  margin-left:4px
 }
 .notif-ico.amber{background:rgba(245,158,45,.15);color:var(--orange)}
 .notif-ico.red{background:rgba(239,68,68,.15);color:var(--red)}
 .notif-ico.green{background:rgba(16,185,129,.15);color:var(--green)}
 .notif-ico svg{width:16px;height:16px}
-.notif-item.read{opacity:.55}
+.notif-item.read .notif-ico{opacity:.55}
+.notif-item.read .notif-body strong{color:var(--txt-soft);font-weight:600}
 .notif-body{flex:1;min-width:0}
-.notif-body strong{display:block;font-size:13px;font-weight:700;color:var(--txt);line-height:1.3}
-.notif-body span{display:block;font-size:11.5px;color:var(--txt-soft);margin-top:2px;line-height:1.4}
+.notif-body strong{display:block;font-size:13px;font-weight:700;color:var(--txt);line-height:1.3;max-width:100%;word-break:break-word;overflow-wrap:break-word;hyphens:auto}
+.notif-body span{display:block;font-size:11.5px;color:var(--txt-soft);margin-top:2px;line-height:1.4;max-width:100%;word-break:break-word;overflow-wrap:break-word}
 .notif-body time{display:block;font-size:10.5px;color:var(--txt-soft);margin-top:4px;opacity:.7}
 .notif-item[data-preview="1"]{cursor:pointer}
+html[data-theme="light"] .notif-item:not(.read){background:linear-gradient(90deg, rgba(37,99,235,.12) 0%, rgba(37,99,235,.05) 60%, transparent 100%);border-left-color:#2563eb}
+html[data-theme="light"] .notif-item:not(.read):hover{background:linear-gradient(90deg, rgba(37,99,235,.18) 0%, rgba(37,99,235,.08) 60%, transparent 100%)}
+html[data-theme="light"] .notif-item.read{background:linear-gradient(90deg, rgba(15,23,42,.05) 0%, rgba(15,23,42,.02) 60%, transparent 100%);opacity:.75}
+html[data-theme="light"] .notif-item.read:hover{background:linear-gradient(90deg, rgba(15,23,42,.09) 0%, rgba(15,23,42,.04) 60%, transparent 100%)}
 .notif-preview-ov{
   position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:3000;
   display:flex;align-items:center;justify-content:center;
@@ -421,9 +439,12 @@ html[data-theme="light"] .side-help { background: var(--bg); border:none; }
 html[data-theme="light"] .notif-pv-close{background:rgba(0,0,0,.08);color:#1e293b}
 html[data-theme="light"] .notif-pv-close:hover{background:rgba(0,0,0,.15)}
 .notif-pv-card{width:100%;border-radius:16px;padding:28px;color:var(--txt);transition:all .2s;user-select:none}
-.notif-pv-card h2{margin:0 0 12px;font-size:18px;font-weight:800}
+.notif-pv-card h2{
+  margin:0 0 12px;font-size:18px;font-weight:800;
+  max-width:100%;word-break:break-word;overflow-wrap:break-word;hyphens:auto;line-height:1.25
+}
 .notif-pv-card .meta{font-size:12px;margin-bottom:16px;background:none !important}
-.notif-pv-card .body{font-size:13px;line-height:1.7}
+.notif-pv-card .body{font-size:13px;line-height:1.7;word-break:break-word;overflow-wrap:break-word}
 .notif-pv-card .body ul,.notif-pv-card .body ol{padding-left:20px}
 .notif-pv-card .pv-badge{display:inline-flex;align-items:center;gap:6px;border-radius:20px;font-size:11px;font-weight:700;padding:4px 12px;margin-bottom:14px}
 .notif-pv-card .pv-icon{font-size:28px;margin-bottom:12px;display:block}
@@ -2513,6 +2534,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
     wrench:      '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
     doc:         '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
     rocket:      '<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>',
+    ticket:      '<path d="M2 12h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H2V6h2a2 2 0 0 0 2-2V2"/><path d="M22 12h-2a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2V6h-2a2 2 0 0 1-2-2V2"/><path d="M7 2h10"/><path d="M7 22h10"/><rect x="7" y="6" width="10" height="12" rx="1"/>',
   };
 
   function cfgFor(e) {
@@ -2525,9 +2547,11 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
       eliminada:          { title: 'Cita eliminada',             type: 'red',    icon: 'trash' },
       estudio_completado: { title: 'Estudio completado',         type: 'green',  icon: 'check' },
       estado:             { title: 'Estado de cita cambiado',    type: 'blue',   icon: 'bell' },
+      reprogramada:       { title: 'Cita reprogramada',          type: 'amber',  icon: 'bell' },
       recordatorio_1h:    { title: 'Recordatorio: cita en 1h',  type: 'amber',  icon: 'bell' },
       recordatorio_24h:   { title: 'Recordatorio: cita mañana', type: 'blue',   icon: 'bell' },
       anuncio:            { title: e.titulo || 'Nuevo anuncio',  type: 'blue',   icon: 'megaphone' },
+      ticket:             { title: e.titulo || 'Nuevo ticket',   type: 'amber',  icon: 'ticket' },
       notificacion:       { title: e.titulo || 'Notificación',   type: 'blue',   icon: 'bell' },
       anuncios_internos:  { title: e.titulo || 'Comunicado',     type: 'blue',   icon: 'radio' },
       mejoras:            { title: e.titulo || 'Mejoras',        type: 'green',  icon: 'rocket' },
@@ -2545,6 +2569,18 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
     const tipo = item.categoria || item.tipo;
     if (tipo === 'anuncio' || ['notificacion','anuncios_internos','mejoras','mantenimiento','politicas'].includes(tipo)) {
       return TIPO_LABELS[tipo] || TIPO_LABELS[item.categoria] || 'Anuncio';
+    }
+    if (tipo === 'ticket') {
+      const parts = [item.user_name, item.folio, item.subject].filter(Boolean);
+      return parts.length ? parts.join(' — ') : 'Nuevo ticket recibido';
+    }
+    if (tipo === 'reprogramada') {
+      const paciente = item.paciente || 'Paciente';
+      const fecha = item.fecha || '';
+      const hora = item.hora || '';
+      const horaAnterior = item.hora_anterior || '';
+      const fechaAnterior = item.fecha_anterior || '';
+      return `${paciente} — Fecha: ${fecha} — Hora anterior: ${horaAnterior} — Nueva: ${hora}`;
     }
     const parts = [item.paciente, item.fecha, item.hora].filter(Boolean);
     return parts.length ? parts.join(' — ') : (item.message || item.body || '');

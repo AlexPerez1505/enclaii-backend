@@ -74,11 +74,12 @@
           <div>
             <p class="photo-copy">Puedes tomar una foto con la cámara frontal de tu teléfono o elegir una imagen de tu galería. Procura tener buena iluminación y mostrar claramente tu rostro.</p>
             @if($allowCameraPhoto)
-              <input class="photo-input" type="file" id="patientPhotoCamera" name="foto_camera" accept="image/jpeg,image/png,image/webp" capture="user">
+              <input class="photo-input" type="file" id="patientPhotoCamera" accept="image/*" capture="user">
             @endif
             @if($allowGalleryPhoto)
-              <input class="photo-input" type="file" id="patientPhotoGallery" name="foto" accept="image/jpeg,image/png,image/webp">
+              <input class="photo-input" type="file" id="patientPhotoGallery" accept="image/*">
             @endif
+            <input class="photo-input" type="file" id="patientPhotoUpload" name="foto_upload" accept="image/jpeg,image/png,image/webp">
             <div class="photo-actions">
               @if($allowCameraPhoto)
                 <label class="photo-button primary" for="patientPhotoCamera">Tomar foto</label>
@@ -119,19 +120,32 @@
 (() => {
   const cameraInput = document.getElementById('patientPhotoCamera');
   const galleryInput = document.getElementById('patientPhotoGallery');
+  const uploadInput = document.getElementById('patientPhotoUpload');
+  const form = document.querySelector('form');
+  const submitButton = form?.querySelector('.submit');
   const preview = document.getElementById('patientPhotoPreview');
   const placeholder = document.getElementById('patientPhotoPlaceholder');
   const removeButton = document.getElementById('removePatientPhoto');
   const status = document.getElementById('patientPhotoStatus');
-  if (!preview || !placeholder || !removeButton || !status) return;
+  if (!preview || !placeholder || !removeButton || !status || !uploadInput) return;
 
   const inputs = [cameraInput, galleryInput].filter(Boolean);
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-  const maxSize = 4 * 1024 * 1024;
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif', ''];
+  const uploadMaxSize = 4 * 1024 * 1024;
+  const maxSize = 1024 * 1024 * 1024;
   let previewUrl = null;
+  let selectedFile = null;
+  let selectedInput = null;
+  let uploadReady = false;
+  let uploadPreparing = false;
 
   function clearPreview(message = 'Formatos JPG, PNG o WebP. Máximo 4 MB.') {
     inputs.forEach(input => { input.value = ''; });
+    uploadInput.value = '';
+    selectedFile = null;
+    selectedInput = null;
+    uploadReady = false;
+    uploadPreparing = false;
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     previewUrl = null;
     preview.removeAttribute('src');
@@ -161,12 +175,120 @@
     preview.hidden = false;
     placeholder.hidden = true;
     removeButton.hidden = false;
-    status.textContent = 'Foto lista para enviar.';
+    selectedFile = file;
+    selectedInput = input;
+    uploadReady = false;
+    status.textContent = file.size > uploadMaxSize
+      ? 'La foto se optimizara antes de enviarse.'
+      : 'Foto lista para enviar.';
     status.classList.remove('error');
+    prepareUpload();
+  }
+
+  function canvasToBlob(canvas, quality) {
+    return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+  }
+
+  async function normalizePhoto(file) {
+    if (file.type === 'image/jpeg' && file.size <= uploadMaxSize) return file;
+
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+    image.decoding = 'async';
+
+    try {
+      await new Promise((resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = reject;
+        image.src = url;
+      });
+
+      const maxSide = 1600;
+      const width = image.naturalWidth || image.width;
+      const height = image.naturalHeight || image.height;
+      const scale = Math.min(1, maxSide / Math.max(width, height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(width * scale));
+      canvas.height = Math.max(1, Math.round(height * scale));
+      canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+
+      for (const quality of [0.86, 0.74, 0.62, 0.5, 0.42]) {
+        const blob = await canvasToBlob(canvas, quality);
+        if (blob && blob.size <= uploadMaxSize) {
+          return new File([blob], 'foto-paciente.jpg', { type: 'image/jpeg' });
+        }
+      }
+
+      const blob = await canvasToBlob(canvas, 0.36);
+      if (!blob) throw new Error('No se pudo convertir la foto.');
+      return new File([blob], 'foto-paciente.jpg', { type: 'image/jpeg' });
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  async function prepareUpload() {
+    if (!selectedFile) return true;
+    if (uploadReady) return true;
+
+    try {
+      uploadPreparing = true;
+      status.textContent = 'Preparando foto...';
+      status.classList.remove('error');
+      const normalized = await normalizePhoto(selectedFile);
+
+      if (normalized.size > uploadMaxSize) {
+        clearPreview('La foto sigue superando el limite de 4 MB. Intenta con otra imagen.');
+        status.classList.add('error');
+        return false;
+      }
+
+      if (typeof DataTransfer === 'undefined') {
+        if (normalized !== selectedFile || selectedFile.size > uploadMaxSize) {
+          clearPreview('Tu navegador no pudo preparar la foto. Intenta con una imagen menor a 4 MB.');
+          status.classList.add('error');
+          return false;
+        }
+
+        if (selectedInput === cameraInput) {
+          selectedInput.name = 'foto_camera';
+        } else if (selectedInput === galleryInput) {
+          selectedInput.name = 'foto';
+        }
+      } else {
+        inputs.forEach(input => { input.removeAttribute('name'); });
+        const transfer = new DataTransfer();
+        transfer.items.add(normalized);
+        uploadInput.files = transfer.files;
+      }
+      uploadReady = true;
+      status.textContent = 'Foto lista para enviar.';
+      return true;
+    } catch (error) {
+      clearPreview('No se pudo preparar la foto. Intenta elegir otra imagen.');
+      status.classList.add('error');
+      return false;
+    } finally {
+      uploadPreparing = false;
+    }
   }
 
   inputs.forEach(input => input.addEventListener('change', () => showPhoto(input)));
   removeButton.addEventListener('click', () => clearPreview());
+  form?.addEventListener('submit', async (event) => {
+    if (!selectedFile || uploadReady) return;
+
+    event.preventDefault();
+    submitButton?.setAttribute('disabled', 'disabled');
+
+    const ready = await prepareUpload();
+    if (ready) {
+      HTMLFormElement.prototype.submit.call(form);
+      return;
+    }
+
+    submitButton?.removeAttribute('disabled');
+  });
 })();
 </script>
 </body>

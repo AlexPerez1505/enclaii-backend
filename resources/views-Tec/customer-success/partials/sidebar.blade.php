@@ -30,14 +30,13 @@
     <span class="nav-label">Gestión de usuarios</span>
   </a>
 
-  <a class="nav-item {{ $active === 'customer-success-comunicaciones' ? 'active' : '' }}" href="{{ route('customer-success.anuncios') }}" title="Comunicaciones">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-    <span class="nav-label">Comunicaciones</span>
-  </a>
-
-  <a class="nav-item {{ $active === 'customer-success-auditoria' ? 'active' : '' }}" href="{{ route('customer-success.dashboard') }}#auditoria" title="Soporte / Auditoría">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="M9 15l3-3 3 3"/></svg>
-    <span class="nav-label">Auditoría</span>
+  <a class="nav-item {{ $active === 'customer-success-tickets' ? 'active' : '' }}" href="{{ route('customer-success.tickets') }}" title="Tickets" style="position:relative">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H2V6h2a2 2 0 0 0 2-2V2"/><path d="M22 12h-2a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2V6h-2a2 2 0 0 1-2-2V2"/><path d="M7 2h10"/><path d="M7 22h10"/><rect x="7" y="6" width="10" height="12" rx="1"/></svg>
+    <span class="nav-label">Tickets</span>
+    @php $openTicketsCount = \App\Models\Ticket::where('status', '!=', 'cerrado')->count(); @endphp
+    @if($openTicketsCount > 0)
+      <span style="position:absolute;top:6px;right:6px;background:#f59e0b;color:#fff;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:99px;display:flex;align-items:center;justify-content:center;padding:0 4px">{{ $openTicketsCount }}</span>
+    @endif
   </a>
 
   <a class="nav-item {{ $active === 'customer-success-soporte' ? 'active' : '' }}" href="{{ route('customer-success.soporte') }}" title="Soporte" style="position:relative">
