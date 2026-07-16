@@ -12,7 +12,7 @@ use Illuminate\Validation\Rule;
 
 class AgendaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         // Auto-cancelar citas 'proximo' cuya fecha/hora ya pasó.
         $now = now();
@@ -27,11 +27,28 @@ class AgendaController extends Controller
             })
             ->update(['estado' => 'cancelado']);
 
-        $citas = Cita::query()
+        $citasQuery = Cita::query()
             ->with('paciente')
             ->orderBy('fecha')
-            ->orderBy('hora')
-            ->get();
+            ->orderBy('hora');
+
+        if ($request->expectsJson()) {
+            $year = (int) $request->query('year', $now->year);
+            $month = (int) $request->query('month', $now->month);
+            $inicioMes = Carbon::create($year, $month, 1)->startOfMonth();
+            $finMes = $inicioMes->copy()->endOfMonth();
+
+            $citas = $citasQuery
+                ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
+                ->get();
+
+            return response()->json([
+                'ok' => true,
+                'citas' => $citas->map(fn (Cita $cita) => $this->citaParaAgenda($cita))->values(),
+            ]);
+        }
+
+        $citas = $citasQuery->get();
 
         $citasAgenda = $citas->map(fn (Cita $cita) => $this->citaParaAgenda($cita))->values();
 
@@ -182,7 +199,25 @@ class AgendaController extends Controller
 
         $validated = $this->normalizarDatosCita($validated, $cita);
 
+        $estadoAnterior = $cita->estado;
+        $fechaAnterior = optional($cita->fecha)->format('d/m/Y');
+        $horaAnterior = substr($cita->hora, 0, 5);
+
+        $validated['estado'] = 'proximo';
+
         $cita->update($validated);
+
+        if ($estadoAnterior !== $cita->estado) {
+            broadcast(new CitaEstadoChanged(
+                $cita->fresh(),
+                $estadoAnterior,
+                $cita->estado,
+                'reprogramada',
+                null,
+                $fechaAnterior,
+                $horaAnterior
+            ));
+        }
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([

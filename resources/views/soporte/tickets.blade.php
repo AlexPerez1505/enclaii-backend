@@ -95,8 +95,8 @@
               @php
                 $categoryLabels = ['facturacion'=>'Facturación','tecnico'=>'Problema técnico','funcion'=>'Solicitud de función','como-hacer'=>'Cómo hacer','otro'=>'Otro'];
                 $priorityLabels = ['alta'=>'Alta','media'=>'Media','baja'=>'Baja'];
-                $statusLabels = ['abierto'=>'Abierto','en progreso'=>'En progreso','resuelto'=>'Resuelto'];
-                $statusBadge = ['abierto'=>'abierto','en progreso'=>'progreso','resuelto'=>'resuelto'];
+                $statusLabels = ['nuevo'=>'Nuevo','abierto'=>'Abierto','en_proceso'=>'En proceso','en progreso'=>'En progreso','resuelto'=>'Resuelto','cerrado'=>'Cerrado'];
+                $statusBadge = ['nuevo'=>'abierto','abierto'=>'abierto','en_proceso'=>'progreso','en progreso'=>'progreso','resuelto'=>'resuelto','cerrado'=>'resuelto'];
               @endphp
               @forelse ($tickets as $ticket)
                 @php
