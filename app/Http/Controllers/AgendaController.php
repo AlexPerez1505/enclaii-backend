@@ -12,7 +12,7 @@ use Illuminate\Validation\Rule;
 
 class AgendaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         // Auto-cancelar citas 'proximo' cuya fecha/hora ya pasó.
         $now = now();
@@ -27,11 +27,28 @@ class AgendaController extends Controller
             })
             ->update(['estado' => 'cancelado']);
 
-        $citas = Cita::query()
+        $citasQuery = Cita::query()
             ->with('paciente')
             ->orderBy('fecha')
-            ->orderBy('hora')
-            ->get();
+            ->orderBy('hora');
+
+        if ($request->expectsJson()) {
+            $year = (int) $request->query('year', $now->year);
+            $month = (int) $request->query('month', $now->month);
+            $inicioMes = Carbon::create($year, $month, 1)->startOfMonth();
+            $finMes = $inicioMes->copy()->endOfMonth();
+
+            $citas = $citasQuery
+                ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
+                ->get();
+
+            return response()->json([
+                'ok' => true,
+                'citas' => $citas->map(fn (Cita $cita) => $this->citaParaAgenda($cita))->values(),
+            ]);
+        }
+
+        $citas = $citasQuery->get();
 
         $citasAgenda = $citas->map(fn (Cita $cita) => $this->citaParaAgenda($cita))->values();
 

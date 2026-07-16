@@ -432,13 +432,14 @@ class AiAssistantController extends Controller
     private function runConversation(array $messages, Request $request): string
     {
         $baseUrl = rtrim(config('services.openai.base_url', 'https://api.openai.com'), '/');
+        $endpoint = Str::endsWith($baseUrl, '/v1') ? '/chat/completions' : '/v1/chat/completions';
         $model = config('services.openai.assistant_model', config('services.openai.model', 'gpt-4o-mini'));
 
         for ($i = 0; $i < 4; $i++) {
             $resp = Http::withToken(config('services.openai.key'))
                 ->baseUrl($baseUrl)
                 ->timeout(90)
-                ->post('/v1/chat/completions', [
+                ->post($endpoint, [
                     'model' => $model,
                     'messages' => $messages,
                     'tools' => $this->tools(),

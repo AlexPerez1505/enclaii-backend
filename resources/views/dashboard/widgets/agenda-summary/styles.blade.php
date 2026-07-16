@@ -24,7 +24,7 @@
 .next-item .n{font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 .widget:not(.widget-minimal)[data-widget-id="agenda-summary"] .next-list{
-  display:flex;flex-direction:column;flex:1;min-height:0;overflow-y:auto;
+  display:flex;flex-direction:column;flex:1;min-height:0;max-height:13em;overflow-y:auto;
 }
 .widget:not(.widget-minimal)[data-widget-id="agenda-summary"] .next-list .next-item{
   flex:none;display:flex;align-items:center;

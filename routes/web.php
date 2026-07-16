@@ -234,66 +234,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
 
 Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
 
-    Route::get('/dashboard', function () {
-        $estudiosSinReporte = \App\Models\Estudio::whereDoesntHave('reportes')->count();
-
-        // Auto-cancelar citas próximas cuya fecha/hora ya pasó
-        \App\Models\Cita::query()
-            ->where('estado', 'proximo')
-            ->whereRaw("CONCAT(fecha, ' ', hora) <= ?", [now()->format('Y-m-d H:i:s')])
-            ->update(['estado' => 'cancelado']);
-
-        // Próximo paciente: la cita pendiente más cercana (solo futuras)
-        $proximaCita = \App\Models\Cita::with('paciente')
-            ->whereNotIn('estado', ['cancelado', 'completado'])
-            ->whereRaw("CONCAT(fecha, ' ', hora) >= ?", [now()->format('Y-m-d H:i:s')])
-            ->orderBy('fecha')
-            ->orderBy('hora')
-            ->first();
-
-        // Pacientes pendientes HOY: citas de hoy futuras y no completadas/canceladas
-        $pendientesHoy = \App\Models\Cita::with('paciente')
-            ->whereDate('fecha', now()->toDateString())
-            ->whereNotIn('estado', ['completado', 'cancelado'])
-            ->whereTime('hora', '>=', now()->format('H:i:s'))
-            ->orderBy('hora')
-            ->get();
-
-        // Citas por estado para el donut del resumen
-        $citasProximas = \App\Models\Cita::where('estado', 'proximo')->count();
-        $citasCompletadas = \App\Models\Cita::where('estado', 'completado')->count();
-        $citasCanceladas = \App\Models\Cita::where('estado', 'cancelado')->count();
-
-        // Resumen del mes (coincide con el mes mostrado en el widget de agenda)
-        $widgetMes = (int) request()->query('widget_mes', now()->month);
-        $widgetAnio = (int) request()->query('widget_anio', now()->year);
-        $inicioMes = \Carbon\Carbon::create($widgetAnio, $widgetMes, 1)->startOfDay();
-        $finMes = $inicioMes->copy()->endOfMonth();
-
-        $citasProximasMes = \App\Models\Cita::where('estado', 'proximo')
-            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
-            ->count();
-        $citasCompletadasMes = \App\Models\Cita::where('estado', 'completado')
-            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
-            ->count();
-        $citasCanceladasMes = \App\Models\Cita::where('estado', 'cancelado')
-            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
-            ->count();
-
-        $pendientesMes = \App\Models\Cita::with('paciente')
-            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
-            ->whereNotIn('estado', ['completado', 'cancelado'])
-            ->orderBy('fecha')
-            ->orderBy('hora')
-            ->get();
-
-        return view('dashboard.index', compact(
-            'estudiosSinReporte', 'proximaCita', 'pendientesHoy',
-            'citasProximas', 'citasCompletadas', 'citasCanceladas',
-            'citasProximasMes', 'citasCompletadasMes', 'citasCanceladasMes',
-            'pendientesMes', 'widgetMes', 'widgetAnio'
-        ));
-    })->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/dashboard/widget/{widget}', function ($widget) {
         $allowed = ['agenda-today', 'agenda-summary'];
@@ -328,55 +269,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     })->name('dashboard.widget');
 
 
-    Route::get('/ia-reportes', function () {
-        $reportes = Reporte::with(['estudio.paciente', 'usuario'])
-            ->latest()
-            ->get();
-
-        // ===== KPIs con datos reales =====
-        $inicioMes = now()->startOfMonth();
-        $finMes = now()->endOfMonth();
-        $inicioMesPrev = now()->subMonthNoOverflow()->startOfMonth();
-        $finMesPrev = now()->subMonthNoOverflow()->endOfMonth();
-
-        // % de variación entre dos conteos
-        $pct = function (int $actual, int $previo): int {
-            if ($previo === 0) {
-                return $actual > 0 ? 100 : 0;
-            }
-
-            return (int) round((($actual - $previo) / $previo) * 100);
-        };
-
-        // 1. Reportes generados (este mes)
-        $repMes = Reporte::whereBetween('created_at', [$inicioMes, $finMes])->count();
-        $repPrev = Reporte::whereBetween('created_at', [$inicioMesPrev, $finMesPrev])->count();
-
-        // 2. Estudios sin reporte (pendientes reales)
-        $estudiosSinReporte = \App\Models\Estudio::whereDoesntHave('reportes')->count();
-
-        // 3. Evidencias (imágenes) capturadas este mes
-        $evMes = \App\Models\EstudioArchivo::where('tipo', 'imagen')
-            ->whereBetween('created_at', [$inicioMes, $finMes])->count();
-        $evPrev = \App\Models\EstudioArchivo::where('tipo', 'imagen')
-            ->whereBetween('created_at', [$inicioMesPrev, $finMesPrev])->count();
-
-        // 4. Estudios realizados este mes
-        $estMes = \App\Models\Estudio::whereBetween('created_at', [$inicioMes, $finMes])->count();
-        $estPrev = \App\Models\Estudio::whereBetween('created_at', [$inicioMesPrev, $finMesPrev])->count();
-
-        $kpis = [
-            'reportes' => ['valor' => $repMes, 'trend' => $pct($repMes, $repPrev)],
-            'sin_reporte' => ['valor' => $estudiosSinReporte],
-            'evidencias' => ['valor' => $evMes, 'trend' => $pct($evMes, $evPrev)],
-            'estudios' => ['valor' => $estMes, 'trend' => $pct($estMes, $estPrev)],
-        ];
-
-        $hallazgosData = app(\App\Http\Controllers\IaReporteController::class)->hallazgosData();
-        $hallazgos = collect($hallazgosData['hallazgos'])->take(5)->all();
-
-        return view('ia-reportes.index', compact('reportes', 'kpis', 'hallazgos'));
-    })->name('ia-reportes');
+    Route::get('/ia-reportes', [IaReporteController::class, 'index'])->name('ia-reportes');
 
     Route::get('/ia-reportes/generar', function () {
         $estudioId = request()->query('estudio');
@@ -726,92 +619,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
         ->name('nuevo-estudio.configuracion.update');
 
     /* ── Galería ── */
-    Route::get('/galeria', function () {
-        $colores = [
-            'linear-gradient(135deg,#c084fc,#a78bfa)',
-            'linear-gradient(135deg,#7dd3fc,#60a5fa)',
-            'linear-gradient(135deg,#f9a8d4,#f472b6)',
-            'linear-gradient(135deg,#99f6e4,#6ee7b7)',
-        ];
-
-        $medicos = \App\Models\Estudio::query()
-            ->whereNotNull('medico')
-            ->where('medico', '<>', '')
-            ->distinct()
-            ->orderBy('medico')
-            ->pluck('medico');
-
-        $procedimientos = \App\Models\Estudio::query()
-            ->whereNotNull('tipo')
-            ->where('tipo', '<>', '')
-            ->distinct()
-            ->orderBy('tipo')
-            ->pluck('tipo');
-
-        $hallazgos = \App\Models\Hallazgo::orderBy('nombre')->get(['id', 'nombre']);
-
-        $pacientesDb = Paciente::orderBy('nombre_completo')->get()->values();
-        $pacienteIds = $pacientesDb->pluck('id');
-        $estudiosPorPaciente = \App\Models\Estudio::with([
-                'archivos:id,estudio_id,tipo',
-                'estudioHallazgos:id,estudio_id,hallazgo_id,detectado_por',
-            ])
-            ->whereIn('paciente_id', $pacienteIds)
-            ->get()
-            ->groupBy('paciente_id');
-        $archivosPorPaciente = \App\Models\EstudioArchivo::whereIn('paciente_id', $pacienteIds)
-            ->get()
-            ->groupBy('paciente_id');
-
-        $pacientes = $pacientesDb->map(function ($p, $i) use ($colores, $estudiosPorPaciente, $archivosPorPaciente) {
-            $archivosPaciente = $archivosPorPaciente->get($p->id, collect());
-            $estudiosDetalle = $estudiosPorPaciente->get($p->id, collect());
-            $fotos = $archivosPaciente->where('tipo', 'imagen')->count();
-            $videos = $archivosPaciente->where('tipo', 'video')->count();
-            $estudios = $estudiosDetalle->count();
-            $ultimoTs = $archivosPaciente->max('capturado_en');
-            $ultimo = $ultimoTs ? \Illuminate\Support\Carbon::parse($ultimoTs)->format('d/m/Y') : '—';
-            $ini = collect(explode(' ', $p->nombre_completo ?? ''))
-                ->filter()->take(2)
-                ->map(fn ($x) => mb_strtoupper(mb_substr($x, 0, 1)))
-                ->implode('') ?: 'PX';
-
-            return [
-                'id' => $p->id,
-                'nombre' => $p->nombre_completo ?? 'Paciente',
-                'telefono' => $p->telefono ?? '',
-                'codigo' => $p->folio ?? $p->identificacion ?? '—',
-                'sexo' => $p->sexo ?? '—',
-                'edad' => $p->edad ? $p->edad . ' años' : '—',
-                'ultimo' => $ultimo,
-                'estudios' => $estudios,
-                'fotos' => $fotos,
-                'videos' => $videos,
-                'estado' => 'Activo',
-                'ini' => $ini,
-                'color' => $colores[$i % count($colores)],
-                'filtros' => $estudiosDetalle->map(function ($estudio) {
-                    $hallazgosEstudio = $estudio->estudioHallazgos;
-
-                    return [
-                        'medico' => $estudio->medico ?? '',
-                        'procedimiento' => $estudio->tipo ?? '',
-                        'fecha' => $estudio->fecha?->format('Y-m-d') ?? '',
-                        'estado' => $estudio->estado ?? '',
-                        'archivos' => $estudio->archivos->pluck('tipo')->unique()->values(),
-                        'hallazgos' => $hallazgosEstudio->pluck('hallazgo_id')
-                            ->map(fn ($id) => (string) $id)
-                            ->values(),
-                        'hallazgos_ia' => $hallazgosEstudio->contains(
-                            fn ($hallazgo) => mb_strtolower($hallazgo->detectado_por ?? '') === 'ia'
-                        ),
-                    ];
-                })->values(),
-            ];
-        });
-
-        return view('galeria.index', compact('pacientes', 'medicos', 'procedimientos', 'hallazgos'));
-    })->name('galeria');
+    Route::get('/galeria', [\App\Http\Controllers\GaleriaController::class, 'index'])->name('galeria');
 
     Route::get('/galeria/paciente/{id}', function ($id) {
         $paciente = Paciente::find($id);
