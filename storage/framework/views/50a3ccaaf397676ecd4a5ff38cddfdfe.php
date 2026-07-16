@@ -1,19 +1,17 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Resolver Ticket #'.$ticket->operation_folio); ?>
+<?php $__env->startSection('active', 'customer-success-tickets'); ?>
+<?php $__env->startSection('header-title', 'Resolver Ticket'); ?>
+<?php $__env->startSection('header-sub', $ticket->subject); ?>
 
-@section('title', 'Resolver Ticket #'.$ticket->operation_folio)
-@section('active', 'customer-success-tickets')
-@section('header-title', 'Resolver Ticket')
-@section('header-sub', $ticket->subject)
+<?php $__env->startSection('sidebar'); ?>
+  <?php echo $__env->make('customer-success.partials.sidebar', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<?php $__env->stopSection(); ?>
 
-@section('sidebar')
-  @include('customer-success.partials.sidebar')
-@endsection
+<?php $__env->startSection('bottom-nav'); ?>
+  <?php echo $__env->make('customer-success.partials.bottom-nav', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<?php $__env->stopSection(); ?>
 
-@section('bottom-nav')
-  @include('customer-success.partials.bottom-nav')
-@endsection
-
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
 .rv-page{--rv-bg:#060b14;--rv-panel:#0c1222;--rv-panel-2:#0f1629;--rv-border:#1e293b;--rv-border-soft:#253047;--rv-text:#e2e8f0;--rv-text-soft:#94a3b8;--rv-blue:#3b82f6;--rv-green:#22c55e;--rv-red:#ef4444;--rv-amber:#f59e0b;--rv-radius:18px}
 .rv-page{max-width:680px;margin:0 auto}
@@ -98,12 +96,12 @@ html[data-theme="light"] .rv-ticket-info-icon{background:rgba(59,130,246,.08)}
   .rv-radio-group{flex-direction:column}
 }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="rv-page">
 
-  <a href="{{ route('customer-success.tickets.show', $ticket) }}" class="rv-back">
+  <a href="<?php echo e(route('customer-success.tickets.show', $ticket)); ?>" class="rv-back">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
     Volver al ticket
   </a>
@@ -122,8 +120,8 @@ html[data-theme="light"] .rv-ticket-info-icon{background:rgba(59,130,246,.08)}
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       </div>
       <div class="rv-ticket-info-text">
-        <strong>{{ $ticket->subject }}</strong>
-        <span>{{ $ticket->operation_folio }} &bull; {{ $ticket->user?->name }} {{ $ticket->user?->apellido_paterno }}</span>
+        <strong><?php echo e($ticket->subject); ?></strong>
+        <span><?php echo e($ticket->operation_folio); ?> &bull; <?php echo e($ticket->user?->name); ?> <?php echo e($ticket->user?->apellido_paterno); ?></span>
       </div>
     </div>
 
@@ -189,7 +187,7 @@ html[data-theme="light"] .rv-ticket-info-icon{background:rgba(59,130,246,.08)}
       </div>
 
       <div class="rv-footer">
-        <a href="{{ route('customer-success.tickets.show', $ticket) }}" class="rv-btn rv-btn-cancel">Cancelar</a>
+        <a href="<?php echo e(route('customer-success.tickets.show', $ticket)); ?>" class="rv-btn rv-btn-cancel">Cancelar</a>
         <button type="submit" class="rv-btn rv-btn-submit" id="btnSubmit">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
           Resolver ticket
@@ -199,14 +197,14 @@ html[data-theme="light"] .rv-ticket-info-icon{background:rgba(59,130,246,.08)}
   </div>
 
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 (function(){
-  var csrfToken = "{{ csrf_token() }}";
-  var resolveUrl = "{{ route('customer-success.tickets.resolve', $ticket) }}";
-  var showUrl = "{{ route('customer-success.tickets.show', $ticket) }}";
+  var csrfToken = "<?php echo e(csrf_token()); ?>";
+  var resolveUrl = "<?php echo e(route('customer-success.tickets.resolve', $ticket)); ?>";
+  var showUrl = "<?php echo e(route('customer-success.tickets.show', $ticket)); ?>";
 
   var form = document.getElementById('resolveForm');
   var btnSubmit = document.getElementById('btnSubmit');
@@ -271,4 +269,6 @@ html[data-theme="light"] .rv-ticket-info-icon{background:rgba(59,130,246,.08)}
   });
 })();
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\HP\enclaii-backend\resources\views-Tec/customer-success/tickets/resolve.blade.php ENDPATH**/ ?>
