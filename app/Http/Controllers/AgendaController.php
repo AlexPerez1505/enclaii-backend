@@ -199,7 +199,25 @@ class AgendaController extends Controller
 
         $validated = $this->normalizarDatosCita($validated, $cita);
 
+        $estadoAnterior = $cita->estado;
+        $fechaAnterior = optional($cita->fecha)->format('d/m/Y');
+        $horaAnterior = substr($cita->hora, 0, 5);
+
+        $validated['estado'] = 'proximo';
+
         $cita->update($validated);
+
+        if ($estadoAnterior !== $cita->estado) {
+            broadcast(new CitaEstadoChanged(
+                $cita->fresh(),
+                $estadoAnterior,
+                $cita->estado,
+                'reprogramada',
+                null,
+                $fechaAnterior,
+                $horaAnterior
+            ));
+        }
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([

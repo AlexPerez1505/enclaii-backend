@@ -22,6 +22,8 @@ class CitaEstadoChanged implements ShouldBroadcastNow
         public string $estadoNuevo,
         public string $tipo = 'estado',
         public ?int $userId = null,
+        public ?string $fechaAnterior = null,
+        public ?string $horaAnterior = null,
     ) {
         $this->userId = $userId ?? auth()->id();
     }
@@ -62,6 +64,8 @@ class CitaEstadoChanged implements ShouldBroadcastNow
             },
             'fecha'            => optional($this->cita->fecha)->format('d/m/Y'),
             'hora'             => substr($this->cita->hora, 0, 5),
+            'fecha_anterior'   => $this->fechaAnterior,
+            'hora_anterior'    => $this->horaAnterior,
             'tipo'             => $this->tipo,
         ];
     }

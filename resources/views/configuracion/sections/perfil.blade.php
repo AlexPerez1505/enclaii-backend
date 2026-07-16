@@ -380,7 +380,9 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
     const data = {};
     document.querySelectorAll('.cfg-panel[data-panel="perfil"] input[name], .cfg-panel[data-panel="perfil"] select[name]')
       .forEach(function(el) {
-        data[el.name] = el.value;
+        if (el.value.trim() !== '') {
+          data[el.name] = el.value;
+        }
       });
 
     try {
@@ -396,7 +398,7 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
       });
 
       const json = await res.json();
-      if (json.ok) {
+      if (res.ok && json.ok) {
         saveTxt.textContent = '¡Guardado!';
         saveBtn.style.background = 'var(--green)';
         setTimeout(function() {
@@ -408,13 +410,20 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
         const nameEl = document.querySelector('.profile strong');
         if (nameEl && data.name) nameEl.textContent = data.name;
       } else {
-        saveTxt.textContent = 'Error al guardar';
+        var errMsg = 'Error al guardar';
+        if (json.errors) {
+          var msgs = Object.values(json.errors).flat();
+          errMsg = msgs[0] || errMsg;
+        } else if (json.message) {
+          errMsg = json.message;
+        }
+        saveTxt.textContent = errMsg;
         saveBtn.style.background = 'var(--red)';
         setTimeout(function() {
           saveTxt.textContent = 'Guardar cambios';
           saveBtn.style.background = '';
           saveBtn.disabled = false;
-        }, 2500);
+        }, 3000);
       }
     } catch(e) {
       saveTxt.textContent = 'Error de conexión';

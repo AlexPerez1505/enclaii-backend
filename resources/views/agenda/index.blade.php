@@ -3,9 +3,6 @@
 @section('title', 'Agenda')
 @section('active', 'agenda')
 @section('header-title', 'Buenos días, '.(auth()->user()?->name ?? 'Doctor'))
-@section('header-sub')
-  Tiene <b>{{ $citasHoy ?? 0 }}</b> pacientes el día de hoy
-@endsection
 
 {{--
   ╔══════════════════════════════════════════════════════════╗

@@ -19,9 +19,39 @@ class CustomerSuccessController extends Controller
         ]);
     }
 
-    public function anuncios()
+    public function anuncios(Request $request)
     {
-        $anuncios = Anuncio::latest()->paginate(20);
+        $query = Anuncio::with('user')->orderByDesc('created_at');
+
+        if ($q = $request->input('q')) {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('titulo', 'like', "%{$q}%")
+                    ->orWhereHas('user', fn ($u) => $u->where('name', 'like', "%{$q}%"))
+                    ->orWhere('tipo', 'like', "%{$q}%");
+            });
+        }
+
+        if ($tipo = $request->input('tipo')) {
+            $query->where('tipo', $tipo);
+        }
+
+        if ($canal = $request->input('canal')) {
+            $query->whereJsonContains('canales', $canal);
+        }
+
+        if ($estado = $request->input('estado')) {
+            if ($estado === 'activo') {
+                $query->where('activo', true);
+            } elseif ($estado === 'inactivo') {
+                $query->where('activo', false)
+                      ->where(fn ($sub) => $sub->whereNull('fecha_publicacion')->orWhere('fecha_publicacion', '<=', now()));
+            } elseif ($estado === 'programado') {
+                $query->where('activo', false)->where('fecha_publicacion', '>', now());
+            }
+        }
+
+        $anuncios = $query->paginate(20)->withQueryString();
+
         return view('customer-success.anuncios.index', compact('anuncios'));
     }
 

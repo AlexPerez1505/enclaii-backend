@@ -10,22 +10,62 @@
 
 @push('styles')
 <style>
-.ag-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
-.ag-card{background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-lg);padding:0;overflow:hidden}
-.ag-card-header{padding:16px 20px;border-bottom:1px solid var(--stroke);display:flex;align-items:center;justify-content:space-between}
-.ag-card-header h2{font-size:15px;font-weight:700;margin:0;display:flex;align-items:center;gap:8px}
+.ag-grid{display:grid;grid-template-columns:1fr 1.16fr;grid-template-rows:minmax(260px,1fr) minmax(150px,auto);gap:16px;width:100%;max-width:none;min-height:calc(100vh - 175px)}
+.ag-card{min-height:0;background:linear-gradient(145deg,#08162c 0%,#071225 100%);border:1px solid rgba(59,130,246,.16);border-radius:16px;padding:0;overflow:hidden;box-shadow:0 18px 35px rgba(0,0,0,.18)}
+.ag-card:first-child{background:radial-gradient(circle at 50% 42%,rgba(107,45,210,.18),transparent 30%),linear-gradient(145deg,#140a2d 0%,#0c1030 100%);border-color:rgba(168,85,247,.52);box-shadow:0 18px 35px rgba(63,23,116,.22),inset 0 1px 0 rgba(255,255,255,.04)}
+.ag-card:nth-child(2){border-color:rgba(34,197,94,.4);background:linear-gradient(145deg,#071d27 0%,#071225 64%)}
+.ag-card--resolved{grid-column:1/-1;min-height:150px;border-color:rgba(34,197,94,.22);background:linear-gradient(100deg,#071c2b 0%,#08152b 74%)}
+.ag-card-header{padding:22px 20px 12px;border:0;display:flex;align-items:center;justify-content:space-between}
+.ag-card-header h2{font-size:15px;font-weight:700;margin:0;color:#eef4ff;display:flex;align-items:center;gap:10px}
+.ag-card-header svg{width:18px;height:18px;padding:11px;border-radius:12px;box-sizing:content-box;background:linear-gradient(135deg,rgba(168,85,247,.3),rgba(109,40,217,.14))}
+.ag-card:nth-child(2) .ag-card-header svg,.ag-card--resolved .ag-card-header svg{background:linear-gradient(135deg,rgba(34,197,94,.3),rgba(5,150,105,.13))}
 .ag-badge{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;border-radius:99px;font-size:11px;font-weight:700;padding:0 5px}
-.ag-badge.pending{background:rgba(251,191,36,.2);color:#f59e0b}
-.ag-badge.active{background:rgba(74,222,128,.15);color:#16a34a}
-.ag-empty{padding:32px 20px;text-align:center;color:var(--txt-soft);font-size:13px}
-.ag-conv-item{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--stroke);transition:background .15s;cursor:pointer;text-decoration:none;color:inherit}
-.ag-conv-item:last-child{border-bottom:0}
-.ag-conv-item:hover{background:rgba(110,160,255,.05)}
-.ag-conv-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--cyan));display:grid;place-items:center;flex-shrink:0;font-size:13px;font-weight:700;color:#fff}
+.ag-badge.pending{background:rgba(168,85,247,.22);color:#d8b4fe;box-shadow:0 0 14px rgba(168,85,247,.2)}
+.ag-badge.active{background:rgba(34,197,94,.18);color:#4ade80;box-shadow:0 0 14px rgba(34,197,94,.16)}
+.ag-empty{min-height:205px;display:flex;align-items:center;justify-content:center;padding:32px 20px;text-align:center;color:#9daac6;font-size:13px}
+.ag-card:first-child .ag-empty{color:#c4b5fd}
+.ag-conv-item{margin:10px 16px;display:flex;align-items:center;gap:12px;padding:14px 16px;border:1px solid rgba(59,130,246,.1);border-radius:14px;background:rgba(19,37,70,.5);transition:background .15s,border-color .15s,transform .15s;cursor:pointer;text-decoration:none;color:inherit}
+.ag-conv-item:last-child{border-bottom:1px solid rgba(59,130,246,.1)}
+.ag-conv-item:hover{background:rgba(34,62,108,.6);border-color:rgba(96,165,250,.3);transform:translateY(-1px)}
+.ag-conv-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#2563eb);box-shadow:0 0 16px rgba(99,102,241,.34);display:grid;place-items:center;flex-shrink:0;font-size:13px;font-weight:700;color:#fff}
 .ag-conv-info{flex:1;min-width:0}
-.ag-conv-info strong{display:block;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ag-conv-info span{display:block;font-size:12px;color:var(--txt-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ag-conv-time{font-size:11px;color:var(--txt-soft);flex-shrink:0}
+.ag-conv-info strong{display:block;font-size:13px;font-weight:600;color:#edf3ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ag-conv-info span{display:block;font-size:12px;color:#91a0bd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ag-conv-time{font-size:11px;color:#a9b7d0;flex-shrink:0}
+.ag-resolved-link{display:flex;align-items:center;gap:12px;flex:1;min-width:0;color:inherit;text-decoration:none}
+.ag-delete-resolved{width:28px;height:28px;border:1px solid rgba(248,113,113,.28);border-radius:8px;background:rgba(127,29,29,.18);color:#fca5a5;cursor:pointer;display:grid;place-items:center;flex-shrink:0}
+.ag-delete-resolved:hover{background:rgba(185,28,28,.35);color:#fff}
+
+html[data-theme="light"] .ag-card{
+  background:linear-gradient(145deg,#fff,#f8fbff);border-color:#dbe5f5;box-shadow:0 10px 28px rgba(15,23,42,.06)
+}
+html[data-theme="light"] .ag-card:first-child{
+  background:radial-gradient(circle at 50% 42%,rgba(139,92,246,.12),transparent 34%),linear-gradient(145deg,#fdfaff,#f5f3ff);border-color:#c4b5fd;box-shadow:0 10px 28px rgba(109,40,217,.08)
+}
+html[data-theme="light"] .ag-card:nth-child(2){
+  background:linear-gradient(145deg,#f5fffb,#f8fbff);border-color:#86efac
+}
+html[data-theme="light"] .ag-card--resolved{
+  background:linear-gradient(100deg,#f0fdf4,#f8fbff);border-color:#a7f3d0
+}
+html[data-theme="light"] .ag-card-header h2{color:#1e293b}
+html[data-theme="light"] .ag-card-header svg{background:linear-gradient(135deg,#f3e8ff,#ede9fe)}
+html[data-theme="light"] .ag-card:nth-child(2) .ag-card-header svg,
+html[data-theme="light"] .ag-card--resolved .ag-card-header svg{background:linear-gradient(135deg,#dcfce7,#d1fae5)}
+html[data-theme="light"] .ag-badge.pending{background:#f3e8ff;color:#7e22ce;box-shadow:none}
+html[data-theme="light"] .ag-badge.active{background:#dcfce7;color:#15803d;box-shadow:none}
+html[data-theme="light"] .ag-empty{color:#64748b}
+html[data-theme="light"] .ag-card:first-child .ag-empty{color:#7e22ce}
+html[data-theme="light"] .ag-conv-item{background:#fff;border-color:#e2e8f0;box-shadow:0 1px 2px rgba(15,23,42,.03)}
+html[data-theme="light"] .ag-conv-item:last-child{border-color:#e2e8f0}
+html[data-theme="light"] .ag-conv-item:hover{background:#f8fbff;border-color:#93c5fd;box-shadow:0 5px 14px rgba(59,130,246,.09)}
+html[data-theme="light"] .ag-conv-avatar{box-shadow:0 0 14px rgba(99,102,241,.2)}
+html[data-theme="light"] .ag-conv-info strong{color:#1e293b}
+html[data-theme="light"] .ag-conv-info span{color:#64748b}
+html[data-theme="light"] .ag-conv-time{color:#64748b}
+html[data-theme="light"] .ag-delete-resolved{background:#fff1f2;border-color:#fecdd3;color:#e11d48}
+html[data-theme="light"] .ag-delete-resolved:hover{background:#e11d48;color:#fff}
+@media(max-width:760px){.ag-grid{grid-template-columns:1fr;grid-template-rows:auto;min-height:0}.ag-card{min-height:0}.ag-card--resolved{min-height:0}}
 </style>
 @endpush
 
@@ -36,14 +76,14 @@
   <div class="ag-card">
     <div class="ag-card-header">
       <h2>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d946ef" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         Pendientes
         <span class="ag-badge pending" id="badgePending">{{ $pending->count() }}</span>
       </h2>
     </div>
 
     @if($pending->isEmpty())
-      <div class="ag-empty">No hay chats pendientes 🎉</div>
+      <div class="ag-empty">No hay chats pendientes </div>
     @else
       @foreach($pending as $conv)
         <a class="ag-conv-item" href="{{ route('customer-success.soporte.chat', $conv) }}">
@@ -80,6 +120,36 @@
           </div>
           <span class="ag-conv-time">{{ $conv->last_message_at?->diffForHumans() }}</span>
         </a>
+      @endforeach
+    @endif
+  </div>
+
+  <div class="ag-card ag-card--resolved">
+    <div class="ag-card-header">
+      <h2>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        Usuarios atendidos
+        <span class="ag-badge active">{{ $resolved->count() }}</span>
+      </h2>
+    </div>
+
+    @if($resolved->isEmpty())
+      <div class="ag-empty">Aún no tienes chats resueltos.</div>
+    @else
+      @foreach($resolved as $conv)
+        <div class="ag-conv-item">
+          <a class="ag-resolved-link" href="{{ route('customer-success.soporte.chat', $conv) }}">
+            <div class="ag-conv-avatar">{{ mb_strtoupper(mb_substr($conv->user?->name ?? '?', 0, 1)) }}</div>
+            <div class="ag-conv-info">
+              <strong>{{ $conv->user?->name }} {{ $conv->user?->apellido_paterno }}</strong>
+              <span>{{ $conv->latestMessage?->content ?? $conv->title }}</span>
+            </div>
+            <span class="ag-conv-time">Resuelto {{ $conv->closed_at?->diffForHumans() }}</span>
+          </a>
+          <button class="ag-delete-resolved" type="button" data-delete-url="{{ route('customer-success.api.soporte.destroy', $conv) }}" title="Eliminar conversación resuelta">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="m19 6-1 14H6L5 6m4 0V4h6v2"/></svg>
+          </button>
+        </div>
       @endforeach
     @endif
   </div>
@@ -154,6 +224,27 @@
       prevCount = count;
     } catch(e){}
   }, 5000);
+
+  document.querySelectorAll('.ag-delete-resolved').forEach(function(button){
+    button.addEventListener('click', async function(){
+      if (!confirm('¿Eliminar esta conversación resuelta? Esta acción no se puede deshacer.')) return;
+      button.disabled = true;
+      try {
+        var response = await fetch(button.dataset.deleteUrl, {
+          method: 'DELETE',
+          headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+          }
+        });
+        var data = await response.json();
+        if (response.ok && data.ok) window.location.reload();
+        else button.disabled = false;
+      } catch(e) {
+        button.disabled = false;
+      }
+    });
+  });
 })();
 </script>
 @endpush

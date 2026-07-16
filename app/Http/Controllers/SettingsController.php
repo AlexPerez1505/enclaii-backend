@@ -96,13 +96,15 @@ class SettingsController extends Controller
 
     public function updatePerfil(Request $request): JsonResponse
     {
+        $request->merge(array_map(fn($v) => $v === '' ? null : $v, $request->all()));
+
         $validated = $request->validate([
-            'name'               => ['sometimes', 'string', 'max:100'],
+            'name'               => ['sometimes', 'nullable', 'string', 'max:100'],
             'apellido_paterno'   => ['sometimes', 'nullable', 'string', 'max:100'],
             'apellido_materno'   => ['sometimes', 'nullable', 'string', 'max:100'],
             'fecha_nacimiento'   => ['sometimes', 'nullable', 'date'],
             'sexo'               => ['sometimes', 'nullable', 'string', 'max:20'],
-            'email'              => ['sometimes', 'email', 'max:150'],
+            'email'              => ['sometimes', 'nullable', 'email', 'max:150'],
             'phone'              => ['sometimes', 'nullable', 'string', 'max:30'],
             'specialty'          => ['sometimes', 'nullable', 'string', 'max:150'],
             'subespecialidad'    => ['sometimes', 'nullable', 'string', 'max:150'],
@@ -116,7 +118,7 @@ class SettingsController extends Controller
             'clinica_estado'     => ['sometimes', 'nullable', 'string', 'max:100'],
             'rfc'                => ['sometimes', 'nullable', 'string', 'max:20'],
             'razon_social'       => ['sometimes', 'nullable', 'string', 'max:200'],
-            'regimen_fiscal'     => ['sometimes', 'nullable', 'string', 'max:100'],
+            'regimen_fiscal'     => ['sometimes', 'nullable', 'string', 'max:255'],
             'correo_facturacion' => ['sometimes', 'nullable', 'email', 'max:150'],
         ]);
 

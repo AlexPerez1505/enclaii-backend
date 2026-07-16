@@ -16,10 +16,10 @@
 .ag-msg-row.right{align-self:flex-end;align-items:flex-end}
 .ag-msg-row.left{align-self:flex-start;align-items:flex-start}
 .ag-msg-row.center{align-self:center;align-items:center}
-.ag-chat-msg{padding:11px 14px;border-radius:14px;font-size:13px;line-height:1.5;white-space:pre-wrap}
-.ag-chat-msg.user{background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff}
-.ag-chat-msg.assistant,.ag-chat-msg.bot{background:var(--panel);border:1px solid var(--stroke);color:var(--txt)}
-.ag-chat-msg.agent{background:linear-gradient(135deg,#16a34a,#4ade80);color:#fff}
+.ag-chat-msg{padding:11px 14px;border-radius:14px;font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word;overflow-wrap:break-word;min-width:64px}
+.ag-chat-msg.user{background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff;min-width:120px}
+.ag-chat-msg.assistant,.ag-chat-msg.bot{background:var(--panel);border:1px solid var(--stroke);color:var(--txt);min-width:120px}
+.ag-chat-msg.agent{background:linear-gradient(135deg,#16a34a,#4ade80);color:#fff;min-width:120px}
 .ag-chat-msg.system{font-size:11px;color:var(--txt-soft);background:transparent;border:none;padding:4px 0;font-style:italic}
 .ag-chat-label{font-size:10px;margin-bottom:3px;color:var(--txt-soft)}
 .ag-chat-input-bar{display:flex;gap:10px;padding:14px 16px;border-top:1px solid var(--stroke);background:var(--panel)}
@@ -35,16 +35,20 @@
 @section('content')
 <div class="ag-chat-wrap" id="agChatWrap">
 
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--stroke);background:var(--panel)">
-    <span style="font-size:12px;color:var(--txt-soft)">Conversación #{{ $conversation->id }} · {{ $conversation->user?->email }}</span>
-    @if($conversation->isWithAgent())
-    <button id="btnCloseChat" type="button" style="padding:6px 14px;border-radius:var(--r-md);border:1px solid rgba(239,68,68,.4);background:transparent;color:#ef4444;font-size:12px;font-weight:600;cursor:pointer">✓ Marcar como resuelto</button>
-    @endif
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--stroke);background:var(--panel);gap:12px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <a href="{{ route('customer-success.soporte') }}" style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:var(--r-md);border:1px solid var(--stroke);background:var(--panel-2);color:var(--txt-soft);font-size:12px;font-weight:600;text-decoration:none;transition:background .15s,color .15s" onmouseover="this.style.color='var(--txt)';this.style.background='var(--hover-bg)'" onmouseout="this.style.color='var(--txt-soft)';this.style.background='var(--panel-2)'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Regresar
+      </a>
+      <span style="font-size:12px;color:var(--txt-soft)">Conversación #{{ $conversation->id }} · {{ $conversation->user?->email }}</span>
+    </div>
+    <button id="btnCloseChat" type="button" style="padding:6px 14px;border-radius:var(--r-md);border:1px solid rgba(239,68,68,.4);background:transparent;color:#ef4444;font-size:12px;font-weight:600;cursor:pointer;{{ $conversation->isWithAgent() || $conversation->status === 'closed' ? '' : 'display:none;' }}">Marcar como resuelto</button>
   </div>
 
   @if($conversation->isPendingAgent())
   <div class="ag-take-banner" id="takeBanner">
-    <p>⏳ Este chat está esperando un agente. Tómalo para comenzar a responder.</p>
+    <p>Este chat está esperando un agente. Tómalo para comenzar a responder.</p>
     <button class="ag-take-btn" id="btnTakeChat" type="button">Tomar chat</button>
   </div>
   @endif
@@ -71,9 +75,9 @@
     @endforeach
   </div>
 
-  <div class="ag-chat-input-bar" id="agInputBar" @if($conversation->isPendingAgent()) style="opacity:.4;pointer-events:none" @endif>
-    <textarea id="agChatInput" placeholder="Escribe tu respuesta..." rows="1"></textarea>
-    <button type="button" id="btnAgSend">Enviar</button>
+  <div class="ag-chat-input-bar" id="agInputBar" @if($conversation->isPendingAgent() || $conversation->status === 'closed') style="opacity:.4;pointer-events:none" @endif>
+    <textarea id="agChatInput" placeholder="Escribe tu respuesta..." rows="1" @disabled($conversation->status === 'closed')></textarea>
+    <button type="button" id="btnAgSend" @disabled($conversation->status === 'closed')>Enviar</button>
   </div>
 
 </div>
@@ -84,6 +88,7 @@
 (function(){
   var convId = {{ $conversation->id }};
   var isPending = {{ $conversation->isPendingAgent() ? 'true' : 'false' }};
+  var isClosed = {{ $conversation->status === 'closed' ? 'true' : 'false' }};
   var csrfToken = "{{ csrf_token() }}";
   var takeUrl = "{{ route('customer-success.soporte.take', $conversation) }}";
   var replyUrl = "{{ route('customer-success.soporte.reply', $conversation) }}";
@@ -129,6 +134,7 @@
         if(d.ok){
           if(takeBanner) takeBanner.remove();
           if(inputBar){ inputBar.style.opacity=''; inputBar.style.pointerEvents=''; }
+          if(btnCloseChat){ btnCloseChat.style.display=''; }
           addMsg('system', 'Has tomado el chat. Ahora puedes responder.', '');
           isPending = false;
         }
@@ -138,7 +144,7 @@
 
   async function sendReply(){
     var text = inputEl.value.trim();
-    if(!text || isPending) return;
+    if(!text || isPending || isClosed) return;
     inputEl.value = '';
     btnSend.disabled = true;
     addMsg('agent', text, 'Tú (agente)');
@@ -171,10 +177,14 @@
         });
         var d = await r.json();
         if(d.ok){
+          isClosed = true;
           addMsg('system', 'Conversación marcada como resuelta.', '');
           if(inputBar){ inputBar.style.opacity='.4'; inputBar.style.pointerEvents='none'; }
-          btnCloseChat.textContent = '✓ Resuelta';
+          btnCloseChat.textContent = 'Resuelta';
           btnCloseChat.disabled = true;
+          setTimeout(function(){
+            window.location.href = "{{ route('customer-success.soporte') }}";
+          }, 600);
         }
       } catch(e){ btnCloseChat.disabled = false; }
     });
@@ -183,19 +193,23 @@
   var lastUserId = {{ $messages->where('role','user')->max('id') ?? 0 }};
   var agentPollUrl = "{{ route('customer-success.api.soporte.poll', $conversation) }}";
 
-  setInterval(async function(){
-    try {
-      var r = await fetch(agentPollUrl + '?last_id=' + lastUserId, {
-        headers: { 'Accept': 'application/json' }
-      });
-      var data = await r.json();
-      if(!data.ok || !data.messages.length) return;
-      data.messages.forEach(function(m){
-        if(m.id > lastUserId) lastUserId = m.id;
-        addMsg('user', m.content, '{{ $conversation->user?->name ?? "Usuario" }}');
-      });
-    } catch(e){}
-  }, 4000);
+  if (!isClosed) (function schedulePoll(delay){
+    setTimeout(async function(){
+      try {
+        var r = await fetch(agentPollUrl + '?last_id=' + lastUserId, {
+          headers: { 'Accept': 'application/json' }
+        });
+        var data = await r.json();
+        if(data.ok && data.messages.length){
+          data.messages.forEach(function(m){
+            if(m.id > lastUserId) lastUserId = m.id;
+            addMsg('user', m.content, '{{ $conversation->user?->name ?? "Usuario" }}');
+          });
+        }
+      } catch(e){}
+      if (!isClosed) schedulePoll(1000);
+    }, delay);
+  })(0);
 })();
 </script>
 @endpush
