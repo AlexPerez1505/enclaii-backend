@@ -753,8 +753,15 @@ class TauriFrontendController extends Controller
     {
         $user = $request->user() ?: User::query()->first();
 
+        $accountName = $user?->razon_social
+            ?: $user?->clinica_nombre
+            ?: $user?->clinica?->nombre
+            ?: $user?->name
+            ?: 'Doctor';
+
         return [
             'name' => $user?->name ?: 'Doctor',
+            'account_name' => $accountName,
             'role' => $user?->clinica_rol ?: 'Medico',
             'email' => $user?->email ?: '',
             'clinic' => $user?->clinica?->nombre ?: 'Clinica principal',
