@@ -5,11 +5,7 @@ use App\Http\Controllers\Api\CustomerSuccess\NotificationController as CsNotific
 use App\Http\Controllers\Api\CustomerSuccess\UserRoleController;
 use App\Http\Controllers\Api\TauriAuthController;
 use App\Http\Controllers\Api\TauriCaptureController;
-use App\Http\Controllers\AgendaController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\GaleriaController;
-use App\Http\Controllers\IaReporteController;
-use App\Http\Controllers\PacienteController;
+use App\Http\Controllers\TauriFrontendController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/tauri/pair/redeem', [TauriCaptureController::class, 'redeemCode']);
@@ -22,9 +18,9 @@ Route::middleware('auth:sanctum')->prefix('tauri')->group(function () {
     Route::post('/videos', [TauriCaptureController::class, 'storeVideo']);
     Route::post('/finish-session', [TauriCaptureController::class, 'finishSession']);
     Route::post('/logout', [TauriAuthController::class, 'logout']);
-    Route::get('/dashboard', [DashboardController::class, 'index']);
-    Route::get('/pacientes', [PacienteController::class, 'index']);
-    Route::get('/agenda', [AgendaController::class, 'index']);
-    Route::get('/reportes', [IaReporteController::class, 'index']);
-    Route::get('/galeria', [GaleriaController::class, 'index']);
+    Route::get('/dashboard', [TauriFrontendController::class, 'dashboard']);
+    Route::get('/pacientes', [TauriFrontendController::class, 'patients']);
+    Route::get('/agenda', [TauriFrontendController::class, 'agenda']);
+    Route::get('/reportes', [TauriFrontendController::class, 'reports']);
+    Route::get('/galeria', [TauriFrontendController::class, 'gallery']);
 });
