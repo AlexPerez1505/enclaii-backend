@@ -552,12 +552,22 @@ class TauriFrontendController extends Controller
 
     private function appointmentPayload(Cita $cita): array
     {
+        $fechaKey = $cita->fecha?->format('Y-m-d');
+        $hora = substr((string) $cita->hora, 0, 5);
+
         return [
             'id' => $cita->id,
-            'date' => $cita->fecha?->format('Y-m-d'),
-            'fecha' => $cita->fecha?->format('Y-m-d'),
-            'time' => substr((string) $cita->hora, 0, 5),
-            'hora' => substr((string) $cita->hora, 0, 5),
+            'date' => $fechaKey,
+            'fecha' => $fechaKey,
+            'fecha_key' => $fechaKey,
+            'time' => $hora,
+            'hora' => $hora,
+            'hora_label' => $hora,
+            'hora_h' => (int) substr($hora, 0, 2),
+            'duracion_minutos' => (int) ($cita->duracion_minutos ?? 60),
+            'cls' => 'ev-soon',
+            'sala' => $cita->sala ?: 'Sala 3',
+            'notas' => $cita->notas ?? '',
             'patient' => $cita->paciente?->nombre_completo ?: $cita->paciente_nombre ?: 'Paciente sin nombre',
             'paciente' => $cita->paciente?->nombre_completo ?: $cita->paciente_nombre ?: 'Paciente sin nombre',
             'type' => $cita->procedimiento ?: 'Procedimiento',
