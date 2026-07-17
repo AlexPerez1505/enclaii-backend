@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\EstudioArchivo;
 use App\Models\EstudioHallazgo;
 use App\Models\Hallazgo;
 use App\Models\Plantilla;
@@ -18,6 +19,61 @@ use Throwable;
 
 class IaReporteController extends Controller
 {
+    /**
+     * Dashboard principal de IA reportes.
+     */
+    public function index(): View
+    {
+        $ahora = now();
+        $inicioMes = $ahora->copy()->startOfMonth();
+        $inicioMesAnterior = $ahora->copy()->subMonth()->startOfMonth();
+        $finMesAnterior = $inicioMesAnterior->copy()->endOfMonth();
+
+        $reportesMes = Reporte::whereBetween('created_at', [$inicioMes, $ahora])->count();
+        $reportesMesAnterior = Reporte::whereBetween('created_at', [$inicioMesAnterior, $finMesAnterior])->count();
+
+        $estudiosMes = \App\Models\Estudio::whereBetween('created_at', [$inicioMes, $ahora])->count();
+        $estudiosMesAnterior = \App\Models\Estudio::whereBetween('created_at', [$inicioMesAnterior, $finMesAnterior])->count();
+
+        $evidenciasMes = EstudioArchivo::whereBetween('created_at', [$inicioMes, $ahora])->count();
+        $evidenciasMesAnterior = EstudioArchivo::whereBetween('created_at', [$inicioMesAnterior, $finMesAnterior])->count();
+
+        $trend = function (int $actual, int $anterior): int {
+            if ($anterior === 0) {
+                return $actual > 0 ? 100 : 0;
+            }
+
+            return (int) round((($actual - $anterior) / $anterior) * 100);
+        };
+
+        $kpis = [
+            'reportes' => [
+                'valor' => $reportesMes,
+                'trend' => $trend($reportesMes, $reportesMesAnterior),
+            ],
+            'sin_reporte' => [
+                'valor' => \App\Models\Estudio::whereDoesntHave('reportes')->count(),
+            ],
+            'evidencias' => [
+                'valor' => $evidenciasMes,
+                'trend' => $trend($evidenciasMes, $evidenciasMesAnterior),
+            ],
+            'estudios' => [
+                'valor' => $estudiosMes,
+                'trend' => $trend($estudiosMes, $estudiosMesAnterior),
+            ],
+        ];
+
+        $reportes = Reporte::with(['estudio.paciente'])
+            ->latest()
+            ->take(15)
+            ->get();
+
+        $hallazgos = $this->hallazgosData()['hallazgos'];
+
+        return view('ia-reportes.index', compact('kpis', 'reportes', 'hallazgos'));
+    }
+
     public function generar(Request $request, OpenAiReportService $service): JsonResponse
     {
         $validated = $request->validate([
