@@ -552,13 +552,16 @@ class TauriFrontendController extends Controller
 
     private function appointmentPayload(Cita $cita): array
     {
-        $fechaKey = $cita->fecha?->format('Y-m-d');
-        $hora = substr((string) $cita->hora, 0, 5);
+        $fechaIso = $cita->fecha?->format('Y-m-d');
+        $fechaKey = $cita->fecha?->format('Y-n-j');
+        $hora = $cita->hora
+            ? \Illuminate\Support\Carbon::parse($cita->hora)->format('H:i')
+            : '00:00';
 
         return [
             'id' => $cita->id,
-            'date' => $fechaKey,
-            'fecha' => $fechaKey,
+            'date' => $fechaIso,
+            'fecha' => $fechaIso,
             'fecha_key' => $fechaKey,
             'time' => $hora,
             'hora' => $hora,
