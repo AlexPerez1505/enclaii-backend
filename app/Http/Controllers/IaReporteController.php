@@ -194,6 +194,196 @@ class IaReporteController extends Controller
     }
 
     /**
+     * Plantillas persistidas en la BD, indexadas por clave (para el editor Tauri).
+     */
+    public function apiPlantillas(): JsonResponse
+    {
+        $plantillas = Plantilla::all()->mapWithKeys(fn ($p) => [
+            $p->clave => [
+                'id' => $p->id,
+                'clave' => $p->clave,
+                'titulo' => $p->titulo,
+                'subtitulo' => $p->subtitulo,
+                'configuracion' => $p->configuracion,
+                'columnas' => $p->columnas,
+                'num_imagenes' => $p->num_imagenes,
+            ],
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'plantillas' => $plantillas,
+        ]);
+    }
+
+    /**
+     * Estudios que aun no tienen reporte, para el selector del editor.
+     */
+    public function apiEstudiosSinReporte(Request $request): JsonResponse
+    {
+        $estudioId = $request->query('estudio_id');
+
+        $estudios = \App\Models\Estudio::with('paciente')
+            ->where(function ($q) use ($estudioId) {
+                $q->whereDoesntHave('reportes');
+                if ($estudioId) {
+                    $q->orWhere('id', $estudioId);
+                }
+            })
+            ->latest()
+            ->limit(100)
+            ->get()
+            ->map(fn ($e) => [
+                'id' => $e->id,
+                'paciente_id' => $e->paciente_id,
+                'label' => trim(($e->paciente?->nombre_completo ?? $e->paciente_nombre ?? 'Paciente')
+                    .' · '.($e->tipo ?? 'Estudio')
+                    .' · '.(optional($e->fecha)->format('d/m/Y') ?? '')),
+            ])
+            ->values();
+
+        return response()->json([
+            'ok' => true,
+            'estudios' => $estudios,
+        ]);
+    }
+
+    /**
+     * Datos para precargar el editor: paciente, estudio, imagenes y reporte existente (si aplica).
+     */
+    public function apiPreload(Request $request): JsonResponse
+    {
+        $pacienteId = $request->query('paciente_id');
+        $estudioId = $request->query('estudio_id');
+        $reporteId = $request->query('reporte_id');
+
+        $reporte = $reporteId
+            ? Reporte::with(['estudio.paciente', 'usuario', 'plantilla'])->find($reporteId)
+            : null;
+
+        $paciente = $pacienteId ? \App\Models\Paciente::find($pacienteId) : null;
+        $estudio = $estudioId ? \App\Models\Estudio::with('paciente')->find($estudioId) : null;
+
+        if ($reporte && ! $estudio) {
+            $estudio = $reporte->estudio;
+        }
+        if ($reporte && ! $paciente) {
+            $paciente = $reporte->estudio?->paciente;
+        }
+        if (! $paciente && $estudio) {
+            $paciente = $estudio->paciente;
+        }
+        if ($paciente && ! $estudio) {
+            $estudio = \App\Models\Estudio::where('paciente_id', $paciente->id)->latest()->first();
+        }
+
+        $estudioImagenes = collect();
+        if ($paciente) {
+            $estudioImagenes = EstudioArchivo::where('paciente_id', $paciente->id)
+                ->where('tipo', 'imagen')
+                ->when($estudio, fn ($q) => $q->where('estudio_id', $estudio->id))
+                ->orderByDesc('capturado_en')
+                ->orderByDesc('id')
+                ->get()
+                ->map(fn ($a) => [
+                    'id' => $a->id,
+                    'url' => media_url($a->path),
+                    'path' => $a->path,
+                    'titulo' => $a->nombre_original,
+                ])
+                ->values();
+        }
+
+        return response()->json([
+            'ok' => true,
+            'data' => [
+                'paciente' => $paciente?->nombre_completo ?? ($estudio?->paciente_nombre ?? ''),
+                'paciente_id' => $paciente?->id,
+                'edad' => $paciente?->edad ? $paciente->edad.' años' : '',
+                'sexo' => $paciente && $paciente->sexo ? ucfirst($paciente->sexo) : '',
+                'nacimiento' => optional($paciente?->fecha_nacimiento)->format('d/m/Y') ?? '',
+                'fecha_estudio' => optional($estudio?->fecha)->format('d/m/Y') ?? now()->format('d/m/Y'),
+                'procedimiento' => $estudio?->tipo ?? $paciente?->procedimiento ?? '',
+                'tipo' => $estudio?->tipo ?? $paciente?->procedimiento ?? '',
+                'medico' => $estudio?->medico ?? $paciente?->medico ?? '',
+                'estudio_id' => $estudio?->id,
+                'imagenes' => $estudioImagenes,
+                'reporte' => $reporte ? [
+                    'id' => $reporte->id,
+                    'estudio_id' => $reporte->estudio_id,
+                    'plantilla_id' => $reporte->plantilla_id,
+                    'contenido_html' => $reporte->contenido_html,
+                    'contenido_texto' => $reporte->contenido_texto,
+                    'contiene_hallazgos_criticos' => (bool) $reporte->contiene_hallazgos_criticos,
+                ] : null,
+            ],
+        ]);
+    }
+
+    /**
+     * Listado completo de reportes (para la vista "Todos los reportes" en Tauri).
+     */
+    public function apiReportesTodos(): JsonResponse
+    {
+        $reportes = Reporte::with(['estudio.paciente'])
+            ->latest()
+            ->get()
+            ->map(function (Reporte $r) {
+                $pacNombre = $r->estudio?->paciente?->nombre_completo ?? $r->estudio?->paciente_nombre ?? 'Sin paciente';
+                $iniciales = collect(explode(' ', $pacNombre))->filter()->take(2)
+                    ->map(fn ($x) => mb_strtoupper(mb_substr($x, 0, 1)))->implode('') ?: 'NA';
+
+                return [
+                    'id' => $r->id,
+                    'reporte_id' => $r->id,
+                    'estudio_id' => $r->estudio_id,
+                    'paciente' => $pacNombre,
+                    'initials' => $iniciales,
+                    'estudio' => $r->estudio?->tipo ?? 'Estudio',
+                    'fecha' => $r->created_at?->format('Y-m-d'),
+                    'hora' => $r->created_at?->format('H:i'),
+                    'critical' => (bool) $r->contiene_hallazgos_criticos,
+                    'estado_texto' => $r->contiene_hallazgos_criticos ? 'Critico' : 'Normal',
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'ok' => true,
+            'reportes' => $reportes,
+        ]);
+    }
+
+    /**
+     * Detalle completo de un reporte (para "Ver" dentro de la app Tauri).
+     */
+    public function apiVer(int $reporte): JsonResponse
+    {
+        $r = Reporte::with(['estudio.paciente', 'usuario', 'plantilla'])->findOrFail($reporte);
+        $paciente = $r->estudio?->paciente;
+
+        return response()->json([
+            'ok' => true,
+            'data' => [
+                'id' => $r->id,
+                'paciente' => $paciente?->nombre_completo ?? $r->estudio?->paciente_nombre ?? 'Sin paciente',
+                'edad' => $paciente?->edad ? $paciente->edad.' años' : '',
+                'sexo' => $paciente && $paciente->sexo ? ucfirst($paciente->sexo) : '',
+                'nacimiento' => optional($paciente?->fecha_nacimiento)->format('d/m/Y') ?? '',
+                'medico' => $r->usuario?->name ?? '',
+                'estudio' => $r->estudio?->tipo ?? 'Estudio',
+                'fecha_estudio' => optional($r->estudio?->fecha)->format('d/m/Y') ?? '',
+                'creado_en' => $r->created_at?->format('d/m/Y H:i'),
+                'contenido_html' => $r->contenido_html,
+                'contenido_texto' => $r->contenido_texto,
+                'critical' => (bool) $r->contiene_hallazgos_criticos,
+                'plantilla_id' => $r->plantilla_id,
+                'plantilla_clave' => $r->plantilla?->clave,
+            ],
+        ]);
+    }
+
+    /**
      * Mapea un tipo de estudio a la clave de plantilla del editor.
      */
     private function tipoEstudioToKey(?string $tipo): string

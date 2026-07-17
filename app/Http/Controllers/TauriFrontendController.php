@@ -223,6 +223,13 @@ class TauriFrontendController extends Controller
             ->map(fn (Reporte $report) => $this->reportPayload($report))
             ->values();
 
+        $hallazgos = app(\App\Http\Controllers\IaReporteController::class)->hallazgosData()['hallazgos'];
+        $findings = collect($hallazgos)->map(fn ($h) => [
+            'name' => $h['nombre'],
+            'percentage' => $h['porcentaje'],
+            'critical' => $h['es_critico'],
+        ])->values();
+
         return response()->json([
             'ok' => true,
             'reports' => $reports,
@@ -233,11 +240,7 @@ class TauriFrontendController extends Controller
                 'evidencias' => ['valor' => EstudioArchivo::where('tipo', 'imagen')->count()],
                 'estudios' => ['valor' => Estudio::count()],
             ],
-            'findings' => [
-                ['name' => 'Gastritis', 'percentage' => 42, 'critical' => false],
-                ['name' => 'Polipo', 'percentage' => 18, 'critical' => true],
-                ['name' => 'Reflujo', 'percentage' => 27, 'critical' => false],
-            ],
+            'findings' => $findings,
         ]);
     }
 
@@ -590,6 +593,8 @@ class TauriFrontendController extends Controller
 
         return [
             'id' => $report->id,
+            'reporte_id' => $report->id,
+            'estudio_id' => $study?->id,
             'paciente' => $name,
             'initials' => $this->initials($name),
             'estudio' => $study?->tipo ?: 'Estudio',
