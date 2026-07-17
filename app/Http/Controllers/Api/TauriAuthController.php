@@ -37,6 +37,7 @@ class TauriAuthController extends Controller
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
+                'account_name' => $user->nombre_completo ?: $user->name,
                 'email' => $user->email,
                 'clinica_id' => $user->clinica_id,
             ],

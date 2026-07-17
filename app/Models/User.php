@@ -330,4 +330,13 @@ class User extends Authenticatable
     {
         return array_merge(static::defaultSettings(), $this->settings ?? []);
     }
+
+    public function getNombreCompletoAttribute(): string
+    {
+        return trim(implode(' ', array_filter([
+            $this->name,
+            $this->apellido_paterno,
+            $this->apellido_materno,
+        ])));
+    }
 }
