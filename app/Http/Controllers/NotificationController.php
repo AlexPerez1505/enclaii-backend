@@ -29,7 +29,16 @@ class NotificationController extends Controller
             : collect();
 
         return response()->json($notifications->map(function (Notification $n) use ($anuncios) {
-            $merged = array_merge($n->data ?? [], [
+            $payload = $n->data;
+            if (is_string($payload)) {
+                $decoded = json_decode($payload, true);
+                $payload = is_array($decoded) ? $decoded : [];
+            }
+            if (!is_array($payload)) {
+                $payload = [];
+            }
+
+            $merged = array_merge($payload, [
                 'id'         => $n->id,
                 'tipo'       => $n->tipo,
                 'read'       => $n->read,
@@ -37,7 +46,7 @@ class NotificationController extends Controller
             ]);
 
             if ($n->tipo === 'anuncio' && !isset($merged['contenido'])) {
-                $merged['contenido'] = $anuncios[$n->data['anuncio_id'] ?? 0] ?? null;
+                $merged['contenido'] = $anuncios[$payload['anuncio_id'] ?? 0] ?? null;
             }
 
             return $merged;

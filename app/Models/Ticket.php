@@ -25,13 +25,14 @@ class Ticket extends Model
         'resolution_type',
         'resolution_summary',
         'client_message',
-        'evidence_path',
+        'evidence_paths',
         'resolved_by',
         'resolved_at',
     ];
 
     protected $casts = [
         'resolved_at' => 'datetime',
+        'evidence_paths' => 'array',
     ];
 
     public function user(): BelongsTo

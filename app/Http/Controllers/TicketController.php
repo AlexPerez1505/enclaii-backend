@@ -13,18 +13,40 @@ class TicketController extends Controller
 {
     public function tickets(): View
     {
-        $ticketQuery = Ticket::where('user_id', auth()->id())
-            ->orderByDesc('updated_at');
+        $search = trim(request('search'));
+        $category = request('category');
+        $status = request('status');
+        $query = Ticket::where('user_id', auth()->id());
 
-        $activeTickets = (clone $ticketQuery)
-            ->whereNotIn('status', ['respondido', 'resuelto', 'cerrado'])
-            ->get();
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('subject', 'like', '%' . $search . '%')
+                  ->orWhere('operation_folio', 'like', '%' . $search . '%');
+            });
+        }
 
-        $answeredTickets = (clone $ticketQuery)
-            ->whereIn('status', ['respondido', 'resuelto', 'cerrado'])
-            ->get();
+        if ($category) {
+            $query->where('category', $category);
+        }
 
-        return view('soporte.tickets', compact('activeTickets', 'answeredTickets'));
+        if ($status === 'resuelto') {
+            $query->whereIn('status', ['respondido', 'resuelto', 'cerrado']);
+        } elseif ($status) {
+            $query->where('status', $status);
+        }
+
+        $tickets = $query->orderByDesc('updated_at')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('soporte.tickets', compact('tickets', 'search', 'category', 'status'));
+    }
+
+    public function show(Ticket $ticket): View
+    {
+        abort_unless($ticket->user_id === auth()->id(), 403);
+
+        return view('soporte.ticket-show', compact('ticket'));
     }
 
     public function store(Request $request): JsonResponse
@@ -76,7 +98,7 @@ class TicketController extends Controller
                 'resolution_type' => null,
                 'resolution_summary' => null,
                 'client_message' => null,
-                'evidence_path' => null,
+                'evidence_paths' => null,
             ]);
 
             $this->notifyCustomerSuccess($latestResolved);

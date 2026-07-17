@@ -2561,6 +2561,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
       recordatorio_1h:    { title: 'Recordatorio: cita en 1h',  type: 'amber',  icon: 'bell' },
       recordatorio_24h:   { title: 'Recordatorio: cita mañana', type: 'blue',   icon: 'bell' },
       anuncio:            { title: e.titulo || 'Nuevo anuncio',  type: 'blue',   icon: 'megaphone' },
+      ticket_resuelto:    { title: e.subject || 'Ticket resuelto', type: 'green', icon: 'ticket' },
       ticket:             { title: e.titulo || 'Nuevo ticket',   type: 'amber',  icon: 'ticket' },
       notificacion:       { title: e.titulo || 'Notificación',   type: 'blue',   icon: 'bell' },
       anuncios_internos:  { title: e.titulo || 'Comunicado',     type: 'blue',   icon: 'radio' },
@@ -2583,6 +2584,10 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
     if (tipo === 'ticket') {
       const parts = [item.user_name, item.folio, item.subject].filter(Boolean);
       return parts.length ? parts.join(' — ') : 'Nuevo ticket recibido';
+    }
+    if (tipo === 'ticket_resuelto') {
+      const parts = [item.resolution_summary, item.resolver_name].filter(Boolean);
+      return parts.length ? parts.join(' — ') : 'Tu ticket ha sido resuelto';
     }
     if (tipo === 'reprogramada') {
       const paciente = item.paciente || 'Paciente';
@@ -2625,6 +2630,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
 
     item.addEventListener('click', () => {
       if (isPreview) openPreview(id);
+      else if (data && data.ticket_url) window.location.href = data.ticket_url + '#respuesta';
     });
 
     if (prepend) list.prepend(item);

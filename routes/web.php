@@ -860,6 +860,7 @@ Route::post('/ia/chat', [AiAssistantController::class, 'chat'])
 Route::middleware(['auth'])->group(function () {
     Route::get('/soporte', [SoporteController::class, 'index'])->name('soporte');
     Route::get('/soporte/tickets', [TicketController::class, 'tickets'])->name('soporte.tickets');
+    Route::get('/soporte/tickets/{ticket}', [TicketController::class, 'show'])->name('soporte.tickets.show');
     Route::post('/soporte/tickets', [TicketController::class, 'store'])->name('soporte.tickets.store');
     Route::get('/soporte/chat/history', [SoporteChatController::class, 'history'])->name('soporte.chat.history');
     Route::post('/soporte/chat', [SoporteChatController::class, 'chat'])->name('soporte.chat');

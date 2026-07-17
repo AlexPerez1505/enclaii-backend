@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\CustomerSuccess;
 
 use App\Http\Controllers\Controller;
+use App\Mail\TicketResuelto;
 use App\Models\Notification;
 use App\Models\Ticket;
 use App\Models\User;
@@ -10,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -127,24 +129,66 @@ class TicketController extends Controller
         $validated = $request->validate([
             'status' => ['required', 'string', 'in:resuelto,cerrado'],
             'resolution_type' => ['required', 'string', 'in:problema_corregido,configuracion_realizada,error_usuario,capacitacion,incidencia_externa,otro'],
+            'resolution_type_other' => ['nullable', 'string', 'max:255'],
             'resolution_summary' => ['required', 'string', 'max:2000'],
-            'evidence' => ['nullable', 'file', 'max:10240'],
+            'evidence' => ['nullable', 'array'],
+            'evidence.*' => ['file', 'max:10240'],
+            'remove_evidence' => ['nullable', 'string'],
+            'notify_web' => ['nullable', 'boolean'],
+            'notify_email' => ['nullable', 'boolean'],
         ]);
 
-        $evidencePath = $ticket->evidence_path;
+        $resolutionType = $validated['resolution_type'] === 'otro'
+            ? ($validated['resolution_type_other'] ?? 'otro')
+            : $validated['resolution_type'];
+
+        $evidencePaths = $ticket->evidence_paths ?? [];
+        $removedPaths = json_decode($validated['remove_evidence'] ?? '[]', true) ?? [];
+        if (is_array($removedPaths) && count($removedPaths)) {
+            $evidencePaths = array_values(array_filter($evidencePaths, function ($path) use ($removedPaths) {
+                return !in_array($path, $removedPaths);
+            }));
+        }
         if ($request->hasFile('evidence')) {
-            $evidencePath = $request->file('evidence')->store('tickets/evidence', 'public');
+            foreach ($request->file('evidence') as $file) {
+                $evidencePaths[] = $file->store('tickets/evidence', 'public');
+            }
         }
 
         $ticket->update([
             'status' => $validated['status'],
-            'resolution_type' => $validated['resolution_type'],
+            'resolution_type' => $resolutionType,
             'resolution_summary' => $validated['resolution_summary'],
-            'evidence_path' => $evidencePath,
+            'evidence_paths' => $evidencePaths,
             'resolved_by' => Auth::id(),
             'resolved_at' => now(),
         ]);
 
+        $notifyWeb = (bool) ($validated['notify_web'] ?? false);
+        $notifyEmail = (bool) ($validated['notify_email'] ?? false);
+
+        if ($notifyWeb && $ticket->user) {
+            Notification::create([
+                'user_id' => $ticket->user_id,
+                'tipo' => 'ticket_resuelto',
+                'data' => [
+                    'ticket_id' => $ticket->id,
+                    'folio' => $ticket->operation_folio,
+                    'subject' => $ticket->subject,
+                    'resolution_type' => $ticket->resolution_type,
+                    'resolution_summary' => $ticket->resolution_summary,
+                    'resolver_name' => trim(($ticket->resolver?->name ?? '') . ' ' . ($ticket->resolver?->apellido_paterno ?? '')),
+                    'ticket_url' => route('soporte.tickets.show', $ticket) . '?v=respuesta#respuesta',
+                ],
+                'read' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        if ($notifyEmail && $ticket->user?->email) {
+            Mail::to($ticket->user->email)->send(new TicketResuelto($ticket->fresh(['user', 'resolver'])));
+        }
 
         return response()->json([
             'ok' => true,
