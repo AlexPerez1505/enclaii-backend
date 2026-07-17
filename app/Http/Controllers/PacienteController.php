@@ -171,13 +171,13 @@ class PacienteController extends Controller
         if ($request->hasFile('foto')) {
             media_delete($paciente->foto);
 
-            $validated['foto'] = media_store(
-                $request->file('foto'),
-                'clinicas/'.$request->user()->clinica_id.'/pacientes'
+            $validated['foto'] = $request->file('foto')->store(
+                'clinicas/'.$request->user()->clinica_id.'/pacientes',
+                'public',
             );
         }
 
-        $paciente->update(collect($validated)->except('estudios_archivos')->toArray());
+        $paciente->update($validated);
         $this->activity->record(
             'patient_updated',
             'patients',
