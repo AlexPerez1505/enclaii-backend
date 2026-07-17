@@ -280,6 +280,37 @@ class TauriFrontendController extends Controller
         ]);
     }
 
+    public function dashboardLayout(Request $request): JsonResponse
+    {
+        $layout = $request->user()?->resolvedSettings()['dashboard_layout'] ?? [];
+
+        return response()->json([
+            'ok' => true,
+            'layout' => $layout,
+        ]);
+    }
+
+    public function updateDashboardLayout(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'layout' => ['required', 'array'],
+            'layout.*.widget_id' => ['required', 'string'],
+            'layout.*.w' => ['required', 'integer', 'min:1', 'max:13'],
+            'layout.*.h' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $user = $request->user();
+        $settings = $user?->settings ?? [];
+        $settings['dashboard_layout'] = $validated['layout'];
+        $user->settings = $settings;
+        $user->save();
+
+        return response()->json([
+            'ok' => true,
+            'layout' => $validated['layout'],
+        ]);
+    }
+
     public function settings(Request $request): JsonResponse
     {
         $settings = array_merge($this->defaultSettings(), $request->isMethod('post') ? $request->all() : []);

@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('tauri')->middleware('auth:sanctum')->controller(TauriFrontendController::class)->group(function () {
     Route::get('/dashboard', 'dashboard');
+    Route::get('/dashboard/layout', 'dashboardLayout');
+    Route::post('/dashboard/layout', 'updateDashboardLayout');
     Route::get('/estudio-activo', 'activeStudy');
     Route::post('/estudios/iniciar', 'startStudy');
 

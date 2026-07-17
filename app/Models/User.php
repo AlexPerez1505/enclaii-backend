@@ -320,6 +320,7 @@ class User extends Authenticatable
             'capture_auto_capture' => true,
             'capture_auto_save' => true,
             'capture_auto_interval' => 30,
+            'dashboard_layout' => [],
         ];
     }
 
