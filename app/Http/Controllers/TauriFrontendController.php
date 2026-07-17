@@ -751,7 +751,7 @@ class TauriFrontendController extends Controller
 
     private function userPayload(Request $request): array
     {
-        $user = $request->user() ?: User::query()->first();
+        $user = $request->user();
 
         $accountName = $user?->nombre_completo ?: $user?->name ?: 'Doctor';
         $role = $user?->clinica_rol === 'propietario'

@@ -3,7 +3,7 @@
 use App\Http\Controllers\TauriFrontendController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('tauri')->controller(TauriFrontendController::class)->group(function () {
+Route::prefix('tauri')->middleware('auth:sanctum')->controller(TauriFrontendController::class)->group(function () {
     Route::get('/dashboard', 'dashboard');
     Route::get('/estudio-activo', 'activeStudy');
     Route::post('/estudios/iniciar', 'startStudy');
