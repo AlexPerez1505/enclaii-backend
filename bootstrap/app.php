@@ -31,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'clinic.owner' => \App\Http\Middleware\EnsureClinicaOwner::class,
             'critical.password' => \App\Http\Middleware\RequireCriticalPassword::class,
             'customer.success' => \App\Http\Middleware\EnsureCustomerSuccess::class,
+            'session.limit' => \App\Http\Middleware\EnforceSessionLimit::class,
         ]);
 
         // Usuarios ya autenticados que visitan /login o /registro:

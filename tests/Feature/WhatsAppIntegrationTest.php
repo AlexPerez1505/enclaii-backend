@@ -60,6 +60,15 @@ class WhatsAppIntegrationTest extends TestCase
             'nombre_completo' => 'Paciente WhatsApp',
             'telefono' => '+52 55 1234 5678',
         ]);
+        WhatsAppMessage::create([
+            'paciente_id' => $patient->id,
+            'wa_id' => '525512345678',
+            'direction' => 'inbound',
+            'type' => 'text',
+            'body' => 'Hola',
+            'status' => 'received',
+            'sent_at' => now()->subMinutes(5),
+        ]);
 
         $this->actingAs($user)
             ->postJson(route('mensajes.whatsapp.send'), [
@@ -84,6 +93,99 @@ class WhatsAppIntegrationTest extends TestCase
                 && $request['to'] === '525512345678'
                 && $request['text']['body'] === 'Mensaje de prueba';
         });
+    }
+
+    public function test_text_messages_require_an_open_whatsapp_customer_service_window(): void
+    {
+        config([
+            'services.whatsapp.access_token' => 'test-token',
+            'services.whatsapp.phone_number_id' => '123456789',
+            'services.whatsapp.api_version' => 'v21.0',
+        ]);
+
+        Http::fake();
+
+        $user = User::create([
+            'name' => 'Usuario sin ventana',
+            'email' => 'whatsapp-window@example.com',
+            'password' => 'password',
+            'subscription_status' => 'active',
+        ]);
+        $patient = Paciente::create([
+            'folio' => 'P-WA-004',
+            'nombre_completo' => 'Paciente Sin Ventana',
+            'telefono' => '+52 55 9999 8888',
+        ]);
+
+        $this->actingAs($user)
+            ->postJson(route('mensajes.whatsapp.send'), [
+                'paciente_id' => $patient->id,
+                'message' => 'Hola',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'WhatsApp no permite iniciar una conversacion con texto libre. El paciente debe escribir primero o debes enviar una plantilla aprobada de WhatsApp.');
+
+        $this->assertSame(0, WhatsAppMessage::where('direction', 'outbound')->count());
+        Http::assertNothingSent();
+    }
+
+    public function test_meta_send_errors_are_saved_and_returned_with_details(): void
+    {
+        config([
+            'services.whatsapp.access_token' => 'test-token',
+            'services.whatsapp.phone_number_id' => '123456789',
+            'services.whatsapp.api_version' => 'v21.0',
+        ]);
+
+        Http::fake([
+            'graph.facebook.com/*' => Http::response([
+                'error' => [
+                    'message' => 'Message failed to send because more than 24 hours have passed.',
+                    'code' => 131047,
+                    'error_data' => [
+                        'details' => 'Use an approved template message to re-engage the user.',
+                    ],
+                ],
+            ], 400),
+        ]);
+
+        $user = User::create([
+            'name' => 'Usuario Error Meta',
+            'email' => 'whatsapp-meta-error@example.com',
+            'password' => 'password',
+            'subscription_status' => 'active',
+        ]);
+        $patient = Paciente::create([
+            'folio' => 'P-WA-005',
+            'nombre_completo' => 'Paciente Error Meta',
+            'telefono' => '+52 55 2222 9999',
+        ]);
+        WhatsAppMessage::create([
+            'paciente_id' => $patient->id,
+            'wa_id' => '525522229999',
+            'direction' => 'inbound',
+            'type' => 'text',
+            'body' => 'Hola',
+            'status' => 'received',
+            'sent_at' => now()->subMinutes(5),
+        ]);
+
+        $response = $this->actingAs($user)
+            ->postJson(route('mensajes.whatsapp.send'), [
+                'paciente_id' => $patient->id,
+                'message' => 'Seguimos en contacto',
+            ])
+            ->assertStatus(502)
+            ->json('message');
+
+        $this->assertStringContainsString('Message failed to send', $response);
+        $this->assertStringContainsString('Codigo Meta: 131047', $response);
+        $this->assertDatabaseHas('whatsapp_messages', [
+            'paciente_id' => $patient->id,
+            'direction' => 'outbound',
+            'status' => 'failed',
+            'body' => 'Seguimos en contacto',
+        ]);
     }
 
     public function test_webhook_verification_returns_the_meta_challenge(): void

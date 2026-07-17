@@ -9,6 +9,7 @@ use App\Models\CaptureSession;
 use App\Models\Estudio;
 use App\Models\EstudioArchivo;
 use App\Models\Paciente;
+use App\Services\MediaPathService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
@@ -252,7 +253,7 @@ class TauriCaptureController extends Controller
 
         $path = media_store_as(
             $request->file('frame'),
-            'endoscopy/live/' . $session->id,
+            $this->getSessionMediaFolder($session, 'thumbnails'),
             'latest.jpg'
         );
 
@@ -549,17 +550,64 @@ class TauriCaptureController extends Controller
 
     private function getSessionMediaFolder(CaptureSession $session, string $type): string
     {
+        $study = $this->ensureStudyForSession($session);
+        $studyId = $study?->id ?? $session->estudio_id ?? $session->study_id ?? 'session-'.$session->id;
+        $patientId = $study?->paciente_id ?? $session->paciente_id ?? 'unassigned';
+        $clinicId = $study?->clinica_id ?? $session->tenant_id;
+        $mediaPaths = app(MediaPathService::class);
+
+        return match ($type) {
+            'images' => $mediaPaths->studyImages($studyId, $patientId, $clinicId),
+            'videos' => $mediaPaths->studyVideos($studyId, $patientId, $clinicId),
+            'thumbnails' => $mediaPaths->studyThumbnails($studyId, $patientId, $clinicId),
+            'reports' => $mediaPaths->studyReports($studyId, $patientId, $clinicId),
+            default => $mediaPaths->study($studyId, $patientId, $clinicId).'/'.$type,
+        };
+    }
+
+    private function ensureStudyForSession(CaptureSession $session): ?Estudio
+    {
         $studyId = $session->estudio_id ?? $session->study_id ?? null;
 
         if ($studyId) {
-            return 'endoscopy/studies/' . $studyId . '/' . $type;
+            return Estudio::withoutGlobalScopes()->find($studyId);
         }
 
-        if ($session->paciente_id) {
-            return 'endoscopy/patients/' . $session->paciente_id . '/sessions/' . $session->id . '/' . $type;
+        if (! $session->paciente_id) {
+            return null;
         }
 
-        return 'endoscopy/sessions/' . $session->id . '/' . $type;
+        $patient = Paciente::withoutGlobalScopes()->find($session->paciente_id);
+
+        if (! $patient) {
+            return null;
+        }
+
+        $study = Estudio::create([
+            'clinica_id' => $patient->clinica_id,
+            'paciente_id' => $patient->id,
+            'paciente_nombre' => $patient->nombre_completo,
+            'folio' => $this->generarFolioEstudio(),
+            'tipo' => 'Endoscopia',
+            'fecha' => now()->toDateString(),
+            'hora_inicio' => now()->format('H:i:s'),
+            'estado' => 'en_proceso',
+        ]);
+
+        $updates = [];
+        if (Schema::hasColumn('capture_sessions', 'estudio_id')) {
+            $updates['estudio_id'] = $study->id;
+        }
+        if (Schema::hasColumn('capture_sessions', 'study_id')) {
+            $updates['study_id'] = $study->id;
+        }
+
+        if ($updates !== []) {
+            $session->forceFill($updates)->save();
+            $session->refresh();
+        }
+
+        return $study;
     }
 
     private function createStudyArchive(

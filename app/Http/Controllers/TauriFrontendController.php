@@ -11,6 +11,7 @@ use App\Models\PatientPreregistration;
 use App\Models\PatientRegistrationLink;
 use App\Models\Reporte;
 use App\Models\User;
+use App\Services\MediaPathService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -452,9 +453,13 @@ class TauriFrontendController extends Controller
         $extension = pathinfo($validated['filename'], PATHINFO_EXTENSION) ?: ($type === 'video' ? 'webm' : 'jpg');
         $safeName = Str::slug(pathinfo($validated['filename'], PATHINFO_FILENAME)) ?: 'capture';
         $clinicId = $study?->clinica_id ?? $patient?->clinica_id;
-        $folder = $study
-            ? "clinicas/{$clinicId}/estudios/{$study->id}/archivos"
-            : "clinicas/{$clinicId}/pacientes/{$patient->id}/capturas";
+        $mediaPaths = app(MediaPathService::class);
+        $folder = match (true) {
+            $type === 'video' && (bool) $study => $mediaPaths->studyVideos($study),
+            $type === 'video' => $mediaPaths->studyVideos('unassigned', $patient, $clinicId),
+            (bool) $study => $mediaPaths->studyImages($study),
+            default => $mediaPaths->studyImages('unassigned', $patient, $clinicId),
+        };
         $path = $folder.'/'.$safeName.'-'.Str::random(8).'.'.$extension;
 
         Storage::disk(media_disk())->put($path, $binary);

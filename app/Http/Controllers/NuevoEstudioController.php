@@ -8,6 +8,7 @@ use App\Models\Estudio;
 use App\Models\EstudioArchivo;
 use App\Models\Paciente;
 use App\Services\ActivityLogger;
+use App\Services\MediaPathService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -16,6 +17,7 @@ class NuevoEstudioController extends Controller
 {
     public function __construct(
         private readonly ActivityLogger $activity,
+        private readonly MediaPathService $mediaPaths,
     ) {}
 
     public function index()
@@ -324,7 +326,7 @@ class NuevoEstudioController extends Controller
         if ($request->hasFile('video')) {
             $videoPath = media_store(
                 $request->file('video'),
-                "clinicas/{$request->user()->clinica_id}/estudios/{$estudio->id}/videos"
+                $this->mediaPaths->studyVideos($estudio)
             );
 
             $this->guardarArchivoEstudio(
@@ -449,7 +451,6 @@ class NuevoEstudioController extends Controller
 
     private function guardarArchivoEstudio(Estudio $estudio, $file, ?string $categoria = null, ?string $descripcion = null): EstudioArchivo
     {
-        $path = media_store($file, "clinicas/{$estudio->clinica_id}/estudios/{$estudio->id}/archivos");
         $mime = $file->getMimeType();
 
         $tipo = match (true) {
@@ -458,6 +459,13 @@ class NuevoEstudioController extends Controller
             $mime === 'application/pdf' => 'documento',
             default => 'otro',
         };
+        $folder = match ($tipo) {
+            'imagen' => $this->mediaPaths->studyImages($estudio),
+            'video' => $this->mediaPaths->studyVideos($estudio),
+            'documento' => $this->mediaPaths->studyReports($estudio),
+            default => $this->mediaPaths->studyReports($estudio),
+        };
+        $path = media_store($file, $folder);
 
         return EstudioArchivo::create([
             'estudio_id' => $estudio->id,

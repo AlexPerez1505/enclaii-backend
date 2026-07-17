@@ -6,6 +6,7 @@ use App\Models\Paciente;
 use App\Models\PatientPreregistration;
 use App\Models\PatientRegistrationLink;
 use App\Services\ActivityLogger;
+use App\Services\MediaPathService;
 use App\Services\PatientFolioGenerator;
 use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\Encoding\Encoding;
@@ -17,6 +18,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -25,6 +27,7 @@ class QrRegistrationController extends Controller
     public function __construct(
         private readonly ActivityLogger $activity,
         private readonly PatientFolioGenerator $folioGenerator,
+        private readonly MediaPathService $mediaPaths,
     ) {}
 
     public function index(Request $request): View
@@ -210,14 +213,20 @@ class QrRegistrationController extends Controller
                 'enfermedades' => $record->enfermedades,
                 'medicamentos_actuales' => $record->medicamentos_actuales,
                 'antecedentes_medicos' => $record->antecedentes_medicos,
-                'foto' => $record->foto,
+                'foto' => null,
             ]);
+            $photoPath = $this->movePatientPhotoToProfile($record->foto, $patient);
+
+            if ($photoPath) {
+                $patient->update(['foto' => $photoPath]);
+            }
 
             $record->update([
                 'status' => 'accepted',
                 'patient_id' => $patient->id,
                 'reviewed_by' => $request->user()->id,
                 'reviewed_at' => now(),
+                'foto' => $photoPath,
             ]);
 
             $this->activity->record(
@@ -231,6 +240,26 @@ class QrRegistrationController extends Controller
         });
 
         return back()->with('success', 'Pre-registro aceptado y expediente creado.');
+    }
+
+    private function movePatientPhotoToProfile(?string $currentPath, Paciente $patient): ?string
+    {
+        if (! $currentPath) {
+            return null;
+        }
+
+        $extension = pathinfo($currentPath, PATHINFO_EXTENSION) ?: 'jpg';
+        $targetPath = $this->mediaPaths->patientProfile($patient).'/profile-'.Str::random(12).'.'.$extension;
+        $disk = Storage::disk(media_disk());
+
+        if (! $disk->exists($currentPath)) {
+            return $currentPath;
+        }
+
+        $disk->copy($currentPath, $targetPath);
+        $disk->delete($currentPath);
+
+        return $targetPath;
     }
 
     public function reject(

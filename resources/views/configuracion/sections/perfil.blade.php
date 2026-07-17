@@ -510,6 +510,44 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
   }
   function closeModal() { stopCamera(); modal.classList.remove('active'); }
 
+  function setHeaderAvatarPhoto(src) {
+    const headerAva = document.getElementById('headerAvatar');
+    if (!headerAva || !src) return;
+
+    headerAva.textContent = '';
+    headerAva.style.backgroundImage = '';
+    headerAva.style.fontSize = '0';
+    headerAva.classList.add('has-photo');
+
+    let img = headerAva.querySelector('img');
+    if (!img) {
+      img = document.createElement('img');
+      img.id = 'headerAvatarImg';
+      img.alt = 'Foto de perfil';
+      img.loading = 'eager';
+      img.onerror = function(){
+        headerAva.innerHTML = '';
+        headerAva.classList.remove('has-photo');
+        headerAva.style.fontSize = '';
+        headerAva.textContent = headerAva.dataset.initials || '';
+      };
+      headerAva.appendChild(img);
+    }
+
+    img.src = src;
+  }
+
+  function resetHeaderAvatarPhoto() {
+    const headerAva = document.getElementById('headerAvatar');
+    if (!headerAva) return;
+
+    headerAva.innerHTML = '';
+    headerAva.style.backgroundImage = '';
+    headerAva.style.fontSize = '';
+    headerAva.classList.remove('has-photo');
+    headerAva.textContent = headerAva.dataset.initials || '';
+  }
+
   editBtn.addEventListener('click', openModal);
   btnCancelar.addEventListener('click', closeModal);
   modal.addEventListener('click', e=>{ if(e.target===modal) closeModal(); });
@@ -549,14 +587,7 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
 
     ava.src = photoData; showImg();
 
-    const headerAva = document.getElementById('headerAvatar');
-    if (headerAva) {
-      headerAva.style.backgroundImage = 'url(' + photoData + ')';
-      headerAva.style.backgroundSize = 'cover';
-      headerAva.style.backgroundPosition = 'center';
-      headerAva.style.fontSize = '0';
-      headerAva.textContent = '';
-    }
+    setHeaderAvatarPhoto(photoData);
 
     closeModal();
 
@@ -572,8 +603,8 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
           headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
         });
         const data = await res.json();
-        if (data.ok && data.url && headerAva) {
-          headerAva.style.backgroundImage = 'url(' + data.url + '?' + Date.now() + ')';
+        if (data.ok && data.url) {
+          setHeaderAvatarPhoto(data.url + '?' + Date.now());
         }
       } catch(e) { console.error('Error subiendo foto:', e); }
     }
@@ -583,12 +614,7 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
     photoData = null;
     showEmpty();
 
-    const headerAva = document.getElementById('headerAvatar');
-    if (headerAva) {
-      headerAva.style.backgroundImage = '';
-      headerAva.style.fontSize = '';
-      headerAva.textContent = headerAva.dataset.initials || '';
-    }
+    resetHeaderAvatarPhoto();
 
     try {
       await fetch('{{ route("configuracion.foto.delete") }}', {
