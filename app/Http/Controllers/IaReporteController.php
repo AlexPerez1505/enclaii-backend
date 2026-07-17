@@ -10,6 +10,7 @@ use App\Services\OpenAiReportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -391,27 +392,44 @@ class IaReporteController extends Controller
         return collect($imagenes)
             ->map(function (string $rel) use ($mimes) {
                 // Evita rutas peligrosas (traversal) y normaliza separadores.
-                $rel = str_replace('\\', '/', $rel);
+                $rel = strtok(str_replace('\\', '/', $rel), '?') ?: '';
                 if (str_contains($rel, '..')) {
                     return null;
                 }
 
-                $path = public_path(ltrim($rel, '/'));
-                if (! is_file($path)) {
-                    return null;
-                }
+                $rel = ltrim($rel, '/');
+                $storageRel = Str::startsWith($rel, 'storage/')
+                    ? Str::after($rel, 'storage/')
+                    : $rel;
 
-                $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+                $path = public_path($rel);
+                $ext = strtolower(pathinfo($storageRel, PATHINFO_EXTENSION));
                 if (! isset($mimes[$ext])) {
                     return null;
                 }
 
                 // Límite de seguridad: ~8 MB por imagen.
-                if (filesize($path) > 8 * 1024 * 1024) {
-                    return null;
+                $contents = null;
+
+                if (Storage::disk(media_disk())->exists($storageRel)) {
+                    if (Storage::disk(media_disk())->size($storageRel) > 8 * 1024 * 1024) {
+                        return null;
+                    }
+
+                    $contents = Storage::disk(media_disk())->get($storageRel);
                 }
 
-                $contents = @file_get_contents($path);
+                if ($contents === null) {
+                    if (! is_file($path)) {
+                        return null;
+                    }
+
+                    if (filesize($path) > 8 * 1024 * 1024) {
+                        return null;
+                    }
+
+                    $contents = @file_get_contents($path);
+                }
                 if ($contents === false) {
                     return null;
                 }
