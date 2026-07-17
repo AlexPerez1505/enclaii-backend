@@ -116,20 +116,16 @@ class TauriCaptureController extends Controller
 
     public function liveFrame(Request $request)
     {
-        $device = $request->user();
+        $actor = $request->user();
 
         $request->validate([
             'session_id' => ['required', 'integer', 'exists:capture_sessions,id'],
             'frame' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
         ]);
 
-        $session = CaptureSession::query()
-            ->where('id', $request->session_id)
-            ->where('capture_device_id', $device->id)
-            ->where('status', 'active')
-            ->firstOrFail();
+        $session = $this->activeSessionFor($actor, (int) $request->session_id);
 
-        $this->ensureSameTenant($device, $session);
+        $this->ensureSameTenant($actor, $session);
 
         $path = media_store_as(
             $request->file('frame'),
@@ -142,10 +138,7 @@ class TauriCaptureController extends Controller
             'live_frame_at' => now(),
         ]);
 
-        $device->update([
-            'last_seen_at' => now(),
-            'last_ip' => $request->ip(),
-        ]);
+        $this->touchCaptureActor($actor, $request);
 
         return response()->json([
             'ok' => true,
@@ -160,7 +153,7 @@ class TauriCaptureController extends Controller
 
     public function storeImage(Request $request)
     {
-        $device = $request->user();
+        $actor = $request->user();
         $hasBase64 = $request->filled('data_base64');
 
         $request->validate([
@@ -172,13 +165,9 @@ class TauriCaptureController extends Controller
             'captured_at' => ['nullable', 'date'],
         ]);
 
-        $session = CaptureSession::query()
-            ->where('id', $request->session_id)
-            ->where('capture_device_id', $device->id)
-            ->where('status', 'active')
-            ->firstOrFail();
+        $session = $this->activeSessionFor($actor, (int) $request->session_id);
 
-        $this->ensureSameTenant($device, $session);
+        $this->ensureSameTenant($actor, $session);
 
         $folder = $this->getSessionMediaFolder($session, 'images');
 
@@ -234,10 +223,7 @@ class TauriCaptureController extends Controller
          | ]);
          */
 
-        $device->update([
-            'last_seen_at' => now(),
-            'last_ip' => $request->ip(),
-        ]);
+        $this->touchCaptureActor($actor, $request);
 
         return response()->json([
             'ok' => true,
@@ -256,7 +242,7 @@ class TauriCaptureController extends Controller
 
     public function storeVideo(Request $request)
     {
-        $device = $request->user();
+        $actor = $request->user();
         $hasBase64 = $request->filled('data_base64');
 
         $request->validate([
@@ -268,13 +254,9 @@ class TauriCaptureController extends Controller
             'ended_at' => ['nullable', 'date'],
         ]);
 
-        $session = CaptureSession::query()
-            ->where('id', $request->session_id)
-            ->where('capture_device_id', $device->id)
-            ->where('status', 'active')
-            ->firstOrFail();
+        $session = $this->activeSessionFor($actor, (int) $request->session_id);
 
-        $this->ensureSameTenant($device, $session);
+        $this->ensureSameTenant($actor, $session);
 
         $folder = $this->getSessionMediaFolder($session, 'videos');
 
@@ -338,10 +320,7 @@ class TauriCaptureController extends Controller
          | ]);
          */
 
-        $device->update([
-            'last_seen_at' => now(),
-            'last_ip' => $request->ip(),
-        ]);
+        $this->touchCaptureActor($actor, $request);
 
         return response()->json([
             'ok' => true,
@@ -360,29 +339,22 @@ class TauriCaptureController extends Controller
 
     public function finishSession(Request $request)
     {
-        $device = $request->user();
+        $actor = $request->user();
 
         $request->validate([
             'session_id' => ['required', 'integer', 'exists:capture_sessions,id'],
         ]);
 
-        $session = CaptureSession::query()
-            ->where('id', $request->session_id)
-            ->where('capture_device_id', $device->id)
-            ->where('status', 'active')
-            ->firstOrFail();
+        $session = $this->activeSessionFor($actor, (int) $request->session_id);
 
-        $this->ensureSameTenant($device, $session);
+        $this->ensureSameTenant($actor, $session);
 
         $session->update([
             'status' => 'finished',
             'ended_at' => now(),
         ]);
 
-        $device->update([
-            'last_seen_at' => now(),
-            'last_ip' => $request->ip(),
-        ]);
+        $this->touchCaptureActor($actor, $request);
 
         return response()->json([
             'ok' => true,
@@ -392,7 +364,7 @@ class TauriCaptureController extends Controller
 
     public function startSession(Request $request)
     {
-        $device = $request->user();
+        $actor = $request->user();
 
         $request->validate([
             'patient_id' => ['nullable', 'integer', Rule::exists('pacientes', 'id')],
@@ -401,9 +373,9 @@ class TauriCaptureController extends Controller
             'study_id' => ['nullable', 'integer', Rule::exists('estudios', 'id')],
         ]);
 
-        $userId = $device->user_id ?? $device->id;
-        $tenantId = $device->tenant_id ?? null;
-        $captureDeviceId = $device->id;
+        $userId = $actor->user_id ?? $actor->id;
+        $tenantId = $actor->tenant_id ?? $actor->clinica_id ?? null;
+        $captureDeviceId = $actor->id;
 
         $patientId = $request->input('patient_id') ?? $request->input('paciente_id') ?? null;
         $studyId = $request->input('study_id') ?? $request->input('estudio_id') ?? null;
@@ -443,7 +415,24 @@ class TauriCaptureController extends Controller
         ]);
     }
 
-    private function ensureSameTenant(CaptureDevice $device, CaptureSession $session): void
+    private function activeSessionFor($actor, int $sessionId): CaptureSession
+    {
+        return CaptureSession::query()
+            ->where('id', $sessionId)
+            ->where('status', 'active')
+            ->where(function ($query) use ($actor) {
+                if ($actor instanceof CaptureDevice) {
+                    $query->where('capture_device_id', $actor->id);
+                    return;
+                }
+
+                $query->where('user_id', $actor->id)
+                    ->orWhere('capture_device_id', $actor->id);
+            })
+            ->firstOrFail();
+    }
+
+    private function ensureSameTenant($actor, CaptureSession $session): void
     {
         /*
          |--------------------------------------------------------------------------
@@ -454,7 +443,7 @@ class TauriCaptureController extends Controller
          | de otro tenant no pueda escribir en una sesión ajena.
          */
 
-        $deviceTenant = $device->tenant_id;
+        $deviceTenant = $actor->tenant_id ?? $actor->clinica_id ?? null;
         $sessionTenant = $session->tenant_id;
 
         if (is_null($deviceTenant) && is_null($sessionTenant)) {
@@ -464,6 +453,18 @@ class TauriCaptureController extends Controller
         if ((string) $deviceTenant !== (string) $sessionTenant) {
             abort(403, 'El dispositivo no pertenece a este tenant.');
         }
+    }
+
+    private function touchCaptureActor($actor, Request $request): void
+    {
+        if (! $actor instanceof CaptureDevice) {
+            return;
+        }
+
+        $actor->update([
+            'last_seen_at' => now(),
+            'last_ip' => $request->ip(),
+        ]);
     }
 
     private function getSessionMediaFolder(CaptureSession $session, string $type): string
