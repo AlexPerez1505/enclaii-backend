@@ -130,6 +130,10 @@ if (! function_exists('media_url')) {
             }
         }
 
+        if ($disk === 'public') {
+            return url('storage/'.$path);
+        }
+
         return $storage->url($path);
     }
 }

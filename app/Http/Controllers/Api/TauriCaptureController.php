@@ -390,6 +390,59 @@ class TauriCaptureController extends Controller
         ]);
     }
 
+    public function startSession(Request $request)
+    {
+        $device = $request->user();
+
+        $request->validate([
+            'patient_id' => ['nullable', 'integer', Rule::exists('pacientes', 'id')],
+            'paciente_id' => ['nullable', 'integer', Rule::exists('pacientes', 'id')],
+            'estudio_id' => ['nullable', 'integer', Rule::exists('estudios', 'id')],
+            'study_id' => ['nullable', 'integer', Rule::exists('estudios', 'id')],
+        ]);
+
+        $userId = $device->user_id ?? $device->id;
+        $tenantId = $device->tenant_id ?? null;
+        $captureDeviceId = $device->id;
+
+        $patientId = $request->input('patient_id') ?? $request->input('paciente_id') ?? null;
+        $studyId = $request->input('study_id') ?? $request->input('estudio_id') ?? null;
+
+        $payload = [
+            'tenant_id' => $tenantId,
+            'user_id' => $userId,
+            'capture_device_id' => $captureDeviceId,
+            'status' => 'active',
+            'started_at' => now(),
+        ];
+
+        if (Schema::hasColumn('capture_sessions', 'paciente_id')) {
+            $payload['paciente_id'] = $patientId;
+        }
+
+        if (Schema::hasColumn('capture_sessions', 'estudio_id')) {
+            $payload['estudio_id'] = $studyId;
+        }
+
+        if (Schema::hasColumn('capture_sessions', 'study_id')) {
+            $payload['study_id'] = $studyId;
+        }
+
+        $session = CaptureSession::create($payload);
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Sesion de captura iniciada.',
+            'data' => [
+                'session_id' => $session->id,
+                'device_id' => $captureDeviceId,
+                'paciente_id' => $session->paciente_id,
+                'estudio_id' => $session->estudio_id,
+                'study_id' => $session->study_id,
+            ],
+        ]);
+    }
+
     private function ensureSameTenant(CaptureDevice $device, CaptureSession $session): void
     {
         /*
