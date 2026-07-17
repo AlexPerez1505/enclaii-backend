@@ -10,9 +10,11 @@ use App\Models\Estudio;
 use App\Models\EstudioArchivo;
 use App\Models\Paciente;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class TauriCaptureController extends Controller
 {
@@ -159,10 +161,14 @@ class TauriCaptureController extends Controller
     public function storeImage(Request $request)
     {
         $device = $request->user();
+        $hasBase64 = $request->filled('data_base64');
 
         $request->validate([
             'session_id' => ['required', 'integer', 'exists:capture_sessions,id'],
-            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:20480'],
+            'image' => [Rule::requiredIf(fn () => ! $hasBase64), 'image', 'mimes:jpg,jpeg,png,webp', 'max:20480'],
+            'filename' => [Rule::requiredIf(fn () => $hasBase64), 'string', 'max:180'],
+            'mime_type' => ['nullable', 'string', 'max:120'],
+            'data_base64' => [Rule::requiredIf(fn () => ! $request->hasFile('image')), 'string'],
             'captured_at' => ['nullable', 'date'],
         ]);
 
@@ -176,7 +182,31 @@ class TauriCaptureController extends Controller
 
         $folder = $this->getSessionMediaFolder($session, 'images');
 
-        $file = $request->file('image');
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+        } else {
+            $binary = base64_decode($request->input('data_base64'), true);
+            if ($binary === false) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'La captura no llego en base64 valido.',
+                ], 422);
+            }
+
+            $originalName = $request->input('filename', 'capture.jpg');
+            $extension = pathinfo($originalName, PATHINFO_EXTENSION) ?: 'jpg';
+            $safeName = Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) ?: 'capture';
+            $tmpPath = sys_get_temp_dir() . '/' . $safeName . '-' . Str::random(8) . '.' . $extension;
+            file_put_contents($tmpPath, $binary);
+
+            $file = new UploadedFile(
+                $tmpPath,
+                $originalName,
+                $request->input('mime_type') ?: 'image/jpeg',
+                null,
+                true
+            );
+        }
         $path = media_store($file, $folder);
         $archivo = $this->createStudyArchive(
             session: $session,
@@ -227,10 +257,14 @@ class TauriCaptureController extends Controller
     public function storeVideo(Request $request)
     {
         $device = $request->user();
+        $hasBase64 = $request->filled('data_base64');
 
         $request->validate([
             'session_id' => ['required', 'integer', 'exists:capture_sessions,id'],
-            'video' => ['required', 'file', 'mimes:webm,mp4,mov,avi,mkv', 'max:1048576'],
+            'video' => [Rule::requiredIf(fn () => ! $hasBase64), 'file', 'mimes:webm,mp4,mov,avi,mkv', 'max:1048576'],
+            'filename' => [Rule::requiredIf(fn () => $hasBase64), 'string', 'max:180'],
+            'mime_type' => ['nullable', 'string', 'max:120'],
+            'data_base64' => [Rule::requiredIf(fn () => ! $request->hasFile('video')), 'string'],
             'ended_at' => ['nullable', 'date'],
         ]);
 
@@ -244,7 +278,31 @@ class TauriCaptureController extends Controller
 
         $folder = $this->getSessionMediaFolder($session, 'videos');
 
-        $file = $request->file('video');
+        if ($request->hasFile('video')) {
+            $file = $request->file('video');
+        } else {
+            $binary = base64_decode($request->input('data_base64'), true);
+            if ($binary === false) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'La captura no llego en base64 valido.',
+                ], 422);
+            }
+
+            $originalName = $request->input('filename', 'capture.webm');
+            $extension = pathinfo($originalName, PATHINFO_EXTENSION) ?: 'webm';
+            $safeName = Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) ?: 'capture';
+            $tmpPath = sys_get_temp_dir() . '/' . $safeName . '-' . Str::random(8) . '.' . $extension;
+            file_put_contents($tmpPath, $binary);
+
+            $file = new UploadedFile(
+                $tmpPath,
+                $originalName,
+                $request->input('mime_type') ?: 'video/webm',
+                null,
+                true
+            );
+        }
         $path = media_store($file, $folder);
         $archivo = $this->createStudyArchive(
             session: $session,
