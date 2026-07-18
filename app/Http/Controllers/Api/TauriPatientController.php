@@ -45,7 +45,10 @@ class TauriPatientController extends Controller
 
         $perPage = max(
             1,
-            min((int) $request->integer('per_page', 25), 100)
+            min(
+                (int) $request->integer('per_page', 100),
+                100
+            )
         );
 
         $pacientes = $query
@@ -54,9 +57,13 @@ class TauriPatientController extends Controller
 
         return response()->json([
             'ok' => true,
+            'success' => true,
 
             'pacientes' => collect($pacientes->items())
-                ->map(fn (Paciente $paciente) => $this->patientData($paciente))
+                ->map(
+                    fn (Paciente $paciente) =>
+                        $this->patientData($paciente)
+                )
                 ->values(),
 
             'pagination' => [
@@ -71,19 +78,29 @@ class TauriPatientController extends Controller
     }
 
     /**
-     * Devuelve el folio sugerido para el formulario de creación.
+     * Devuelve el folio sugerido para crear un paciente.
      *
      * GET /api/tauri/pacientes/create
      */
     public function create(Request $request): JsonResponse
     {
+        $user = $request->user();
+
         $folio = $this->nextFolio(
-            (int) $request->user()->clinica_id
+            (int) $user->clinica_id
         );
 
         return response()->json([
             'ok' => true,
+            'success' => true,
+
+            /*
+             * Se devuelve en varias claves para mantener
+             * compatibilidad con diferentes versiones de Tauri.
+             */
             'folio' => $folio,
+            'next_folio' => $folio,
+            'siguiente_folio' => $folio,
 
             'defaults' => [
                 'folio' => $folio,
@@ -118,82 +135,127 @@ class TauriPatientController extends Controller
     {
         $user = $request->user();
 
+        /*
+         * El backend no depende del frontend para generar el folio.
+         * Si Tauri no lo envía, se genera antes de validar.
+         */
+        $folio = trim(
+            (string) $request->input('folio', '')
+        );
+
+        if ($folio === '') {
+            $folio = $this->nextFolio(
+                (int) $user->clinica_id
+            );
+        }
+
+        /*
+         * Folio e identificación siempre deben ser iguales.
+         */
+        $request->merge([
+            'folio' => $folio,
+            'identificacion' => $folio,
+        ]);
+
         $validated = $request->validate(
             $this->rules(
-                request: $request,
                 clinicId: (int) $user->clinica_id,
             )
         );
 
         try {
-            $paciente = DB::transaction(function () use ($request, $validated, $user) {
-                $data = collect($validated)
-                    ->except([
-                        'foto',
-                        'estudios_archivos',
-                    ])
-                    ->toArray();
-
-                /*
-                 * El folio e identificación deben mantenerse iguales.
-                 */
-                $data['identificacion'] = $data['folio'];
-                $data['clinica_id'] = $user->clinica_id;
-
-                if ($request->hasFile('foto')) {
-                    $data['foto'] = media_store(
-                        $request->file('foto'),
-                        'clinicas/'.$user->clinica_id.'/pacientes'
-                    );
-                }
-
-                $paciente = Paciente::create($data);
-
-                $this->storeDocuments(
+            $paciente = DB::transaction(
+                function () use (
                     $request,
-                    $paciente
-                );
+                    $validated,
+                    $user
+                ) {
+                    $data = collect($validated)
+                        ->except([
+                            'foto',
+                            'estudios_archivos',
+                        ])
+                        ->toArray();
 
-                return $paciente;
-            });
+                    $data['folio'] = trim(
+                        (string) $validated['folio']
+                    );
+
+                    $data['identificacion'] =
+                        $data['folio'];
+
+                    $data['clinica_id'] =
+                        $user->clinica_id;
+
+                    if ($request->hasFile('foto')) {
+                        $data['foto'] = media_store(
+                            $request->file('foto'),
+                            'clinicas/' .
+                                $user->clinica_id .
+                                '/pacientes'
+                        );
+                    }
+
+                    $paciente = Paciente::create($data);
+
+                    $this->storeDocuments(
+                        $request,
+                        $paciente
+                    );
+
+                    return $paciente;
+                }
+            );
 
             $this->activity->record(
                 'patient_created',
                 'patients',
-                'Registró al paciente '.$paciente->folio,
+                'Registró al paciente ' . $paciente->folio,
                 $paciente,
                 user: $user,
                 request: $request,
             );
 
             $paciente->loadCount('estudios');
-            $paciente->load('documentos');
+
+            $paciente->load([
+                'documentos',
+                'estudios' => function ($query) {
+                    $query->latest();
+                },
+            ]);
 
             return response()->json([
                 'ok' => true,
                 'success' => true,
                 'message' => 'Paciente registrado correctamente.',
-                'paciente' => $this->patientData($paciente),
 
-                /*
-                 * Tauri puede usar este identificador para abrir agenda,
-                 * detalle o volver al listado.
-                 */
+                'paciente' => $this->patientData(
+                    $paciente,
+                    includeRelations: true,
+                ),
+
                 'paciente_id' => $paciente->id,
+                'folio' => $paciente->folio,
                 'next_view' => 'pacientes',
             ], 201);
         } catch (Throwable $exception) {
-            Log::error('Error creando paciente desde Tauri', [
-                'user_id' => $user->id,
-                'clinica_id' => $user->clinica_id,
-                'message' => $exception->getMessage(),
-                'trace' => $exception->getTraceAsString(),
-            ]);
+            Log::error(
+                'Error creando paciente desde Tauri',
+                [
+                    'user_id' => $user->id,
+                    'clinica_id' => $user->clinica_id,
+                    'folio' => $folio,
+                    'message' => $exception->getMessage(),
+                    'trace' => $exception->getTraceAsString(),
+                ]
+            );
 
             return response()->json([
                 'ok' => false,
                 'success' => false,
                 'message' => 'No se pudo registrar el paciente.',
+
                 'error' => app()->hasDebugModeEnabled()
                     ? $exception->getMessage()
                     : null,
@@ -217,6 +279,7 @@ class TauriPatientController extends Controller
 
         $paciente->load([
             'documentos',
+
             'estudios' => function ($query) {
                 $query->latest();
             },
@@ -226,6 +289,8 @@ class TauriPatientController extends Controller
 
         return response()->json([
             'ok' => true,
+            'success' => true,
+
             'paciente' => $this->patientData(
                 $paciente,
                 includeRelations: true,
@@ -247,11 +312,20 @@ class TauriPatientController extends Controller
             $paciente
         );
 
-        $paciente->load('documentos');
+        $paciente->load([
+            'documentos',
+
+            'estudios' => function ($query) {
+                $query->latest();
+            },
+        ]);
+
         $paciente->loadCount('estudios');
 
         return response()->json([
             'ok' => true,
+            'success' => true,
+
             'paciente' => $this->patientData(
                 $paciente,
                 includeRelations: true,
@@ -275,76 +349,126 @@ class TauriPatientController extends Controller
 
         $user = $request->user();
 
+        /*
+         * Si Tauri no envía folio durante la edición,
+         * se conserva el folio actual.
+         */
+        $folio = trim(
+            (string) $request->input(
+                'folio',
+                $paciente->folio
+            )
+        );
+
+        if ($folio === '') {
+            $folio = $paciente->folio;
+        }
+
+        $request->merge([
+            'folio' => $folio,
+            'identificacion' => $folio,
+        ]);
+
         $validated = $request->validate(
             $this->rules(
-                request: $request,
                 clinicId: (int) $user->clinica_id,
                 paciente: $paciente,
             )
         );
 
         try {
-            DB::transaction(function () use ($request, $validated, $paciente, $user) {
-                $data = collect($validated)
-                    ->except([
-                        'foto',
-                        'estudios_archivos',
-                    ])
-                    ->toArray();
+            DB::transaction(
+                function () use (
+                    $request,
+                    $validated,
+                    $paciente,
+                    $user
+                ) {
+                    $data = collect($validated)
+                        ->except([
+                            'foto',
+                            'estudios_archivos',
+                        ])
+                        ->toArray();
 
-                $data['identificacion'] = $data['folio'];
-                $data['clinica_id'] = $user->clinica_id;
+                    $data['folio'] = trim(
+                        (string) $validated['folio']
+                    );
 
-                if ($request->hasFile('foto')) {
-                    media_delete($paciente->foto);
+                    $data['identificacion'] =
+                        $data['folio'];
 
-                    $data['foto'] = media_store(
-                        $request->file('foto'),
-                        'clinicas/'.$user->clinica_id.'/pacientes'
+                    $data['clinica_id'] =
+                        $user->clinica_id;
+
+                    if ($request->hasFile('foto')) {
+                        media_delete($paciente->foto);
+
+                        $data['foto'] = media_store(
+                            $request->file('foto'),
+                            'clinicas/' .
+                                $user->clinica_id .
+                                '/pacientes'
+                        );
+                    }
+
+                    $paciente->update($data);
+
+                    $this->storeDocuments(
+                        $request,
+                        $paciente
                     );
                 }
-
-                $paciente->update($data);
-
-                $this->storeDocuments(
-                    $request,
-                    $paciente
-                );
-            });
+            );
 
             $this->activity->record(
                 'patient_updated',
                 'patients',
-                'Actualizó al paciente '.$paciente->folio,
+                'Actualizó al paciente ' . $paciente->folio,
                 $paciente,
                 user: $user,
                 request: $request,
             );
 
             $paciente->refresh();
-            $paciente->load('documentos');
+
+            $paciente->load([
+                'documentos',
+
+                'estudios' => function ($query) {
+                    $query->latest();
+                },
+            ]);
+
             $paciente->loadCount('estudios');
 
             return response()->json([
                 'ok' => true,
                 'success' => true,
                 'message' => 'Paciente actualizado correctamente.',
+
                 'paciente' => $this->patientData(
                     $paciente,
                     includeRelations: true,
                 ),
             ]);
         } catch (Throwable $exception) {
-            Log::error('Error actualizando paciente desde Tauri', [
-                'paciente_id' => $paciente->id,
-                'user_id' => $user->id,
-                'message' => $exception->getMessage(),
-            ]);
+            Log::error(
+                'Error actualizando paciente desde Tauri',
+                [
+                    'paciente_id' => $paciente->id,
+                    'user_id' => $user->id,
+                    'folio' => $folio,
+                    'message' => $exception->getMessage(),
+                    'trace' => $exception->getTraceAsString(),
+                ]
+            );
 
             return response()->json([
                 'ok' => false,
                 'success' => false,
                 'message' => 'No se pudo actualizar el paciente.',
+
                 'error' => app()->hasDebugModeEnabled()
                     ? $exception->getMessage()
                     : null,
@@ -380,6 +504,7 @@ class TauriPatientController extends Controller
                 'string',
                 Rule::in($allowedFields),
             ],
+
             'valor' => [
                 'nullable',
                 'string',
@@ -389,13 +514,18 @@ class TauriPatientController extends Controller
 
         $field = $validated['campo'];
 
-        $paciente->{$field} = $validated['valor'] ?? null;
+        $paciente->{$field} =
+            $validated['valor'] ?? null;
+
         $paciente->save();
 
         $this->activity->record(
             'patient_updated',
             'patients',
-            'Actualizó '.$field.' del paciente '.$paciente->folio,
+            'Actualizó ' .
+                $field .
+                ' del paciente ' .
+                $paciente->folio,
             $paciente,
             user: $request->user(),
             request: $request,
@@ -411,7 +541,7 @@ class TauriPatientController extends Controller
     }
 
     /**
-     * Elimina solamente la fotografía del paciente.
+     * Elimina la fotografía del paciente.
      *
      * DELETE /api/tauri/pacientes/{paciente}/foto
      */
@@ -452,11 +582,13 @@ class TauriPatientController extends Controller
         );
 
         abort_unless(
-            (int) $documento->paciente_id === (int) $paciente->id,
+            (int) $documento->paciente_id ===
+                (int) $paciente->id,
             404
         );
 
         media_delete($documento->path);
+
         $documento->delete();
 
         return response()->json([
@@ -480,42 +612,59 @@ class TauriPatientController extends Controller
             $paciente
         );
 
+        $user = $request->user();
+
+        $folio = $paciente->folio;
+
         try {
-            DB::transaction(function () use ($paciente) {
-                media_delete($paciente->foto);
+            DB::transaction(
+                function () use ($paciente) {
+                    media_delete($paciente->foto);
 
-                $paciente->documentos()
-                    ->get()
-                    ->each(function (PacienteDocumento $documento) {
-                        media_delete($documento->path);
-                        $documento->delete();
-                    });
+                    $paciente->documentos()
+                        ->get()
+                        ->each(
+                            function (
+                                PacienteDocumento $documento
+                            ) {
+                                media_delete($documento->path);
 
-                $paciente->estudios()
-                    ->get()
-                    ->each(function ($estudio) {
-                        $estudio->archivos()
-                            ->get()
-                            ->each(function ($archivo) {
-                                media_delete($archivo->path);
-                                $archivo->delete();
-                            });
+                                $documento->delete();
+                            }
+                        );
 
-                        media_delete($estudio->reporte_path);
-                        media_delete($estudio->video_path);
+                    $paciente->estudios()
+                        ->get()
+                        ->each(function ($estudio) {
+                            $estudio->archivos()
+                                ->get()
+                                ->each(function ($archivo) {
+                                    media_delete($archivo->path);
 
-                        $estudio->delete();
-                    });
+                                    $archivo->delete();
+                                });
 
-                $paciente->delete();
-            });
+                            media_delete(
+                                $estudio->reporte_path
+                            );
+
+                            media_delete(
+                                $estudio->video_path
+                            );
+
+                            $estudio->delete();
+                        });
+
+                    $paciente->delete();
+                }
+            );
 
             $this->activity->record(
                 'patient_deleted',
                 'patients',
-                'Eliminó al paciente '.$paciente->folio,
+                'Eliminó al paciente ' . $folio,
                 $paciente,
-                user: $request->user(),
+                user: $user,
                 request: $request,
             );
 
@@ -525,15 +674,21 @@ class TauriPatientController extends Controller
                 'message' => 'Paciente eliminado correctamente.',
             ]);
         } catch (Throwable $exception) {
-            Log::error('Error eliminando paciente desde Tauri', [
-                'paciente_id' => $paciente->id,
-                'message' => $exception->getMessage(),
-            ]);
+            Log::error(
+                'Error eliminando paciente desde Tauri',
+                [
+                    'paciente_id' => $paciente->id,
+                    'user_id' => $user->id,
+                    'message' => $exception->getMessage(),
+                    'trace' => $exception->getTraceAsString(),
+                ]
+            );
 
             return response()->json([
                 'ok' => false,
                 'success' => false,
                 'message' => 'No se pudo eliminar el paciente.',
+
                 'error' => app()->hasDebugModeEnabled()
                     ? $exception->getMessage()
                     : null,
@@ -542,17 +697,22 @@ class TauriPatientController extends Controller
     }
 
     /**
-     * Reglas compartidas para crear y actualizar.
+     * Reglas compartidas.
      */
     private function rules(
-        Request $request,
         int $clinicId,
         ?Paciente $paciente = null,
     ): array {
-        $folioRule = Rule::unique('pacientes', 'folio')
-            ->where(
-                fn ($query) => $query->where('clinica_id', $clinicId)
-            );
+        $folioRule = Rule::unique(
+            'pacientes',
+            'folio'
+        )->where(
+            fn ($query) =>
+                $query->where(
+                    'clinica_id',
+                    $clinicId
+                )
+        );
 
         if ($paciente) {
             $folioRule->ignore($paciente->id);
@@ -566,17 +726,14 @@ class TauriPatientController extends Controller
                 $folioRule,
             ],
 
-            'nombre_completo' => [
-                'required',
+            'identificacion' => [
+                'nullable',
                 'string',
                 'max:255',
             ],
 
-            /*
-             * Se recibe por compatibilidad, pero se reemplaza por el folio.
-             */
-            'identificacion' => [
-                'nullable',
+            'nombre_completo' => [
+                'required',
                 'string',
                 'max:255',
             ],
@@ -707,7 +864,13 @@ class TauriPatientController extends Controller
             ->where('folio', 'like', 'P-%')
             ->pluck('folio')
             ->map(function ($folio) {
-                if (! preg_match('/^P-(\d+)$/', (string) $folio, $matches)) {
+                if (
+                    ! preg_match(
+                        '/^P-(\d+)$/',
+                        (string) $folio,
+                        $matches
+                    )
+                ) {
                     return 0;
                 }
 
@@ -715,7 +878,7 @@ class TauriPatientController extends Controller
             })
             ->max() ?? 0;
 
-        return 'P-'.str_pad(
+        return 'P-' . str_pad(
             $lastNumber + 1,
             3,
             '0',
@@ -734,20 +897,33 @@ class TauriPatientController extends Controller
             return;
         }
 
-        foreach ($request->file('estudios_archivos', []) as $file) {
-            if (! $file || ! $file->isValid()) {
+        $files = $request->file(
+            'estudios_archivos',
+            []
+        );
+
+        if (! is_array($files)) {
+            $files = [$files];
+        }
+
+        foreach ($files as $file) {
+            if (
+                ! $file ||
+                ! $file->isValid()
+            ) {
                 continue;
             }
 
             $path = media_store(
                 $file,
-                'paciente_docs/'.$paciente->id
+                'paciente_docs/' . $paciente->id
             );
 
             PacienteDocumento::create([
                 'paciente_id' => $paciente->id,
                 'path' => $path,
-                'nombre_original' => $file->getClientOriginalName(),
+                'nombre_original' =>
+                    $file->getClientOriginalName(),
                 'mime_type' => $file->getMimeType(),
                 'size_bytes' => $file->getSize(),
             ]);
@@ -763,29 +939,51 @@ class TauriPatientController extends Controller
     ): void {
         abort_unless(
             (int) $paciente->clinica_id ===
-            (int) $request->user()->clinica_id,
+                (int) $request->user()->clinica_id,
             404
         );
     }
 
     /**
-     * Convierte el modelo al formato que necesita Tauri.
+     * Convierte el modelo al formato de Tauri.
      */
     private function patientData(
         Paciente $paciente,
         bool $includeRelations = false,
     ): array {
-        $latestStudy = $paciente->relationLoaded('estudios')
-            ? $paciente->estudios->first()
-            : null;
+        $latestStudy =
+            $paciente->relationLoaded('estudios')
+                ? $paciente->estudios->first()
+                : null;
+
+        $fechaNacimiento =
+            $paciente->fecha_nacimiento;
+
+        $fechaNacimientoFormateada = null;
+
+        if ($fechaNacimiento) {
+            if (
+                $fechaNacimiento instanceof
+                \DateTimeInterface
+            ) {
+                $fechaNacimientoFormateada =
+                    $fechaNacimiento->format('Y-m-d');
+            } else {
+                $fechaNacimientoFormateada =
+                    substr(
+                        (string) $fechaNacimiento,
+                        0,
+                        10
+                    );
+            }
+        }
 
         $data = [
             'id' => $paciente->id,
             'folio' => $paciente->folio,
             'identificacion' => $paciente->identificacion,
             'nombre_completo' => $paciente->nombre_completo,
-            'fecha_nacimiento' => optional($paciente->fecha_nacimiento)
-                ->format('Y-m-d'),
+            'fecha_nacimiento' => $fechaNacimientoFormateada,
             'edad' => $paciente->edad,
             'peso' => $paciente->peso,
             'altura' => $paciente->altura,
@@ -798,11 +996,13 @@ class TauriPatientController extends Controller
             'anestesiologo' => $paciente->anestesiologo,
             'referido_por' => $paciente->referido_por,
             'equipo_utilizado' => $paciente->equipo_utilizado,
-            'diagnostico_preliminar' => $paciente->diagnostico_preliminar,
+            'diagnostico_preliminar' =>
+                $paciente->diagnostico_preliminar,
             'enfermedad' => $paciente->enfermedad,
             'alergias' => $paciente->alergias,
 
             'foto' => $paciente->foto,
+
             'foto_url' => $paciente->foto
                 ? media_url($paciente->foto)
                 : null,
@@ -814,47 +1014,86 @@ class TauriPatientController extends Controller
             'ultimo_estudio' => $latestStudy
                 ? [
                     'id' => $latestStudy->id,
-                    'fecha' => $latestStudy->created_at?->toIso8601String(),
-                    'procedimiento' => $latestStudy->procedimiento
+
+                    'fecha' =>
+                        $latestStudy->created_at
+                            ?->toIso8601String(),
+
+                    'procedimiento' =>
+                        $latestStudy->procedimiento
                         ?? $paciente->procedimiento,
-                    'estado' => $latestStudy->estado ?? null,
+
+                    'estado' =>
+                        $latestStudy->estado ?? null,
                 ]
                 : null,
 
-            'created_at' => $paciente->created_at?->toIso8601String(),
-            'updated_at' => $paciente->updated_at?->toIso8601String(),
+            'created_at' =>
+                $paciente->created_at
+                    ?->toIso8601String(),
+
+            'updated_at' =>
+                $paciente->updated_at
+                    ?->toIso8601String(),
         ];
 
         if ($includeRelations) {
-            $data['documentos'] = $paciente->relationLoaded('documentos')
-                ? $paciente->documentos
-                    ->map(fn (PacienteDocumento $documento) => [
-                        'id' => $documento->id,
-                        'nombre' => $documento->nombre_original,
-                        'mime_type' => $documento->mime_type,
-                        'size_bytes' => $documento->size_bytes,
-                        'url' => media_url($documento->path),
-                    ])
-                    ->values()
-                : [];
+            $data['documentos'] =
+                $paciente->relationLoaded('documentos')
+                    ? $paciente->documentos
+                        ->map(
+                            fn (
+                                PacienteDocumento $documento
+                            ) => [
+                                'id' => $documento->id,
+                                'nombre' =>
+                                    $documento->nombre_original,
+                                'mime_type' =>
+                                    $documento->mime_type,
+                                'size_bytes' =>
+                                    $documento->size_bytes,
+                                'url' =>
+                                    media_url($documento->path),
+                            ]
+                        )
+                        ->values()
+                    : [];
 
-            $data['estudios'] = $paciente->relationLoaded('estudios')
-                ? $paciente->estudios
-                    ->map(fn ($estudio) => [
-                        'id' => $estudio->id,
-                        'fecha' => $estudio->created_at?->toIso8601String(),
-                        'procedimiento' => $estudio->procedimiento
-                            ?? $paciente->procedimiento,
-                        'estado' => $estudio->estado ?? null,
-                        'reporte_url' => $estudio->reporte_path
-                            ? media_url($estudio->reporte_path)
-                            : null,
-                        'video_url' => $estudio->video_path
-                            ? media_url($estudio->video_path)
-                            : null,
-                    ])
-                    ->values()
-                : [];
+            $data['estudios'] =
+                $paciente->relationLoaded('estudios')
+                    ? $paciente->estudios
+                        ->map(
+                            fn ($estudio) => [
+                                'id' => $estudio->id,
+
+                                'fecha' =>
+                                    $estudio->created_at
+                                        ?->toIso8601String(),
+
+                                'procedimiento' =>
+                                    $estudio->procedimiento
+                                    ?? $paciente->procedimiento,
+
+                                'estado' =>
+                                    $estudio->estado ?? null,
+
+                                'reporte_url' =>
+                                    $estudio->reporte_path
+                                        ? media_url(
+                                            $estudio->reporte_path
+                                        )
+                                        : null,
+
+                                'video_url' =>
+                                    $estudio->video_path
+                                        ? media_url(
+                                            $estudio->video_path
+                                        )
+                                        : null,
+                            ]
+                        )
+                        ->values()
+                    : [];
         }
 
         return $data;
@@ -872,21 +1111,47 @@ class TauriPatientController extends Controller
         );
 
         if ($search !== '') {
-            $query->where(function (Builder $builder) use ($search) {
-                $builder
-                    ->where('nombre_completo', 'like', '%'.$search.'%')
-                    ->orWhere('folio', 'like', '%'.$search.'%')
-                    ->orWhere('telefono', 'like', '%'.$search.'%')
-                    ->orWhere('email', 'like', '%'.$search.'%')
-                    ->orWhere('medico', 'like', '%'.$search.'%');
-            });
+            $query->where(
+                function (
+                    Builder $builder
+                ) use ($search) {
+                    $builder
+                        ->where(
+                            'nombre_completo',
+                            'like',
+                            '%' . $search . '%'
+                        )
+                        ->orWhere(
+                            'folio',
+                            'like',
+                            '%' . $search . '%'
+                        )
+                        ->orWhere(
+                            'telefono',
+                            'like',
+                            '%' . $search . '%'
+                        )
+                        ->orWhere(
+                            'email',
+                            'like',
+                            '%' . $search . '%'
+                        )
+                        ->orWhere(
+                            'medico',
+                            'like',
+                            '%' . $search . '%'
+                        );
+                }
+            );
         }
 
         if ($request->filled('folio')) {
             $query->where(
                 'folio',
                 'like',
-                '%'.$request->string('folio').'%'
+                '%' .
+                    $request->string('folio')->toString() .
+                    '%'
             );
         }
 
@@ -894,25 +1159,29 @@ class TauriPatientController extends Controller
             $query->where(
                 'nombre_completo',
                 'like',
-                '%'.$request->string('nombre').'%'
+                '%' .
+                    $request->string('nombre')->toString() .
+                    '%'
             );
         }
 
         if ($request->filled('medico')) {
             $query->where(
                 'medico',
-                $request->string('medico')
+                $request->string('medico')->toString()
             );
         }
 
         if ($request->filled('fecha_nacimiento')) {
             $query->whereDate(
                 'fecha_nacimiento',
-                $request->date('fecha_nacimiento')
+                $request->input('fecha_nacimiento')
             );
         }
 
-        $sort = $request->string('sort')->toString();
+        $sort = $request
+            ->string('sort')
+            ->toString();
 
         match ($sort) {
             'nombre-asc' => $query
