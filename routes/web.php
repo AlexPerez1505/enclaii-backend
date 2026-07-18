@@ -770,12 +770,14 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
 
 
 Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
+    
     Route::resource('pacientes', PacienteController::class)
         ->middlewareFor(['update', 'destroy'], 'critical.password:patients');
     Route::post('/pacientes/{paciente}/add-medico', [PacienteController::class, 'addMedico'])
         ->name('pacientes.add-medico');
     Route::post('/pacientes/{paciente}/update-campo', [PacienteController::class, 'updateCampo'])
         ->name('pacientes.update-campo');
+
 
     Route::get('/qr', [QrRegistrationController::class, 'index'])->name('qr.index');
     Route::post('/qr/enlaces', [QrRegistrationController::class, 'store'])->name('qr.links.store');
@@ -920,3 +922,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/capture/pairing-code', [CapturePairingCodeController::class, 'store'])
         ->name('capture.pairing-code.store');
 });
+
+
+Route::post('/procedimientos/store', [App\Http\Controllers\PacienteController::class, 'storeProcedimiento'])->name('procedimientos.store');

@@ -1130,15 +1130,24 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
           </div>
         </div>
         <div class="form-group" style="margin-bottom:18px;">
-          <label>Procedimiento</label>
-          <div class="select-with-add">
-          <input type="text" id="procedimientoSelect" name="procedimiento" data-campo="procedimiento" placeholder="Ej. Colonoscopia" style="flex:1;">
-            <button type="button" class="btn-add-procedimiento" onclick="addNuevoProcedimiento()" title="Agregar procedimiento">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </button>
-          </div>
-          <div id="procedimientosAgregados" class="procedimientos-tags"></div>
-        </div>
+    <label>Procedimiento</label>
+    <div class="select-with-add">
+        <select id="procedimientoSelect" name="procedimiento" data-campo="procedimiento" style="flex:1;">
+            <option value="">Seleccione un procedimiento...</option>
+            @foreach($listaProcedimientos as $p)
+                <option value="{{ $p->nombre }}">
+                    {{ $p->nombre }}
+                </option>
+            @endforeach
+        </select>
+        
+        {{-- Botón para añadir uno nuevo manualmente --}}
+        <button type="button" class="btn-add-procedimiento" onclick="addNuevoProcedimiento()" title="Agregar procedimiento">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+    </div>
+    <div id="procedimientosAgregados" class="procedimientos-tags"></div>
+</div>
         <div class="form-group" style="margin-bottom:18px;">
           <label></label>
           <div class="select-with-add">

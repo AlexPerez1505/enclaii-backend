@@ -74,6 +74,10 @@ class PacienteController extends Controller
 
     public function create()
     {
+
+        $listaProcedimientos = \App\Models\Procedimiento::all();
+
+
         $ultimoNumero = Paciente::query()
             ->where('folio', 'like', 'P-%')
             ->get()
@@ -86,7 +90,7 @@ class PacienteController extends Controller
 
         $folio = 'P-' . str_pad($siguienteNumero, 3, '0', STR_PAD_LEFT);
 
-        return view('pacientes.create', compact('folio'));
+        return view('pacientes.create', compact('folio', 'listaProcedimientos'));
     }
 
     public function store(Request $request)
@@ -112,9 +116,6 @@ class PacienteController extends Controller
                 'email' => ['nullable', 'email', 'max:255'],
                 'medico' => ['nullable', 'string', 'max:255'],
                 'procedimiento' => ['nullable', 'string', 'max:255'],
-                'anestesiologo' => ['nullable', 'string', 'max:255'],
-                'referido_por' => ['nullable', 'string', 'max:255'],
-                'equipo_utilizado' => ['nullable', 'string', 'max:255'],
                 'diagnostico_preliminar' => ['nullable', 'string'],
                 'enfermedad' => ['nullable', 'string'],
                 'alergias' => ['nullable', 'string'],
@@ -182,10 +183,18 @@ class PacienteController extends Controller
         return redirect()->route('pacientes.edit', $paciente);
     }
 
+    // AQUÍ AGREGAS TU NUEVO MÉTODO edit
     public function edit(Paciente $paciente)
     {
-        return view('pacientes.edit', compact('paciente'));
+        // Obtenemos todos los procedimientos para llenar el <select>
+        $listaProcedimientos = \App\Models\Procedimiento::all();
+        
+        // Asegúrate de poner la ruta correcta de tu vista (ej: 'pacientes.edit')
+        return view('pacientes.edit', compact('paciente', 'listaProcedimientos'));
     }
+
+
+
 
     public function update(Request $request, Paciente $paciente)
     {
@@ -210,9 +219,6 @@ class PacienteController extends Controller
             'email' => ['nullable', 'email', 'max:255'],
             'medico' => ['nullable', 'string', 'max:255'],
             'procedimiento' => ['nullable', 'string', 'max:255'],
-            'anestesiologo' => ['nullable', 'string', 'max:255'],
-            'referido_por' => ['nullable', 'string', 'max:255'],
-            'equipo_utilizado' => ['nullable', 'string', 'max:255'],
             'diagnostico_preliminar' => ['nullable', 'string'],
             'enfermedad' => ['nullable', 'string'],
             'alergias' => ['nullable', 'string'],
@@ -298,6 +304,23 @@ class PacienteController extends Controller
         'valor' => $paciente->{$validated['campo']},
     ]);
     }
+
+    public function storeProcedimiento(Request $request) 
+    {
+        $request->validate([
+            'nombre' => ['required', 'string', 'max:255', 'unique:procedimientos,nombre']
+        ]);
+
+        $procedimiento = \App\Models\Procedimiento::create([
+            'nombre' => $request->nombre
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'procedimiento' => $procedimiento
+        ]);
+    }
+
 
     public function destroy(Paciente $paciente)
     {
