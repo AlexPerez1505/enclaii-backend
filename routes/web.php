@@ -812,13 +812,31 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
     })->middleware('critical.password:studies')
         ->name('galeria.video.capture');
 
+    Route::get('/galeria/imagen/{id}/archivo', function ($id) {
+        $archivo = \App\Models\EstudioArchivo::where('tipo', 'imagen')->findOrFail($id);
+        abort_unless($archivo->path && media_exists($archivo->path), 404);
+
+        $disk = \Illuminate\Support\Facades\Storage::disk(media_disk());
+        $filename = $archivo->nombre_original ?: basename((string) $archivo->path);
+
+        return new \Symfony\Component\HttpFoundation\StreamedResponse(function () use ($disk, $archivo) {
+            fpassthru($disk->readStream($archivo->path));
+        }, 200, [
+            'Content-Type' => $archivo->mime_type ?: ($disk->mimeType($archivo->path) ?: 'image/jpeg'),
+            'Content-Length' => (string) ($archivo->size_bytes ?: $disk->size($archivo->path)),
+            'Content-Disposition' => 'inline; filename="'.str_replace('"', '', $filename).'"',
+            'Cache-Control' => 'private, max-age=300',
+        ]);
+    })->name('galeria.imagen.archivo');
+
     Route::get('/galeria/imagen/{id}', function ($id) {
         $archivo = \App\Models\EstudioArchivo::with('estudio')->find($id);
         $paciente = $archivo ? Paciente::find($archivo->paciente_id) : null;
 
         $hermanas = collect();
         if ($archivo) {
-            $hermanas = \App\Models\EstudioArchivo::where('tipo', 'imagen')
+            $hermanas = \App\Models\EstudioArchivo::with('estudio', 'paciente')
+                ->where('tipo', 'imagen')
                 ->when(
                     $archivo->estudio_id,
                     fn ($q) => $q->where('estudio_id', $archivo->estudio_id),
@@ -829,13 +847,52 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
                 ->get();
         }
 
-        $caps = $hermanas->values()->map(function ($a, $i) {
+        $formatDuration = function (?int $seconds): string {
+            return $seconds && $seconds > 0 ? gmdate('H:i:s', $seconds) : '—';
+        };
+
+        $imageResolution = function ($a): string {
+            if (! $a->path || ! media_exists($a->path)) {
+                return '—';
+            }
+
+            try {
+                $contents = \Illuminate\Support\Facades\Storage::disk(media_disk())->get($a->path);
+                $size = @getimagesizefromstring($contents);
+
+                return $size ? "{$size[0]} x {$size[1]}" : '—';
+            } catch (\Throwable $e) {
+                return '—';
+            }
+        };
+
+        $caps = $hermanas->values()->map(function ($a, $i) use ($formatDuration, $imageResolution) {
+            $study = $a->estudio;
+            $patient = $a->paciente;
+            $capturedAt = $a->capturado_en ?? $a->created_at;
+            $frame = is_numeric($a->descripcion)
+                ? gmdate('H:i:s', (int) $a->descripcion)
+                : optional($a->capturado_en)->format('H:i:s');
+
             return [
                 'n' => $i + 1,
                 'ts' => optional($a->capturado_en)->format('H:i:s') ?? '',
                 'bg' => 'radial-gradient(ellipse at 50% 50%,#1a1208 0%,#0a0610 100%)',
-                'src' => media_url($a->path),
+                'src' => route('galeria.imagen.archivo', $a->id),
                 'id' => $a->id,
+                'filename' => $a->nombre_original ?: basename((string) $a->path),
+                'mime_type' => $a->mime_type,
+                'size_bytes' => $a->size_bytes,
+                'info' => [
+                    'image_id' => 'IMG-'.str_pad((string) $a->id, 4, '0', STR_PAD_LEFT),
+                    'patient_name' => $patient?->nombre_completo ?? $study?->paciente_nombre ?? '—',
+                    'captured_at' => $capturedAt ? format_user_date($capturedAt).' · '.format_user_time($capturedAt) : '—',
+                    'study_type' => $study?->tipo ?? $patient?->procedimiento ?? '—',
+                    'equipment' => $study?->equipo ?? $patient?->equipo_utilizado ?? '—',
+                    'resolution' => $imageResolution($a),
+                    'duration' => $formatDuration($study?->duracion_segundos),
+                    'frame' => $frame ?: '—',
+                ],
             ];
         })->all();
 
@@ -884,7 +941,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
             'ok' => true,
             'archivo' => [
                 'id' => $archivo->id,
-                'url' => media_url($archivo->path),
+                'url' => route('galeria.imagen.archivo', $archivo->id),
                 'path' => $archivo->path,
             ],
         ]);
@@ -918,7 +975,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
             'ok' => true,
             'archivo' => [
                 'id' => $copy->id,
-                'url' => media_url($copy->path),
+                'url' => route('galeria.imagen.archivo', $copy->id),
                 'path' => $copy->path,
             ],
         ]);

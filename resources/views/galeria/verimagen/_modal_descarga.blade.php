@@ -20,8 +20,9 @@
       <div class="vi-dl-preview">
         <div class="vi-dl-preview-lbl">Vista previa</div>
         <div class="vi-dl-thumb">
+          <img id="viDlPreviewImage" class="vi-dl-preview-image" src="" alt="Vista previa de imagen">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-          <div class="vi-dl-thumb-badge">IMG-0004</div>
+          <div class="vi-dl-thumb-badge" id="viDlImageBadge">IMG-0004</div>
           <div class="vi-dl-watermark" id="viWatermark">
             <div class="vi-dl-watermark-logo">ENCLA<span>II</span></div>
             <div class="vi-dl-watermark-dot"></div>
@@ -29,7 +30,7 @@
           </div>
         </div>
         <div class="vi-dl-thumb-meta">
-          <span>1920 x 1080</span> · <span id="viDlFmt">JPG</span> · <span>2.4 MB</span>
+          <span id="viDlResolution">1920 x 1080</span> · <span id="viDlFmt">JPG</span> · <span id="viDlSize">2.4 MB</span>
         </div>
       </div>
 

@@ -1,7 +1,7 @@
 ﻿  <div class="vi-wrap">
 
     {{-- ===== COLUMNA PRINCIPAL ===== --}}
-    <div>
+    <div class="vi-main-col">
 
       {{-- Visor --}}
       <div class="vi-viewer-box" id="viViewer">
@@ -27,7 +27,7 @@
         {{-- Controles zoom --}}
         <div class="vi-zoom-ctrl">
           <button class="vi-zoom-btn" id="viZoomPlus">+</button>
-          <div class="vi-zoom-pct" id="viZoomPct">148%</div>
+          <div class="vi-zoom-pct" id="viZoomPct">100%</div>
           <button class="vi-zoom-btn" id="viZoomMinus">−</button>
           <button class="vi-zoom-btn" id="viZoomFit" title="Ajustar">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
@@ -186,13 +186,13 @@
           <span class="vi-card-title">Información de la imagen</span>
         </div>
         <div class="vi-info-table">
-          <span class="vi-it-lbl">ID de imagen</span>   <span class="vi-it-val">IMG-0004</span>
-          <span class="vi-it-lbl">Fecha de captura</span><span class="vi-it-val">15/07/2025 · 10:30 AM</span>
-          <span class="vi-it-lbl">Tipo de estudio</span> <span class="vi-it-val">Endoscopia Digestiva Alta</span>
-          <span class="vi-it-lbl">Equipo</span>          <span class="vi-it-val">Pentax EPK-i7010</span>
-          <span class="vi-it-lbl">Resolución</span>      <span class="vi-it-val">1920 x 1080</span>
-          <span class="vi-it-lbl">Duración del video</span><span class="vi-it-val">00:15:42</span>
-          <span class="vi-it-lbl">Fotograma</span>       <span class="vi-it-val" id="viInfoTs">00:08:47</span>
+          <span class="vi-it-lbl">ID de imagen</span>   <span class="vi-it-val" id="viInfoImageId">—</span>
+          <span class="vi-it-lbl">Fecha de captura</span><span class="vi-it-val" id="viInfoCapturedAt">—</span>
+          <span class="vi-it-lbl">Tipo de estudio</span> <span class="vi-it-val" id="viInfoStudyType">—</span>
+          <span class="vi-it-lbl">Equipo</span>          <span class="vi-it-val" id="viInfoEquipment">—</span>
+          <span class="vi-it-lbl">Resolución</span>      <span class="vi-it-val" id="viInfoResolution">—</span>
+          <span class="vi-it-lbl">Duración del video</span><span class="vi-it-val" id="viInfoDuration">—</span>
+          <span class="vi-it-lbl">Fotograma</span>       <span class="vi-it-val" id="viInfoTs">—</span>
         </div>
       </div>
 
