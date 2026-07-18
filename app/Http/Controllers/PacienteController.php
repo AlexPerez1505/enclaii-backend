@@ -281,21 +281,22 @@ class PacienteController extends Controller
 
     public function updateCampo(Request $request, Paciente $paciente)
     {
-        $camposPermitidos = ['medico', 'procedimiento', 'anestesiologo', 'referido_por', 'equipo_utilizado'];
+    // Eliminamos 'anestesiologo', 'referido_por', 'equipo_utilizado'
+    $camposPermitidos = ['medico', 'procedimiento']; 
 
-        $validated = $request->validate([
-            'campo' => ['required', 'string', Rule::in($camposPermitidos)],
-            'valor' => ['required', 'string', 'max:255'],
-        ]);
+    $validated = $request->validate([
+        'campo' => ['required', 'string', Rule::in($camposPermitidos)],
+        'valor' => ['required', 'string', 'max:255'],
+    ]);
 
-        $paciente->{$validated['campo']} = $validated['valor'];
-        $paciente->save();
+    $paciente->{$validated['campo']} = $validated['valor'];
+    $paciente->save();
 
-        return response()->json([
-            'success' => true,
-            'campo' => $validated['campo'],
-            'valor' => $paciente->{$validated['campo']},
-        ]);
+    return response()->json([
+        'success' => true,
+        'campo' => $validated['campo'],
+        'valor' => $paciente->{$validated['campo']},
+    ]);
     }
 
     public function destroy(Paciente $paciente)

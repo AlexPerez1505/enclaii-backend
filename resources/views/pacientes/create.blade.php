@@ -1140,30 +1140,18 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
           <div id="procedimientosAgregados" class="procedimientos-tags"></div>
         </div>
         <div class="form-group" style="margin-bottom:18px;">
-          <label>Anestesiólogo</label>
+          <label></label>
           <div class="select-with-add">
-            <input type="text" id="anestesiologoSelect" name="anestesiologo" data-campo="anestesiologo" placeholder="Ej. Dr. Ricardo" style="flex:1;">
-            <button type="button" class="btn-add-procedimiento" onclick="addAnestesiologo()" title="Agregar anestesiólogo">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </button>
           </div>
         </div>
         <div class="form-group" style="margin-bottom:18px;">
-          <label>Referido por</label>
+          <label></label>
           <div class="select-with-add">
-            <input type="text" id="referidoSelectMed" name="referido_por" data-campo="referido_por" placeholder="Ej. Externo" style="flex:1;">
-            <button type="button" class="btn-add-procedimiento" onclick="addReferidoMed()" title="Agregar referido">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </button>
           </div>
         </div>
         <div class="form-group" style="margin-bottom:18px;">
-          <label>Equipo utilizado</label>
-          <div class="select-with-add">
-            <input type="text" id="equipoSelect" name="equipo_utilizado" data-campo="equipo_utilizado" placeholder="Ej. Endoscopio Olympus" style="flex:1;">
-            <button type="button" class="btn-add-procedimiento" onclick="addEquipo()" title="Agregar equipo">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </button>
+          <label></label>
+          <div class="select-with-add"> 
           </div>
         </div>
       </div>

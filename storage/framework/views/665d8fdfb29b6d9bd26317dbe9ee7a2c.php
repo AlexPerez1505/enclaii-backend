@@ -1,15 +1,13 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Nuevo Paciente'); ?>
+<?php $__env->startSection('active', 'pacientes'); ?>
+<?php $__env->startSection('header-title', 'Nuevo Paciente'); ?>
+<?php $__env->startSection('header-sub'); ?>
+  Ingresa los datos correctamente de tu paciente
+<?php $__env->stopSection(); ?>
 
-@section('title', 'Editar Paciente')
-@section('active', 'pacientes')
-@section('header-title', 'Editar información del paciente')
-@section('header-sub')
-  Actualiza los datos personales, médicos y de contacto del paciente
-@endsection
-
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
-/* ============ ESTILOS EDITAR PACIENTE ============ */
+/* ============ ESTILOS NUEVO PACIENTE ============ */
 
 /* Link volver */
 .back-link{
@@ -36,9 +34,9 @@
 
 .section-title{
   font-family:'Sora',sans-serif;
-  font-size:20px;
+  font-size:18px;
   font-weight:700;
-  margin-bottom:24px;
+  margin-bottom:20px;
   display:flex;
   align-items:center;
   justify-content:space-between;
@@ -89,23 +87,14 @@
   border-color:var(--cyan);
   box-shadow:0 0 0 3px rgba(56,199,244,.15);
 }
+.form-group input::placeholder{color:var(--off)}
 
-/* Input con icono */
-.input-with-icon{
-  position:relative;
-}
-.input-with-icon input{
-  padding-right:40px;
-}
-.input-with-icon .icon{
-  position:absolute;
-  right:12px;
-  top:50%;
-  transform:translateY(-50%);
-  width:18px;
-  height:18px;
-  color:var(--txt-soft);
-  pointer-events:none;
+/* Forzar color oscuro en los inputs en modo oscuro */
+html[data-theme="dark"] .form-group input,
+html[data-theme="dark"] .form-group select,
+html[data-theme="dark"] .form-group textarea{
+  background:var(--panel-2);
+  color:var(--txt);
 }
 
 /* Spans de campos que ocupan más espacio */
@@ -168,6 +157,11 @@
   gap:10px;
   flex:none;
 }
+.personal-photo-col span{
+  font-size:12px;
+  color:var(--txt-soft);
+  text-align:center;
+}
 .patient-photo-container img{
   width:100%;
   height:100%;
@@ -189,71 +183,6 @@
   text-align:center;
 }
 
-/* Modal éxito */
-.modal-success-overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(5,14,27,.85);
-  backdrop-filter:blur(8px);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:2000;
-}
-.modal-success-overlay.active{display:flex}
-.modal-success{
-  background:linear-gradient(180deg,var(--card),var(--panel-2));
-  border:1px solid var(--stroke-strong);
-  border-radius:var(--r-lg);
-  padding:40px 50px;
-  text-align:center;
-  max-width:400px;
-  width:90%;
-  box-shadow:0 25px 50px rgba(0,0,0,.4);
-}
-.modal-success-icon{
-  width:70px;
-  height:70px;
-  background:linear-gradient(135deg,var(--green),#2ecc71);
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  margin:0 auto 24px;
-}
-.modal-success-icon svg{width:35px;height:35px;color:#fff;}
-.modal-success h2{font-size:22px;font-weight:600;color:var(--txt);margin-bottom:12px;}
-.modal-success p{font-size:14px;color:var(--txt-soft);margin-bottom:28px;}
-.btn-aceptar{
-  display:inline-flex;
-  align-items:center;
-  gap:10px;
-  padding:12px 32px;
-  background:linear-gradient(180deg,#3ddc97 0%,var(--green) 100%);
-  color:#fff;
-  border:none;
-  border-radius:var(--r-md);
-  font-size:14px;
-  font-weight:600;
-  cursor:pointer;
-  transition:all 150ms ease;
-}
-.btn-aceptar:hover{background:linear-gradient(180deg,#2ecc71 0%,#27ae60 100%);transform:translateY(-1px);}
-
-/* Modal overlay */
-.modal-overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(6,8,28,.85);
-  backdrop-filter:blur(8px);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:1000;
-  padding:20px;
-}
-.modal-overlay.active{display:flex}
-
 /* Textarea diagnóstico */
 textarea{
   resize:vertical;
@@ -263,11 +192,11 @@ textarea{
 /* Holograma */
 .hologram-container{
   position:absolute;
-  right:80px;
-  top:72%;
+  right:60px;
+  top:68%;
   transform:translateY(-50%);
-  width:260px;
-  height:380px;
+  width:200px;
+  height:260px;
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -275,15 +204,20 @@ textarea{
   background:transparent;
   mix-blend-mode:lighten;
 }
+.btn-save-fixed{
+  position:absolute;
+  bottom:32px;
+  right:32px;
+}
 .hologram{
   width:100%;
-  height:320px;
+  height:280px;
   position:relative;
 }
 .hologram svg{
   width:100%;
   height:100%;
-  filter:drop-shadow(0 0 25px rgba(56,199,244,.5));
+  filter:drop-shadow(0 0 20px rgba(56,199,244,.4));
 }
 .hologram-body{
   fill:none;
@@ -340,22 +274,19 @@ textarea{
   gap:10px;
   padding:14px 28px;
   border-radius:var(--r-md);
-  border:0;
-  background:transparent;
+  border:1px solid var(--green);
+  background:rgba(61,220,151,.12);
   font-size:15px;
-  font-weight:600;
-  color:var(--cyan);
+  font-weight:700;
+  color:var(--green);
   transition:all 150ms ease;
   cursor:pointer;
 }
 .btn-save:hover{
-  color:var(--blue);
-  transform:translateX(4px);
+  background:rgba(61,220,151,.2);
+  transform:translateY(-1px);
 }
-.btn-save svg{
-  width:18px;
-  height:18px;
-}
+.btn-save:active{transform:scale(.97)}
 
 /* Select con botón agregar */
 .select-with-add{
@@ -367,12 +298,12 @@ textarea{
   flex:1;
 }
 .btn-add-procedimiento{
-  width:32px;
-  height:32px;
-  border-radius:8px;
-  border:none;
-  background:var(--blue);
-  color:#fff;
+  width:15px;
+  height:15px;
+  border-radius:var(--r-sm);
+  border:1px solid var(--stroke-strong);
+  background:var(--panel-2);
+  color:var(--cyan);
   display:grid;
   place-items:center;
   cursor:pointer;
@@ -380,8 +311,38 @@ textarea{
   flex:none;
 }
 .btn-add-procedimiento:hover{
-  opacity:0.9;
-  transform:scale(1.05);
+  background:rgba(56,199,244,.15);
+  border-color:var(--cyan);
+}
+.procedimientos-tags{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:10px;
+}
+.procedimiento-tag{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 12px;
+  background:rgba(56,199,244,.1);
+  border:1px solid var(--cyan);
+  border-radius:20px;
+  font-size:12px;
+  color:var(--cyan);
+}
+.procedimiento-tag button{
+  width:16px;
+  height:16px;
+  border-radius:50%;
+  border:none;
+  background:rgba(255,90,110,.2);
+  color:var(--red);
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  font-size:10px;
+  line-height:1;
 }
 
 /* Mini modal agregar opción */
@@ -403,7 +364,7 @@ textarea{
   width:340px;
   box-shadow:0 20px 60px rgba(0,0,0,.5);
 }
-.mini-modal h4{
+.mini-modal h4{ 
   margin:0 0 4px;
   font-size:15px;
   font-weight:700;
@@ -416,11 +377,6 @@ textarea{
 }
 .mini-modal input{
   width:100%;
-  padding:10px 12px;
-  border:1px solid var(--stroke);
-  border-radius:var(--r-md);
-  background:var(--panel-2);
-  color:var(--txt);
   margin-bottom:16px;
 }
 .mini-modal-footer{
@@ -432,15 +388,12 @@ textarea{
   padding:8px 16px !important;
   border-radius:var(--r-md) !important;
   border:1px solid var(--stroke) !important;
-  background:var(--panel) !important;
-  color:var(--txt) !important;
+  background:transparent !important;
+  color:var(--txt-soft) !important;
   font-size:13px !important;
   font-weight:500 !important;
   cursor:pointer;
   transform:none !important;
-}
-.mini-modal-footer .btn-cancel:hover{
-  background:var(--panel-2) !important;
 }
 .mini-modal-footer .btn-confirm{
   padding:8px 16px !important;
@@ -454,6 +407,26 @@ textarea{
   transform:none !important;
 }
 .mini-modal-footer .btn-confirm:hover{background:var(--cyan) !important;transform:none !important;}
+
+/* Adaptación modo claro */
+html[data-theme="light"] .mini-modal{
+  background:#ffffff;
+  border-color:#e2e8f0;
+  box-shadow:0 20px 60px rgba(0,0,0,.15);
+}
+html[data-theme="light"] .mini-modal h4{color:#1a202c;}
+html[data-theme="light"] .mini-modal p{color:#64748b;}
+html[data-theme="light"] .mini-modal input{
+  background:#f8fafc;
+  border-color:#e2e8f0;
+  color:#1a202c;
+}
+html[data-theme="light"] .mini-modal input::placeholder{color:#94a3b8;}
+html[data-theme="light"] .mini-modal-footer .btn-cancel{
+  border-color:#e2e8f0 !important;
+  color:#64748b !important;
+}
+html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
 
 /* Botón y modal Agendar cita */
 .btn-agendar{
@@ -560,14 +533,59 @@ textarea{
   from{opacity:0;transform:translateY(16px);}
   to{opacity:1;transform:translateY(0);}
 }
-.cita-toast-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.cita-toast-icon{width:32px;height:32px;border-radius:50%;background:rgba(56,199,244,.15);display:flex;align-items:center;justify-content:center;flex:none;}
+.cita-toast-header{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:10px;
+}
+.cita-toast-icon{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  background:rgba(56,199,244,.15);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex:none;
+}
 .cita-toast-icon svg{color:var(--cyan,#38c7f4);}
-.cita-toast-title{font-size:14px;font-weight:700;color:var(--txt,#e0e6f0);}
-.cita-toast-body{font-size:12px;color:var(--txt-soft,#8fa3cf);line-height:1.5;margin-bottom:14px;padding-left:42px;}
-.cita-toast-actions{display:flex;justify-content:flex-end;gap:8px;}
-.btn-toast-ver{padding:7px 14px;border-radius:8px;border:1px solid var(--cyan,#38c7f4);background:rgba(56,199,244,.1);color:var(--cyan,#38c7f4);font-size:12px;font-weight:600;cursor:pointer;}
-.btn-toast-cerrar{padding:7px 14px;border-radius:8px;border:1px solid var(--stroke,#2e3650);background:transparent;color:var(--txt-soft,#8fa3cf);font-size:12px;cursor:pointer;}
+.cita-toast-title{
+  font-size:14px;
+  font-weight:700;
+  color:var(--txt,#e0e6f0);
+}
+.cita-toast-body{
+  font-size:12px;
+  color:var(--txt-soft,#8fa3cf);
+  line-height:1.5;
+  margin-bottom:14px;
+  padding-left:42px;
+}
+.cita-toast-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+}
+.btn-toast-ver{
+  padding:7px 14px;
+  border-radius:8px;
+  border:1px solid var(--cyan,#38c7f4);
+  background:rgba(56,199,244,.1);
+  color:var(--cyan,#38c7f4);
+  font-size:12px;
+  font-weight:600;
+  cursor:pointer;
+}
+.btn-toast-cerrar{
+  padding:7px 14px;
+  border-radius:8px;
+  border:1px solid var(--stroke,#2e3650);
+  background:transparent;
+  color:var(--txt-soft,#8fa3cf);
+  font-size:12px;
+  cursor:pointer;
+}
 
 /* Responsive */
 @media (max-width:1200px){
@@ -576,61 +594,87 @@ textarea{
   .form-group.span-2,
   .form-group.span-3{grid-column:span 2}
 }
-@media (max-width:768px){
-  .form-grid.personal,
-  .form-grid.medical{grid-template-columns:1fr}
-  .form-group.span-2,
-  .form-group.span-3{grid-column:span 1}
-  .form-card{padding:20px}
-  .patient-photo-container{position:static;margin:0 auto 20px;display:flex}
-  .form-grid.personal{padding-right:0!important}
-  .modal-body{grid-template-columns:1fr}
-  .modal-photo{padding:20px}
-  .form-footer{justify-content:center}
-  .btn-save{width:100%;justify-content:center}
-  .camera-controls{gap:20px}
-  .cam-btn .icon{width:36px;height:36px}
+/* ============ MODAL FOTO ============ */
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(6,8,28,.85);
+  backdrop-filter:blur(8px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:1000;
+  padding:20px;
 }
-@media (max-width:480px){
-  .form-card{padding:16px;border-radius:12px}
-  .section-title{font-size:14px;flex-wrap:wrap;gap:8px}
-  .btn-photo{padding:8px 12px;font-size:12px}
-  .form-group label{font-size:12px}
-  .form-group input,.form-group select,.form-group textarea{font-size:13px;padding:10px 12px}
-  .back-link{font-size:13px}
-  .modal-photo{padding:16px}
-  .camera-frame{height:160px}
-  .btn-save{font-size:13px;padding:12px 20px}
-  .camera-controls{gap:16px}
-  .cam-btn{font-size:11px}
-  .cam-btn .icon{width:32px;height:32px}
-}
+.modal-overlay.active{display:flex}
 
-/* Select resolución modal foto */
-.resolution-select{
-  width:100%;
-  padding:12px 14px;
-  border-radius:10px;
+/* ============ MODAL ÉXITO ============ */
+.modal-success-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(5,14,27,.85);
+  backdrop-filter:blur(8px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:2000;
+}
+.modal-success-overlay.active{display:flex}
+.modal-success{
+  background:linear-gradient(180deg,var(--card),var(--panel-2));
   border:1px solid var(--stroke-strong);
-  background:var(--panel-2);
-  color:var(--txt);
-  font:inherit;
-  font-size:13px;
-  cursor:pointer;
-  appearance:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238FA3CF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat:no-repeat;
-  background-position:right 12px center;
-  padding-right:36px;
+  border-radius:var(--r-lg);
+  padding:40px 50px;
+  text-align:center;
+  max-width:400px;
+  width:90%;
+  box-shadow:0 25px 50px rgba(0,0,0,.4);
 }
-.option-section h4{
-  font-size:13px;
+.modal-success-icon{
+  width:70px;
+  height:70px;
+  background:linear-gradient(135deg,var(--green),#2ecc71);
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:0 auto 24px;
+}
+.modal-success-icon svg{
+  width:35px;
+  height:35px;
+  color:#fff;
+}
+.modal-success h2{
+  font-size:22px;
   font-weight:600;
+  color:var(--txt);
   margin-bottom:12px;
+}
+.modal-success p{
+  font-size:14px;
   color:var(--txt-soft);
+  margin-bottom:28px;
+}
+.btn-aceptar{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 32px;
+  background:linear-gradient(180deg,#3ddc97 0%,var(--green) 100%);
+  color:#fff;
+  border:none;
+  border-radius:var(--r-md);
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all 150ms ease;
+}
+.btn-aceptar:hover{
+  background:linear-gradient(180deg,#2ecc71 0%,#27ae60 100%);
+  transform:translateY(-1px);
 }
 
-/* ===== MODAL FOTO ===== */
 .modal-photo{
   background:linear-gradient(180deg,var(--card),var(--panel-2));
   border:1px solid var(--stroke-strong);
@@ -639,10 +683,8 @@ textarea{
   max-width:900px;
   max-height:90vh;
   overflow-y:auto;
-  overflow-x:hidden;
   padding:28px 32px;
   animation:modalIn 300ms var(--ease-out);
-  box-sizing:border-box;
 }
 @keyframes modalIn{
   from{opacity:0;transform:scale(.95) translateY(20px)}
@@ -692,16 +734,6 @@ textarea{
   align-items:center;
   justify-content:center;
 }
-
-.camera-frame video,
-.camera-frame canvas{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  display:none;
-}
-.camera-frame.camera-active video{display:block}
-.camera-frame.camera-active .avatar-preview{display:none}
 
 /* Esquinas del marco */
 .corner{
@@ -773,6 +805,12 @@ textarea{
   gap:18px;
 }
 
+.option-section h4{
+  font-size:13px;
+  font-weight:600;
+  margin-bottom:12px;
+}
+
 .source-options{
   display:flex;
   flex-direction:column;
@@ -825,6 +863,24 @@ textarea{
   color:var(--txt-soft);
 }
 
+/* Select resolución */
+.resolution-select{
+  width:100%;
+  padding:12px 14px;
+  border-radius:10px;
+  border:1px solid var(--stroke-strong);
+  background:var(--panel-2);
+  color:var(--txt);
+  font:inherit;
+  font-size:13px;
+  cursor:pointer;
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238FA3CF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 12px center;
+  padding-right:36px;
+}
+
 /* Recomendaciones */
 .recommendations{
   background:rgba(46,123,246,.1);
@@ -843,14 +899,23 @@ textarea{
 }
 .rec-header svg{width:16px;height:16px}
 .recommendations ul{
-  margin:0;
-  padding-left:18px;
+  list-style:none;
   font-size:12px;
   color:var(--txt-soft);
   line-height:1.6;
 }
+.recommendations li{
+  position:relative;
+  padding-left:12px;
+}
+.recommendations li::before{
+  content:'•';
+  position:absolute;
+  left:0;
+  color:var(--cyan);
+}
 
-/* Modal footer */
+/* Footer modal */
 .modal-footer{
   display:flex;
   justify-content:flex-end;
@@ -860,102 +925,142 @@ textarea{
   border-top:1px solid var(--stroke);
 }
 .btn-cancel{
-  padding:10px 20px;
+  padding:12px 28px;
   border-radius:var(--r-md);
   border:1px solid var(--stroke-strong);
   background:transparent;
-  color:var(--txt-soft);
-  font-size:13px;
+  color:var(--txt);
+  font-size:14px;
   font-weight:600;
   cursor:pointer;
+  transition:all 150ms ease;
+}
+.btn-cancel:hover{
+  background:var(--panel-2);
 }
 .btn-confirm{
-  padding:10px 24px;
+  padding:12px 28px;
   border-radius:var(--r-md);
-  border:none;
+  border:1px solid var(--blue);
   background:var(--blue);
   color:#fff;
-  font-size:13px;
-  font-weight:600;
+  font-size:14px;
+  font-weight:700;
   cursor:pointer;
+  transition:all 150ms ease;
+}
+.btn-confirm:hover{
+  background:#1E5AE8;
+  transform:translateY(-1px);
 }
 
-/* Hover de botones de galería y reportes */
-.btn-outline.btn-galeria:hover{
-  background:#f59e0b !important;
-  color:#fff !important;
+@media (max-width:768px){
+  .form-card{padding:20px}
+  .form-grid.personal,
+  .form-grid.medical{grid-template-columns:1fr}
+  .form-group.span-2,
+  .form-group.span-3{grid-column:span 1}
+  .modal-body{grid-template-columns:1fr}
+  .modal-photo{padding:20px}
+  .patient-photo-container{position:static;margin:0 auto 20px;display:flex}
+  .form-grid.personal{padding-right:0!important}
+  .btn-save-fixed{position:static;margin-top:24px;width:100%;justify-content:center}
 }
-.btn-outline.btn-reportes:hover{
-  background:var(--cyan) !important;
-  color:#fff !important;
+@media (max-width:480px){
+  .form-card{padding:16px;border-radius:12px}
+  .section-title{font-size:14px;flex-wrap:wrap;gap:8px}
+  .btn-photo{padding:8px 12px;font-size:12px}
+  .form-group label{font-size:12px}
+  .form-group input,.form-group select,.form-group textarea{font-size:13px;padding:10px 12px}
+  .btn-save-fixed{font-size:13px;padding:12px 20px}
+  .back-link{font-size:13px}
+  .modal-photo{padding:16px}
+  .camera-frame{height:160px}
 }
-.btn-outline.btn-disabled:hover{
-  background:transparent !important;
-  color:#777 !important;
+
+.camera-frame video,
+.camera-frame canvas{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:none;
 }
+.camera-frame.camera-active video{display:block}
+.camera-frame.camera-active .avatar-preview{display:none}
+
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 
-  {{-- Link volver --}}
-  <a href="{{ route('pacientes.index') }}" class="back-link rise d1">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+  
+  <a href="<?php echo e(route('pacientes.index')); ?>" class="back-link rise d1">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
     Volver a pacientes
   </a>
 
-  {{-- Formulario --}}
-  <form id="pacienteForm" class="form-card rise d2" action="{{ route('pacientes.update', $paciente) }}" method="POST" enctype="multipart/form-data">
-    @csrf
-    @method('PUT')
-    <input type="hidden" name="paciente_id" value="{{ $paciente->id }}">
+  
+  <?php if(session('error')): ?>
+    <div style="margin-bottom:20px;padding:14px 18px;background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.4);border-radius:var(--r-md);color:#ff6b6b;font-size:14px;">
+      <?php echo e(session('error')); ?>
 
-    {{-- Sección Información Personal --}}
+    </div>
+  <?php endif; ?>
+  <?php if(session('success')): ?>
+    <div style="margin-bottom:20px;padding:14px 18px;background:rgba(46,204,113,.15);border:1px solid rgba(46,204,113,.4);border-radius:var(--r-md);color:#2ecc71;font-size:14px;">
+      <?php echo e(session('success')); ?>
+
+    </div>
+  <?php endif; ?>
+
+  
+  <form id="pacienteForm" class="form-card rise d2" action="<?php echo e(route('pacientes.store')); ?>" method="POST" enctype="multipart/form-data">
+    <?php echo csrf_field(); ?>
+    
+    
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
       <h2 class="section-title" style="margin:0;">Información personal</h2>
       <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-md);font-size:13px;">
         <span style="color:var(--txt-soft);">Folio:</span>
-        <span id="folioVisual" style="font-weight:700;color:var(--cyan);">{{ old('folio', $paciente->folio ?: $paciente->identificacion) }}</span>
-        <input type="hidden" name="folio" id="folioInput" value="{{ old('folio', $paciente->folio ?: $paciente->identificacion) }}">
+        <span style="font-weight:700;color:var(--cyan);"><?php echo e(old('folio', $folio ?? 'P-001')); ?></span>
+        <input type="hidden" name="folio" id="folioInput" value="<?php echo e(old('folio', $folio ?? 'P-001')); ?>">
+        <input type="hidden" name="identificacion" id="identificacionInput" value="<?php echo e(old('identificacion', old('folio', $folio ?? 'P-001'))); ?>">
       </div>
     </div>
 
     <div class="personal-layout">
-      {{-- Foto --}}
+      
       <div class="personal-photo-col">
         <div class="patient-photo-container" id="patientPhotoContainer">
-          @if($paciente->foto)
-            <img id="patientPhoto" src="{{ media_url($paciente->foto) }}" alt="Foto del paciente">
-            <div class="patient-photo-placeholder" id="patientPhotoPlaceholder" style="display:none;"></div>
-          @else
-            <div class="patient-photo-placeholder" id="patientPhotoPlaceholder"></div>
-            <img id="patientPhoto" style="display:none;" alt="Foto del paciente">
-          @endif
+          <div class="patient-photo-placeholder" id="patientPhotoPlaceholder"></div>
+          <img id="patientPhoto" style="display:none;" alt="Foto del paciente">
         </div>
         <input type="file" name="foto" id="inputFileFoto" accept="image/*" style="display:none;">
-        <button type="button" class="btn-photo" onclick="window.abrirModalFoto()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-          Modificar foto
+        <button type="button" class="btn-photo" id="btnAgregarFoto" style="width:100%;justify-content:center;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Agregar foto
         </button>
       </div>
-      {{-- Campos personales --}}
+      
       <div class="form-grid personal" style="flex:1;">
       <div class="form-group span-2">
         <label>Nombre completo</label>
-        <input type="text" name="nombre_completo" value="{{ old('nombre_completo', $paciente->nombre_completo) }}" required>
+        <input type="text" name="nombre_completo" value="<?php echo e(old('nombre_completo')); ?>" placeholder="Nombre completo del paciente" required>
       </div>
+
+
       <div class="form-group">
         <label>Fecha de nacimiento</label>
-        <input type="date" name="fecha_nacimiento" id="fechaNacimientoEdit" value="{{ old('fecha_nacimiento', optional($paciente->fecha_nacimiento)->format('Y-m-d')) }}" style="color-scheme:dark;">
+        <input type="date" name="fecha_nacimiento" id="fechaNacimiento" value="<?php echo e(old('fecha_nacimiento')); ?>" style="color-scheme:dark;" onclick="this.showPicker && this.showPicker()" onfocus="this.showPicker && this.showPicker()">
       </div>
       <div class="form-group">
         <label>Edad</label>
-        <input type="number" name="edad" id="edadCalculadaEdit" value="{{ old('edad', $paciente->edad) }}" readonly style="background:var(--panel-2);color:var(--txt-soft);">
+        <input type="number" name="edad" id="edadCalculada" value="<?php echo e(old('edad')); ?>" placeholder="--" readonly style="background:var(--panel-2);color:var(--txt-soft);cursor:default;">
       </div>
       <script>
         document.addEventListener('DOMContentLoaded', function() {
-          var fi = document.getElementById('fechaNacimientoEdit');
-          var fe = document.getElementById('edadCalculadaEdit');
+          var fi = document.getElementById('fechaNacimiento');
+          var fe = document.getElementById('edadCalculada');
           if (!fi || !fe) return;
           function calcE() {
             var v = fi.value; if (!v) { fe.value=''; return; }
@@ -975,54 +1080,50 @@ textarea{
       </script>
       <div class="form-group">
         <label>Peso</label>
-        <input type="number" step="0.01" name="peso" value="{{ old('peso', $paciente->peso) }}">
+        <input type="number" step="0.01" name="peso" value="<?php echo e(old('peso')); ?>" placeholder="Peso en kg">
       </div>
       <div class="form-group">
         <label>Altura</label>
-        <input type="number" step="0.01" name="altura" value="{{ old('altura', $paciente->altura) }}">
+        <input type="number" step="0.01" name="altura" value="<?php echo e(old('altura')); ?>" placeholder="Altura en metros">
       </div>
 
       <div class="form-group">
         <label>Sexo</label>
         <select name="sexo">
           <option value="">Selecciona sexo</option>
-          <option value="femenino" {{ old('sexo', $paciente->sexo) == 'femenino' ? 'selected' : '' }}>Femenino</option>
-          <option value="masculino" {{ old('sexo', $paciente->sexo) == 'masculino' ? 'selected' : '' }}>Masculino</option>
-          <option value="otro" {{ old('sexo', $paciente->sexo) == 'otro' ? 'selected' : '' }}>Otro</option>
+          <option value="femenino" <?php echo e(old('sexo') == 'femenino' ? 'selected' : ''); ?>>Femenino</option>
+          <option value="masculino" <?php echo e(old('sexo') == 'masculino' ? 'selected' : ''); ?>>Masculino</option>
+          <option value="otro" <?php echo e(old('sexo') == 'otro' ? 'selected' : ''); ?>>Otro</option>
         </select>
       </div>
       <div class="form-group span-2">
         <label>Dirección</label>
-        <input type="text" name="direccion" value="{{ old('direccion', $paciente->direccion) }}">
+        <input type="text" name="direccion" value="<?php echo e(old('direccion')); ?>" placeholder="CALLE, CP">
       </div>
 
       <div class="form-group">
         <label>Teléfono</label>
-        <input type="tel" name="telefono" value="{{ old('telefono', $paciente->telefono) }}">
+        <input type="tel" name="telefono" value="<?php echo e(old('telefono')); ?>" placeholder="722 162 0815">
       </div>
       <div class="form-group span-3">
         <label>e-mail</label>
-        <input type="email" name="email" value="{{ old('email', $paciente->email) }}">
+        <input type="email" name="email" value="<?php echo e(old('email')); ?>" placeholder="correo@ejemplo.com">
       </div>
-      </div>{{-- /form-grid personal --}}
-    </div>{{-- /personal-layout --}}
+      </div>
+    </div>
 
     <hr style="border:none;border-top:1px solid var(--stroke);margin:28px 0;">
 
-    {{-- Sección Información Médica --}}
+    
     <h2 class="section-title">Información médica</h2>
 
     <div style="display:flex;gap:32px;align-items:flex-start;">
-      {{-- Columna izquierda: Procedimiento + Fecha --}}
+      
       <div style="flex:1;">
         <div class="form-group" style="margin-bottom:18px;">
           <label>Médico</label>
           <div class="select-with-add">
-            <select id="medicoSelectMed" name="medico" data-campo="medico">
-              @if($paciente->medico)
-                <option value="{{ Str::slug($paciente->medico, '-') }}" selected>{{ $paciente->medico }}</option>
-              @endif
-            </select>
+            <input type="text" id="medicoSelectMed" name="medico" data-campo="medico" placeholder="Ej. Dr. Victor" style="flex:1;">
             <button type="button" class="btn-add-procedimiento" onclick="addMedicoMed()" title="Agregar médico">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
@@ -1031,48 +1132,55 @@ textarea{
         <div class="form-group" style="margin-bottom:18px;">
           <label>Procedimiento</label>
           <div class="select-with-add">
-          <select id="procedimientoSelect" name="procedimiento" data-campo="procedimiento">
-            @if($paciente->procedimiento)
-              <option value="{{ Str::slug($paciente->procedimiento, '-') }}" selected>{{ $paciente->procedimiento }}</option>
-            @endif
-          </select>
+          <input type="text" id="procedimientoSelect" name="procedimiento" data-campo="procedimiento" placeholder="Ej. Colonoscopia" style="flex:1;">
             <button type="button" class="btn-add-procedimiento" onclick="addNuevoProcedimiento()" title="Agregar procedimiento">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
           </div>
+          <div id="procedimientosAgregados" class="procedimientos-tags"></div>
         </div>
-      
-        
-        
+        <div class="form-group" style="margin-bottom:18px;">
+          <label></label>
+          <div class="select-with-add">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:18px;">
+          <label></label>
+          <div class="select-with-add">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:18px;">
+          <label></label>
+          <div class="select-with-add"> 
+          </div>
+        </div>
       </div>
-      {{-- Columna derecha: Diagnóstico --}}
+      
       <div style="flex:1;display:flex;flex-direction:column;">
         <div class="form-group" style="flex:1;">
           <label>Diagnóstico Preliminar</label>
-          <textarea name="diagnostico_preliminar" placeholder="Define lo que podría tener" style="min-height:220px;width:100%;">{{ old('diagnostico_preliminar', $paciente->diagnostico_preliminar) }}</textarea>
+          <textarea name="diagnostico_preliminar" placeholder="Define lo que podría tener" style="min-height:220px;width:100%;"><?php echo e(old('diagnostico_preliminar')); ?></textarea>
         </div>
       </div>
     </div>
 
     <hr style="border:none;border-top:1px solid var(--stroke);margin:28px 0;">
 
-    {{-- Enfermedad, Alergias y Estudios --}}
+    
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
       <div class="form-group">
         <label>Enfermedad</label>
-        <textarea name="enfermedad" placeholder="Describe la enfermedad o padecimiento del paciente" style="min-height:110px;width:100%;">{{ old('enfermedad', $paciente->enfermedad) }}</textarea>
+        <textarea name="enfermedad" placeholder="Describe la enfermedad o padecimiento del paciente" style="min-height:110px;width:100%;"><?php echo e(old('enfermedad')); ?></textarea>
       </div>
       <div class="form-group">
         <label>Alergias</label>
-        <textarea name="alergias" placeholder="Especifica las alergias del paciente (medicamentos, alimentos, etc.)" style="min-height:110px;width:100%;">{{ old('alergias', $paciente->alergias) }}</textarea>
+        <textarea name="alergias" placeholder="Especifica las alergias del paciente (medicamentos, alimentos, etc.)" style="min-height:110px;width:100%;"><?php echo e(old('alergias')); ?></textarea>
       </div>
     </div>
 
     <div class="form-group" style="margin-bottom:24px;">
       <label>Estudios (archivos)</label>
       <div style="border-radius:var(--r-md);padding:20px;background:var(--panel-2);border:1px solid var(--stroke);">
-
-        {{-- Barra superior --}}
         <input type="file" name="estudios_archivos[]" id="estudiosArchivos" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.mp4,.mov,.avi" style="display:none;">
         <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:4px;">
           <button type="button" onclick="document.getElementById('estudiosArchivos').click()" style="display:flex;align-items:center;gap:8px;padding:9px 18px;border-radius:var(--r-md);border:1px solid var(--stroke);background:var(--card);color:var(--txt);font:inherit;font-size:13px;font-weight:600;cursor:pointer;">
@@ -1081,95 +1189,11 @@ textarea{
           </button>
           <span style="font-size:12.5px;color:var(--txt-soft);">PDF, imágenes, Word — múltiples archivos permitidos</span>
         </div>
-
-        {{-- Preview de archivos recién seleccionados (antes de guardar) --}}
         <div id="estudiosArchivosList" style="display:none;margin-top:16px;">
           <p style="font-size:12px;font-weight:700;color:var(--txt-soft);margin:0 0 10px;text-transform:uppercase;letter-spacing:.5px;">Por subir</p>
           <div id="estudiosArchivosGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;"></div>
         </div>
-
-        {{-- Archivos ya guardados --}}
-        @php
-          $docsGuardados = \App\Models\PacienteDocumento::where('paciente_id', $paciente->id)
-            ->orderByDesc('created_at')
-            ->get();
-        @endphp
-
-        @if($docsGuardados->count() > 0)
-        <div style="margin-top:20px;" id="docsGuardadosSection">
-          <p style="font-size:12px;font-weight:700;color:var(--txt-soft);margin:0 0 12px;text-transform:uppercase;letter-spacing:.5px;">Archivos cargados ({{ $docsGuardados->count() }})</p>
-          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;">
-            @foreach($docsGuardados as $doc)
-            @php
-              $ext = strtolower(pathinfo($doc->nombre_original ?? $doc->path, PATHINFO_EXTENSION));
-              $isImg = in_array($ext, ['jpg','jpeg','png','webp','gif']);
-              $isPdf = $ext === 'pdf';
-              $isVideo = in_array($ext, ['mp4','mov','avi','mkv','webm']);
-              $isDoc = in_array($ext, ['doc','docx']);
-              $url = media_url($doc->path);
-              $nombre = $doc->nombre_original ?? basename($doc->path);
-              $tipo = $isImg ? 'imagen' : ($isPdf ? 'pdf' : ($isVideo ? 'video' : 'otro'));
-              $kb = $doc->size_bytes ?? 0;
-              if ($kb >= 1073741824) $size = round($kb/1073741824,1).' GB';
-              elseif ($kb >= 1048576) $size = round($kb/1048576,1).' MB';
-              elseif ($kb >= 1024) $size = round($kb/1024,1).' KB';
-              else $size = $kb.' B';
-              if($isImg) { $iconBg='#f59e0b22'; $iconColor='#f59e0b'; $iconLabel='JPG'; }
-              elseif($isPdf) { $iconBg='#ef444422'; $iconColor='#ef4444'; $iconLabel='PDF'; }
-              elseif($isVideo) { $iconBg='#f9731622'; $iconColor='#f97316'; $iconLabel='MP4'; }
-              elseif($isDoc) { $iconBg='#3b82f622'; $iconColor='#3b82f6'; $iconLabel='DOC'; }
-              else { $iconBg='#6b728022'; $iconColor='#6b7280'; $iconLabel=strtoupper($ext) ?: 'FILE'; }
-            @endphp
-            <div class="doc-card" style="position:relative;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--card);border:1px solid var(--stroke);cursor:pointer;transition:border-color 150ms;"
-                 onclick="abrirVisorArchivo('{{ $url }}','{{ addslashes($nombre) }}','{{ $tipo }}')"
-                 onmouseenter="this.style.borderColor='var(--blue)'" onmouseleave="this.style.borderColor='var(--stroke)'">
-              {{-- Icono tipo badge --}}
-              <div style="width:38px;height:44px;border-radius:6px;background:{{ $iconBg }};display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">
-                @if($isImg)
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ $iconColor }}" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-                @elseif($isPdf)
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ $iconColor }}" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                @elseif($isVideo)
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ $iconColor }}" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-                @else
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ $iconColor }}" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                @endif
-                <span style="font-size:7px;font-weight:800;color:{{ $iconColor }};margin-top:2px;letter-spacing:.3px;">{{ $iconLabel }}</span>
-              </div>
-              {{-- Info --}}
-              <div style="flex:1;min-width:0;">
-                <p style="margin:0;font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ $nombre }}">{{ $nombre }}</p>
-                <p style="margin:3px 0 0;font-size:11px;color:var(--txt-soft);">{{ $size }} &bull; {{ $doc->created_at->format('d M Y') }}</p>
-              </div>
-              {{-- Menú 3 puntos --}}
-              <div style="position:relative;flex-shrink:0;" onclick="event.stopPropagation()">
-                <button type="button" class="doc-menu-btn"
-                  onclick="toggleDocMenu(this)"
-                  style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:var(--txt-soft);">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
-                </button>
-                <div class="doc-menu-dropdown" style="display:none;position:absolute;right:0;top:32px;background:var(--card);border:1px solid var(--stroke);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:200;min-width:140px;overflow:hidden;">
-                  <button type="button" onclick="abrirVisorArchivo('{{ $url }}','{{ addslashes($nombre) }}','{{ $tipo }}')" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:transparent;color:var(--txt);font-size:13px;cursor:pointer;text-align:left;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                    Ver archivo
-                  </button>
-                  <a href="{{ $url }}" download="{{ $nombre }}" style="display:flex;align-items:center;gap:8px;padding:10px 14px;color:var(--txt);font-size:13px;text-decoration:none;" onclick="cerrarTodosMenus()">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    Descargar
-                  </a>
-                  <button type="button" onclick="eliminarDocumento({{ $doc->id }}, this)" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:transparent;color:#ef4444;font-size:13px;cursor:pointer;text-align:left;border-top:1px solid var(--stroke);">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-                    Eliminar
-                  </button>
-                </div>
-              </div>
-            </div>
-            @endforeach
-          </div>
-        </div>
-        @endif
-
-        {{-- Modal visor de archivos --}}
+        
         <div id="visorArchivoOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);align-items:center;justify-content:center;">
           <div style="background:var(--card);border:1px solid var(--stroke);border-radius:16px;width:min(960px,95vw);max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.6);">
             <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--stroke);flex-shrink:0;">
@@ -1190,53 +1214,18 @@ textarea{
       </div>
     </div>
 
-    {{-- Sección Estudios del paciente --}}
-    <hr style="border:none;border-top:1px solid var(--stroke);margin:28px 0;">
     
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-      <div>
-        <h2 class="section-title" style="margin-bottom:4px;">Estudios del paciente</h2>
-        <p style="color:var(--txt-soft);font-size:13px;margin:0;">Gestiona los estudios, imágenes, videos y reportes del paciente.</p>
-      </div>
-    </div>
-
-@php
-  $tieneEstudios = $paciente->estudios()->count() > 0;
-  $tieneArchivos = \App\Models\EstudioArchivo::where('paciente_id', $paciente->id)->count() > 0;
-  $tieneReportes = \App\Models\Reporte::whereHas('estudio', fn ($q) => $q->where('paciente_id', $paciente->id))->count() > 0;
-  $puedeVerGaleria = $tieneEstudios || $tieneArchivos;
-  $puedeVerReportes = $tieneEstudios || $tieneReportes;
-@endphp
-
-    <div style="display:flex;gap:12px;margin-bottom:28px;flex-wrap:wrap;">
-      <a href="{{ $puedeVerGaleria ? route('galeria.paciente', $paciente->id) : '#' }}"
-         class="btn-outline {{ $puedeVerGaleria ? 'btn-galeria' : 'btn-disabled' }}"
-         style="padding:12px 24px;font-size:14px;border:2px solid {{ $puedeVerGaleria ? '#f59e0b' : '#555' }};color:{{ $puedeVerGaleria ? '#f59e0b' : '#777' }};background:transparent;border-radius:var(--r-md);cursor:{{ $puedeVerGaleria ? 'pointer' : 'not-allowed' }};transition:all 150ms ease;display:inline-flex;align-items:center;text-decoration:none;"
-         {{ $puedeVerGaleria ? '' : 'onclick="return false;"' }}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;"><rect x="3" y="4" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="4" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="20"/><line x1="4" y1="12" x2="2" y2="12"/><line x1="22" y1="12" x2="20" y2="12"/></svg>
-        Editar galería
-      </a>
-      <a href="{{ $puedeVerReportes ? route('nuevo-estudio', ['paciente' => $paciente->id]) : '#' }}"
-         class="btn-outline {{ $puedeVerReportes ? 'btn-reportes' : 'btn-disabled' }}"
-         style="padding:12px 24px;font-size:14px;border:1px solid {{ $puedeVerReportes ? 'var(--cyan)' : '#555' }};color:{{ $puedeVerReportes ? 'var(--cyan)' : '#777' }};background:transparent;border-radius:var(--r-md);cursor:{{ $puedeVerReportes ? 'pointer' : 'not-allowed' }};transition:all 150ms ease;display:inline-flex;align-items:center;text-decoration:none;"
-         {{ $puedeVerReportes ? '' : 'onclick="return false;"' }}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-        Editar reportes
-      </a>
-    </div>
-
-    {{-- Botón guardar --}}
     <div style="display:flex;justify-content:flex-end;margin-top:28px;">
-      <button type="submit" class="btn-save" id="btnGuardarInfo" style="background:var(--green);color:#fff;border-color:var(--green);">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        Guardar cambios
+      <button type="submit" class="btn-save" id="btnGuardarPaciente">
+        Guardar paciente
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </button>
     </div>
 
   </form>
 
 
-  {{-- Toast cita guardada --}}
+  
   <div class="cita-toast" id="citaToast">
     <div class="cita-toast-header">
       <div class="cita-toast-icon">
@@ -1247,11 +1236,11 @@ textarea{
     <div class="cita-toast-body" id="citaToastBody">—</div>
     <div class="cita-toast-actions">
       <button class="btn-toast-cerrar" onclick="document.getElementById('citaToast').classList.remove('active')">Cerrar</button>
-      <button class="btn-toast-ver" onclick="verDetallesCitaEdit()">Ver detalles</button>
+      <button class="btn-toast-ver" onclick="verDetallesCita()">Ver detalles</button>
     </div>
   </div>
 
-  {{-- Modal detalle de cita --}}
+  
   <div class="modal-cita-overlay" id="modalDetalleCita">
     <div class="modal-cita">
       <h3>Detalles de la cita</h3>
@@ -1262,26 +1251,26 @@ textarea{
     </div>
   </div>
 
-  {{-- Modal Agendar Cita --}}
-  <div class="modal-cita-overlay" id="modalCitaEdit">
+  
+  <div class="modal-cita-overlay" id="modalCita">
     <div class="modal-cita">
       <h3>Agendar cita</h3>
       <p>Selecciona la fecha y hora para la cita del paciente</p>
       <div class="form-group">
         <label>Fecha de la cita</label>
-        <input type="date" id="citaFechaEdit" style="width:100%;">
+        <input type="date" id="citaFecha" style="width:100%;">
       </div>
       <div class="form-group">
         <label>Hora</label>
-        <input type="time" id="citaHoraEdit" style="width:100%;">
+        <input type="time" id="citaHora" style="width:100%;">
       </div>
       <div class="form-group">
         <label>Motivo</label>
-        <input type="text" id="citaMotivoEdit" placeholder="Consulta, seguimiento..." style="width:100%;">
+        <input type="text" id="citaMotivo" placeholder="Consulta, seguimiento..." style="width:100%;">
       </div>
       <div class="modal-cita-footer">
-        <button class="btn-cita-cancel" onclick="document.getElementById('modalCitaEdit').classList.remove('active')">Cancelar</button>
-        <button class="btn-cita-confirm" onclick="confirmarCitaEdit()">
+        <button class="btn-cita-cancel" onclick="document.getElementById('modalCita').classList.remove('active')">Cancelar</button>
+        <button class="btn-cita-confirm" onclick="confirmarCita()">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
           Confirmar cita
         </button>
@@ -1289,22 +1278,24 @@ textarea{
     </div>
   </div>
 
-  {{-- Modal éxito --}}
-  <div class="modal-success-overlay" id="modalSuccessEdit">
+  
+  <div class="modal-success-overlay" id="modalSuccess">
     <div class="modal-success">
       <div class="modal-success-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
       </div>
-      <h2>¡Datos Guardados!</h2>
-      <p>La información del paciente ha sido actualizada correctamente.</p>
-      <button class="btn-aceptar" onclick="window.location.href='{{ route('pacientes.index') }}'">
-        Aceptar
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      <h2>¡Paciente registrado!</h2>
+      <p>El paciente ha sido registrado exitosamente en el sistema.</p>
+      <button class="btn-aceptar" onclick="window.location.href='<?php echo e(route('agendar')); ?>'">
+        Ir a agenda
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       </button>
     </div>
   </div>
 
-  {{-- Modal de captura de foto --}}
+  
   <div class="modal-overlay" id="modalFoto">
     <div class="modal-photo">
       <div class="modal-header">
@@ -1313,7 +1304,7 @@ textarea{
       </div>
 
       <div class="modal-body">
-        {{-- Panel izquierdo: Preview --}}
+        
         <div class="preview-panel">
           <h3>Vista previa</h3>
           <div class="camera-frame">
@@ -1345,7 +1336,7 @@ textarea{
           </div>
         </div>
 
-        {{-- Panel derecho: Opciones --}}
+        
         <div class="options-panel">
           <div class="option-section">
             <h4>Seleccionar fuente</h4>
@@ -1401,21 +1392,23 @@ textarea{
     </div>
   </div>
 
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
+<?php $__env->stopSection(); ?>
 
-  // ===== MINI MODAL AGREGAR OPCIÓN =====
+<?php $__env->startPush('scripts'); ?>
+<script>
+(function(){
+
+  // ===== MINI MODAL AGREGAR OPCIÓN (se inyecta en body) =====
   (function(){
     var _selId = null;
-    var html = '<div id="_mm" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:99999;align-items:center;justify-content:center;">'
-      +'<div style="background:#1a2035;border:1px solid #2e3d6b;border-radius:14px;padding:28px 24px 20px;width:340px;max-width:92vw;box-shadow:0 24px 64px rgba(0,0,0,.6);">'
-      +'<h4 id="_mmT" style="margin:0 0 4px;font-size:15px;font-weight:700;color:#e0e6f0;">Agregar</h4>'
-      +'<p id="_mmD" style="margin:0 0 14px;font-size:12px;color:#8fa3cf;">Escribe el nombre</p>'
-      +'<input id="_mmI" type="text" placeholder="Nombre..." autocomplete="off" style="display:block;width:100%;box-sizing:border-box;margin-bottom:16px;padding:10px 12px;border-radius:8px;border:1px solid #3d4f7a;background:#252b40;color:#e0e6f0;font-size:14px;">'
-      +'<div style="display:flex;justify-content:flex-end;gap:8px;">'
-      +'<button id="_mmC" type="button" style="padding:8px 18px;border-radius:8px;border:1px solid #2e3d6b;background:transparent;color:#8fa3cf;font-size:13px;cursor:pointer;">Cancelar</button>'
-      +'<button id="_mmO" type="button" style="padding:8px 18px;border-radius:8px;border:none;background:#2e7bf6;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">Agregar</button>'
+    var html = '<div id="_mm" class="mini-modal-overlay" style="display:none;">'
+      +'<div class="mini-modal">'
+      +'<h4 id="_mmT">Agregar</h4>'
+      +'<p id="_mmD">Escribe el nombre</p>'
+      +'<input id="_mmI" type="text" placeholder="Nombre..." autocomplete="off">'
+      +'<div class="mini-modal-footer">'
+      +'<button id="_mmC" type="button" class="btn-cancel">Cancelar</button>'
+      +'<button id="_mmO" type="button" class="btn-confirm">Agregar</button>'
       +'</div></div></div>';
     document.body.insertAdjacentHTML('beforeend', html);
     var ov = document.getElementById('_mm');
@@ -1437,7 +1430,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Si el select tiene data-campo y estamos editando (hay paciente_id), guardar en base de datos
       if (campo && pacienteId) {
-        fetch('{{ route("pacientes.update-campo", ":paciente_id") }}'.replace(':paciente_id', pacienteId), {
+        fetch('<?php echo e(route("pacientes.update-campo", ":paciente_id")); ?>'.replace(':paciente_id', pacienteId), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -1445,27 +1438,40 @@ document.addEventListener('DOMContentLoaded', function() {
           },
           body: JSON.stringify({ campo: campo, valor: n })
         })
-        .then(function(response){ return response.json(); })
-        .then(function(data){
+        .then(response => response.json())
+        .then(data => {
           if (data.success) {
-            s.innerHTML = '';
-            var o = document.createElement('option');
-            o.value = data.valor.toLowerCase().replace(/\s+/g,'-');
-            o.textContent = data.valor;
-            o.selected = true;
-            s.appendChild(o);
+            if (s && s.tagName === 'INPUT') {
+              s.value = data.valor;
+            } else {
+              s.innerHTML = '';
+              var o = document.createElement('option');
+              o.value = data.valor.toLowerCase().replace(/\s+/g,'-');
+              o.textContent = data.valor;
+              o.selected = true;
+              s.appendChild(o);
+            }
             window.cerrarMiniModal();
           }
         })
-        .catch(function(error){
+        .catch(error => {
           console.error('Error:', error);
-          agregarOpcionSelect(s, n);
+          if (s && s.tagName === 'INPUT') {
+            s.value = n;
+          } else {
+            agregarOpcionSelect(s, n);
+          }
           window.cerrarMiniModal();
         });
         return;
       }
       
-      agregarOpcionSelect(s, n);
+      // En create (sin paciente_id), asignar al input de texto
+      if (s && s.tagName === 'INPUT') {
+        s.value = n;
+      } else {
+        agregarOpcionSelect(s, n);
+      }
       window.cerrarMiniModal();
     };
 
@@ -1491,292 +1497,155 @@ document.addEventListener('DOMContentLoaded', function() {
   window.addReferidoMed       = function(){ window.abrirMiniModal('referidoSelectMed','Agregar referido','Nombre del referido'); };
   window.addEquipo            = function(){ window.abrirMiniModal('equipoSelect','Agregar equipo','Nombre del equipo'); };
 
-  // ===== GUARDAR INFORMACIÓN ASÍNCRONA =====
-  const pacienteForm = document.getElementById('pacienteForm');
-  const btnGuardarInfo = document.getElementById('btnGuardarInfo');
-  const modalSuccessEdit = document.getElementById('modalSuccessEdit');
+  const btnAgregarFotoOld = null; /* reemplazado por FOTO DEL PACIENTE */
+  const modalFotoOld = null; /* reemplazado por FOTO DEL PACIENTE */
+  const btnCancelarFotoOld = null; /* reemplazado por FOTO DEL PACIENTE */
 
-  if (pacienteForm) {
-    pacienteForm.addEventListener('submit', async function(e) {
-      e.preventDefault();
+  // Input file del formulario
+  const inputFileFotoOld = null; /* reemplazado por FOTO DEL PACIENTE */
 
-      const archivoInput = document.getElementById('estudiosArchivos');
-      const numArchivos = archivoInput ? archivoInput.files.length : 0;
-      console.log('[Guardar] Archivos en input:', numArchivos);
+  // Referencias al recuadro de foto
+  const patientPhotoContainer = document.getElementById('patientPhotoContainer');
+  const patientPhotoOld = null; /* reemplazado por FOTO DEL PACIENTE */
+  const patientPhotoPlaceholderOld = null; /* reemplazado por FOTO DEL PACIENTE */
+  const btnUsarFotoOld = null; /* reemplazado por FOTO DEL PACIENTE */
 
-      const formData = new FormData(pacienteForm);
-      console.log('[Guardar] FormData keys:', [...formData.keys()]);
-
-      const criticalToken = await window.CriticalSecurity.authorize(
-        'patients',
-        'Confirma tu contraseña para editar la información de este paciente.'
-      );
-      if (criticalToken === null) return;
-
-      if (btnGuardarInfo) {
-        btnGuardarInfo.disabled = true;
-        btnGuardarInfo.style.opacity = '.7';
-      }
-
-      try {
-        const response = await fetch(pacienteForm.action, {
-          method: 'POST',
-          body: formData,
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-            'X-Critical-Authorization': criticalToken
+  // Variable para almacenar la foto actual (base64)
+  let currentPhotoDataOld = null;
+// Cargar procedimientos personalizados desde localStorage
+  function cargarProcedimientosPersonalizados() {
+    const guardados = localStorage.getItem('procedimientosPersonalizados');
+    if (guardados) {
+      const lista = JSON.parse(guardados);
+      const select = document.getElementById('procedimientoSelect');
+      // Agregar opciones personalizadas antes de "Otro"
+      lista.forEach(proc => {
+        // Verificar si ya existe
+        let existe = false;
+        for (let i = 0; i < select.options.length; i++) {
+          if (select.options[i].value === proc.valor) {
+            existe = true;
+            break;
           }
-        });
-
-        console.log('[Guardar] Response status:', response.status);
-        const data = await response.json().catch(() => null);
-        console.log('[Guardar] Response data:', data);
-
-        if (!response.ok && response.status !== 302) {
-          const message = data?.message || 'No se pudieron guardar los cambios. Revisa los campos.';
-          alert(message);
-          return;
         }
-
-        if (numArchivos > 0) {
-          window.location.reload();
-          return;
+        if (!existe) {
+          const option = document.createElement('option');
+          option.value = proc.valor;
+          option.textContent = proc.texto;
+          // Insertar antes de la última opción (Otro)
+          select.insertBefore(option, select.options[select.options.length - 1]);
         }
-
-        if (modalSuccessEdit) {
-          modalSuccessEdit.classList.add('active');
-        } else {
-          window.location.href = '{{ route('pacientes.index') }}';
-        }
-      } catch (error) {
-        console.error('[Guardar] Error:', error);
-        alert('Ocurrió un error al actualizar el paciente.');
-      } finally {
-        if (btnGuardarInfo) {
-          btnGuardarInfo.disabled = false;
-          btnGuardarInfo.style.opacity = '1';
-        }
-      }
-    });
-  }
-
-  // ===== FOTO DEL PACIENTE: GALERÍA Y CÁMARA REAL =====
-  const modalFoto = document.getElementById('modalFoto');
-  const btnCancelarFoto = document.getElementById('btnCancelarFoto');
-  const btnUsarFoto = document.getElementById('btnUsarFoto');
-  const inputFileFoto = document.getElementById('inputFileFoto');
-  const patientPhoto = document.getElementById('patientPhoto');
-  const patientPhotoPlaceholder = document.getElementById('patientPhotoPlaceholder');
-  const cameraFrame = document.querySelector('.camera-frame');
-  const avatarPreview = document.querySelector('.avatar-preview');
-
-  let cameraStream = null;
-  let currentPhotoData = null;
-
-  function prepararVideoCamara() {
-    if (!cameraFrame) return null;
-
-    let video = document.getElementById('cameraVideoPaciente');
-    if (!video) {
-      video = document.createElement('video');
-      video.id = 'cameraVideoPaciente';
-      video.autoplay = true;
-      video.playsInline = true;
-      video.muted = true;
-      cameraFrame.appendChild(video);
-    }
-
-    let canvas = document.getElementById('cameraCanvasPaciente');
-    if (!canvas) {
-      canvas = document.createElement('canvas');
-      canvas.id = 'cameraCanvasPaciente';
-      cameraFrame.appendChild(canvas);
-    }
-
-    return { video, canvas };
-  }
-
-  async function iniciarCamaraPaciente() {
-    const media = prepararVideoCamara();
-    if (!media || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      alert('Tu navegador no permite abrir la cámara desde aquí. Usa la opción Subir imagen.');
-      return;
-    }
-
-    try {
-      detenerCamaraPaciente();
-      cameraStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user' },
-        audio: false
       });
-
-      media.video.srcObject = cameraStream;
-      cameraFrame.classList.add('camera-active');
-      currentPhotoData = null;
-    } catch (error) {
-      alert('No se pudo abrir la cámara. Revisa permisos del navegador o usa Subir imagen.');
     }
   }
 
-  function detenerCamaraPaciente() {
-    if (cameraStream) {
-      cameraStream.getTracks().forEach(track => track.stop());
-      cameraStream = null;
-    }
+  // Cargar al iniciar
+  cargarProcedimientosPersonalizados();
 
-    if (cameraFrame) {
-      cameraFrame.classList.remove('camera-active');
-    }
-  }
+  // Arreglo para guardar procedimientos seleccionados
+  let procedimientosGuardados = [];
 
-  function asignarArchivoDesdeBlob(blob) {
-    if (!inputFileFoto) return;
-
-    const file = new File([blob], 'foto-paciente.png', { type: 'image/png' });
-    const dataTransfer = new DataTransfer();
-    dataTransfer.items.add(file);
-    inputFileFoto.files = dataTransfer.files;
-  }
-
-  function mostrarFotoSeleccionada(dataUrl) {
-    if (patientPhoto && patientPhotoPlaceholder) {
-      patientPhoto.src = dataUrl;
-      patientPhoto.style.display = 'block';
-      patientPhotoPlaceholder.style.display = 'none';
-    }
-
-    if (avatarPreview) {
-      avatarPreview.style.backgroundImage = `url(${dataUrl})`;
-      avatarPreview.style.backgroundSize = 'cover';
-      avatarPreview.style.backgroundPosition = 'center';
-      avatarPreview.textContent = '';
-    }
-  }
-
-  function capturarFotoDesdeCamara() {
-    const media = prepararVideoCamara();
-    if (!media || !cameraStream) return false;
-
-    const video = media.video;
-    const canvas = media.canvas;
-
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 480;
-
-    const context = canvas.getContext('2d');
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    currentPhotoData = canvas.toDataURL('image/png');
-
-    canvas.toBlob(function(blob) {
-      if (blob) asignarArchivoDesdeBlob(blob);
-    }, 'image/png');
-
-    mostrarFotoSeleccionada(currentPhotoData);
-    detenerCamaraPaciente();
-
-    return true;
-  }
-
-  // Función global para abrir modal desde botones inline
-  window.abrirModalFoto = function() {
-    if (!modalFoto) return;
-    modalFoto.classList.add('active');
-
-    if (avatarPreview && !currentPhotoData) {
-      avatarPreview.textContent = '';
-      avatarPreview.style.backgroundImage = '';
+  // Función para mostrar/ocultar input de "Otro"
+  window.onProcedimientoChange = function() {
+    const select = document.getElementById('procedimientoSelect');
+    const otroContainer = document.getElementById('otroProcedimientoContainer');
+    
+    if (select.value === 'otro') {
+      otroContainer.style.display = 'block';
+      document.getElementById('otroProcedimientoInput').focus();
+    } else {
+      otroContainer.style.display = 'none';
     }
   };
 
-  if (btnCancelarFoto && modalFoto) {
-    btnCancelarFoto.addEventListener('click', function() {
-      detenerCamaraPaciente();
-      modalFoto.classList.remove('active');
-    });
-  }
+  // Función para agregar procedimiento
+  window.addProcedimiento = function() {
+    const select = document.getElementById('procedimientoSelect');
+    const container = document.getElementById('procedimientosAgregados');
+    const otroInput = document.getElementById('otroProcedimientoInput');
+    
+    let valor = select.value;
+    let texto = select.options[select.selectedIndex].text;
 
-  if (modalFoto) {
-    modalFoto.addEventListener('click', function(e) {
-      if (e.target === modalFoto) {
-        detenerCamaraPaciente();
-        modalFoto.classList.remove('active');
-      }
-    });
-  }
-
-  const sourceOptions = document.querySelectorAll('.source-option');
-  sourceOptions.forEach(function(option, index) {
-    option.addEventListener('click', function() {
-      sourceOptions.forEach(o => o.classList.remove('active'));
-      option.classList.add('active');
-
-      if (index === 0) {
-        iniciarCamaraPaciente();
-      }
-
-      if (index === 1 && inputFileFoto) {
-        detenerCamaraPaciente();
-        inputFileFoto.click();
-      }
-    });
-  });
-
-  const camBtns = document.querySelectorAll('.cam-btn');
-  camBtns.forEach(function(btn, index) {
-    btn.addEventListener('click', function(e) {
-      e.preventDefault();
-
-      camBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      if (index === 0 && inputFileFoto) {
-        detenerCamaraPaciente();
-        inputFileFoto.click();
-      }
-
-      if (index === 1) {
-        if (cameraStream) {
-          capturarFotoDesdeCamara();
-        } else {
-          iniciarCamaraPaciente();
-        }
-      }
-
-      if (index === 2) {
-        iniciarCamaraPaciente();
-      }
-    });
-  });
-
-  if (inputFileFoto) {
-    inputFileFoto.addEventListener('change', function(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      detenerCamaraPaciente();
-
-      const reader = new FileReader();
-      reader.onload = function(event) {
-        currentPhotoData = event.target.result;
-        mostrarFotoSeleccionada(currentPhotoData);
-      };
-      reader.readAsDataURL(file);
-    });
-  }
-
-  if (btnUsarFoto && modalFoto) {
-    btnUsarFoto.addEventListener('click', function() {
-      if (!currentPhotoData) {
-        showAppAlert('Aviso', 'Selecciona una imagen o toma una foto primero.');
+    // Si es "Otro", tomar el valor del input
+    if (valor === 'otro') {
+      texto = otroInput.value.trim();
+      if (!texto) {
+        alert('Por favor ingrese el nombre del procedimiento');
         return;
       }
+      // Crear un valor slug para el procedimiento personalizado
+      valor = 'custom_' + texto.toLowerCase().replace(/\s+/g, '_');
+      
+      // Guardar en localStorage para futuras sesiones
+      guardarProcedimientoPersonalizado(valor, texto);
+      
+      // Agregar al select para futura selección
+      const nuevaOption = document.createElement('option');
+      nuevaOption.value = valor;
+      nuevaOption.textContent = texto;
+      select.insertBefore(nuevaOption, select.options[select.options.length - 1]);
+      
+      // Limpiar input
+      otroInput.value = '';
+      otroContainer.style.display = 'none';
+      select.value = valor;
+    }
 
-      detenerCamaraPaciente();
-      modalFoto.classList.remove('active');
-    });
+    // Verificar si ya existe en los agregados
+    if (procedimientosGuardados.includes(valor)) {
+      alert('Este procedimiento ya fue agregado');
+      return;
+    }
+
+    // Agregar al arreglo
+    procedimientosGuardados.push(valor);
+
+    // Crear tag visual
+    const tag = document.createElement('div');
+    tag.className = 'procedimiento-tag';
+    tag.dataset.value = valor;
+    tag.innerHTML = `
+      <span>${texto}</span>
+      <button type="button" onclick="removeProcedimiento('${valor}')">×</button>
+    `;
+
+    container.appendChild(tag);
+  };
+
+  // Función para guardar procedimiento personalizado en localStorage
+  function guardarProcedimientoPersonalizado(valor, texto) {
+    let guardados = localStorage.getItem('procedimientosPersonalizados');
+    if (!guardados) {
+      guardados = [];
+    } else {
+      guardados = JSON.parse(guardados);
+    }
+    
+    // Verificar si ya existe
+    const existe = guardados.some(p => p.valor === valor);
+    if (!existe) {
+      guardados.push({ valor, texto });
+      localStorage.setItem('procedimientosPersonalizados', JSON.stringify(guardados));
+    }
   }
+
+  // Función para eliminar procedimiento
+  window.removeProcedimiento = function(valor) {
+    // Remover del arreglo
+    procedimientosGuardados = procedimientosGuardados.filter(p => p !== valor);
+
+    // Remover tag visual
+    const tag = document.querySelector(`.procedimiento-tag[data-value="${valor}"]`);
+    if (tag) {
+      tag.remove();
+    }
+  };
+
+  // Función para obtener procedimientos guardados (para enviar al backend)
+  window.getProcedimientos = function() {
+    return procedimientosGuardados;
+  };
 
   // ============ FUNCIONES PARA MÉDICO ============
   
@@ -1785,7 +1654,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const guardados = localStorage.getItem('medicosPersonalizados');
     if (guardados) {
       const lista = JSON.parse(guardados);
-      const select = document.getElementById('medicoSelect') || document.getElementById('medicoSelectMed');
+      const select = document.getElementById('medicoSelectMed');
       if (!select) return;
       lista.forEach(med => {
         let existe = false;
@@ -1883,8 +1752,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const guardados = localStorage.getItem('referidosPersonalizados');
     if (guardados) {
       const lista = JSON.parse(guardados);
-      const select = document.getElementById('referidoSelect') || document.getElementById('referidoSelectMed');
-      if (!select) return;
+      const select = document.getElementById('referidoSelect');
       lista.forEach(ref => {
         let existe = false;
         for (let i = 0; i < select.options.length; i++) {
@@ -1973,7 +1841,6 @@ document.addEventListener('DOMContentLoaded', function() {
       localStorage.setItem('referidosPersonalizados', JSON.stringify(guardados));
     }
   }
-
   // ===== PROCEDIMIENTO / MÉDICO / ANESTESIÓLOGO / REFERIDO / EQUIPO =====
   window.addNuevoProcedimiento = function() { window.abrirMiniModal('procedimientoSelect','Agregar procedimiento','Escribe el nombre del procedimiento'); };
   window.addMedicoMed         = function() { window.abrirMiniModal('medicoSelectMed','Agregar médico','Escribe el nombre del médico'); };
@@ -1984,20 +1851,16 @@ document.addEventListener('DOMContentLoaded', function() {
   // ===== ARCHIVOS DE ESTUDIOS =====
   function makeFileCard(nombre, url, tipo, size) {
     const ext = nombre.split('.').pop().toUpperCase();
-    const colors = {
-      imagen: {bg:'#f59e0b22', color:'#f59e0b'},
-      pdf:    {bg:'#ef444422', color:'#ef4444'},
-      video:  {bg:'#f9731622', color:'#f97316'},
-    };
-    const c = colors[tipo] || {bg:'#6b728022', color:'#6b7280'};
-    const iconSvg = tipo === 'imagen'
+    const colors = { imagen:{bg:'#f59e0b22',color:'#f59e0b'}, pdf:{bg:'#ef444422',color:'#ef4444'}, video:{bg:'#f9731622',color:'#f97316'} };
+    const c = colors[tipo] || {bg:'#6b728022',color:'#6b7280'};
+    const iconSvg = tipo==='imagen'
       ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="'+c.color+'" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>'
-      : tipo === 'pdf'
+      : tipo==='pdf'
       ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="'+c.color+'" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>'
-      : tipo === 'video'
+      : tipo==='video'
       ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="'+c.color+'" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>'
       : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="'+c.color+'" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
-    const sizeStr = size >= 1048576 ? (size/1048576).toFixed(1)+' MB' : size >= 1024 ? (size/1024).toFixed(1)+' KB' : size+' B';
+    const sizeStr = size>=1048576?(size/1048576).toFixed(1)+' MB':size>=1024?(size/1024).toFixed(1)+' KB':size+' B';
     const card = document.createElement('div');
     card.style.cssText = 'position:relative;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--card);border:1px solid var(--stroke);cursor:pointer;transition:border-color 150ms;';
     card.onmouseenter = function(){ this.style.borderColor='var(--blue)'; };
@@ -2005,8 +1868,8 @@ document.addEventListener('DOMContentLoaded', function() {
     card.onclick = function(){ abrirVisorArchivo(url, nombre, tipo); };
     card.innerHTML =
       '<div style="width:38px;height:44px;border-radius:6px;background:'+c.bg+';display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">'
-        + iconSvg
-        + '<span style="font-size:7px;font-weight:800;color:'+c.color+';margin-top:2px;">'+ext+'</span>'
+        +iconSvg
+        +'<span style="font-size:7px;font-weight:800;color:'+c.color+';margin-top:2px;">'+ext+'</span>'
       +'</div>'
       +'<div style="flex:1;min-width:0;">'
         +'<p style="margin:0;font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+nombre+'">'+nombre+'</p>'
@@ -2027,14 +1890,13 @@ document.addEventListener('DOMContentLoaded', function() {
       const isPdf = ext === 'pdf';
       const isVideo = ['mp4','mov','avi','mkv','webm'].includes(ext);
       const url = URL.createObjectURL(f);
-      const tipo = isImg ? 'imagen' : isPdf ? 'pdf' : isVideo ? 'video' : 'otro';
+      const tipo = isImg?'imagen':isPdf?'pdf':isVideo?'video':'otro';
       grid.appendChild(makeFileCard(f.name, url, tipo, f.size));
     });
   });
 
   // ===== VISOR DE ARCHIVOS =====
   window.abrirVisorArchivo = function(url, nombre, tipo) {
-    cerrarTodosMenus();
     const overlay = document.getElementById('visorArchivoOverlay');
     const contenido = document.getElementById('visorArchivoContenido');
     if (!overlay) return;
@@ -2066,73 +1928,43 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     overlay.style.display = 'flex';
   };
-
   window.cerrarVisorArchivo = function() {
     const o = document.getElementById('visorArchivoOverlay');
     if (o) o.style.display = 'none';
     document.getElementById('visorArchivoContenido').innerHTML = '';
   };
-
-  // ===== MENÚ 3 PUNTOS =====
-  window.cerrarTodosMenus = function() {
-    document.querySelectorAll('.doc-menu-dropdown').forEach(function(d){ d.style.display='none'; });
-  };
-  window.toggleDocMenu = function(btn) {
-    const dropdown = btn.nextElementSibling;
-    const isOpen = dropdown.style.display === 'block';
-    cerrarTodosMenus();
-    if (!isOpen) dropdown.style.display = 'block';
-  };
-  document.addEventListener('click', function(e){
-    if (!e.target.closest('.doc-menu-btn') && !e.target.closest('.doc-menu-dropdown')) cerrarTodosMenus();
-  });
-
-  // ===== ELIMINAR DOCUMENTO =====
-  window.eliminarDocumento = function(id, btn) {
-    cerrarTodosMenus();
-    if (!confirm('¿Eliminar este archivo? Esta acción no se puede deshacer.')) return;
-    fetch('/paciente-documentos/' + id, {
-      method: 'DELETE',
-      headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' }
-    }).then(function(r){ return r.json(); }).then(function(d){
-      if (d.success) {
-        const card = btn.closest('.doc-card');
-        card.style.opacity = '0';
-        card.style.transition = 'opacity 250ms';
-        setTimeout(function(){ card.remove(); }, 260);
-      }
-    }).catch(function(){ alert('Error al eliminar el archivo.'); });
-  };
-
   document.getElementById('visorArchivoOverlay')?.addEventListener('click', function(e){
     if (e.target === this) window.cerrarVisorArchivo();
   });
   document.addEventListener('keydown', function(e){
-    if (e.key === 'Escape') { window.cerrarVisorArchivo(); cerrarTodosMenus(); }
+    if (e.key === 'Escape') window.cerrarVisorArchivo();
   });
 
   // ===== AGENDAR CITA =====
   var _citaData = {};
-  window.confirmarCitaEdit = function() {
-    var fecha  = document.getElementById('citaFechaEdit').value;
-    var hora   = document.getElementById('citaHoraEdit').value;
-    var motivo = document.getElementById('citaMotivoEdit').value.trim();
+  window.confirmarCita = function() {
+    var fecha = document.getElementById('citaFecha').value;
+    var hora  = document.getElementById('citaHora').value;
+    var motivo = document.getElementById('citaMotivo').value.trim();
     if (!fecha || !hora) {
       alert('Por favor selecciona fecha y hora para la cita.');
       return;
     }
+    // Formatear fecha legible
     var partes = fecha.split('-');
     var fechaLeg = partes[2]+'/'+partes[1]+'/'+partes[0];
     _citaData = { fecha: fechaLeg, hora: hora, motivo: motivo };
-    document.getElementById('modalCitaEdit').classList.remove('active');
+    document.getElementById('modalCita').classList.remove('active');
+    // Mostrar toast
     document.getElementById('citaToastBody').textContent =
-      fechaLeg + ' — ' + hora + (motivo ? '  |  ' + motivo : '');
+      fechaLeg + ' — ' + hora + (motivo ? '\n' + motivo : '');
     var toast = document.getElementById('citaToast');
     toast.classList.add('active');
+    // Auto-ocultar en 8 seg
     clearTimeout(window._toastTimer);
     window._toastTimer = setTimeout(function(){ toast.classList.remove('active'); }, 8000);
   };
-  window.verDetallesCitaEdit = function() {
+  window.verDetallesCita = function() {
     document.getElementById('citaToast').classList.remove('active');
     var d = _citaData;
     document.getElementById('detalleCitaTexto').innerHTML =
@@ -2141,14 +1973,25 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('modalDetalleCita').classList.add('active');
   };
 
-  // ===== EDAD AUTOMÁTICA DESDE FECHA DE NACIMIENTO =====
-  const fechaNacimientoInput = document.getElementById('fechaNacimientoEdit');
-  const edadInput = document.getElementById('edadCalculadaEdit');
+})();
 
-  function calcularEdad(fechaNacimiento) {
-    if (!fechaNacimiento) return '';
 
-    const nacimiento = new Date(fechaNacimiento + 'T00:00:00');
+  // ===== FOLIO E IDENTIFICACIÓN AUTOMÁTICOS DESDE BACKEND =====
+  const folioInput = document.getElementById('folioInput');
+  const identificacionInput = document.getElementById('identificacionInput');
+
+  if (folioInput && identificacionInput) {
+    identificacionInput.value = folioInput.value;
+  }
+
+  // ===== EDAD EN TIEMPO REAL DESDE FECHA DE NACIMIENTO =====
+  const fechaNacimiento = document.getElementById('fechaNacimiento');
+  const edadCalculada = document.getElementById('edadCalculada');
+
+  function calcularEdad(fechaNacimientoValor) {
+    if (!fechaNacimientoValor) return '';
+
+    const nacimiento = new Date(fechaNacimientoValor + 'T00:00:00');
     const hoy = new Date();
 
     if (isNaN(nacimiento.getTime()) || nacimiento > hoy) return '';
@@ -2164,18 +2007,261 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function actualizarEdad() {
-    if (!fechaNacimientoInput || !edadInput) return;
-
-    edadInput.value = calcularEdad(fechaNacimientoInput.value);
+    if (!fechaNacimiento || !edadCalculada) return;
+    edadCalculada.value = calcularEdad(fechaNacimiento.value);
   }
 
-  if (fechaNacimientoInput) {
-    fechaNacimientoInput.addEventListener('change', actualizarEdad);
-    fechaNacimientoInput.addEventListener('input', actualizarEdad);
+  if (fechaNacimiento) {
+    fechaNacimiento.addEventListener('input', actualizarEdad);
+    fechaNacimiento.addEventListener('change', actualizarEdad);
+    fechaNacimiento.addEventListener('keyup', actualizarEdad);
+    fechaNacimiento.addEventListener('click', function() {
+      if (typeof fechaNacimiento.showPicker === 'function') fechaNacimiento.showPicker();
+    });
+    fechaNacimiento.addEventListener('focus', function() {
+      if (typeof fechaNacimiento.showPicker === 'function') fechaNacimiento.showPicker();
+    });
     actualizarEdad();
   }
-});
-</script>
-@endpush
 
-@endsection
+
+
+  // ===== FOTO DEL PACIENTE: GALERÍA Y CÁMARA REAL =====
+  const btnAgregarFotoAuto = document.getElementById('btnAgregarFoto');
+  const modalFotoAuto = document.getElementById('modalFoto');
+  const btnCancelarFotoAuto = document.getElementById('btnCancelarFoto');
+  const btnUsarFotoAuto = document.getElementById('btnUsarFoto');
+  const inputFileFotoAuto = document.getElementById('inputFileFoto');
+  const patientPhotoAuto = document.getElementById('patientPhoto');
+  const patientPhotoPlaceholderAuto = document.getElementById('patientPhotoPlaceholder');
+  const cameraFrameAuto = document.querySelector('.camera-frame');
+  const avatarPreviewAuto = document.querySelector('.avatar-preview');
+
+  let cameraStreamAuto = null;
+  let currentPhotoDataAuto = null;
+
+  function prepararVideoCamara() {
+    if (!cameraFrameAuto) return null;
+
+    let video = document.getElementById('cameraVideoPaciente');
+    if (!video) {
+      video = document.createElement('video');
+      video.id = 'cameraVideoPaciente';
+      video.autoplay = true;
+      video.playsInline = true;
+      video.muted = true;
+      cameraFrameAuto.appendChild(video);
+    }
+
+    let canvas = document.getElementById('cameraCanvasPaciente');
+    if (!canvas) {
+      canvas = document.createElement('canvas');
+      canvas.id = 'cameraCanvasPaciente';
+      cameraFrameAuto.appendChild(canvas);
+    }
+
+    return { video, canvas };
+  }
+
+  async function iniciarCamaraPaciente() {
+    const media = prepararVideoCamara();
+    if (!media || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert('Tu navegador no permite abrir la cámara desde aquí. Usa la opción Subir imagen.');
+      return;
+    }
+
+    try {
+      detenerCamaraPaciente();
+      cameraStreamAuto = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user' },
+        audio: false
+      });
+
+      media.video.srcObject = cameraStreamAuto;
+      cameraFrameAuto.classList.add('camera-active');
+      currentPhotoDataAuto = null;
+    } catch (error) {
+      alert('No se pudo abrir la cámara. Revisa permisos del navegador o usa Subir imagen.');
+    }
+  }
+
+  function detenerCamaraPaciente() {
+    if (cameraStreamAuto) {
+      cameraStreamAuto.getTracks().forEach(track => track.stop());
+      cameraStreamAuto = null;
+    }
+
+    if (cameraFrameAuto) {
+      cameraFrameAuto.classList.remove('camera-active');
+    }
+  }
+
+  function asignarArchivoDesdeBlob(blob) {
+    if (!inputFileFotoAuto) return;
+
+    const file = new File([blob], 'foto-paciente.png', { type: 'image/png' });
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    inputFileFotoAuto.files = dataTransfer.files;
+  }
+
+  function mostrarFotoSeleccionada(dataUrl) {
+    if (patientPhotoAuto && patientPhotoPlaceholderAuto) {
+      patientPhotoAuto.src = dataUrl;
+      patientPhotoAuto.style.display = 'block';
+      patientPhotoPlaceholderAuto.style.display = 'none';
+    }
+
+    if (avatarPreviewAuto) {
+      avatarPreviewAuto.style.backgroundImage = `url(${dataUrl})`;
+      avatarPreviewAuto.style.backgroundSize = 'cover';
+      avatarPreviewAuto.style.backgroundPosition = 'center';
+      avatarPreviewAuto.textContent = '';
+    }
+  }
+
+  function capturarFotoDesdeCamara() {
+    const media = prepararVideoCamara();
+    if (!media || !cameraStreamAuto) return false;
+
+    const video = media.video;
+    const canvas = media.canvas;
+
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+
+    const context = canvas.getContext('2d');
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    currentPhotoDataAuto = canvas.toDataURL('image/png');
+
+    canvas.toBlob(function(blob) {
+      if (blob) asignarArchivoDesdeBlob(blob);
+    }, 'image/png');
+
+    mostrarFotoSeleccionada(currentPhotoDataAuto);
+    detenerCamaraPaciente();
+
+    return true;
+  }
+
+  if (btnAgregarFotoAuto && modalFotoAuto) {
+    btnAgregarFotoAuto.addEventListener('click', function() {
+      modalFotoAuto.classList.add('active');
+
+      if (avatarPreviewAuto && !currentPhotoDataAuto) {
+        avatarPreviewAuto.textContent = '';
+        avatarPreviewAuto.style.backgroundImage = '';
+      }
+    });
+  }
+
+  if (btnCancelarFotoAuto && modalFotoAuto) {
+    btnCancelarFotoAuto.addEventListener('click', function() {
+      detenerCamaraPaciente();
+      modalFotoAuto.classList.remove('active');
+    });
+  }
+
+  if (modalFotoAuto) {
+    modalFotoAuto.addEventListener('click', function(e) {
+      if (e.target === modalFotoAuto) {
+        detenerCamaraPaciente();
+        modalFotoAuto.classList.remove('active');
+      }
+    });
+  }
+
+  const sourceOptionsAuto = document.querySelectorAll('.source-option');
+  sourceOptionsAuto.forEach(function(option, index) {
+    option.addEventListener('click', function() {
+      sourceOptionsAuto.forEach(o => o.classList.remove('active'));
+      option.classList.add('active');
+
+      if (index === 0) {
+        iniciarCamaraPaciente();
+      }
+
+      if (index === 1 && inputFileFotoAuto) {
+        detenerCamaraPaciente();
+        inputFileFotoAuto.click();
+      }
+    });
+  });
+
+  const camBtnsAuto = document.querySelectorAll('.cam-btn');
+  camBtnsAuto.forEach(function(btn, index) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+
+      camBtnsAuto.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      if (index === 0 && inputFileFotoAuto) {
+        detenerCamaraPaciente();
+        inputFileFotoAuto.click();
+      }
+
+      if (index === 1) {
+        if (cameraStreamAuto) {
+          capturarFotoDesdeCamara();
+        } else {
+          iniciarCamaraPaciente();
+        }
+      }
+
+      if (index === 2) {
+        iniciarCamaraPaciente();
+      }
+    });
+  });
+
+  if (inputFileFotoAuto) {
+    inputFileFotoAuto.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      detenerCamaraPaciente();
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        currentPhotoDataAuto = event.target.result;
+        mostrarFotoSeleccionada(currentPhotoDataAuto);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  if (btnUsarFotoAuto && modalFotoAuto) {
+    btnUsarFotoAuto.addEventListener('click', function() {
+      if (!currentPhotoDataAuto) {
+        showAppAlert('Aviso', 'Selecciona una imagen o toma una foto primero.');
+        return;
+      }
+
+      detenerCamaraPaciente();
+      modalFotoAuto.classList.remove('active');
+    });
+  }
+
+  // ===== GUARDAR PACIENTE Y REDIRIGIR A AGENDA =====
+  const pacienteForm = document.getElementById('pacienteForm');
+  const btnGuardar = document.getElementById('btnGuardarPaciente');
+
+  if (pacienteForm && btnGuardar) {
+    pacienteForm.addEventListener('submit', function(e) {
+      if (!pacienteForm.checkValidity()) {
+        pacienteForm.reportValidity();
+        e.preventDefault();
+        return;
+      }
+
+      btnGuardar.disabled = true;
+      btnGuardar.innerHTML = 'Guardando...';
+    });
+  }
+
+</script>
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\HP\enclaii-backend\resources\views/pacientes/create.blade.php ENDPATH**/ ?>

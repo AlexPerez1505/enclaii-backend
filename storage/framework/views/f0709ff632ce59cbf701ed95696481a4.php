@@ -1,8 +1,4 @@
-{{-- ============================================================
-     AGENDAR / _cita.blade.php
-     Paso 2: Datos de la cita
-     (Duración movida al Paso 3: Fecha y Hora)
-     ============================================================ --}}
+
 
 <style>
 .cita-icon-wrap{display:flex;align-items:center;gap:8px}
@@ -42,7 +38,7 @@ html[data-theme="light"] .cita-icon-wrap svg{color:#5B6A99}
       <label class="ag-label">Fecha</label>
       <div class="ag-input-icon">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <input class="ag-input" id="citaFecha" type="text" placeholder="{{ str_replace(['d','m','Y'], ['DD','MM','AAAA'], user_date_format()) }}" value="{{ date(user_date_format()) }}" readonly>
+        <input class="ag-input" id="citaFecha" type="text" placeholder="<?php echo e(str_replace(['d','m','Y'], ['DD','MM','AAAA'], user_date_format())); ?>" value="<?php echo e(date(user_date_format())); ?>" readonly>
       </div>
     </div>
 
@@ -64,3 +60,4 @@ html[data-theme="light"] .cita-icon-wrap svg{color:#5B6A99}
 
   
 </div>
+<?php /**PATH C:\Users\HP\enclaii-backend\resources\views/agenda/agendar/_cita.blade.php ENDPATH**/ ?>

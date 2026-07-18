@@ -1,13 +1,11 @@
-@extends('layouts.app')
-
-@section('title', 'Editar Paciente')
-@section('active', 'pacientes')
-@section('header-title', 'Editar información del paciente')
-@section('header-sub')
+<?php $__env->startSection('title', 'Editar Paciente'); ?>
+<?php $__env->startSection('active', 'pacientes'); ?>
+<?php $__env->startSection('header-title', 'Editar información del paciente'); ?>
+<?php $__env->startSection('header-sub'); ?>
   Actualiza los datos personales, médicos y de contacto del paciente
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
 /* ============ ESTILOS EDITAR PACIENTE ============ */
 
@@ -894,43 +892,43 @@ textarea{
   color:#777 !important;
 }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 
-  {{-- Link volver --}}
-  <a href="{{ route('pacientes.index') }}" class="back-link rise d1">
+  
+  <a href="<?php echo e(route('pacientes.index')); ?>" class="back-link rise d1">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
     Volver a pacientes
   </a>
 
-  {{-- Formulario --}}
-  <form id="pacienteForm" class="form-card rise d2" action="{{ route('pacientes.update', $paciente) }}" method="POST" enctype="multipart/form-data">
-    @csrf
-    @method('PUT')
-    <input type="hidden" name="paciente_id" value="{{ $paciente->id }}">
+  
+  <form id="pacienteForm" class="form-card rise d2" action="<?php echo e(route('pacientes.update', $paciente)); ?>" method="POST" enctype="multipart/form-data">
+    <?php echo csrf_field(); ?>
+    <?php echo method_field('PUT'); ?>
+    <input type="hidden" name="paciente_id" value="<?php echo e($paciente->id); ?>">
 
-    {{-- Sección Información Personal --}}
+    
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
       <h2 class="section-title" style="margin:0;">Información personal</h2>
       <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-md);font-size:13px;">
         <span style="color:var(--txt-soft);">Folio:</span>
-        <span id="folioVisual" style="font-weight:700;color:var(--cyan);">{{ old('folio', $paciente->folio ?: $paciente->identificacion) }}</span>
-        <input type="hidden" name="folio" id="folioInput" value="{{ old('folio', $paciente->folio ?: $paciente->identificacion) }}">
+        <span id="folioVisual" style="font-weight:700;color:var(--cyan);"><?php echo e(old('folio', $paciente->folio ?: $paciente->identificacion)); ?></span>
+        <input type="hidden" name="folio" id="folioInput" value="<?php echo e(old('folio', $paciente->folio ?: $paciente->identificacion)); ?>">
       </div>
     </div>
 
     <div class="personal-layout">
-      {{-- Foto --}}
+      
       <div class="personal-photo-col">
         <div class="patient-photo-container" id="patientPhotoContainer">
-          @if($paciente->foto)
-            <img id="patientPhoto" src="{{ media_url($paciente->foto) }}" alt="Foto del paciente">
+          <?php if($paciente->foto): ?>
+            <img id="patientPhoto" src="<?php echo e(media_url($paciente->foto)); ?>" alt="Foto del paciente">
             <div class="patient-photo-placeholder" id="patientPhotoPlaceholder" style="display:none;"></div>
-          @else
+          <?php else: ?>
             <div class="patient-photo-placeholder" id="patientPhotoPlaceholder"></div>
             <img id="patientPhoto" style="display:none;" alt="Foto del paciente">
-          @endif
+          <?php endif; ?>
         </div>
         <input type="file" name="foto" id="inputFileFoto" accept="image/*" style="display:none;">
         <button type="button" class="btn-photo" onclick="window.abrirModalFoto()">
@@ -938,19 +936,19 @@ textarea{
           Modificar foto
         </button>
       </div>
-      {{-- Campos personales --}}
+      
       <div class="form-grid personal" style="flex:1;">
       <div class="form-group span-2">
         <label>Nombre completo</label>
-        <input type="text" name="nombre_completo" value="{{ old('nombre_completo', $paciente->nombre_completo) }}" required>
+        <input type="text" name="nombre_completo" value="<?php echo e(old('nombre_completo', $paciente->nombre_completo)); ?>" required>
       </div>
       <div class="form-group">
         <label>Fecha de nacimiento</label>
-        <input type="date" name="fecha_nacimiento" id="fechaNacimientoEdit" value="{{ old('fecha_nacimiento', optional($paciente->fecha_nacimiento)->format('Y-m-d')) }}" style="color-scheme:dark;">
+        <input type="date" name="fecha_nacimiento" id="fechaNacimientoEdit" value="<?php echo e(old('fecha_nacimiento', optional($paciente->fecha_nacimiento)->format('Y-m-d'))); ?>" style="color-scheme:dark;">
       </div>
       <div class="form-group">
         <label>Edad</label>
-        <input type="number" name="edad" id="edadCalculadaEdit" value="{{ old('edad', $paciente->edad) }}" readonly style="background:var(--panel-2);color:var(--txt-soft);">
+        <input type="number" name="edad" id="edadCalculadaEdit" value="<?php echo e(old('edad', $paciente->edad)); ?>" readonly style="background:var(--panel-2);color:var(--txt-soft);">
       </div>
       <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -975,53 +973,53 @@ textarea{
       </script>
       <div class="form-group">
         <label>Peso</label>
-        <input type="number" step="0.01" name="peso" value="{{ old('peso', $paciente->peso) }}">
+        <input type="number" step="0.01" name="peso" value="<?php echo e(old('peso', $paciente->peso)); ?>">
       </div>
       <div class="form-group">
         <label>Altura</label>
-        <input type="number" step="0.01" name="altura" value="{{ old('altura', $paciente->altura) }}">
+        <input type="number" step="0.01" name="altura" value="<?php echo e(old('altura', $paciente->altura)); ?>">
       </div>
 
       <div class="form-group">
         <label>Sexo</label>
         <select name="sexo">
           <option value="">Selecciona sexo</option>
-          <option value="femenino" {{ old('sexo', $paciente->sexo) == 'femenino' ? 'selected' : '' }}>Femenino</option>
-          <option value="masculino" {{ old('sexo', $paciente->sexo) == 'masculino' ? 'selected' : '' }}>Masculino</option>
-          <option value="otro" {{ old('sexo', $paciente->sexo) == 'otro' ? 'selected' : '' }}>Otro</option>
+          <option value="femenino" <?php echo e(old('sexo', $paciente->sexo) == 'femenino' ? 'selected' : ''); ?>>Femenino</option>
+          <option value="masculino" <?php echo e(old('sexo', $paciente->sexo) == 'masculino' ? 'selected' : ''); ?>>Masculino</option>
+          <option value="otro" <?php echo e(old('sexo', $paciente->sexo) == 'otro' ? 'selected' : ''); ?>>Otro</option>
         </select>
       </div>
       <div class="form-group span-2">
         <label>Dirección</label>
-        <input type="text" name="direccion" value="{{ old('direccion', $paciente->direccion) }}">
+        <input type="text" name="direccion" value="<?php echo e(old('direccion', $paciente->direccion)); ?>">
       </div>
 
       <div class="form-group">
         <label>Teléfono</label>
-        <input type="tel" name="telefono" value="{{ old('telefono', $paciente->telefono) }}">
+        <input type="tel" name="telefono" value="<?php echo e(old('telefono', $paciente->telefono)); ?>">
       </div>
       <div class="form-group span-3">
         <label>e-mail</label>
-        <input type="email" name="email" value="{{ old('email', $paciente->email) }}">
+        <input type="email" name="email" value="<?php echo e(old('email', $paciente->email)); ?>">
       </div>
-      </div>{{-- /form-grid personal --}}
-    </div>{{-- /personal-layout --}}
+      </div>
+    </div>
 
     <hr style="border:none;border-top:1px solid var(--stroke);margin:28px 0;">
 
-    {{-- Sección Información Médica --}}
+    
     <h2 class="section-title">Información médica</h2>
 
     <div style="display:flex;gap:32px;align-items:flex-start;">
-      {{-- Columna izquierda: Procedimiento + Fecha --}}
+      
       <div style="flex:1;">
         <div class="form-group" style="margin-bottom:18px;">
           <label>Médico</label>
           <div class="select-with-add">
             <select id="medicoSelectMed" name="medico" data-campo="medico">
-              @if($paciente->medico)
-                <option value="{{ Str::slug($paciente->medico, '-') }}" selected>{{ $paciente->medico }}</option>
-              @endif
+              <?php if($paciente->medico): ?>
+                <option value="<?php echo e(Str::slug($paciente->medico, '-')); ?>" selected><?php echo e($paciente->medico); ?></option>
+              <?php endif; ?>
             </select>
             <button type="button" class="btn-add-procedimiento" onclick="addMedicoMed()" title="Agregar médico">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -1032,9 +1030,9 @@ textarea{
           <label>Procedimiento</label>
           <div class="select-with-add">
           <select id="procedimientoSelect" name="procedimiento" data-campo="procedimiento">
-            @if($paciente->procedimiento)
-              <option value="{{ Str::slug($paciente->procedimiento, '-') }}" selected>{{ $paciente->procedimiento }}</option>
-            @endif
+            <?php if($paciente->procedimiento): ?>
+              <option value="<?php echo e(Str::slug($paciente->procedimiento, '-')); ?>" selected><?php echo e($paciente->procedimiento); ?></option>
+            <?php endif; ?>
           </select>
             <button type="button" class="btn-add-procedimiento" onclick="addNuevoProcedimiento()" title="Agregar procedimiento">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -1045,26 +1043,26 @@ textarea{
         
         
       </div>
-      {{-- Columna derecha: Diagnóstico --}}
+      
       <div style="flex:1;display:flex;flex-direction:column;">
         <div class="form-group" style="flex:1;">
           <label>Diagnóstico Preliminar</label>
-          <textarea name="diagnostico_preliminar" placeholder="Define lo que podría tener" style="min-height:220px;width:100%;">{{ old('diagnostico_preliminar', $paciente->diagnostico_preliminar) }}</textarea>
+          <textarea name="diagnostico_preliminar" placeholder="Define lo que podría tener" style="min-height:220px;width:100%;"><?php echo e(old('diagnostico_preliminar', $paciente->diagnostico_preliminar)); ?></textarea>
         </div>
       </div>
     </div>
 
     <hr style="border:none;border-top:1px solid var(--stroke);margin:28px 0;">
 
-    {{-- Enfermedad, Alergias y Estudios --}}
+    
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
       <div class="form-group">
         <label>Enfermedad</label>
-        <textarea name="enfermedad" placeholder="Describe la enfermedad o padecimiento del paciente" style="min-height:110px;width:100%;">{{ old('enfermedad', $paciente->enfermedad) }}</textarea>
+        <textarea name="enfermedad" placeholder="Describe la enfermedad o padecimiento del paciente" style="min-height:110px;width:100%;"><?php echo e(old('enfermedad', $paciente->enfermedad)); ?></textarea>
       </div>
       <div class="form-group">
         <label>Alergias</label>
-        <textarea name="alergias" placeholder="Especifica las alergias del paciente (medicamentos, alimentos, etc.)" style="min-height:110px;width:100%;">{{ old('alergias', $paciente->alergias) }}</textarea>
+        <textarea name="alergias" placeholder="Especifica las alergias del paciente (medicamentos, alimentos, etc.)" style="min-height:110px;width:100%;"><?php echo e(old('alergias', $paciente->alergias)); ?></textarea>
       </div>
     </div>
 
@@ -1072,7 +1070,7 @@ textarea{
       <label>Estudios (archivos)</label>
       <div style="border-radius:var(--r-md);padding:20px;background:var(--panel-2);border:1px solid var(--stroke);">
 
-        {{-- Barra superior --}}
+        
         <input type="file" name="estudios_archivos[]" id="estudiosArchivos" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.mp4,.mov,.avi" style="display:none;">
         <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:4px;">
           <button type="button" onclick="document.getElementById('estudiosArchivos').click()" style="display:flex;align-items:center;gap:8px;padding:9px 18px;border-radius:var(--r-md);border:1px solid var(--stroke);background:var(--card);color:var(--txt);font:inherit;font-size:13px;font-weight:600;cursor:pointer;">
@@ -1082,25 +1080,25 @@ textarea{
           <span style="font-size:12.5px;color:var(--txt-soft);">PDF, imágenes, Word — múltiples archivos permitidos</span>
         </div>
 
-        {{-- Preview de archivos recién seleccionados (antes de guardar) --}}
+        
         <div id="estudiosArchivosList" style="display:none;margin-top:16px;">
           <p style="font-size:12px;font-weight:700;color:var(--txt-soft);margin:0 0 10px;text-transform:uppercase;letter-spacing:.5px;">Por subir</p>
           <div id="estudiosArchivosGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;"></div>
         </div>
 
-        {{-- Archivos ya guardados --}}
-        @php
+        
+        <?php
           $docsGuardados = \App\Models\PacienteDocumento::where('paciente_id', $paciente->id)
             ->orderByDesc('created_at')
             ->get();
-        @endphp
+        ?>
 
-        @if($docsGuardados->count() > 0)
+        <?php if($docsGuardados->count() > 0): ?>
         <div style="margin-top:20px;" id="docsGuardadosSection">
-          <p style="font-size:12px;font-weight:700;color:var(--txt-soft);margin:0 0 12px;text-transform:uppercase;letter-spacing:.5px;">Archivos cargados ({{ $docsGuardados->count() }})</p>
+          <p style="font-size:12px;font-weight:700;color:var(--txt-soft);margin:0 0 12px;text-transform:uppercase;letter-spacing:.5px;">Archivos cargados (<?php echo e($docsGuardados->count()); ?>)</p>
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;">
-            @foreach($docsGuardados as $doc)
-            @php
+            <?php $__currentLoopData = $docsGuardados; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $doc): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <?php
               $ext = strtolower(pathinfo($doc->nombre_original ?? $doc->path, PATHINFO_EXTENSION));
               $isImg = in_array($ext, ['jpg','jpeg','png','webp','gif']);
               $isPdf = $ext === 'pdf';
@@ -1119,29 +1117,29 @@ textarea{
               elseif($isVideo) { $iconBg='#f9731622'; $iconColor='#f97316'; $iconLabel='MP4'; }
               elseif($isDoc) { $iconBg='#3b82f622'; $iconColor='#3b82f6'; $iconLabel='DOC'; }
               else { $iconBg='#6b728022'; $iconColor='#6b7280'; $iconLabel=strtoupper($ext) ?: 'FILE'; }
-            @endphp
+            ?>
             <div class="doc-card" style="position:relative;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--card);border:1px solid var(--stroke);cursor:pointer;transition:border-color 150ms;"
-                 onclick="abrirVisorArchivo('{{ $url }}','{{ addslashes($nombre) }}','{{ $tipo }}')"
+                 onclick="abrirVisorArchivo('<?php echo e($url); ?>','<?php echo e(addslashes($nombre)); ?>','<?php echo e($tipo); ?>')"
                  onmouseenter="this.style.borderColor='var(--blue)'" onmouseleave="this.style.borderColor='var(--stroke)'">
-              {{-- Icono tipo badge --}}
-              <div style="width:38px;height:44px;border-radius:6px;background:{{ $iconBg }};display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">
-                @if($isImg)
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ $iconColor }}" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-                @elseif($isPdf)
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ $iconColor }}" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                @elseif($isVideo)
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ $iconColor }}" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-                @else
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ $iconColor }}" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                @endif
-                <span style="font-size:7px;font-weight:800;color:{{ $iconColor }};margin-top:2px;letter-spacing:.3px;">{{ $iconLabel }}</span>
+              
+              <div style="width:38px;height:44px;border-radius:6px;background:<?php echo e($iconBg); ?>;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">
+                <?php if($isImg): ?>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="<?php echo e($iconColor); ?>" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                <?php elseif($isPdf): ?>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="<?php echo e($iconColor); ?>" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <?php elseif($isVideo): ?>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="<?php echo e($iconColor); ?>" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                <?php else: ?>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="<?php echo e($iconColor); ?>" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <?php endif; ?>
+                <span style="font-size:7px;font-weight:800;color:<?php echo e($iconColor); ?>;margin-top:2px;letter-spacing:.3px;"><?php echo e($iconLabel); ?></span>
               </div>
-              {{-- Info --}}
+              
               <div style="flex:1;min-width:0;">
-                <p style="margin:0;font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ $nombre }}">{{ $nombre }}</p>
-                <p style="margin:3px 0 0;font-size:11px;color:var(--txt-soft);">{{ $size }} &bull; {{ $doc->created_at->format('d M Y') }}</p>
+                <p style="margin:0;font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<?php echo e($nombre); ?>"><?php echo e($nombre); ?></p>
+                <p style="margin:3px 0 0;font-size:11px;color:var(--txt-soft);"><?php echo e($size); ?> &bull; <?php echo e($doc->created_at->format('d M Y')); ?></p>
               </div>
-              {{-- Menú 3 puntos --}}
+              
               <div style="position:relative;flex-shrink:0;" onclick="event.stopPropagation()">
                 <button type="button" class="doc-menu-btn"
                   onclick="toggleDocMenu(this)"
@@ -1149,27 +1147,27 @@ textarea{
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
                 </button>
                 <div class="doc-menu-dropdown" style="display:none;position:absolute;right:0;top:32px;background:var(--card);border:1px solid var(--stroke);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:200;min-width:140px;overflow:hidden;">
-                  <button type="button" onclick="abrirVisorArchivo('{{ $url }}','{{ addslashes($nombre) }}','{{ $tipo }}')" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:transparent;color:var(--txt);font-size:13px;cursor:pointer;text-align:left;">
+                  <button type="button" onclick="abrirVisorArchivo('<?php echo e($url); ?>','<?php echo e(addslashes($nombre)); ?>','<?php echo e($tipo); ?>')" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:transparent;color:var(--txt);font-size:13px;cursor:pointer;text-align:left;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                     Ver archivo
                   </button>
-                  <a href="{{ $url }}" download="{{ $nombre }}" style="display:flex;align-items:center;gap:8px;padding:10px 14px;color:var(--txt);font-size:13px;text-decoration:none;" onclick="cerrarTodosMenus()">
+                  <a href="<?php echo e($url); ?>" download="<?php echo e($nombre); ?>" style="display:flex;align-items:center;gap:8px;padding:10px 14px;color:var(--txt);font-size:13px;text-decoration:none;" onclick="cerrarTodosMenus()">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                     Descargar
                   </a>
-                  <button type="button" onclick="eliminarDocumento({{ $doc->id }}, this)" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:transparent;color:#ef4444;font-size:13px;cursor:pointer;text-align:left;border-top:1px solid var(--stroke);">
+                  <button type="button" onclick="eliminarDocumento(<?php echo e($doc->id); ?>, this)" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border:none;background:transparent;color:#ef4444;font-size:13px;cursor:pointer;text-align:left;border-top:1px solid var(--stroke);">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
                     Eliminar
                   </button>
                 </div>
               </div>
             </div>
-            @endforeach
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
           </div>
         </div>
-        @endif
+        <?php endif; ?>
 
-        {{-- Modal visor de archivos --}}
+        
         <div id="visorArchivoOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);align-items:center;justify-content:center;">
           <div style="background:var(--card);border:1px solid var(--stroke);border-radius:16px;width:min(960px,95vw);max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.6);">
             <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--stroke);flex-shrink:0;">
@@ -1190,7 +1188,7 @@ textarea{
       </div>
     </div>
 
-    {{-- Sección Estudios del paciente --}}
+    
     <hr style="border:none;border-top:1px solid var(--stroke);margin:28px 0;">
     
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
@@ -1200,32 +1198,32 @@ textarea{
       </div>
     </div>
 
-@php
+<?php
   $tieneEstudios = $paciente->estudios()->count() > 0;
   $tieneArchivos = \App\Models\EstudioArchivo::where('paciente_id', $paciente->id)->count() > 0;
   $tieneReportes = \App\Models\Reporte::whereHas('estudio', fn ($q) => $q->where('paciente_id', $paciente->id))->count() > 0;
   $puedeVerGaleria = $tieneEstudios || $tieneArchivos;
   $puedeVerReportes = $tieneEstudios || $tieneReportes;
-@endphp
+?>
 
     <div style="display:flex;gap:12px;margin-bottom:28px;flex-wrap:wrap;">
-      <a href="{{ $puedeVerGaleria ? route('galeria.paciente', $paciente->id) : '#' }}"
-         class="btn-outline {{ $puedeVerGaleria ? 'btn-galeria' : 'btn-disabled' }}"
-         style="padding:12px 24px;font-size:14px;border:2px solid {{ $puedeVerGaleria ? '#f59e0b' : '#555' }};color:{{ $puedeVerGaleria ? '#f59e0b' : '#777' }};background:transparent;border-radius:var(--r-md);cursor:{{ $puedeVerGaleria ? 'pointer' : 'not-allowed' }};transition:all 150ms ease;display:inline-flex;align-items:center;text-decoration:none;"
-         {{ $puedeVerGaleria ? '' : 'onclick="return false;"' }}>
+      <a href="<?php echo e($puedeVerGaleria ? route('galeria.paciente', $paciente->id) : '#'); ?>"
+         class="btn-outline <?php echo e($puedeVerGaleria ? 'btn-galeria' : 'btn-disabled'); ?>"
+         style="padding:12px 24px;font-size:14px;border:2px solid <?php echo e($puedeVerGaleria ? '#f59e0b' : '#555'); ?>;color:<?php echo e($puedeVerGaleria ? '#f59e0b' : '#777'); ?>;background:transparent;border-radius:var(--r-md);cursor:<?php echo e($puedeVerGaleria ? 'pointer' : 'not-allowed'); ?>;transition:all 150ms ease;display:inline-flex;align-items:center;text-decoration:none;"
+         <?php echo e($puedeVerGaleria ? '' : 'onclick="return false;"'); ?>>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;"><rect x="3" y="4" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="4" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="20"/><line x1="4" y1="12" x2="2" y2="12"/><line x1="22" y1="12" x2="20" y2="12"/></svg>
         Editar galería
       </a>
-      <a href="{{ $puedeVerReportes ? route('nuevo-estudio', ['paciente' => $paciente->id]) : '#' }}"
-         class="btn-outline {{ $puedeVerReportes ? 'btn-reportes' : 'btn-disabled' }}"
-         style="padding:12px 24px;font-size:14px;border:1px solid {{ $puedeVerReportes ? 'var(--cyan)' : '#555' }};color:{{ $puedeVerReportes ? 'var(--cyan)' : '#777' }};background:transparent;border-radius:var(--r-md);cursor:{{ $puedeVerReportes ? 'pointer' : 'not-allowed' }};transition:all 150ms ease;display:inline-flex;align-items:center;text-decoration:none;"
-         {{ $puedeVerReportes ? '' : 'onclick="return false;"' }}>
+      <a href="<?php echo e($puedeVerReportes ? route('nuevo-estudio', ['paciente' => $paciente->id]) : '#'); ?>"
+         class="btn-outline <?php echo e($puedeVerReportes ? 'btn-reportes' : 'btn-disabled'); ?>"
+         style="padding:12px 24px;font-size:14px;border:1px solid <?php echo e($puedeVerReportes ? 'var(--cyan)' : '#555'); ?>;color:<?php echo e($puedeVerReportes ? 'var(--cyan)' : '#777'); ?>;background:transparent;border-radius:var(--r-md);cursor:<?php echo e($puedeVerReportes ? 'pointer' : 'not-allowed'); ?>;transition:all 150ms ease;display:inline-flex;align-items:center;text-decoration:none;"
+         <?php echo e($puedeVerReportes ? '' : 'onclick="return false;"'); ?>>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
         Editar reportes
       </a>
     </div>
 
-    {{-- Botón guardar --}}
+    
     <div style="display:flex;justify-content:flex-end;margin-top:28px;">
       <button type="submit" class="btn-save" id="btnGuardarInfo" style="background:var(--green);color:#fff;border-color:var(--green);">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -1236,7 +1234,7 @@ textarea{
   </form>
 
 
-  {{-- Toast cita guardada --}}
+  
   <div class="cita-toast" id="citaToast">
     <div class="cita-toast-header">
       <div class="cita-toast-icon">
@@ -1251,7 +1249,7 @@ textarea{
     </div>
   </div>
 
-  {{-- Modal detalle de cita --}}
+  
   <div class="modal-cita-overlay" id="modalDetalleCita">
     <div class="modal-cita">
       <h3>Detalles de la cita</h3>
@@ -1262,7 +1260,7 @@ textarea{
     </div>
   </div>
 
-  {{-- Modal Agendar Cita --}}
+  
   <div class="modal-cita-overlay" id="modalCitaEdit">
     <div class="modal-cita">
       <h3>Agendar cita</h3>
@@ -1289,7 +1287,7 @@ textarea{
     </div>
   </div>
 
-  {{-- Modal éxito --}}
+  
   <div class="modal-success-overlay" id="modalSuccessEdit">
     <div class="modal-success">
       <div class="modal-success-icon">
@@ -1297,14 +1295,14 @@ textarea{
       </div>
       <h2>¡Datos Guardados!</h2>
       <p>La información del paciente ha sido actualizada correctamente.</p>
-      <button class="btn-aceptar" onclick="window.location.href='{{ route('pacientes.index') }}'">
+      <button class="btn-aceptar" onclick="window.location.href='<?php echo e(route('pacientes.index')); ?>'">
         Aceptar
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </button>
     </div>
   </div>
 
-  {{-- Modal de captura de foto --}}
+  
   <div class="modal-overlay" id="modalFoto">
     <div class="modal-photo">
       <div class="modal-header">
@@ -1313,7 +1311,7 @@ textarea{
       </div>
 
       <div class="modal-body">
-        {{-- Panel izquierdo: Preview --}}
+        
         <div class="preview-panel">
           <h3>Vista previa</h3>
           <div class="camera-frame">
@@ -1345,7 +1343,7 @@ textarea{
           </div>
         </div>
 
-        {{-- Panel derecho: Opciones --}}
+        
         <div class="options-panel">
           <div class="option-section">
             <h4>Seleccionar fuente</h4>
@@ -1401,7 +1399,7 @@ textarea{
     </div>
   </div>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
 
@@ -1437,7 +1435,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Si el select tiene data-campo y estamos editando (hay paciente_id), guardar en base de datos
       if (campo && pacienteId) {
-        fetch('{{ route("pacientes.update-campo", ":paciente_id") }}'.replace(':paciente_id', pacienteId), {
+        fetch('<?php echo e(route("pacientes.update-campo", ":paciente_id")); ?>'.replace(':paciente_id', pacienteId), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -1547,7 +1545,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (modalSuccessEdit) {
           modalSuccessEdit.classList.add('active');
         } else {
-          window.location.href = '{{ route('pacientes.index') }}';
+          window.location.href = '<?php echo e(route('pacientes.index')); ?>';
         }
       } catch (error) {
         console.error('[Guardar] Error:', error);
@@ -2176,6 +2174,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\HP\enclaii-backend\resources\views/pacientes/edit.blade.php ENDPATH**/ ?>
