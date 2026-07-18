@@ -93,7 +93,7 @@ class SyncStripeSubscription extends Command
 
             $user->forceFill($data)->save();
 
-            $this->info("✅ Usuario sincronizado correctamente");
+            $this->info("Usuario sincronizado correctamente");
             $this->table(
                 ['Campo', 'Valor'],
                 [

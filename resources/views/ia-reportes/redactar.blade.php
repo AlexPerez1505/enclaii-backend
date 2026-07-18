@@ -24,7 +24,9 @@
 .ed-ctrl{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;border:1px solid var(--stroke);background:var(--panel);font-size:13.5px;color:var(--txt);min-height:40px}
 .ed-ctrl svg{width:15px;height:15px;color:var(--txt-soft);flex:none}
 select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2390a0c0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
-.ed-status{padding:9px 14px;border-radius:10px;font-size:12.5px;font-weight:700;color:var(--orange);background:rgba(245,158,45,.14);border:1px solid rgba(245,158,45,.3);min-height:40px;display:flex;align-items:center}
+.ed-status{padding:9px 14px;border-radius:10px;font-size:12.5px;font-weight:700;min-height:40px;display:flex;align-items:center}
+.ed-status.borrador{color:var(--orange);background:rgba(245,158,45,.14);border:1px solid rgba(245,158,45,.3)}
+.ed-status.guardado{color:#16a34a;background:rgba(22,163,74,.14);border:1px solid rgba(22,163,74,.3)}
 
 .ed-toolbar{display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding:8px 12px;border:1px solid var(--stroke);border-radius:var(--r-md);background:var(--panel-2);margin-bottom:16px}
 .ed-toolbar .sel{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;border:1px solid var(--stroke);background:var(--panel);font-size:12.5px;color:var(--txt-soft);margin-right:4px}
@@ -34,6 +36,14 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 @media (hover:hover){.ed-tb:hover{color:var(--cyan);background:rgba(56,199,244,.1)}}
 .ed-tb svg{width:16px;height:16px}
 .ed-tb.active{color:var(--cyan);background:rgba(56,199,244,.18);box-shadow:inset 0 0 0 1px rgba(56,199,244,.45)}
+.ed-tb[type="number"]::-webkit-outer-spin-button,
+.ed-tb[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+}
+.ed-tb[type="number"] {
+  -moz-appearance: textfield !important;
+}
 
 .ed-body{display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:stretch}
 @media (max-width:1100px){.ed-body{grid-template-columns:1fr}}
@@ -47,7 +57,16 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 .ed-doc .doc-h p{font-size:12.5px;color:var(--txt-soft);letter-spacing:.06em;margin-top:4px}
 .ed-doc .doc-meta{display:grid;grid-template-columns:150px 1fr;gap:5px 16px;font-size:13px;margin-bottom:20px}
 .ed-doc .doc-meta .k{color:var(--txt-soft)}
-.ed-doc h4{font-size:13px;font-weight:700;letter-spacing:.04em;margin:18px 0 6px;color:var(--cyan)}
+.ed-doc h4{font-size:13px;font-weight:700;letter-spacing:.04em;margin:18px 0 6px;color:var(--cyan);position:relative}
+.ed-doc h4 .sec-hide{position:absolute;right:0;top:50%;transform:translateY(-50%);width:20px;height:20px;border:none;background:rgba(56,199,244,.1);color:var(--cyan);border-radius:4px;font-size:12px;cursor:pointer;opacity:0;transition:opacity .15s}
+.ed-doc h4:hover .sec-hide{opacity:1}
+@media(hover:hover){.ed-doc h4 .sec-hide:hover{background:rgba(56,199,244,.2)}}
+.ed-doc h4 .sec-delete{position:absolute;right:28px;top:50%;transform:translateY(-50%);width:20px;height:20px;border:none;background:rgba(239,68,68,.1);color:#ef4444;border-radius:4px;font-size:12px;cursor:pointer;opacity:0;transition:opacity .15s}
+.ed-doc h4:hover .sec-delete{opacity:1}
+@media(hover:hover){.ed-doc h4 .sec-delete:hover{background:rgba(239,68,68,.2)}}
+.ed-doc .sec-add{margin-top:20px;padding:8px 16px;border:1px dashed var(--stroke);background:var(--panel-2);color:var(--txt-soft);border-radius:8px;font-size:12.5px;cursor:pointer;transition:all .15s}
+@media(hover:hover){.ed-doc .sec-add:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(56,199,244,.05)}}
+@media print{.ed-doc .sec-add{display:none}}
 .ed-doc p,.ed-doc ul{font-size:13px}
 .ed-doc ul{list-style:disc;padding-left:20px;display:flex;flex-direction:column;gap:4px;margin-top:4px}
 
@@ -94,6 +113,25 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 .chat-input button svg{width:17px;height:17px}
 @media (hover:hover){.chat-input button:hover{filter:brightness(1.1)}}
 .chat-input button:active{transform:scale(.94)}
+
+/* Hallazgos del doctor */
+.hz-panel{display:flex;flex-direction:column;gap:10px}
+.hz-chips{display:flex;flex-wrap:wrap;gap:7px;max-height:200px;overflow-y:auto;padding:2px}
+.hz-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;border:1px solid var(--stroke-strong);background:var(--panel-2);color:var(--txt-soft);font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s;user-select:none}
+@media(hover:hover){.hz-chip:hover{border-color:rgba(56,199,244,.4);color:var(--cyan);background:rgba(56,199,244,.08)}}
+.hz-chip.selected{border-color:var(--cyan);background:rgba(56,199,244,.15);color:var(--cyan)}
+.hz-chip.selected .hz-dot{background:var(--cyan);border-color:var(--cyan)}
+.hz-chip .hz-dot{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--stroke-strong);background:transparent;transition:.15s;flex:none}
+.hz-chip.critico{border-color:rgba(245,158,45,.4)}
+.hz-chip.critico.selected{border-color:var(--orange);background:rgba(245,158,45,.15);color:var(--orange)}
+.hz-chip.critico.selected .hz-dot{background:var(--orange);border-color:var(--orange)}
+.hz-add{display:flex;gap:8px;margin-top:4px}
+.hz-add input{flex:1;min-width:0;padding:9px 12px;border-radius:9px;border:1px solid var(--stroke);background:var(--panel);color:var(--txt);font:inherit;font-size:13px}
+.hz-add input::placeholder{color:var(--off)}
+.hz-add button{flex:none;padding:9px 14px;border-radius:9px;border:0;background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;transition:filter .15s}
+@media(hover:hover){.hz-add button:hover{filter:brightness(1.1)}}
+.hz-count{font-size:11.5px;color:var(--txt-soft);margin-top:2px}
+.hz-count strong{color:var(--cyan)}
 
 /* Plantillas */
 .tpl-list{display:flex;flex-direction:column;gap:9px}
@@ -148,7 +186,9 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 .rep-sign[data-pos="left"]{justify-content:flex-start}
 .rep-sign[data-pos="center"]{justify-content:center}
 .rep-sign[data-pos="right"]{justify-content:flex-end}
-.rep-sign .sign-box{min-width:250px;text-align:center;padding-top:8px;border-top:1px solid var(--txt)}
+.rep-sign .sign-box{min-width:250px;text-align:center}
+.rep-sign .sign-image{display:block;max-width:230px;max-height:72px;object-fit:contain;margin:0 auto 5px}
+.rep-sign .sign-line{padding-top:8px;border-top:1px solid var(--txt)}
 .rep-sign .sign-box [contenteditable]{font-size:13px;outline:none}
 
 /* ===== Modal de Configuración ===== */
@@ -225,6 +265,10 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 .pv-paper .rep-header{overflow:hidden}
 .pv-paper [contenteditable]{outline:none}
 .pv-paper [data-ph]:empty::before{content:'';}
+/* Ocultar botones de edición de secciones en vista previa */
+.pv-paper .sec-add,
+.pv-paper .sec-hide,
+.pv-paper .sec-delete{display:none!important}
 
 /* Aviso flotante */
 .ed-toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);z-index:3100;display:flex;align-items:center;gap:9px;padding:12px 18px;border-radius:11px;background:linear-gradient(135deg,#1f9d57,#13c47e);color:#fff;font-size:13.5px;font-weight:600;box-shadow:0 14px 36px -14px rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
@@ -232,12 +276,35 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 .ed-toast.err{background:linear-gradient(135deg,#d3443f,#f0635c)}
 
 @media print{
-  body *{visibility:hidden!important}
+  @page { size: letter; margin: 0.4in; }
+  body { margin: 0; padding: 0; }
+  /* Ocultar TODOS los botones de edición de secciones al imprimir (global) */
+  .sec-add, .sec-hide, .sec-delete { display: none !important; }
+  /* Ocultar todo el layout de la app excepto el documento del informe */
+  body > * { display: none !important; }
   .pv-ov,.pv-ov *{visibility:visible!important}
   .pv-ov{position:absolute;inset:0;background:#fff;backdrop-filter:none}
   .pv-bar{display:none!important}
   .pv-scroll{overflow:visible;padding:0}
   .pv-paper{max-width:none;width:100%;box-shadow:none;border-radius:0}
+  /* Ocultar botones de edición de secciones al imprimir */
+  .pv-paper .sec-add,
+  .pv-paper .sec-hide,
+  .pv-paper .sec-delete{display:none!important}
+  /* Reducir tamaño de fuente al imprimir */
+  .pv-paper{font-size:11px!important;line-height:1.3!important}
+  .pv-paper h2{font-size:16px!important;margin-bottom:10px!important}
+  .pv-paper h4{font-size:11px!important;margin:12px 0 4px!important}
+  .pv-paper p,.pv-paper ul{font-size:11px!important;margin:4px 0!important}
+  .pv-paper .doc-meta{font-size:10px!important;margin-bottom:12px!important}
+  /* Reducir márgenes y espaciados */
+  .pv-paper{padding:15px!important}
+  .pv-paper .doc-h{margin-bottom:15px!important}
+  /* Evitar cortes en secciones */
+  .pv-paper h4,.pv-paper p,.pv-paper ul{page-break-inside:avoid}
+  .pv-paper .doc-h{page-break-after:avoid}
+  /* Forzar dimensiones de hoja carta */
+  .pv-paper{width:7.7in!important;height:10.2in!important;max-width:none!important}
 }
 </style>
 @endpush
@@ -287,20 +354,21 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
       <label>Fecha del reporte</label>
       <div class="ed-ctrl">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <span contenteditable="true" data-ph="dd/mm/aaaa">{{ now()->format('d/m/Y') }}</span>
+        <span contenteditable="true" data-ph="{{ str_replace(['d','m','Y'], ['dd','mm','aaaa'], user_date_format()) }}">{{ now()->format(user_date_format()) }}</span>
       </div>
     </div>
     <div class="f">
       <label>Estado</label>
-      <span class="ed-status" id="edStatus">En borrador</span>
+      <span class="ed-status borrador" id="edStatus">Borrador</span>
+    </div>
+    <div class="f">
+      <label>Ajuste de página</label>
+      <span class="ed-status" id="pageFitIndicator" style="font-size: 11px;">Verificando...</span>
     </div>
   </div>
 
   {{-- Toolbar --}}
   <div class="ed-toolbar">
-    <span class="sel">Párrafo
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-    </span>
     <span class="sep"></span>
     <button class="ed-tb" data-cmd="undo" aria-label="Deshacer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg></button>
     <button class="ed-tb" data-cmd="redo" aria-label="Rehacer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg></button>
@@ -309,6 +377,15 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     <button class="ed-tb" data-cmd="italic"><i>I</i></button>
     <button class="ed-tb" data-cmd="underline"><u>U</u></button>
     <button class="ed-tb" data-cmd="strikeThrough"><s>S</s></button>
+    <span class="sep"></span>
+    <input type="text" class="ed-tb" id="fontSizeInput" aria-label="Tamaño de letra" min="8" max="72" value="14" style="width: 60px; padding: 4px 8px; background: var(--panel); color: var(--txt); border: 1px solid var(--stroke);">
+    <span class="sep"></span>
+    <button class="ed-tb" id="underlineColorBtn" aria-label="Subrayado con color" title="Subrayado con color">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17c4 0 7-2 7-5V4H5v8c0 3 3 5 7 5z"/><line x1="7" y1="21" x2="17" y2="21"/></svg>
+    </button>
+    <button class="ed-tb" data-cmd="removeFormat" aria-label="Quitar formato" title="Quitar formato">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
     <span class="sep"></span>
     <button class="ed-tb" data-cmd="justifyLeft" aria-label="Alinear izquierda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg></button>
     <button class="ed-tb" data-cmd="justifyCenter" aria-label="Centrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="18" y1="18" x2="6" y2="18"/></svg></button>
@@ -360,7 +437,16 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
         {{-- Firma (su posición se cambia desde Configuración) --}}
         <div class="rep-sign" id="repSign" data-pos="center">
           <div class="sign-box">
-            <span contenteditable="true" id="repSignName" data-ph="Dr. Nombre del médico">{{ ($datosEstudio['medico'] ?? '') ?: 'Dr. Nombre del médico' }}</span>
+            @if(auth()->user()?->signature_path)
+              <img
+                class="sign-image"
+                src="{{ route('configuracion.signature.show', ['v' => auth()->user()->signature_updated_at?->timestamp]) }}"
+                alt="Firma digital de {{ auth()->user()->name }}"
+              >
+            @endif
+            <div class="sign-line">
+              <span contenteditable="true" id="repSignName" data-ph="Dr. Nombre del médico">{{ ($datosEstudio['medico'] ?? '') ?: 'Dr. Nombre del médico' }}</span>
+            </div>
           </div>
         </div>
       </article>
@@ -396,6 +482,20 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
         </form>
+      </article>
+
+      {{-- Hallazgos del doctor --}}
+      <article class="card ed-panel rise d4" id="hzPanel">
+        <h3>Hallazgos</h3>
+        <div class="ph-sub">Click para insertar en el reporte o escribe uno nuevo</div>
+        <div class="hz-panel">
+          <div class="hz-chips" id="hzChips"></div>
+          <div class="hz-add">
+            <input type="text" id="hzNewInput" placeholder="Escribir hallazgo nuevo..." maxlength="255">
+            <button type="button" id="hzAddBtn">Añadir</button>
+          </div>
+          <div class="hz-count" id="hzCount"><strong>0</strong> en el reporte</div>
+        </div>
       </article>
 
       {{-- Plantillas (debajo del chat) --}}
@@ -825,13 +925,18 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
       fillImgs(4, STUDY_IMAGES.length || 8);
       // Si viene de un reporte guardado, conservar el contenido editado
       if (!preserveContent) {
-        cont.innerHTML = tpl.secciones.map(s => {
-          const head = '<h4>' + s.h + '</h4>';
+        const ocultas = (tpl.cfg.secciones_ocultas || []);
+        const borradas = (tpl.cfg.secciones_borradas || []);
+        const nuevas = (tpl.cfg.secciones_nuevas || []);
+        const seccionesFiltradas = tpl.secciones.filter(s => !ocultas.includes(s.h) && !borradas.includes(s.h));
+        const todasSecciones = [...seccionesFiltradas, ...nuevas];
+        cont.innerHTML = todasSecciones.map(s => {
+          const head = '<h4 data-section="' + s.h + '">' + s.h + '<button type="button" class="sec-hide" title="Ocultar sección">×</button><button type="button" class="sec-delete" title="Borrar sección">Borrar</button></h4>';
           if (s.tipo === 'ul') {
             return head + '<ul><li contenteditable="true" data-ph="' + s.ph + '"></li></ul>';
           }
           return head + '<p contenteditable="true" data-ph="' + s.ph + '"></p>';
-        }).join('');
+        }).join('') + '<button type="button" class="sec-add" id="secAddBtn">+ Añadir sección</button>';
       }
     }
     applyConfig(tpl.cfg);
@@ -850,6 +955,107 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     const opt = Array.from(tipoSel.options).find(o => o.text.toLowerCase() === String(PRELOAD.tipo).toLowerCase());
     if (opt) tipoSel.value = opt.value;
   }
+
+  // Manejar clic en botón de ocultar sección
+  document.addEventListener('click', (e) => {
+    const hideBtn = e.target.closest('.sec-hide');
+    if (!hideBtn) return;
+    const h4 = hideBtn.closest('h4');
+    if (!h4) return;
+    const sectionName = h4.dataset.section;
+    if (!sectionName || !currentKey) return;
+
+    const tpl = TEMPLATES[currentKey];
+    if (!tpl || tpl.imgOnly) return;
+
+    if (!tpl.cfg.secciones_ocultas) tpl.cfg.secciones_ocultas = [];
+    if (!tpl.cfg.secciones_ocultas.includes(sectionName)) {
+      tpl.cfg.secciones_ocultas.push(sectionName);
+    }
+
+    // Guardar la configuración en la BD
+    fetch('{{ url('/plantillas') }}/' + encodeURIComponent(currentKey), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': @json(csrf_token()), 'Accept': 'application/json' },
+      body: JSON.stringify({ configuracion: tpl.cfg }),
+    })
+      .then(r => r.json())
+      .then(d => {
+        if (d.ok) {
+          // Re-renderizar sin la sección oculta
+          render(currentKey, false);
+        }
+      })
+      .catch(() => {});
+  });
+
+  // Manejar clic en botón de borrar sección
+  document.addEventListener('click', (e) => {
+    const deleteBtn = e.target.closest('.sec-delete');
+    if (!deleteBtn) return;
+    const h4 = deleteBtn.closest('h4');
+    if (!h4) return;
+    const sectionName = h4.dataset.section;
+    if (!sectionName || !currentKey) return;
+
+    const tpl = TEMPLATES[currentKey];
+    if (!tpl || tpl.imgOnly) return;
+
+    if (!tpl.cfg.secciones_borradas) tpl.cfg.secciones_borradas = [];
+    if (!tpl.cfg.secciones_borradas.includes(sectionName)) {
+      tpl.cfg.secciones_borradas.push(sectionName);
+    }
+
+    // Guardar la configuración en la BD
+    fetch('{{ url('/plantillas') }}/' + encodeURIComponent(currentKey), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': @json(csrf_token()), 'Accept': 'application/json' },
+      body: JSON.stringify({ configuracion: tpl.cfg }),
+    })
+      .then(r => r.json())
+      .then(d => {
+        if (d.ok) {
+          // Re-renderizar sin la sección borrada
+          render(currentKey, false);
+        }
+      })
+      .catch(() => {});
+  });
+
+  // Manejar clic en botón de añadir sección
+  document.addEventListener('click', (e) => {
+    const addBtn = e.target.closest('.sec-add');
+    if (!addBtn) return;
+    if (!currentKey) return;
+
+    const tpl = TEMPLATES[currentKey];
+    if (!tpl || tpl.imgOnly) return;
+
+    const sectionName = prompt('Nombre de la nueva sección:');
+    if (!sectionName || !sectionName.trim()) return;
+
+    if (!tpl.cfg.secciones_nuevas) tpl.cfg.secciones_nuevas = [];
+    tpl.cfg.secciones_nuevas.push({
+      h: sectionName.trim(),
+      ph: 'Escribe aquí...',
+      tipo: 'p'
+    });
+
+    // Guardar la configuración en la BD
+    fetch('{{ url('/plantillas') }}/' + encodeURIComponent(currentKey), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': @json(csrf_token()), 'Accept': 'application/json' },
+      body: JSON.stringify({ configuracion: tpl.cfg }),
+    })
+      .then(r => r.json())
+      .then(d => {
+        if (d.ok) {
+          // Re-renderizar con la nueva sección
+          render(currentKey, false);
+        }
+      })
+      .catch(() => {});
+  });
 
   /* ===== Modal de configuración: editor visual de la hoja (arrastrar + redimensionar) ===== */
   const modal    = document.getElementById('cfgModal');
@@ -1127,6 +1333,42 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     docEl.addEventListener('mouseup', refreshToolbar);
     docEl.addEventListener('focusout', () => fmtButtons.forEach(b => b.classList.remove('active')));
   }
+
+  // Selector de tamaño de letra (en píxeles)
+  const fontSizeInput = document.getElementById('fontSizeInput');
+  if (fontSizeInput) {
+    // Solo permitir números
+    fontSizeInput.addEventListener('input', (e) => {
+      e.target.value = e.target.value.replace(/[^0-9]/g, '');
+    });
+    fontSizeInput.addEventListener('change', (e) => {
+      const size = parseInt(e.target.value, 10);
+      if (isNaN(size) || size < 8 || size > 72) {
+        e.target.value = '14';
+        return;
+      }
+      // Aplicar tamaño usando execCommand con hack
+      document.execCommand('styleWithCSS', false, true);
+      document.execCommand('fontSize', false, '7');
+      // Buscar elementos font[size="7"] y aplicar el tamaño en píxeles
+      setTimeout(() => {
+        const fontElements = document.querySelectorAll('font[size="7"]');
+        fontElements.forEach(el => {
+          el.removeAttribute('size');
+          el.style.fontSize = size + 'px';
+        });
+      }, 10);
+    });
+  }
+
+  // Highlight (fondo amarillo)
+  const underlineColorBtn = document.getElementById('underlineColorBtn');
+  if (underlineColorBtn) {
+    underlineColorBtn.addEventListener('click', () => {
+      document.execCommand('styleWithCSS', false, true);
+      document.execCommand('hiliteColor', false, '#ffff00');
+    });
+  }
 })();
 </script>
 @endpush
@@ -1271,7 +1513,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
         const cambios = applyAcciones(data.acciones);
         let respuesta = data.respuesta || '...';
         if (cambios > 0) {
-          respuesta += '\n\n✓ Actualicé ' + cambios + (cambios === 1 ? ' sección' : ' secciones') + ' del reporte.';
+          respuesta += '\n\nActualicé ' + cambios + (cambios === 1 ? ' sección' : ' secciones') + ' del reporte.';
         }
         typeInto(aiEl, respuesta);
       }
@@ -1317,6 +1559,159 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 </script>
 
 <script>
+/* ===== Hallazgos del doctor: cargar lista, insertar en sección HALLAZGOS del reporte ===== */
+(function(){
+  const chipsEl   = document.getElementById('hzChips');
+  const newInput  = document.getElementById('hzNewInput');
+  const addBtn    = document.getElementById('hzAddBtn');
+  const countEl   = document.getElementById('hzCount');
+  if (!chipsEl) return;
+
+  const LIST_URL   = "{{ route('ia-reportes.hallazgos-lista') }}";
+  const CREATE_URL = "{{ route('ia-reportes.hallazgos-crear') }}";
+  const CSRF       = "{{ csrf_token() }}";
+  const ESTUDIO_ID = @json($estudio?->id);
+
+  let allHallazgos = [];
+
+  /* --- Buscar la sección HALLAZGOS dentro del documento --- */
+  function findHallazgosUl() {
+    const docEl = document.querySelector('.ed-doc');
+    if (!docEl) return null;
+    const headings = docEl.querySelectorAll('h4');
+    for (const h of headings) {
+      const txt = (h.textContent || '').toUpperCase().replace(/Á/g,'A').replace(/Ó/g,'O');
+      if (txt.includes('HALLAZGO')) {
+        let next = h.nextElementSibling;
+        while (next && next.tagName !== 'H4') {
+          if (next.tagName === 'UL') return next;
+          next = next.nextElementSibling;
+        }
+      }
+    }
+    return null;
+  }
+
+  /* --- Agregar un <li> con el nombre del hallazgo a la sección HALLAZGOS --- */
+  function addToReport(nombre) {
+    const ul = findHallazgosUl();
+    if (!ul) return;
+    const items = Array.from(ul.querySelectorAll('li')).map(li => (li.textContent || '').trim());
+    if (items.includes(nombre)) return;
+    const placeholder = ul.querySelector('li[data-ph]');
+    if (placeholder && !placeholder.textContent.trim()) {
+      placeholder.textContent = nombre;
+    } else {
+      const li = document.createElement('li');
+      li.setAttribute('contenteditable', 'true');
+      li.textContent = nombre;
+      ul.appendChild(li);
+    }
+    flash(ul);
+  }
+
+  function flash(el) {
+    if (!el) return;
+    el.style.transition = 'background-color .3s';
+    el.style.backgroundColor = 'rgba(56,199,244,.2)';
+    setTimeout(() => { el.style.backgroundColor = ''; }, 1300);
+  }
+
+  function updateCount() {
+    if (!countEl) return;
+    const ul = findHallazgosUl();
+    const n = ul ? Array.from(ul.querySelectorAll('li')).filter(li => (li.textContent || '').trim()).length : 0;
+    const strong = countEl.querySelector('strong');
+    if (strong) strong.textContent = n;
+  }
+
+  function renderChips() {
+    chipsEl.innerHTML = '';
+    allHallazgos.forEach(h => {
+      const chip = document.createElement('span');
+      chip.className = 'hz-chip' + (h.es_critico ? ' critico' : '');
+      chip.dataset.id = h.id;
+      chip.innerHTML = '<span class="hz-dot"></span>' + h.nombre;
+      chip.addEventListener('click', () => {
+        addToReport(h.nombre);
+        updateCount();
+      });
+      chipsEl.appendChild(chip);
+    });
+  }
+
+  async function loadHallazgos() {
+    try {
+      const url = ESTUDIO_ID ? LIST_URL + '?estudio_id=' + ESTUDIO_ID : LIST_URL;
+      const res = await fetch(url, { headers: { Accept: 'application/json' } });
+      const data = await res.json();
+      if (!data.ok) return;
+      allHallazgos = data.data.todos;
+      renderChips();
+      updateCount();
+    } catch (e) {
+      console.error('Error cargando hallazgos:', e);
+    }
+  }
+
+  async function crearHallazgo() {
+    const nombre = (newInput.value || '').trim();
+    if (!nombre) return;
+
+    addBtn.disabled = true;
+    try {
+      const res = await fetch(CREATE_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': CSRF,
+        },
+        body: JSON.stringify({ nombre: nombre }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        const h = data.data;
+        if (!allHallazgos.find(x => x.id === h.id)) {
+          allHallazgos.push(h);
+          allHallazgos.sort((a, b) => a.nombre.localeCompare(b.nombre));
+          renderChips();
+        }
+        addToReport(h.nombre);
+        updateCount();
+        newInput.value = '';
+      }
+    } catch (e) {
+      console.error('Error creando hallazgo:', e);
+    } finally {
+      addBtn.disabled = false;
+    }
+  }
+
+  if (addBtn) addBtn.addEventListener('click', crearHallazgo);
+  if (newInput) newInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); crearHallazgo(); }
+  });
+
+  /* --- Extraer hallazgos de la sección HALLAZGOS del reporte al guardar --- */
+  window.getSelectedHallazgos = () => {
+    const ul = findHallazgosUl();
+    if (!ul) return [];
+    return Array.from(ul.querySelectorAll('li'))
+      .map(li => (li.textContent || '').trim())
+      .filter(t => t.length > 0);
+  };
+
+  /* --- Actualizar contador cuando el doctor edita la lista --- */
+  document.addEventListener('keyup', (e) => {
+    if (e.target.closest && e.target.closest('.ed-doc ul li')) updateCount();
+  });
+
+  loadHallazgos();
+})();
+</script>
+
+<script>
 /* ===== Vista Previa + Guardar reporte ===== */
 (function(){
   const doc      = document.querySelector('.ed-doc');
@@ -1329,6 +1724,15 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   const statusEl = document.getElementById('edStatus');
   const toast    = document.getElementById('edToast');
   const STORAGE_KEY = 'enclaii_reporte_borrador';
+
+  // Función para cambiar estado a borrador cuando hay cambios
+  const markAsBorrador = () => {
+    if (statusEl && statusEl.classList.contains('guardado')) {
+      statusEl.textContent = 'Borrador';
+      statusEl.classList.remove('guardado');
+      statusEl.classList.add('borrador');
+    }
+  };
 
   // Aviso flotante
   let toastTimer = null;
@@ -1348,14 +1752,46 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     // (logo / nombre / imagen lateral, en px) coincidan exactamente.
     const w = doc.getBoundingClientRect().width;
     if (w) { pvPaper.style.width = w + 'px'; pvPaper.style.maxWidth = w + 'px'; }
-    // Clonar el documento y quitar lo no imprimible (placeholders vacíos)
+    
+    // Construir HTML limpio sin botones de edición
     const clone = doc.cloneNode(true);
     clone.classList.remove('rise', 'd2', 'card');
+    
+    // Remover contenteditable y campos vacíos
     clone.querySelectorAll('[contenteditable]').forEach(el => {
       el.removeAttribute('contenteditable');
       const txt = (el.textContent || '').trim();
-      if (!txt) el.remove(); // ocultar campos sin llenar
+      if (!txt) el.remove();
     });
+    
+    // Remover TODOS los botones (enfoque más amplio)
+    clone.querySelectorAll('button').forEach(el => el.remove());
+    
+    // Aplicar estilos de impresión
+    clone.style.position = 'relative';
+    clone.style.width = '7.7in';
+    clone.style.height = 'auto';
+    clone.style.transform = 'none';
+    clone.style.background = '#fff';
+    clone.style.color = '#000';
+    clone.style.padding = '0';
+    clone.style.margin = '0';
+    clone.style.maxWidth = 'none';
+    clone.style.boxShadow = 'none';
+    clone.style.border = '0';
+    clone.style.fontSize = '11px';
+    clone.style.lineHeight = '1.3';
+    
+    // Aplicar escalado
+    const targetHeight = 10.2 * 96;
+    const actualHeight = clone.scrollHeight;
+    if (actualHeight > targetHeight) {
+      const scale = targetHeight / actualHeight;
+      clone.style.transform = 'scale(' + scale + ')';
+      clone.style.transformOrigin = 'top left';
+      clone.style.width = (7.7 / scale) + 'in';
+    }
+    
     pvPaper.innerHTML = '';
     pvPaper.appendChild(clone);
     pvModal.classList.add('open');
@@ -1374,6 +1810,65 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     if (e.key === 'Escape' && pvModal && pvModal.classList.contains('open')) closePreview();
   });
 
+  // Sistema de escalado para impresión en una sola hoja
+  let originalTransform = '';
+  let originalWidth = '';
+  const fitToOnePage = () => {
+    if (!doc) return;
+    originalTransform = doc.style.transform || '';
+    originalWidth = doc.style.width || '';
+    doc.style.transform = '';
+    const targetHeight = 10.2 * 96; // 10.2in a 96dpi
+    const actualHeight = doc.scrollHeight;
+    if (actualHeight > targetHeight) {
+      const scale = targetHeight / actualHeight;
+      doc.style.transform = 'scale(' + scale + ')';
+      doc.style.transformOrigin = 'top left';
+      doc.style.width = (7.7 / scale) + 'in';
+    }
+  };
+  const restore = () => {
+    if (!doc) return;
+    doc.style.transform = originalTransform;
+    doc.style.transformOrigin = '';
+    doc.style.width = originalWidth;
+  };
+  window.addEventListener('beforeprint', fitToOnePage);
+  window.addEventListener('afterprint', restore);
+
+  // Indicador en tiempo real de si cabe en una hoja + escalamiento automático
+  const checkPageFit = () => {
+    if (!doc) return;
+    const targetHeight = 10.2 * 96; // 10.2in a 96dpi
+    const actualHeight = doc.scrollHeight;
+    const indicator = document.getElementById('pageFitIndicator');
+    if (indicator) {
+      if (actualHeight > targetHeight) {
+        indicator.textContent = 'Excede 1 hoja (ajustando...)';
+        indicator.style.color = '#ef4444';
+        // Aplicar escalamiento automático
+        const scale = targetHeight / actualHeight;
+        doc.style.transform = 'scale(' + scale + ')';
+        doc.style.transformOrigin = 'top left';
+        doc.style.width = (7.7 / scale) + 'in';
+      } else {
+        indicator.textContent = 'Cabe en 1 hoja';
+        indicator.style.color = '#16a34a';
+        // Restaurar tamaño normal
+        doc.style.transform = '';
+        doc.style.transformOrigin = '';
+        doc.style.width = '';
+      }
+    }
+  };
+  // Verificar cuando el usuario escribe
+  if (doc) {
+    doc.addEventListener('input', checkPageFit);
+    doc.addEventListener('keyup', checkPageFit);
+  }
+  // Verificar inicialmente
+  setTimeout(checkPageFit, 500);
+
   /* ---- Guardar reporte (persistido en BD y ligado al estudio) ---- */
   const ESTUDIO_ID = @json($estudio?->id);
   const SAVE_URL   = @json(route('ia-reportes.guardar'));
@@ -1389,10 +1884,21 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   // Contenido del reporte: HTML para preservar formato y texto plano para búsquedas
   const collectContenido = () => {
     const sec = document.getElementById('docSections');
-    let html = (sec && sec.innerHTML ? sec.innerHTML : '').trim();
-    let txt = (sec && sec.innerText ? sec.innerText : '').trim();
-    if (!html && doc) html = (doc.innerHTML || '').trim();
-    if (!txt && doc) txt = (doc.innerText || '').trim();
+    let html = '';
+    let txt = '';
+    if (sec) {
+      // Clonar y remover botones de edición antes de guardar
+      const secClone = sec.cloneNode(true);
+      secClone.querySelectorAll('.sec-add, .sec-hide, .sec-delete').forEach(el => el.remove());
+      html = (secClone.innerHTML || '').trim();
+      txt = (secClone.innerText || '').trim();
+    }
+    if (!html && doc) {
+      const docClone = doc.cloneNode(true);
+      docClone.querySelectorAll('.sec-add, .sec-hide, .sec-delete').forEach(el => el.remove());
+      html = (docClone.innerHTML || '').trim();
+      txt = (docClone.innerText || '').trim();
+    }
     return { html, txt };
   };
 
@@ -1413,6 +1919,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     const tplKey = window.getCurrentTemplateKey ? window.getCurrentTemplateKey() : null;
     const db = window.PLANTILLAS_DB || {};
     const plantillaId = tplKey && db[tplKey] ? db[tplKey].id : null;
+    const hallazgosSeleccionados = window.getSelectedHallazgos ? window.getSelectedHallazgos() : [];
 
     if (btnSave) btnSave.disabled = true;
     fetch(SAVE_URL, {
@@ -1424,13 +1931,18 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
         contenido_texto: contenido.txt,
         contenido_html: contenido.html,
         plantilla_id: plantillaId,
+        hallazgos: hallazgosSeleccionados,
       }),
     })
       .then(r => r.json())
       .then(d => {
         if (d && d.ok) {
           savedReporteId = d.reporte_id;
-          if (statusEl) statusEl.textContent = 'Reporte guardado';
+          if (statusEl) {
+            statusEl.textContent = 'Guardado';
+            statusEl.classList.remove('borrador');
+            statusEl.classList.add('guardado');
+          }
           showToast('Reporte guardado');
         } else {
           showToast((d && d.message) || 'No se pudo guardar el reporte', true);
@@ -1441,14 +1953,18 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   };
   if (btnSave) btnSave.addEventListener('click', saveReport);
 
-  // Restaurar borrador previo si existe
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw && doc) {
-      const data = JSON.parse(raw);
-      if (statusEl && data.guardadoEn) statusEl.textContent = 'Reporte guardado';
+  /* Auto-abrir selector de estudios al llegar desde el widget del dashboard */
+  if (new URLSearchParams(window.location.search).get('from') === 'widget') {
+    const edEstudioSel = document.getElementById('edEstudioSel');
+    if (edEstudioSel) {
+      setTimeout(() => {
+        edEstudioSel.focus();
+        if (typeof edEstudioSel.showPicker === 'function') {
+          try { edEstudioSel.showPicker(); } catch (e) {}
+        }
+      }, 200);
     }
-  } catch (e) {}
+  }
 })();
 </script>
 @endpush

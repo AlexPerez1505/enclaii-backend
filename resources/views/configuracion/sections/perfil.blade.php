@@ -137,7 +137,7 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
       <div class="pf-photo">
         @php
           $fotoPerfil = auth()->user()->foto_perfil
-              ? asset('storage/' . auth()->user()->foto_perfil)
+              ? media_url(auth()->user()->foto_perfil)
               : null;
         @endphp
         <div class="pf-ava-wrap">
@@ -237,7 +237,7 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
 
       {{-- Constancia de situación fiscal --}}
       @php
-        $constancia = $u->constancia_fiscal ? asset('storage/' . $u->constancia_fiscal) : null;
+        $constancia = $u->constancia_fiscal ? media_url($u->constancia_fiscal) : null;
         $constanciaExt = $u->constancia_fiscal ? strtolower(pathinfo($u->constancia_fiscal, PATHINFO_EXTENSION)) : null;
         $constanciaNombre = $u->constancia_fiscal ? basename($u->constancia_fiscal) : null;
       @endphp
@@ -308,7 +308,7 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
           <span class="pf-corner pf-corner-tr"></span>
           <span class="pf-corner pf-corner-bl"></span>
           <span class="pf-corner pf-corner-br"></span>
-          <div class="pf-avatar-preview" id="pfAvatarPreview">👤</div>
+          <div class="pf-avatar-preview" id="pfAvatarPreview"></div>
         </div>
         <div class="pf-camera-controls">
           <button type="button" class="pf-cam-btn" id="pfBtnGaleria">
@@ -391,7 +391,9 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
     const data = {};
     document.querySelectorAll('.cfg-panel[data-panel="perfil"] input[name], .cfg-panel[data-panel="perfil"] select[name]')
       .forEach(function(el) {
-        data[el.name] = el.value;
+        if (el.value.trim() !== '') {
+          data[el.name] = el.value;
+        }
       });
 
     try {
@@ -407,7 +409,7 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
       });
 
       const json = await res.json();
-      if (json.ok) {
+      if (res.ok && json.ok) {
         saveTxt.textContent = '¡Guardado!';
         saveBtn.style.background = 'var(--green)';
         setTimeout(function() {
@@ -419,13 +421,20 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
         const nameEl = document.querySelector('.profile strong');
         if (nameEl && data.name) nameEl.textContent = data.name;
       } else {
-        saveTxt.textContent = 'Error al guardar';
+        var errMsg = 'Error al guardar';
+        if (json.errors) {
+          var msgs = Object.values(json.errors).flat();
+          errMsg = msgs[0] || errMsg;
+        } else if (json.message) {
+          errMsg = json.message;
+        }
+        saveTxt.textContent = errMsg;
         saveBtn.style.background = 'var(--red)';
         setTimeout(function() {
           saveTxt.textContent = 'Guardar cambios';
           saveBtn.style.background = '';
           saveBtn.disabled = false;
-        }, 2500);
+        }, 3000);
       }
     } catch(e) {
       saveTxt.textContent = 'Error de conexión';
@@ -578,6 +587,7 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
 
   function openModal() {
     modal.classList.add('active');
+<<<<<<< HEAD
     // Refrescar photoData desde la imagen actual por si cambió o no se cargó al inicio
     if (ava && ava.src && ava.style.display !== 'none') photoData = ava.src;
     console.log('Abriendo modal foto. photoData:', photoData);
@@ -588,6 +598,9 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
         avatarPrev.style.backgroundImage=''; avatarPrev.textContent='👤';
       }
     }
+=======
+    if (avatarPrev && !photoData) { avatarPrev.style.backgroundImage=''; avatarPrev.textContent=''; }
+>>>>>>> origin/main
   }
   function closeModal() { stopCamera(); modal.classList.remove('active'); }
 

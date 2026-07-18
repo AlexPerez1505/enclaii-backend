@@ -22,6 +22,7 @@ class GaleriaImagenDeleteTest extends TestCase
             'name' => 'Doctor Prueba',
             'email' => 'doctor@example.com',
             'password' => 'password',
+            'subscription_status' => 'active',
         ]);
         $paciente = Paciente::create([
             'folio' => 'P-TEST-1',
@@ -45,7 +46,15 @@ class GaleriaImagenDeleteTest extends TestCase
             'path' => $path,
         ]);
 
-        $this->actingAs($user)
+        $token = $this->actingAs($user)
+            ->postJson(route('configuracion.security.authorize'), [
+                'scope' => 'studies',
+                'current_password' => 'password',
+            ])
+            ->assertOk()
+            ->json('token');
+
+        $this->withHeader('X-Critical-Authorization', $token)
             ->deleteJson(route('galeria.imagen.destroy', $imagen))
             ->assertOk()
             ->assertJson(['ok' => true]);
@@ -62,6 +71,7 @@ class GaleriaImagenDeleteTest extends TestCase
             'name' => 'Doctor Prueba',
             'email' => 'doctor2@example.com',
             'password' => 'password',
+            'subscription_status' => 'active',
         ]);
         $paciente = Paciente::create([
             'folio' => 'P-TEST-2',
@@ -82,7 +92,15 @@ class GaleriaImagenDeleteTest extends TestCase
             'path' => "estudios/{$estudio->id}/archivos/prueba.mp4",
         ]);
 
-        $this->actingAs($user)
+        $token = $this->actingAs($user)
+            ->postJson(route('configuracion.security.authorize'), [
+                'scope' => 'studies',
+                'current_password' => 'password',
+            ])
+            ->assertOk()
+            ->json('token');
+
+        $this->withHeader('X-Critical-Authorization', $token)
             ->deleteJson(route('galeria.imagen.destroy', $video))
             ->assertNotFound();
 

@@ -2,10 +2,7 @@
 
 @section('title', 'Agenda')
 @section('active', 'agenda')
-@section('header-title', 'Buenos días, Dr. Victor')
-@section('header-sub')
-  Tiene <b>{{ $citasHoy ?? 0 }}</b> pacientes el día de hoy
-@endsection
+@section('header-title', 'Buenos días, '.(auth()->user()?->name ?? 'Doctor'))
 
 {{--
   ╔══════════════════════════════════════════════════════════╗
@@ -39,10 +36,16 @@
       <h2>Agenda</h2>
       <p>Gestiona tus citas y procedimientos</p>
     </div>
-    <a href="{{ route('agendar') }}" class="btn-primary">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Agendar cita
-    </a>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button id="btnBloquearHora" type="button" class="btn-secondary" onclick="window.__openBlockModalManual && window.__openBlockModalManual()" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:10px;font-size:13px;font-weight:600;border:1.5px solid rgba(110,160,255,.35);background:rgba(110,160,255,.08);color:#8FA3CF;cursor:pointer;transition:all 150ms ease" onmouseover="this.style.background='rgba(110,160,255,.18)';this.style.color='#EAF1FF'" onmouseout="this.style.background='rgba(110,160,255,.08)';this.style.color='#8FA3CF'">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Bloquear hora
+      </button>
+      <a href="{{ route('agendar') }}" class="btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Agendar cita
+      </a>
+    </div>
   </div>
 
   <div class="agenda-body rise d3">
@@ -233,6 +236,12 @@
     applyFilters();
   }
 
+  window.__rebuildCurrentView = function() {
+    if (curView === 'mes')        buildCal(cur);
+    else if (curView === 'semana') buildWeek(cur);
+    else if (curView === 'dia')    buildDayAndSync(cur);
+  };
+
   setView('mes');
 
   setInterval(() => {
@@ -378,6 +387,7 @@
       applyFilters();
     });
   }
+
 
 })();
 </script>

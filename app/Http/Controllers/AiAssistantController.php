@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class AiAssistantController extends Controller
 {
@@ -63,7 +64,7 @@ class AiAssistantController extends Controller
                     'attachments' => $m->attachments->map(fn ($a) => [
                         'name' => $a->original_name,
                         'mime_type' => $a->mime_type,
-                        'url' => Storage::disk('public')->url($a->path),
+                        'url' => media_url($a->path),
                     ])->values(),
                 ]);
 
@@ -148,7 +149,7 @@ class AiAssistantController extends Controller
                 'attachments' => $m->attachments->map(fn ($a) => [
                     'name' => $a->original_name,
                     'mime_type' => $a->mime_type,
-                    'url' => Storage::disk('public')->url($a->path),
+                    'url' => media_url($a->path),
                 ]),
             ]);
 
@@ -185,7 +186,7 @@ class AiAssistantController extends Controller
                 'attachments' => $m->attachments->map(fn ($a) => [
                     'name' => $a->original_name,
                     'mime_type' => $a->mime_type,
-                    'url' => Storage::disk('public')->url($a->path),
+                    'url' => media_url($a->path),
                 ]),
             ]);
 
@@ -301,14 +302,14 @@ class AiAssistantController extends Controller
     }
 
     /* ============================================================
-     |  Guarda adjuntos en storage/app/public/ai_uploads
+     |  Guarda adjuntos en el disco de medios configurado.
      |============================================================ */
     private function storeAttachments(Request $request, int $messageId): array
     {
         $saved = [];
 
         foreach ($request->file('attachments', []) as $file) {
-            $path = $file->store('ai_uploads/'.now()->format('Y/m'), 'public');
+            $path = media_store($file, 'clinicas/'.$request->user()->clinica_id.'/ai_uploads/'.now()->format('Y/m'));
 
             $attachment = AiAttachment::create([
                 'ai_message_id' => $messageId,
@@ -411,12 +412,11 @@ class AiAssistantController extends Controller
             return null;
         }
 
-        if (!Storage::disk('public')->exists($path)) {
+        if (! media_exists($path)) {
             return null;
         }
 
-        $absolute = Storage::disk('public')->path($path);
-        $base64 = base64_encode(file_get_contents($absolute));
+        $base64 = base64_encode(Storage::disk(media_disk())->get($path));
 
         return 'data:'.$mime.';base64,'.$base64;
     }
@@ -432,13 +432,14 @@ class AiAssistantController extends Controller
     private function runConversation(array $messages, Request $request): string
     {
         $baseUrl = rtrim(config('services.openai.base_url', 'https://api.openai.com'), '/');
+        $endpoint = Str::endsWith($baseUrl, '/v1') ? '/chat/completions' : '/v1/chat/completions';
         $model = config('services.openai.assistant_model', config('services.openai.model', 'gpt-4o-mini'));
 
         for ($i = 0; $i < 4; $i++) {
             $resp = Http::withToken(config('services.openai.key'))
                 ->baseUrl($baseUrl)
                 ->timeout(90)
-                ->post('/v1/chat/completions', [
+                ->post($endpoint, [
                     'model' => $model,
                     'messages' => $messages,
                     'tools' => $this->tools(),
@@ -532,7 +533,11 @@ class AiAssistantController extends Controller
             'hora' => 'required|string|max:20',
             'sala' => 'nullable|string|max:100',
             'notas' => 'nullable|string|max:1000',
-            'paciente_id' => 'nullable|integer|exists:pacientes,id',
+            'paciente_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('pacientes', 'id')->where('clinica_id', $request->user()->clinica_id),
+            ],
         ]);
 
         if ($validator->fails()) {

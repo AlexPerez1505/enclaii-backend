@@ -3,7 +3,7 @@
 @section('title', 'Dashboard')
 @section('active', 'dashboard')
 @section('header-title')
-  Buenos días, {{ auth()->user()?->name ?? 'Doctor' }} 👋
+  Buenos días, {{ auth()->user()?->name ?? 'Doctor' }}
 @endsection
 @section('header-sub')
   Resumen general de tu actividad clinica
@@ -14,7 +14,8 @@
 /* ============ WIDGET GRID SYSTEM ============ */
 
 /* Contenedor principal de widgets */
-#widgetGrid{
+#widgetGrid,
+#widgetGridMinimal{
   display:grid;
   grid-template-columns:repeat(13,1fr);
   grid-auto-rows:minmax(60px,auto);
@@ -182,25 +183,25 @@ html[data-theme="light"] .card-next .meta b{color:#1E3A8A}
 .card-next .btn-line{
   margin-top:auto;
   flex:1 0 auto;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:0.5em;
+  display:flex;align-items:center;justify-content:center;gap:0.5em;
   padding:0.6em 1em;
-  font-size:0.85em;
+  border-radius:var(--r-md);
+  border:1px solid #60A5FA;
+  font-size:0.85em;font-weight:700;color:#fff;
+  background:rgba(96,165,250,.14);
+  transition:background-color 150ms ease, transform 160ms var(--ease-out);
   min-height:2.8em;
-  border-color:#2563EB;
-  color:#60A5FA;
-  background:rgba(37,99,235,.12);
+  box-shadow:0 4px 14px rgba(37,99,235,.25);
 }
-@media (hover:hover) and (pointer:fine){ .card-next .btn-line:hover{background:rgba(37,99,235,.22)} }
+.card-next .btn-line svg{width:1em;height:1em}
+.card-next .btn-line:active{transform:scale(.97)}
+@media (hover:hover) and (pointer:fine){ .card-next .btn-line:hover{background:rgba(96,165,250,.26)} }
 html[data-theme="light"] .card-next .btn-line{
   border-color:#2563EB;
   color:#2563EB;
   background:rgba(37,99,235,.10);
 }
 @media (hover:hover) and (pointer:fine){ html[data-theme="light"] .card-next .btn-line:hover{background:rgba(37,99,235,.18)} }
-.card-next .btn-line svg{width:1em;height:1em}
 .holo{
   position:absolute;
   right:0.9em;top:50%;
@@ -415,10 +416,10 @@ html[data-theme="light"] .widget[data-widget-id="agenda-today"] .card h3{color:#
 
 /* Tabla */
 .tbl-wrap{flex:1;overflow-x:auto;min-height:0}
-table.tbl{width:100%;border-collapse:collapse;font-size:0.9em;min-width:540px;height:100%}
+table.tbl{width:100%;border-collapse:collapse;font-size:0.9em;min-width:540px}
 .tbl th{text-align:left;font-size:0.85em;font-weight:600;color:var(--txt-soft);padding:0.6em 0.75em;border-bottom:1px solid var(--stroke)}
 .tbl td{padding:0.85em 0.75em;border-bottom:1px solid rgba(110,160,255,.08)}
-.tbl tbody tr{height:1%;transition:background-color 150ms ease}
+.tbl tbody tr{transition:background-color 150ms ease}
 @media (hover:hover) and (pointer:fine){.tbl tbody tr:hover{background:rgba(110,160,255,.05)}}
 .tbl tr:last-child td{border-bottom:0}
 .pat{display:flex;align-items:center;gap:0.6em;font-weight:600}
@@ -431,68 +432,6 @@ table.tbl{width:100%;border-collapse:collapse;font-size:0.9em;min-width:540px;he
 }
 .tbl-link svg{width:1em;height:1em}
 
-/* IA Predictiva */
-.widget:not(.widget-minimal) > .card.card-pred{
-  background:linear-gradient(180deg, #011026 0%, #041C3B 50%, #021939 75%, #021A3A 100%);
-  border-color:rgba(56,199,244,.4);
-  display:grid;
-  grid-template-columns:1.2fr .65fr 1fr 1.15fr;
-  gap:1.6em;
-  align-items:stretch;
-  flex:1;
-  min-height:0;
-  width:100%;
-  overflow:hidden;
-  container-type:inline-size;
-}
-html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
-  background:linear-gradient(180deg, #011026 0%, #041C3B 50%, #021939 75%, #021A3A 100%);
-}
-.widget:not(.widget-minimal) > .card.card-pred > div{
-  display:flex;
-  flex-direction:column;
-  min-width:0;
-  min-height:0;
-  overflow-wrap:break-word;
-}
-.pred-head{display:flex;align-items:flex-start;gap:0.85em;margin-bottom:0.85em}
-.pred-head .orb{width:2.75em;height:2.75em;flex:none;border-radius:12px;border:1px solid var(--stroke-strong);display:grid;place-items:center;color:var(--cyan);background:rgba(56,199,244,.08)}
-.pred-head .orb svg{width:1.4em;height:1.4em}
-.pred-head h3{margin-bottom:0.12em;font-size:clamp(0.82em,2.6cqi,1.05em)}
-.pred-head p{font-size:clamp(0.68em,2cqi,0.82em);color:var(--txt-soft);line-height:1.4}
-.pred-note{border:1px solid var(--stroke-strong);border-radius:var(--r-md);background:rgba(46,123,246,.08);padding:0.9em 1em;font-size:clamp(0.72em,2.1cqi,0.88em);line-height:1.5}
-.pred-note b{color:var(--cyan)}
-.gauge-box{text-align:center}
-.gauge-box h4,.recs h4,.hist h4{font-family:'Sora',sans-serif;font-size:clamp(0.72em,2.1cqi,0.88em);font-weight:600;margin-bottom:0.85em}
-.gauge{position:relative;width:clamp(5.2em,18cqi,7.6em);height:clamp(5.2em,18cqi,7.6em);margin:0 auto}
-.gauge svg{width:100%;height:100%;transform:rotate(-90deg)}
-.gauge circle{fill:none;stroke-width:11;stroke-linecap:round}
-.gauge .track{stroke:rgba(110,160,255,.12)}
-.gauge .val{stroke:var(--orange);transition:stroke-dashoffset 1.2s var(--ease-out)}
-.gauge-center{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
-.gauge-center .lvl{font-size:clamp(0.62em,1.8cqi,0.78em);font-weight:700;color:var(--orange)}
-.gauge-center .pct{font-family:'Sora',sans-serif;font-size:clamp(1.05em,4.2cqi,1.55em);font-weight:800;line-height:1.05}
-.recs ul{list-style:none;flex:1;overflow:auto;min-height:0}
-.recs li{display:flex;align-items:flex-start;gap:0.6em;font-size:clamp(0.72em,2.1cqi,0.88em);line-height:1.4;padding:0.4em 0}
-.recs li svg{width:clamp(0.9em,2.8cqi,1.1em);height:clamp(0.9em,2.8cqi,1.1em);flex:none;color:var(--green);margin-top:0.06em}
-.hist h4{color:var(--green)}
-.hist-item{display:flex;align-items:center;justify-content:space-between;gap:0.75em;padding:0.55em 0;font-size:clamp(0.72em,2.1cqi,0.88em);border-bottom:1px solid rgba(110,160,255,.08)}
-.hist-item span{color:var(--txt-soft);font-size:0.85em}
-.hist .tbl-link{justify-content:flex-start;margin-top:auto}
-
-/* Ajustes para que ciertas listas llenen el alto */
-.hist{
-  display:flex;
-  flex-direction:column;
-  min-height:0;
-  overflow:auto;
-}
-.hist-item{
-  flex:1;
-  display:flex;
-  align-items:center;
-}
-
 /* Responsive */
 @media (max-width:1280px){
   .widget[data-w="3"]{grid-column:span 6}
@@ -500,11 +439,9 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
   .widget[data-w="5"]{grid-column:span 6}
   .widget[data-w="6"]{grid-column:span 13}
   .widget[data-w="8"]{grid-column:span 13}
-  .widget:not(.widget-minimal) > .card.card-pred{grid-template-columns:1fr 1fr}
 }
 @media (max-width:720px){
   .widget[data-w]{grid-column:span 13 !important}
-  .widget:not(.widget-minimal) > .card.card-pred{grid-template-columns:1fr}
 }
 @media (prefers-reduced-motion: reduce){
   .holo::after,.card-ia .brain-img{animation:none}
@@ -513,6 +450,11 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
 
 /* Minimalista widgets */
 .widget.mode-hidden{display:none !important}
+
+/* Visibilidad de grids según modo */
+#widgetGridMinimal{display:none}
+#widgetGrid.dashboard-mode-min{display:none}
+#widgetGridMinimal:not(.dashboard-mode-min){display:grid}
 
 /* Dashboard mode switch */
 .db-mode-bar{
@@ -545,6 +487,7 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
   justify-content:center;
   transition:transform .2s ease, box-shadow .2s ease;
   font-size: clamp(12px, min(calc(var(--widget-w-px, 300) * 0.055px), calc(var(--widget-h-px, 260) * 0.065px)), 22px);
+  position:relative;
 }
 .widget-minimal .card-minimal:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.15)}
 .widget-minimal .min-label{
@@ -638,35 +581,29 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
 @include('dashboard.widgets.new-study.styles')
 @include('dashboard.widgets.next-list.styles')
 @include('dashboard.widgets.agenda-summary.styles')
-@include('dashboard.widgets.ia-risk.styles')
 @endpush
 
 @section('content')
 
+  {{-- Grid original --}}
   <div id="widgetGrid">
-
     @include('dashboard.widgets.next-patient.index')
-    @include('dashboard.widgets.next-patient.minimalista')
-
     @include('dashboard.widgets.ia-pending.index')
-    @include('dashboard.widgets.ia-pending.minimalista')
-
     @include('dashboard.widgets.agenda-today.index')
-    @include('dashboard.widgets.agenda-today.minimalista')
-
     @include('dashboard.widgets.new-study.index')
-    @include('dashboard.widgets.new-study.minimalista')
-
     @include('dashboard.widgets.next-list.index')
-    @include('dashboard.widgets.next-list.minimalista')
-
     @include('dashboard.widgets.agenda-summary.index')
-    @include('dashboard.widgets.agenda-summary.minimalista')
-
-    @include('dashboard.widgets.ia-risk.index')
-    @include('dashboard.widgets.ia-risk.minimalista')
-
   </div>{{-- /#widgetGrid --}}
+
+  {{-- Grid minimalista --}}
+  <div id="widgetGridMinimal" class="dashboard-mode-min">
+    @include('dashboard.widgets.next-patient.minimalista')
+    @include('dashboard.widgets.ia-pending.minimalista')
+    @include('dashboard.widgets.agenda-today.minimalista')
+    @include('dashboard.widgets.new-study.minimalista')
+    @include('dashboard.widgets.next-list.minimalista')
+    @include('dashboard.widgets.agenda-summary.minimalista')
+  </div>{{-- /#widgetGridMinimal --}}
 
 @endsection
 
@@ -704,19 +641,10 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
     // Lottie no cargado
   }
 
-  /* ---- Gauge de riesgo ---- */
-  const gauge = document.querySelector('.gauge .val');
-  const drawGauge = () => {
-    const pct = parseFloat(gauge.dataset.pct) / 100;
-    const C = 314.16;
-    gauge.style.strokeDashoffset = C - (C * pct);
-  };
-
   /* ---- Contadores ---- */
   const counters = document.querySelectorAll('[data-target]');
   if (reduced || typeof gsap === 'undefined') {
     counters.forEach(c => { if (c.dataset.target) c.textContent = parseInt(c.dataset.target, 10).toLocaleString('es-MX'); });
-    if (gauge) { gauge.style.transition = 'none'; drawGauge(); }
   } else {
     counters.forEach((counter, i) => {
       if (!counter.id) return;
@@ -726,7 +654,6 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
         onUpdate: () => { counter.textContent = Math.round(obj.v).toLocaleString('es-MX'); }
       });
     });
-    setTimeout(drawGauge, 550);
   }
 
   /* ---- Límites de tamaño de widgets ---- */
@@ -734,14 +661,6 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
     const id = w.dataset.widgetId;
     const initialW = parseInt(w.dataset.w, 10);
     const baseH = parseInt(w.dataset.baseH, 10) || w.offsetHeight;
-    if (id === 'ia-risk') {
-      return {
-        minW: 9,
-        maxW: 13,
-        minH: Math.max(280, Math.round(baseH * 0.75)),
-        maxH: Math.round(baseH * 2)
-      };
-    }
     if (id === 'next-list') {
       const baseW = parseInt(w.dataset.baseW, 10) || initialW;
       return {
@@ -760,6 +679,16 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
         maxH: Math.round(baseHStored * 3)
       };
     }
+    // Widgets con tamaño predeterminado fijo en el dashboard original
+    if (['next-patient', 'ia-pending', 'new-study'].includes(id)) {
+      const baseHStored = parseInt(w.dataset.baseH, 10) || w.offsetHeight;
+      return {
+        minW: Math.max(3, Math.floor(initialW * 0.5)),
+        maxW: 13,
+        minH: Math.round(baseHStored * 0.85),
+        maxH: Math.round(baseHStored * 1.5)
+      };
+    }
     return {
       minW: Math.max(3, Math.floor(initialW * 0.5)),
       maxW: 13,
@@ -768,28 +697,49 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
     };
   }
 
-  function applySizeLimits() {
-    const grid = document.getElementById('widgetGrid');
-    if (!grid) return;
+  function applySizeLimits(grid) {
+    if (!grid) {
+      applySizeLimits(document.getElementById('widgetGrid'));
+      applySizeLimits(document.getElementById('widgetGridMinimal'));
+      return;
+    }
+    if (grid.offsetParent === null) return; // grid oculto, no aplicar
     const visible = Array.from(grid.querySelectorAll('.widget:not(.widget-ghost):not(.widget-hidden):not(.mode-hidden)'));
+    let needsRetry = false;
     visible.forEach(w => {
+      const isMinimal = w.classList.contains('widget-minimal');
+      const minRendered = isMinimal ? 260 : 120;
+      if (w.offsetHeight < minRendered && !w.style.height) { needsRetry = true; return; }
       if (!w.dataset.baseW) w.dataset.baseW = parseInt(w.dataset.w, 10);
-      if (!w.dataset.baseH) w.dataset.baseH = w.offsetHeight;
+      const storedBaseH = parseInt(w.dataset.baseH, 10) || 0;
+      if (!w.dataset.baseH || storedBaseH <= 0) w.dataset.baseH = w.offsetHeight;
       const limits = getWidgetLimits(w);
       const currentW = parseInt(w.dataset.w, 10);
       const currentH = parseInt(w.style.height, 10) || w.offsetHeight;
       const newW = Math.max(limits.minW, Math.min(limits.maxW, currentW));
-      const newH = Math.max(limits.minH, Math.min(limits.maxH, currentH));
+      let newH = Math.max(limits.minH, Math.min(limits.maxH, currentH));
+      if (newH <= 0) newH = w.offsetHeight || limits.minH || 220;
       w.dataset.w = newW;
       w.style.gridColumn = 'span ' + newW;
       w.style.height = newH + 'px';
     });
+    if (needsRetry) {
+      const retries = parseInt(grid.dataset.applyRetries, 10) || 0;
+      if (retries < 10) {
+        grid.dataset.applyRetries = retries + 1;
+        requestAnimationFrame(() => applySizeLimits(grid));
+      } else {
+        grid.dataset.applyRetries = 0;
+      }
+    } else {
+      grid.dataset.applyRetries = 0;
+    }
   }
 
   /* ============ WIDGET DRAG & REORDER ============ */
-  (function(){
-    const grid = document.getElementById('widgetGrid');
+  function initGrid(grid){
     if (!grid) return;
+    const storageKey = grid.id === 'widgetGridMinimal' ? 'dbWidgetOrderV2Minimal' : 'dbWidgetOrderV2';
 
     let dragging = null, ghost = null, originNext = null;
 
@@ -935,12 +885,12 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
         const h = w.style.height;
         return { id: w.dataset.widgetId, w: w.dataset.w, h: h || null };
       });
-      try { localStorage.setItem('dbWidgetOrderV2', JSON.stringify(order)); } catch(e) {}
+      try { localStorage.setItem(storageKey, JSON.stringify(order)); } catch(e) {}
     }
 
     function restoreOrder() {
       try {
-        const saved = JSON.parse(localStorage.getItem('dbWidgetOrderV2') || 'null');
+        const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
         if (!saved) return;
         saved.forEach(({ id, w, h }) => {
           const el = grid.querySelector(`[data-widget-id="${id}"]`);
@@ -997,7 +947,22 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
     })();
 
     /* Aplicar límites de tamaño al cargar */
-    applySizeLimits();
+    applySizeLimits(grid);
+
+    /* Capturar altura inicial de cada widget como base */
+    (function captureInitialHeights() {
+      grid.querySelectorAll('.widget').forEach(w => {
+        if (!w.dataset.baseH) {
+          w.dataset.baseH = Math.round(w.offsetHeight);
+        }
+      });
+    })();
+
+    /* Tooltips de handles */
+    (function setHandleTitles() {
+      grid.querySelectorAll('.widget-drag-handle').forEach(el => el.title = 'Arrastre para mover');
+      grid.querySelectorAll('.widget-resize-handle').forEach(el => el.title = 'Arrastrar para cambiar tamaño');
+    })();
 
     /* Escala del contenido según tamaño del widget */
     (function(){
@@ -1014,8 +979,105 @@ html[data-theme="light"] .widget:not(.widget-minimal) > .card.card-pred{
       });
       grid.querySelectorAll('.widget').forEach(w => ro.observe(w));
     })();
-  })();
 
+    /* ---- Actualizar calendario y resumen al cambiar de mes ---- */
+    (function(){
+      const calWidget = grid.querySelector('[data-widget-id="agenda-today"]');
+      if (!calWidget) return;
+      const summaryWidget = grid.querySelector('[data-widget-id="agenda-summary"]');
+      const CSRF = @json(csrf_token());
+
+      async function refreshWidget(widget, url, targetSelector) {
+        try {
+          const current = grid.querySelector('[data-widget-id="' + widget + '"]');
+          if (!current) return;
+          current.style.transition = 'opacity .25s ease, transform .25s ease';
+          current.style.opacity = '0.6';
+          current.style.transform = 'scale(0.98)';
+          const res = await fetch(url, {
+            headers: { 'X-CSRF-TOKEN': CSRF, 'X-Requested-With': 'XMLHttpRequest' }
+          });
+          if (!res.ok) return;
+          const html = await res.text();
+          const temp = document.createElement('div');
+          temp.innerHTML = html;
+          const newWidget = temp.querySelector('[data-widget-id="' + widget + '"]');
+          if (!newWidget) return;
+          const ro = current._resizeObserver;
+          if (ro && typeof ro.disconnect === 'function') ro.disconnect();
+          newWidget.style.opacity = '0';
+          newWidget.style.transform = 'scale(0.98)';
+          newWidget.style.transition = 'opacity .25s ease, transform .25s ease';
+          current.replaceWith(newWidget);
+          requestAnimationFrame(() => {
+            newWidget.style.opacity = '1';
+            newWidget.style.transform = 'scale(1)';
+          });
+          const newRo = new ResizeObserver(entries => {
+            entries.forEach(entry => {
+              const w = entry.borderBoxSize && entry.borderBoxSize[0] ? entry.borderBoxSize[0].inlineSize : entry.contentRect.width;
+              const h = entry.borderBoxSize && entry.borderBoxSize[0] ? entry.borderBoxSize[0].blockSize : entry.contentRect.height;
+              entry.target.style.setProperty('--widget-w-px', Math.round(w));
+              entry.target.style.setProperty('--widget-h-px', Math.round(h));
+              if (!entry.target.dataset.baseH) entry.target.dataset.baseH = Math.round(h);
+            });
+          });
+          newWidget._resizeObserver = newRo;
+          newRo.observe(newWidget);
+          applySizeLimits();
+          bindCalendarNav();
+          if (window.gsap) {
+            const counters = newWidget.querySelectorAll('[data-target]');
+            counters.forEach((counter, i) => {
+              if (!counter.id) return;
+              const target = parseInt(counter.dataset.target, 10);
+              const obj = { v: 0 };
+              gsap.to(obj, { v: target, duration: 1.4, ease: 'expo.out', delay: 0.4 + i * 0.12,
+                onUpdate: () => { counter.textContent = Math.round(obj.v).toLocaleString('es-MX'); }
+              });
+            });
+          } else {
+            newWidget.querySelectorAll('[data-target]').forEach(c => { if (c.dataset.target) c.textContent = parseInt(c.dataset.target, 10).toLocaleString('es-MX'); });
+          }
+        } catch(e) {
+          console.error('Error actualizando widget', widget, e);
+          window.location.href = url;
+        }
+      }
+
+      function bindCalendarNav() {
+        const cal = grid.querySelector('[data-widget-id="agenda-today"]');
+        if (!cal) return;
+        cal.querySelectorAll('.cal-nav-btn').forEach(btn => {
+          btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const url = this.dataset.url;
+            if (!url) return;
+            const params = new URL(url, window.location.origin).searchParams;
+            const mes = params.get('widget_mes');
+            const anio = params.get('widget_anio');
+            const baseUrl = new URL(window.location.href);
+            if (mes) baseUrl.searchParams.set('widget_mes', mes);
+            if (anio) baseUrl.searchParams.set('widget_anio', anio);
+            window.history.replaceState({}, '', baseUrl.toString());
+            refreshWidget('agenda-today', url, '[data-widget-id="agenda-today"]');
+            if (summaryWidget) {
+              const summaryUrl = baseUrl.toString().replace('/dashboard', '/dashboard/widget/agenda-summary');
+              refreshWidget('agenda-summary', summaryUrl, '[data-widget-id="agenda-summary"]');
+            }
+          });
+        });
+      }
+
+      bindCalendarNav();
+    })();
+  }
+
+  initGrid(document.getElementById('widgetGrid'));
+  initGrid(document.getElementById('widgetGridMinimal'));
+
+  window.applyWidgetSizeLimits = applySizeLimits;
 })();
 </script>
 @endpush

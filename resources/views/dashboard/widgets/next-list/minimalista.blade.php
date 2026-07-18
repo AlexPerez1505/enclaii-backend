@@ -1,5 +1,5 @@
 {{-- Widget: Pacientes pendientes hoy (minimalista) --}}
-<div class="widget widget-minimal mode-hidden d5" data-widget-id="next-list-min" data-w="8">
+<div class="widget widget-minimal d5" data-widget-id="next-list-min" data-w="8">
   <span class="widget-drag-handle" aria-hidden="true">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="19" r="1"/></svg>
   </span>
@@ -10,7 +10,7 @@
         @php
           $nombreList = $cita->paciente?->nombre_completo ?? $cita->paciente_nombre ?? 'Paciente';
           $urlList = $cita->paciente ? route('pacientes.index', ['paciente_id' => $cita->paciente->id]) : route('agenda');
-          $horaList = \Carbon\Carbon::parse($cita->hora ?? '00:00')->format('g:i A');
+          $horaList = format_user_time(\Carbon\Carbon::parse($cita->hora ?? '00:00'));
           $procList = $cita->procedimiento ?? 'Sin procedimiento';
         @endphp
         <li style="flex:none">
@@ -37,6 +37,6 @@
       Ver agenda
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
     </a>
+    <span class="widget-resize-handle"></span>
   </article>
-  <span class="widget-resize-handle"></span>
 </div>

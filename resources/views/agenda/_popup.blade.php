@@ -75,11 +75,23 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
     const evPopBadge = document.getElementById('evPopBadge');
     const evPopBtns  = document.getElementById('evPopBtns');
 
+    function minutesTo12h(min) {
+      const h = Math.floor(min / 60);
+      const m = min % 60;
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const h12 = h % 12 === 0 ? 12 : h % 12;
+      return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+    }
+    function time24To12h(time24) {
+      const [h, m] = String(time24 || '00:00').split(':').map(Number);
+      return minutesTo12h((h || 0) * 60 + (m || 0));
+    }
+
     const STATUS_BUTTONS = {
-      'ev-done':  [{label:'Datos del paciente',cls:'primary'},{label:'Reprogramar nueva cita',cls:'secondary'},{label:'Ver Informe',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
-      'ev-wait':  [{label:'Iniciar Estudio',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
-      'ev-cancel':[{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
-      'ev-soon':  [{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'},{label:'Enviar mensaje',cls:'secondary'}],
+      'ev-done':  [{label:'Datos del paciente',cls:'primary'},{label:'Reprogramar nueva cita',cls:'secondary'},{label:'Ver Informe',cls:'secondary'}],
+      'ev-wait':  [{label:'Iniciar Estudio',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'}],
+      'ev-cancel':[{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'}],
+      'ev-soon':  [{label:'Reprogramar Paciente',cls:'primary'},{label:'Datos del Paciente',cls:'secondary'}],
     };
     const STATUS_LABELS = {'ev-done':'Completado','ev-wait':'En espera','ev-cancel':'Cancelado','ev-soon':'Próximos'};
     const STATUS_BADGE_CLS = {'ev-done':'done','ev-wait':'wait','ev-cancel':'cancel','ev-soon':'soon'};
@@ -139,7 +151,6 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
 
     const REPROG_LABELS = ['Reprogramar nueva cita','Reprogramar Paciente'];
     const PACIENTE_LABELS = ['Datos del paciente','Datos del Paciente'];
-    const MENSAJE_LABELS = ['Enviar mensaje'];
     const INFORME_LABELS = ['Ver Informe'];
     const INICIAR_LABELS = ['Iniciar Estudio','Iniciar estudio'];
 
@@ -161,9 +172,51 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
       return '{{ route("agendar") }}?' + params.toString();
     }
 
+    function showBlockPopup(blockId, blockKey, blockLabel, blockTime, duration, e) {
+      const [bh, bm] = (blockTime || '00:00').split(':').map(Number);
+      const startMin = (bh || 0) * 60 + (bm || 0);
+      const dur = parseInt(duration || '60', 10) || 60;
+      const endMin = startMin + dur;
+      const timeRange = `${time24To12h(blockTime || '00:00')} – ${minutesTo12h(endMin)}`;
+      evPopAvatar.textContent = '';
+      evPopAvatar.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+      evPopName.textContent = blockLabel;
+      evPopDate.innerHTML = '';
+      evPopInfo.innerHTML = `<b>Motivo:</b> ${blockLabel}<br><b>Hora:</b> ${timeRange}`;
+      evPopBadge.style.display = 'none';
+      evPopBtns.innerHTML = '';
+      const delBlockBtn = document.createElement('button');
+      delBlockBtn.className = 'ev-pop-btn danger';
+      delBlockBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg> Eliminar bloqueo';
+      delBlockBtn.addEventListener('click', ev => {
+        ev.stopPropagation();
+        evPopup.classList.remove('visible');
+        popupAnchoredEl = null;
+        if (window.__openDeleteBloqueoConfirm) {
+          window.__openDeleteBloqueoConfirm(blockId, blockKey || null, blockLabel);
+        }
+      });
+      evPopBtns.appendChild(delBlockBtn);
+      positionPopup(e);
+      evPopup.classList.add('visible');
+    }
+
+    window.__showBlockPopup = showBlockPopup;
+
     window.__showPopup = function(el, e) {
       let d;
       const isDayEvent = el.classList.contains('day-event');
+      const isBlock = el.classList.contains('ev-block') || el.classList.contains('day-lock-badge');
+      if (isBlock) {
+        const blockLabel = el.dataset.blocklabel || el.dataset.name || 'Bloqueo de Tiempo';
+        const blockTime  = el.dataset.time || '00:00';
+        const blockId    = el.dataset.blockid  || el.closest('[data-blockid]')?.dataset.blockid  || '';
+        const blockKey   = el.dataset.blockkey || el.closest('[data-blockkey]')?.dataset.blockkey || '';
+        const dur        = el.dataset.duration || '60';
+        popupAnchoredEl = el;
+        showBlockPopup(blockId, blockKey, blockLabel, blockTime, dur, e);
+        return;
+      }
       if (isDayEvent && el.dataset.name) {
         const displayName = (window.__displayName ? window.__displayName(el.dataset.name) : el.dataset.name);
         d = {
@@ -219,17 +272,6 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
         liveCls = recompute({ cls: d.cls, estado: d.estado, hora: d.time, h: h || 0 }, dateKey);
       }
 
-      function minutesTo12h(min) {
-        const h = Math.floor(min / 60);
-        const m = min % 60;
-        const ampm = h >= 12 ? 'PM' : 'AM';
-        const h12 = h % 12 === 0 ? 12 : h % 12;
-        return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
-      }
-      function time24To12h(time24) {
-        const [h, m] = String(time24 || '00:00').split(':').map(Number);
-        return minutesTo12h((h || 0) * 60 + (m || 0));
-      }
       const startMin = (() => {
         const [h, m] = String(d.time || '00:00').split(':').map(Number);
         return (h || 0) * 60 + (m || 0);
@@ -269,12 +311,6 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
             }
           });
         }
-        if (MENSAJE_LABELS.includes(b.label)) {
-          btn.addEventListener('click', ev => {
-            ev.stopPropagation();
-            window.location.href = '{{ route('mensajes') }}?paciente=' + encodeURIComponent(d.displayName || d.fullName);
-          });
-        }
         if (INICIAR_LABELS.includes(b.label)) {
           btn.addEventListener('click', ev => {
             ev.stopPropagation();
@@ -295,6 +331,7 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
       });
       const delBtn = document.createElement('button');
       delBtn.className = 'ev-pop-btn danger';
+      delBtn.dataset.noConfirm = '';
       const puedeEliminar = ['cancelado', 'completado'].includes(d.estado);
       delBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>${puedeEliminar ? 'Eliminar cita' : 'Cancelar cita'}`;
       delBtn.addEventListener('click', e => {
@@ -333,11 +370,12 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
       if (popupCloseTimer) { clearTimeout(popupCloseTimer); popupCloseTimer = null; }
     }
 
-    /* ---- Desktop: hover en cal/week events ---- */
+    /* ---- Desktop: hover en cal/week events (no ev-block) ---- */
     document.addEventListener('mouseover', e => {
       if (window.innerWidth < 600) return;
       const ev = e.target.closest('.cal-event, .wk-event');
       if (ev) {
+        if (ev.classList.contains('ev-block')) return;
         cancelHide();
         if (popupAnchoredEl !== ev) { popupAnchoredEl = ev; __showPopup(ev, e); }
         return;
@@ -352,7 +390,7 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
     /* ---- Móvil + Día: click en day-event / cal-event / wk-event ---- */
     document.addEventListener('click', e => {
       const ev = e.target.closest('.day-event, .cal-event, .wk-event');
-      if (ev && !ev.classList.contains('ev-block')) {
+      if (ev) {
         const isMobile = window.innerWidth < 600;
         const isDayEvent = ev.classList.contains('day-event');
         // En desktop, ev-done en la vista día no abre popup (usa el panel lateral)

@@ -773,6 +773,116 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
 .rptd-sign .sign-box{min-width:250px;text-align:center;padding-top:8px;border-top:1px solid var(--txt);font-size:13px;}
 html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shadow:0 8px 40px rgba(0,0,0,.08);}
 @media print{.rpt-toolbar{display:none!important;}.rpt-doc-wrap{padding:0;}.rpt-doc,.rptd-doc{box-shadow:none;border:none;border-radius:0;max-width:100%;}}
+
+/* ===== Modal Tauri / Iniciar estudio ===== */
+.tauri-modal {
+  max-width: 460px !important;
+}
+
+.tauri-intro-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+  padding: 14px;
+  background: var(--panel-2);
+  border: 1px solid var(--stroke);
+  border-radius: 14px;
+}
+
+.tauri-intro-icon {
+  width: 52px;
+  height: 52px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(46,123,246,.12);
+  border: 1px solid rgba(46,123,246,.3);
+  color: var(--blue);
+}
+
+.tauri-intro-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--txt);
+}
+
+.tauri-intro-text {
+  margin-top: 3px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--txt-soft);
+}
+
+.tauri-code-box {
+  display: none;
+  margin-bottom: 18px;
+  padding: 22px 20px;
+  border-radius: 16px;
+  background: var(--panel-2);
+  border: 1px solid var(--stroke);
+  text-align: center;
+}
+
+.tauri-code-label {
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--txt-soft);
+  text-transform: uppercase;
+  letter-spacing: .09em;
+}
+
+.tauri-code-value {
+  font-family: 'Sora', 'Quicksand', system-ui, sans-serif;
+  font-size: 38px;
+  font-weight: 900;
+  color: var(--txt);
+  letter-spacing: .12em;
+  line-height: 1;
+}
+
+.tauri-code-expire {
+  margin-top: 10px;
+  font-size: 12.5px;
+  color: var(--txt-soft);
+}
+
+.tauri-help-box {
+  margin-bottom: 18px;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(245,158,45,.10);
+  border: 1px solid rgba(245,158,45,.22);
+  color: var(--txt-soft);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.tauri-warning-box {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(239,68,68,.10);
+  border: 1px solid rgba(239,68,68,.24);
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.tauri-generate-btn {
+  width: 100%;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.tauri-generate-btn:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
 </style>
 @endpush
 
@@ -789,7 +899,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
     ? $galImagenes->pluck('estudio_id')->merge($galVideos->pluck('estudio_id'))->filter()->unique()->count()
     : 15;
   $galUltimoArchivo = $galImagenes->first() ?? $galVideos->first();
-  $galUltimo = $paciente ? (optional($galUltimoArchivo?->capturado_en)->format('d/m/Y') ?? '—') : '15/07/2025';
+  $galUltimo = $paciente ? (format_user_date($galUltimoArchivo?->capturado_en) ?: '—') : '15/07/2025';
   $galSexo = $paciente?->sexo ?? 'Femenino';
   $galEdad = $paciente ? ($paciente->edad ? $paciente->edad.' años' : '—') : '38 años';
   $galCodigo = $paciente ? ($paciente->folio ?? $paciente->identificacion ?? '—') : '00012345';
@@ -835,7 +945,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
       'sexo' => $p->sexo ? ucfirst($p->sexo) : '',
       'telefono' => $p->telefono ?? '',
       'email' => $p->email ?? '',
-      'foto' => $p->foto ? asset('storage/' . $p->foto) : null,
+      'foto' => $p->foto ? media_url($p->foto) : null,
       'iniciales' => $iniciales,
     ];
   });
@@ -873,7 +983,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
         {{-- Foto --}}
         <div class="np-foto-col">
           @php
-            $pacFoto = $paciente && $paciente->foto ? asset('storage/'.$paciente->foto) : '';
+            $pacFoto = $paciente && $paciente->foto ? media_url($paciente->foto) : '';
           @endphp
           <div class="np-foto-box" id="npFotoBox">
             <img id="npFotoPreview" src="{{ $pacFoto }}" alt="{{ $paciente?->nombre_completo }}" @if($pacFoto) style="display:block;" @endif>
@@ -905,7 +1015,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
           
           <div class="np-info-box">
             <label>Fecha nacimiento</label>
-            <div class="np-field-value" id="fecha_nac">{{ $paciente?->fecha_nacimiento?->format('Y-m-d') ?? '—' }}</div>
+            <div class="np-field-value" id="fecha_nac">{{ format_user_date($paciente?->fecha_nacimiento) ?: '—' }}</div>
           </div>
           
           <div class="np-info-box">
@@ -940,7 +1050,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
           
           <div class="np-info-box">
             <label>Fecha de registro</label>
-            <div class="np-field-value" id="fecha_registro">{{ $paciente?->created_at?->format('Y-m-d') ?? '—' }}</div>
+            <div class="np-field-value" id="fecha_registro">{{ format_user_date($paciente?->created_at) ?: '—' }}</div>
           </div>
           
           <div class="np-info-box np-wide">
@@ -1013,15 +1123,15 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
           @forelse($galVideos as $v)
           <article class="pa-card" data-kind="video" data-title="{{ strtolower($v->nombre_original ?? 'video') }}">
             <div class="pa-thumb">
-              <video src="{{ asset('storage/'.$v->path) }}" preload="metadata" muted style="width:100%;height:100%;object-fit:cover"></video>
+              <video src="{{ media_url($v->path) }}" preload="metadata" muted style="width:100%;height:100%;object-fit:cover"></video>
               <span class="pa-badge video">VIDEO</span>
               <div class="pa-play"><span><svg width="17" height="17" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg></span></div>
             </div>
             <div class="pa-body">
               <div class="pa-name">{{ $v->nombre_original ?? 'Video del estudio' }}</div>
-              <div class="pa-meta">Estudio {{ $v->estudio?->folio }}<br>{{ optional($v->capturado_en)->format('d/m/Y H:i') }}</div>
+              <div class="pa-meta">Estudio {{ $v->estudio?->folio }}<br>{{ format_user_date($v->capturado_en) }}</div>
               <div class="pa-actions">
-                <a class="pa-btn primary" href="{{ asset('storage/'.$v->path) }}" target="_blank">Ver</a>
+                <a class="pa-btn primary" href="{{ media_url($v->path) }}" target="_blank">Ver</a>
               </div>
             </div>
           </article>
@@ -1058,13 +1168,13 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
           @forelse($galImagenes as $img)
           <article class="pa-card" data-kind="imagen" data-title="{{ strtolower($img->nombre_original ?? 'imagen') }}">
             <div class="pa-thumb">
-              <img src="{{ asset('storage/'.$img->path) }}" alt="{{ $img->nombre_original ?? 'Captura' }}">
+              <img src="{{ media_url($img->path) }}" alt="{{ $img->nombre_original ?? 'Captura' }}">
               <span class="pa-badge image">IMG</span>
-              <span class="pa-duration">{{ optional($img->capturado_en)->format('H:i') }}</span>
+              <span class="pa-duration">{{ format_user_time($img->capturado_en) }}</span>
             </div>
             <div class="pa-body">
               <div class="pa-name">{{ $img->nombre_original ?? 'Captura' }}</div>
-              <div class="pa-meta">Captura del estudio {{ $img->estudio?->folio }}<br>{{ optional($img->capturado_en)->format('d/m/Y') }}</div>
+              <div class="pa-meta">Captura del estudio {{ $img->estudio?->folio }}<br>{{ format_user_date($img->capturado_en) }}</div>
               <div class="pa-actions">
                 <a class="pa-btn primary" href="{{ route('galeria.imagen', $img->id) }}">Ver imagen</a>
               </div>
@@ -1163,8 +1273,8 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   @php
     $rptImgs = ($galImagenes ?? collect())->where('estudio_id', $rpt->estudio_id)->take(8)->values();
     $rptFirma = $rpt->usuario?->name ?? $rpt->estudio?->medico ?? $paciente?->medico ?? 'Dr. Nombre del médico';
-    $rptFechaEstudio = optional($rpt->estudio?->fecha)->format('d/m/Y') ?? $rpt->created_at?->format('d/m/Y') ?? '';
-    $rptNac = optional($paciente?->fecha_nacimiento)->format('d/m/Y') ?? '';
+    $rptFechaEstudio = format_user_date($rpt->estudio?->fecha ?? $rpt->created_at) ?: '';
+    $rptNac = format_user_date($paciente?->fecha_nacimiento) ?: '';
   @endphp
   <div class="rpt-doc-wrap rise d2">
     <div class="rptd-doc" id="rptDoc">
@@ -1192,7 +1302,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
       @if($rptImgs->count())
       <div class="rptd-imgs">
         @foreach($rptImgs as $img)
-          <span class="cell"><img src="{{ asset('storage/'.$img->path) }}" alt="Imagen del estudio"></span>
+          <span class="cell"><img src="{{ media_url($img->path) }}" alt="Imagen del estudio"></span>
         @endforeach
       </div>
       @endif
@@ -1254,68 +1364,79 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   </div>
 </div>
 
-{{-- Modal de verificación de dispositivo --}}
+{{-- Modal de conexión con Tauri --}}
 <div class="ns-modal-backdrop" id="dispositivoModalBackdrop">
-  <div class="ns-modal" style="max-width:420px">
+  <div class="ns-modal tauri-modal">
     <div class="ns-modal-header">
       <div>
-        <div class="ns-modal-title">Verificar dispositivo</div>
-        <div class="ns-modal-subtitle">Confirma que el dispositivo de grabación está conectado</div>
+        <div class="ns-modal-title">Conectar Tauri</div>
+        <div class="ns-modal-subtitle">
+          Genera un código temporal para vincular esta computadora con el estudio del paciente.
+        </div>
       </div>
+
       <button class="ns-modal-close" type="button" id="dispositivoModalClose" aria-label="Cerrar">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
       </button>
     </div>
+
     <div class="ns-modal-body">
-      <div style="margin-bottom:20px">
-        <label style="display:block;font-size:12px;font-weight:600;color:var(--txt-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Dispositivo de grabación</label>
-        <select id="selDispositivo" style="width:100%;padding:12px 14px;background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-md);font-size:14px;color:var(--txt);outline:none">
-          <option value="Endoscopio EG-530" selected>Endoscopio EG-530</option>
-          <option value="Endoscopio CF-HQ190L">Endoscopio CF-HQ190L</option>
-          <option value="Endoscopio GIF-HQ190">Endoscopio GIF-HQ190</option>
-          <option value="Endoscopio Olympus EVIS EXERA III">Endoscopio Olympus EVIS EXERA III</option>
-          <option value="Cámara USB HD 1080p">Cámara USB HD 1080p</option>
-          <option value="USB Video Device">USB Video Device</option>
-        </select>
-      </div>
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
-        <div id="dispositivoStatusIcon" style="width:52px;height:52px;border-radius:14px;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);display:grid;place-items:center;color:#16a34a">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h7l2 3h6c1.1 0 2 .9 2 2v3c0 1.1-.9 2-2 2h-3"/><circle cx="18" cy="16" r="3"/><path d="M18 13v-1"/></svg>
+
+      <div class="tauri-intro-card">
+        <div class="tauri-intro-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="12" rx="2"/>
+            <path d="M8 20h8"/>
+            <path d="M12 16v4"/>
+          </svg>
         </div>
+
         <div>
-          <div style="font-size:14px;font-weight:700;color:var(--txt)" id="dispositivoNombre">Endoscopio EG-530</div>
-          <div style="font-size:13px;color:var(--txt-soft)" id="dispositivoStatusText">Dispositivo conectado</div>
+          <div class="tauri-intro-title">Aplicación de captura Tauri</div>
+          <div class="tauri-intro-text">
+            Abre la app de escritorio, pega el código y selecciona el capturador USB.
+          </div>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
-        <div style="padding:12px;background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-md)">
-          <div style="font-size:11px;color:var(--txt-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Resolución</div>
-          <div style="font-size:14px;font-weight:600;color:var(--txt)">1920 x 1080</div>
-        </div>
-        <div style="padding:12px;background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-md)">
-          <div style="font-size:11px;color:var(--txt-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">FPS</div>
-          <div style="font-size:14px;font-weight:600;color:var(--txt)">30</div>
+
+      <div id="tauriCodeBox" class="tauri-code-box">
+        <div class="tauri-code-label">Código de conexión</div>
+        <div id="tauriCodeValue" class="tauri-code-value">------</div>
+        <div id="tauriCodeExpire" class="tauri-code-expire">
+          Vence en 10 minutos
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
-        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--txt);cursor:pointer">
-          <input type="checkbox" id="chkDispositivoConectado" checked>
-          Sí, el dispositivo está conectado
-        </label>
+
+      <div class="tauri-help-box">
+        Este código es de un solo uso. Queda ligado al usuario, tenant y paciente actual.
+        La app Tauri podrá enviar vista en vivo, capturas y video a Laravel.
       </div>
-      <form method="POST" action="{{ route('nuevo-estudio.store') }}" style="width:100%">
-        @csrf
-        <input type="hidden" name="paciente_id" value="{{ $paciente?->id }}">
-        <input type="hidden" name="tipo" value="{{ $paciente?->procedimiento }}">
-        <button type="submit" class="np-new-study-btn" id="btnComenzarGrabar" style="width:100%;justify-content:center;text-decoration:none" @unless($paciente) disabled style="opacity:.5" @endunless>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>
-          Iniciar estudio
-        </button>
-      </form>
+
+      <button
+        type="button"
+        class="np-new-study-btn tauri-generate-btn"
+        id="btnGenerarCodigoTauri"
+        @unless($paciente) disabled @endunless
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 5v14"/>
+          <path d="M5 12h14"/>
+        </svg>
+        Generar código para Tauri
+      </button>
+
+      @unless($paciente)
+        <div class="tauri-warning-box">
+          Primero selecciona un paciente para poder generar el código de conexión.
+        </div>
+      @endunless
+
     </div>
   </div>
 </div>
-
 @endsection
 
 @push('scripts')
@@ -1540,40 +1661,113 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
     });
   });
 
-  /* Modal de verificación de dispositivo */
+  /* Modal de conexión con Tauri */
   var dispositivoModalBackdrop = document.getElementById('dispositivoModalBackdrop');
   var dispositivoModalClose = document.getElementById('dispositivoModalClose');
-  var selDispositivo = document.getElementById('selDispositivo');
-  var dispositivoNombre = document.getElementById('dispositivoNombre');
-  var chkDispositivoConectado = document.getElementById('chkDispositivoConectado');
-  var dispositivoStatusIcon = document.getElementById('dispositivoStatusIcon');
-  var dispositivoStatusText = document.getElementById('dispositivoStatusText');
-  var btnComenzarGrabar = document.getElementById('btnComenzarGrabar');
+  var btnGenerarCodigoTauri = document.getElementById('btnGenerarCodigoTauri');
+  var tauriCodeBox = document.getElementById('tauriCodeBox');
+  var tauriCodeValue = document.getElementById('tauriCodeValue');
+  var tauriCodeExpire = document.getElementById('tauriCodeExpire');
 
   function openDispositivoModal() {
-    if (dispositivoModalBackdrop) dispositivoModalBackdrop.classList.add('open');
-    updateDispositivoStatus();
+    if (dispositivoModalBackdrop) {
+      dispositivoModalBackdrop.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
   }
+
   function closeDispositivoModal() {
-    if (dispositivoModalBackdrop) dispositivoModalBackdrop.classList.remove('open');
+    if (dispositivoModalBackdrop) {
+      dispositivoModalBackdrop.classList.remove('open');
+      document.body.style.overflow = '';
+    }
   }
-  function updateDispositivoStatus() {
-    if (!chkDispositivoConectado) return;
-    var conectado = chkDispositivoConectado.checked;
-    if (conectado) {
-      dispositivoStatusIcon.style.background = 'rgba(34,197,94,.12)';
-      dispositivoStatusIcon.style.borderColor = 'rgba(34,197,94,.3)';
-      dispositivoStatusIcon.style.color = '#16a34a';
-      dispositivoStatusText.textContent = 'Dispositivo conectado';
-      btnComenzarGrabar.style.opacity = '1';
-      btnComenzarGrabar.style.pointerEvents = 'auto';
-    } else {
-      dispositivoStatusIcon.style.background = 'rgba(220,38,38,.12)';
-      dispositivoStatusIcon.style.borderColor = 'rgba(220,38,38,.3)';
-      dispositivoStatusIcon.style.color = '#dc2626';
-      dispositivoStatusText.textContent = 'Dispositivo no conectado';
-      btnComenzarGrabar.style.opacity = '.5';
-      btnComenzarGrabar.style.pointerEvents = 'none';
+
+  function setTauriGenerateButtonLoading(isLoading) {
+    if (!btnGenerarCodigoTauri) return;
+
+    if (isLoading) {
+      btnGenerarCodigoTauri.disabled = true;
+      btnGenerarCodigoTauri.style.opacity = '.7';
+      btnGenerarCodigoTauri.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2v4"/>
+          <path d="M12 18v4"/>
+          <path d="m4.93 4.93 2.83 2.83"/>
+          <path d="m16.24 16.24 2.83 2.83"/>
+          <path d="M2 12h4"/>
+          <path d="M18 12h4"/>
+          <path d="m4.93 19.07 2.83-2.83"/>
+          <path d="m16.24 7.76 2.83-2.83"/>
+        </svg>
+        Generando código...
+      `;
+      return;
+    }
+
+    btnGenerarCodigoTauri.disabled = false;
+    btnGenerarCodigoTauri.style.opacity = '1';
+    btnGenerarCodigoTauri.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 5v14"/>
+        <path d="M5 12h14"/>
+      </svg>
+      Generar nuevo código
+    `;
+  }
+
+  async function generarCodigoTauri() {
+    try {
+      if (!btnGenerarCodigoTauri) return;
+
+      setTauriGenerateButtonLoading(true);
+
+      const response = await fetch("{{ route('capture.pairing-code.store') }}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': "{{ csrf_token() }}"
+        },
+        body: JSON.stringify({
+          paciente_id: "{{ $paciente?->id }}",
+          estudio_id: null
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data.message || 'No se pudo generar el código.');
+      }
+
+      if (tauriCodeBox) {
+        tauriCodeBox.style.display = 'block';
+      }
+
+      if (tauriCodeValue) {
+        tauriCodeValue.textContent = data.data.code;
+      }
+
+      if (tauriCodeExpire) {
+        tauriCodeExpire.textContent = 'Vence: ' + data.data.expires_at;
+      }
+
+      setTauriGenerateButtonLoading(false);
+    } catch (error) {
+      alert(error.message || 'Error generando código para Tauri.');
+
+      if (btnGenerarCodigoTauri) {
+        btnGenerarCodigoTauri.disabled = false;
+        btnGenerarCodigoTauri.style.opacity = '1';
+        btnGenerarCodigoTauri.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14"/>
+            <path d="M5 12h14"/>
+          </svg>
+          Generar código para Tauri
+        `;
+      }
     }
   }
 
@@ -1581,13 +1775,12 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   window.closeDispositivoModal = closeDispositivoModal;
 
   dispositivoModalClose?.addEventListener('click', closeDispositivoModal);
+
   dispositivoModalBackdrop?.addEventListener('click', function(e){
     if (e.target === dispositivoModalBackdrop) closeDispositivoModal();
   });
-  chkDispositivoConectado?.addEventListener('change', updateDispositivoStatus);
-  selDispositivo?.addEventListener('change', function(){
-    if (dispositivoNombre) dispositivoNombre.textContent = selDispositivo.value;
-  });
+
+  btnGenerarCodigoTauri?.addEventListener('click', generarCodigoTauri);
 
 })();
 </script>

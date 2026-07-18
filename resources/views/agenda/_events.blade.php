@@ -64,6 +64,32 @@
     });
   });
 
+  @if(isset($bloqueosData) && !empty($bloqueosData))
+  const bloqueosBackend = @json($bloqueosData);
+  bloqueosBackend.forEach(b => {
+    const key = b.fecha;
+    if (!EVENTS[key]) EVENTS[key] = [];
+    EVENTS[key].push({
+      t: `${b.h} ${b.label}`,
+      name: b.label,
+      cls: 'ev-block',
+      h: b.h,
+      blockId: b.id,
+      hora: b.hora,
+      hora_fin: b.hora_fin || null,
+      duracion: b.duracion || 60
+    });
+  });
+  Object.keys(EVENTS).forEach(key => {
+    EVENTS[key].sort((a, b) => {
+      const ah = parseInt(a.h || 0, 10);
+      const bh = parseInt(b.h || 0, 10);
+      if (ah !== bh) return ah - bh;
+      return String(a.hora || '').localeCompare(String(b.hora || ''));
+    });
+  });
+  @endif
+
   window.__AGENDA_EVENTS = EVENTS;
   window.__displayName = _displayName;
 

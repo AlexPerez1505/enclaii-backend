@@ -40,19 +40,36 @@
 .cal-ag-day{position:relative}
 
 /* Horarios arbitrarios */
-.time-section{margin-top:16px}
+.time-section{margin-top:16px;min-width:0;overflow:hidden}
 .time-section-title{font-size:12px;font-weight:700;color:var(--ag-soft);margin-bottom:8px}
 
 /* Línea de tiempo */
-.timeline-wrap{margin-bottom:12px;transition:transform 200ms ease;transform-origin:center}
-.timeline-wrap:hover{transform:scale(1.06)}
-.timeline-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--ag-soft);margin-bottom:5px}
+.timeline-wrap{
+  margin-bottom:12px;
+  width:100%;
+  overflow-x:auto;
+  overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(255,255,255,.2) transparent;
+  box-sizing:border-box;
+}
+.timeline-wrap::-webkit-scrollbar{height:4px}
+.timeline-wrap::-webkit-scrollbar-track{background:transparent}
+.timeline-wrap::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:99px}
+.timeline-inner{width:720px}
+.timeline-labels{display:flex;justify-content:space-between;font-size:9.5px;color:var(--ag-soft);margin-bottom:5px;overflow:visible}
+.timeline-labels span{flex:0 0 auto;text-align:center;white-space:nowrap}
 .timeline-bar{position:relative;height:22px;border-radius:11px;background:rgba(255,255,255,.12);overflow:hidden;display:flex;align-items:stretch;transition:height 200ms ease}
 .timeline-wrap:hover .timeline-bar{height:44px}
 .timeline-segment{flex:1;height:100%;border-right:1.5px solid rgba(255,255,255,.25);position:relative;z-index:0}
 .timeline-segment:last-child{border-right:none}
 .timeline-segment.free{background:#4C9242}
 .timeline-segment.busy{background:#D90000}
+.timeline-segment.blocked{background:rgba(100,110,140,.7);cursor:not-allowed}
+.timeline-segment.blocked::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 4px,rgba(255,255,255,.12) 4px,rgba(255,255,255,.12) 8px)}
+.timeline-segment.past{background:rgba(120,120,120,.55);cursor:not-allowed}
+.timeline-segment.past::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 4px,rgba(255,255,255,.15) 4px,rgba(255,255,255,.15) 8px)}
 .timeline-cursor{position:absolute;top:50%;width:2px;height:140%;background:#fff;transform:translate(-50%,-50%);box-shadow:0 0 6px rgba(0,0,0,.5);z-index:2;pointer-events:none;transition:height 200ms ease}
 .timeline-selection{position:absolute;top:0;height:100%;background:linear-gradient(90deg,rgba(217,0,0,.45),rgba(217,0,0,.25));border-radius:6px;z-index:1;pointer-events:none;transition:left 150ms ease,width 150ms ease}
 /* Selector de hora */
@@ -99,6 +116,7 @@
 .legend-dot{width:8px;height:8px;border-radius:50%;flex:none}
 .legend-dot.libre{background:#4C9242}
 .legend-dot.ocupado{background:#D90000}
+.legend-dot.bloqueado{background:rgba(100,110,140,.8);border:1px solid rgba(180,190,210,.5)}
 
 /* Tema claro */
 html[data-theme="light"] .cal-ag-wrap{
@@ -122,6 +140,8 @@ html[data-theme="light"] .timeline-bar{background:rgba(20,50,120,.12)}
 html[data-theme="light"] .timeline-segment{border-right-color:rgba(20,50,120,.25)}
 html[data-theme="light"] .timeline-cursor{background:#0E1530;box-shadow:0 0 6px rgba(20,50,120,.25)}
 html[data-theme="light"] .timeline-selection{background:linear-gradient(90deg,rgba(217,0,0,.25),rgba(217,0,0,.12))}
+html[data-theme="light"] .timeline-segment.past{background:rgba(100,100,100,.35)}
+html[data-theme="light"] .timeline-segment.blocked{background:rgba(90,100,130,.35)}
 html[data-theme="light"] .time-picker-col input[type="text"]{background:#fff;border-color:rgba(20,50,120,.25);color:#0E1530}
 html[data-theme="light"] .time-picker-col input[type="text"]::selection{background:#1668D9;color:#fff}
 html[data-theme="light"] .time-separator{color:#0E1530}
@@ -193,12 +213,12 @@ html[data-theme="light"] .reprogram-info{
     <div class="time-section-title" id="timeSectionTitle">Horarios disponibles</div>
 
     <div class="timeline-wrap">
-      <div class="timeline-labels" id="timelineLabels">
-        <span>8:00</span><span>12:00</span><span>16:00</span><span>20:00</span><span>22:00</span>
-      </div>
-      <div class="timeline-bar" id="timelineBar">
-        <div class="timeline-cursor" id="timelineCursor" style="left:0"></div>
-        <div class="timeline-selection" id="timelineSelection"></div>
+      <div class="timeline-inner">
+        <div class="timeline-labels" id="timelineLabels"></div>
+        <div class="timeline-bar" id="timelineBar">
+          <div class="timeline-cursor" id="timelineCursor" style="left:0"></div>
+          <div class="timeline-selection" id="timelineSelection"></div>
+        </div>
       </div>
     </div>
 
@@ -244,6 +264,7 @@ html[data-theme="light"] .reprogram-info{
     <div class="slots-legend">
       <div class="legend-item"><span class="legend-dot libre"></span> Libre</div>
       <div class="legend-item"><span class="legend-dot ocupado"></span> Ocupado</div>
+      <div class="legend-item"><span class="legend-dot bloqueado"></span> Bloqueado</div>
     </div>
   </div>
 </div>
@@ -256,9 +277,9 @@ html[data-theme="light"] .reprogram-info{
   const DIAS_FULL = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 
   // Horario operativo del recurso
-  const DAY_START = 8;   // 8:00 AM
-  const DAY_END   = 22;  // 10:00 PM
-  const TIMELINE_SEGMENTS = 28; // 30 min cada segmento
+  const DAY_START = 8;    // 8:00 AM
+  const DAY_END   = 24;   // 23:59 (medianoche)
+  const TIMELINE_SEGMENTS = 32; // 30 min × 32 = 16h (8:00–24:00)
 
   function getEvents() {
     return (typeof window.__AGENDA_EVENTS !== 'undefined') ? window.__AGENDA_EVENTS : {};
@@ -298,33 +319,38 @@ html[data-theme="light"] .reprogram-info{
   }
 
   function getSelectedMinutes() {
-    let hh = parseInt(document.getElementById('timeHour').value, 10) || 8;
+    let hh = parseInt(document.getElementById('timeHour').value, 10) || DAY_START;
     let mm = parseInt(document.getElementById('timeMin').value, 10) || 0;
-    // Forzar rango 08:00 - 23:59
-    hh = Math.max(8, Math.min(23, hh));
+    hh = Math.max(DAY_START, Math.min(23, hh));
     mm = Math.max(0, Math.min(59, mm));
-    return hh * 60 + mm;
+    return Math.max(hh * 60 + mm, getMinSelectableMinutes());
   }
 
   function setSelectedMinutes(minutes) {
-    let h24 = Math.floor(minutes / 60);
+    const min = getMinSelectableMinutes();
+    const max = 23 * 60 + 59;
+    minutes = Math.max(min, Math.min(max, minutes));
+    const h24 = Math.floor(minutes / 60);
     const mm = minutes % 60;
-    // Forzar rango 08:00 - 23:59
-    h24 = Math.max(8, Math.min(23, h24));
     document.getElementById('timeHour').value = String(h24).padStart(2, '0');
     document.getElementById('timeMin').value = String(mm).padStart(2, '0');
   }
 
   function getDuration() {
+    const start = getSelectedMinutes();
     const d = parseInt(document.getElementById('citaDuracion')?.value, 10);
-    return Math.max(1, Math.min(1440, Number.isFinite(d) && d > 0 ? d : 60));
+    const raw = Number.isFinite(d) && d > 0 ? d : 60;
+    const maxDur = DAY_END * 60 - start;
+    return Math.max(1, Math.min(maxDur, raw));
   }
 
   function changeDuration(delta) {
     const input = document.getElementById('citaDuracion');
     if (!input) return;
+    const start = getSelectedMinutes();
+    const maxDur = DAY_END * 60 - start;
     let val = parseInt(input.value, 10) || 60;
-    val = Math.max(1, Math.min(1440, val + delta));
+    val = Math.max(1, Math.min(maxDur, val + delta));
     input.value = val;
     updateEndTime();
     updateTimelineSelection();
@@ -343,7 +369,15 @@ html[data-theme="light"] .reprogram-info{
 
     const statusEl = document.getElementById('timeStatus');
     const isBusy = overlaps(start, end, ranges);
+    const minStart = getMinSelectableMinutes();
 
+    if (start < minStart) {
+      statusEl.className = 'time-status bad';
+      statusEl.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        Horario pasado`;
+      return false;
+    }
     if (isBusy) {
       statusEl.className = 'time-status bad';
       statusEl.innerHTML = `
@@ -391,7 +425,22 @@ html[data-theme="light"] .reprogram-info{
   }
 
   function getSegmentStatus(midMinutes, ranges) {
-    return ranges.some(r => midMinutes >= r.start && midMinutes < r.end) ? 'busy' : 'free';
+    const hit = ranges.find(r => midMinutes >= r.start && midMinutes < r.end);
+    if (!hit) return 'free';
+    return hit.cls === 'ev-block' ? 'blocked' : 'busy';
+  }
+
+  function renderTimelineLabels() {
+    const el = document.getElementById('timelineLabels');
+    if (!el) return;
+    el.innerHTML = '';
+    el.style.position = '';
+    el.style.height = '';
+    for (let h = DAY_START; h <= DAY_END; h += 2) {
+      const span = document.createElement('span');
+      span.textContent = h === 24 ? '0:00' : `${h}:00`;
+      el.appendChild(span);
+    }
   }
 
   function renderTimeline(y, m, d) {
@@ -400,13 +449,17 @@ html[data-theme="light"] .reprogram-info{
     if (!bar) return;
     bar.querySelectorAll('.timeline-segment').forEach(el => el.remove());
 
+    renderTimelineLabels();
+
     const ranges = getDayEvents(y, m, d).map(parseEventRange);
     const segmentMinutes = (DAY_END - DAY_START) * 60 / TIMELINE_SEGMENTS;
 
+    const minMinutes = getMinSelectableMinutes();
     for (let i = 0; i < TIMELINE_SEGMENTS; i++) {
       const segStart = (DAY_START * 60) + (i * segmentMinutes);
       const mid = segStart + segmentMinutes / 2;
-      const status = getSegmentStatus(mid, ranges);
+      let status = getSegmentStatus(mid, ranges);
+      if (segStart < minMinutes) status = 'past';
       const seg = document.createElement('div');
       seg.className = 'timeline-segment ' + status;
       seg.title = formatTime24(segStart) + ' – ' + formatTime24(segStart + segmentMinutes);
@@ -430,6 +483,25 @@ html[data-theme="light"] .reprogram-info{
     ? { y: __reprogramDate.getFullYear(), m: __reprogramDate.getMonth(), d: __reprogramDate.getDate() }
     : null;
   let selectedTime = null;
+
+  function getNowMinutes() {
+    const now = new Date();
+    return now.getHours() * 60 + now.getMinutes();
+  }
+
+  function isSelectedToday() {
+    const today = new Date();
+    return agSelected && agSelected.y === today.getFullYear() && agSelected.m === today.getMonth() && agSelected.d === today.getDate();
+  }
+
+  function getMinSelectableMinutes() {
+    const today = new Date();
+    const isToday = agSelected
+      ? agSelected.y === today.getFullYear() && agSelected.m === today.getMonth() && agSelected.d === today.getDate()
+      : true;
+    if (!isToday) return DAY_START * 60;
+    return Math.max(DAY_START * 60, getNowMinutes());
+  }
 
   function renderCalAg() {
     document.getElementById('calAgYear').textContent  = agY;
@@ -506,7 +578,9 @@ html[data-theme="light"] .reprogram-info{
         if (m !== null) selectedTime = m;
       }
     }
-    setSelectedMinutes(selectedTime || (10 * 60));
+    const defaultTime = Math.max(10 * 60, getMinSelectableMinutes());
+    setSelectedMinutes(selectedTime || defaultTime);
+    selectedTime = getSelectedMinutes();
     updateEndTime();
     updateTimelineCursor();
     updateTimelineSelection();
@@ -548,15 +622,20 @@ html[data-theme="light"] .reprogram-info{
   function clampTimeInputs() {
     const hInput = document.getElementById('timeHour');
     const mInput = document.getElementById('timeMin');
+    const minMinutes = getMinSelectableMinutes();
+    const minH = Math.floor(minMinutes / 60);
+    const minM = minMinutes % 60;
     if (hInput) {
       let h = parseInt(hInput.value, 10);
-      if (Number.isNaN(h)) h = 8;
-      hInput.value = String(Math.max(8, Math.min(23, h))).padStart(2, '0');
+      if (Number.isNaN(h)) h = minH;
+      hInput.value = String(Math.max(minH, Math.min(23, h))).padStart(2, '0');
     }
     if (mInput) {
       let m = parseInt(mInput.value, 10);
       if (Number.isNaN(m)) m = 0;
-      mInput.value = String(Math.max(0, Math.min(59, m))).padStart(2, '0');
+      const currentH = parseInt(hInput.value, 10) || minH;
+      const minMin = currentH === minH ? minM : 0;
+      mInput.value = String(Math.max(minMin, Math.min(59, m))).padStart(2, '0');
     }
   }
 
@@ -591,6 +670,13 @@ html[data-theme="light"] .reprogram-info{
   document.getElementById('durMinus')?.addEventListener('click', () => changeDuration(-5));
   document.getElementById('durPlus')?.addEventListener('click', () => changeDuration(5));
 
+  // Scroll horizontal con rueda del ratón en el timeline
+  document.querySelector('.timeline-wrap')?.addEventListener('wheel', (e) => {
+    if (e.deltaY === 0) return;
+    e.preventDefault();
+    e.currentTarget.scrollLeft += e.deltaY * 1.5;
+  }, { passive: false });
+
   function renderReprogramInfo() {
     const box = document.getElementById('reprogramInfo');
     if (!box || !window.__CITA_EDITAR_ID) return;
@@ -611,5 +697,22 @@ html[data-theme="light"] .reprogram-info{
   // Exponer funciones para sincronización externa (paciente -> calendario)
   window.__renderSlots = renderTimeSection;
   window.__renderCalAg = renderCalAg;
+
+  // Actualizar hora mínima cada minuto cuando la fecha seleccionada es hoy
+  setInterval(() => {
+    if (!isSelectedToday()) return;
+    const min = getMinSelectableMinutes();
+    const current = getSelectedMinutes();
+    if (current < min) {
+      selectedTime = min;
+      setSelectedMinutes(min);
+      updateEndTime();
+      updateTimelineCursor();
+      updateTimelineSelection();
+      validateTime();
+      syncTimeToForm();
+    }
+    renderTimeline(agY, agM, agSelected ? agSelected.d : new Date().getDate());
+  }, 60000);
 })();
 </script>

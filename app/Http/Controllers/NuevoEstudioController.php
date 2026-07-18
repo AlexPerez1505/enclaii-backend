@@ -2,17 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\EstudioCompletado;
 use App\Models\Cita;
 use App\Models\Estudio;
 use App\Models\EstudioArchivo;
 use App\Models\Paciente;
+use App\Services\ActivityLogger;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class NuevoEstudioController extends Controller
 {
+    public function __construct(
+        private readonly ActivityLogger $activity,
+    ) {}
+
     public function index()
     {
         /*
@@ -29,7 +34,7 @@ class NuevoEstudioController extends Controller
             ->latest()
             ->get();
 
-        return view('estudios.dashboard', compact('pacientes', 'estudios'));
+        return view('estudios.dashboard.index', compact('pacientes', 'estudios'));
     }
 
     public function crear(Request $request)
@@ -55,8 +60,14 @@ class NuevoEstudioController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'paciente_id' => ['required', 'exists:pacientes,id'],
-            'cita_id' => ['nullable', 'exists:citas,id'],
+            'paciente_id' => [
+                'required',
+                Rule::exists('pacientes', 'id')->where('clinica_id', $request->user()->clinica_id),
+            ],
+            'cita_id' => [
+                'nullable',
+                Rule::exists('citas', 'id')->where('clinica_id', $request->user()->clinica_id),
+            ],
             'tipo' => ['nullable', 'string', 'max:255'],
             'fecha' => ['nullable', 'date'],
             'medico' => ['nullable', 'string', 'max:255'],
@@ -90,13 +101,23 @@ class NuevoEstudioController extends Controller
         }
 
         $estudio = Estudio::create($validated);
+        $this->activity->record(
+            'study_created',
+            'studies',
+            'Creó el estudio '.$estudio->folio,
+            $estudio,
+            request: $request,
+        );
 
         // La cita pasa a "en espera" mientras se realiza el estudio.
         if ($estudio->cita_id && $estudio->cita?->estado !== 'completado') {
             $estudio->cita->update(['estado' => 'en_espera']);
         }
 
-        session(['estudio_activo_id' => $estudio->id]);
+        session([
+            'estudio_activo_id'              => $estudio->id,
+            'ultimo_estudio_completado_id'    => null,
+        ]);
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
@@ -120,13 +141,16 @@ class NuevoEstudioController extends Controller
             ? $estudio->archivos()->latest()->get()
             : collect();
 
-        return view('estudios.capturas', compact('estudio', 'archivos'));
+        return view('estudios.caputras.index', compact('estudio', 'archivos'));
     }
 
     public function guardarCapturas(Request $request)
     {
         $validated = $request->validate([
-            'estudio_id' => ['nullable', 'exists:estudios,id'],
+            'estudio_id' => [
+                'nullable',
+                Rule::exists('estudios', 'id')->where('clinica_id', $request->user()->clinica_id),
+            ],
             'files' => ['required', 'array'],
             'files.*' => ['file', 'mimes:jpg,jpeg,png,webp,mp4,mov,avi,mkv,webm', 'max:51200'],
             'categoria' => ['nullable', 'string', 'max:255'],
@@ -163,7 +187,10 @@ class NuevoEstudioController extends Controller
     public function importarStore(Request $request)
     {
         $validated = $request->validate([
-            'estudio_id' => ['nullable', 'exists:estudios,id'],
+            'estudio_id' => [
+                'nullable',
+                Rule::exists('estudios', 'id')->where('clinica_id', $request->user()->clinica_id),
+            ],
             'files' => ['required', 'array'],
             'files.*' => ['file', 'mimes:jpg,jpeg,png,webp,mp4,mov,avi,mkv,webm,pdf', 'max:51200'],
             'categoria' => ['nullable', 'string', 'max:255'],
@@ -206,7 +233,10 @@ class NuevoEstudioController extends Controller
     public function guardarConfiguracion(Request $request)
     {
         $validated = $request->validate([
-            'estudio_id' => ['nullable', 'exists:estudios,id'],
+            'estudio_id' => [
+                'nullable',
+                Rule::exists('estudios', 'id')->where('clinica_id', $request->user()->clinica_id),
+            ],
             'video' => ['nullable', 'array'],
             'audio' => ['nullable', 'array'],
             'texto' => ['nullable', 'array'],
@@ -219,6 +249,13 @@ class NuevoEstudioController extends Controller
             'configuracion_audio' => $validated['audio'] ?? [],
             'configuracion_texto' => $validated['texto'] ?? [],
         ]);
+        $this->activity->record(
+            'study_configuration_updated',
+            'studies',
+            'Actualizó la configuración del estudio '.$estudio->folio,
+            $estudio,
+            request: $request,
+        );
 
         return response()->json([
             'ok' => true,
@@ -229,17 +266,55 @@ class NuevoEstudioController extends Controller
 
     public function grabando(Request $request)
     {
-        $estudio = $this->resolverEstudio($request, true);
+        /* Resolver sin crear nunca en esta ruta */
+        $estudio = $this->resolverEstudio($request, false);
 
-        return view('estudios.grabando', compact('estudio'));
+        if (!$estudio) {
+            $ultimoId = session('ultimo_estudio_completado_id');
+            if ($ultimoId) $estudio = Estudio::find($ultimoId);
+        }
+
+        /* Estudio completado → redirigir a su propia página */
+        if ($estudio && $estudio->estado === 'completado') {
+            return redirect()->route('nuevo-estudio.finalizado', ['estudio_id' => $estudio->id]);
+        }
+
+        /* Sin estudio válido → inicio */
+        if (!$estudio) {
+            return redirect()->route('nuevo-estudio');
+        }
+
+        return view('estudios.grabando.index', compact('estudio'));
+    }
+
+    public function finalizado(Request $request)
+    {
+        $estudio = $this->resolverEstudio($request, false);
+
+        if (!$estudio) {
+            $ultimoId = session('ultimo_estudio_completado_id');
+            if ($ultimoId) $estudio = Estudio::find($ultimoId);
+        }
+
+        /* Si no hay estudio completado, redirigir al inicio */
+        if (!$estudio || $estudio->estado !== 'completado') {
+            return redirect()->route('nuevo-estudio');
+        }
+
+        $capturas = $estudio->capturas()->latest()->get();
+
+        return view('estudios.finalizado.index', compact('estudio', 'capturas'));
     }
 
     public function finalizarGrabacion(Request $request)
     {
         $validated = $request->validate([
-            'estudio_id' => ['nullable', 'exists:estudios,id'],
+            'estudio_id' => [
+                'nullable',
+                Rule::exists('estudios', 'id')->where('clinica_id', $request->user()->clinica_id),
+            ],
             'duracion_segundos' => ['nullable', 'integer', 'min:0'],
-            'video' => ['nullable', 'file', 'mimes:mp4,mov,avi,mkv,webm', 'max:102400'],
+            'video' => ['nullable', 'file', 'mimes:mp4,mov,avi,mkv,webm', 'max:512000'],
         ]);
 
         $estudio = $this->resolverEstudio($request, true);
@@ -247,7 +322,17 @@ class NuevoEstudioController extends Controller
         $videoPath = $estudio->video_path;
 
         if ($request->hasFile('video')) {
-            $videoPath = $request->file('video')->store("estudios/{$estudio->id}/videos", 'public');
+            $videoPath = media_store(
+                $request->file('video'),
+                "clinicas/{$request->user()->clinica_id}/estudios/{$estudio->id}/videos"
+            );
+
+            $this->guardarArchivoEstudio(
+                estudio: $estudio,
+                file: $request->file('video'),
+                categoria: 'grabacion',
+                descripcion: 'Grabación del estudio',
+            );
         }
 
         $estudio->update([
@@ -256,12 +341,24 @@ class NuevoEstudioController extends Controller
             'duracion_segundos' => $validated['duracion_segundos'] ?? $estudio->duracion_segundos,
             'video_path' => $videoPath,
         ]);
+        $this->activity->record(
+            'study_completed',
+            'studies',
+            'Finalizó el estudio '.$estudio->folio,
+            $estudio,
+            request: $request,
+        );
 
         // Al finalizar el estudio, la cita vinculada se marca como completada.
         if ($estudio->cita_id && $estudio->cita) {
             $estudio->cita->update(['estado' => 'completado']);
         }
 
+        broadcast(new EstudioCompletado($estudio->fresh()));
+
+        session([
+            'ultimo_estudio_completado_id' => $estudio->id,
+        ]);
         session()->forget('estudio_activo_id');
 
         if ($request->expectsJson() || $request->ajax()) {
@@ -280,11 +377,19 @@ class NuevoEstudioController extends Controller
 
     public function destroyArchivo(EstudioArchivo $archivo)
     {
+        $estudio = $archivo->estudio;
+
         if ($archivo->path && Storage::disk('public')->exists($archivo->path)) {
             Storage::disk('public')->delete($archivo->path);
         }
 
         $archivo->delete();
+        $this->activity->record(
+            'study_file_deleted',
+            'studies',
+            'Eliminó un archivo del estudio '.($estudio?->folio ?? '#'.$archivo->estudio_id),
+            $estudio,
+        );
 
         return response()->json([
             'ok' => true,
@@ -346,7 +451,11 @@ class NuevoEstudioController extends Controller
 
     private function guardarArchivoEstudio(Estudio $estudio, $file, ?string $categoria = null, ?string $descripcion = null): EstudioArchivo
     {
-        $path = $file->store("estudios/{$estudio->id}/archivos", 'public');
+        $path = media_store($file, "clinicas/{$estudio->clinica_id}/estudios/{$estudio->id}/archivos");
+        $path = $file->store(
+            "clinicas/{$estudio->clinica_id}/estudios/{$estudio->id}/archivos",
+            'public',
+        );
         $mime = $file->getMimeType();
 
         $tipo = match (true) {
@@ -408,7 +517,7 @@ class NuevoEstudioController extends Controller
             'tipo' => $archivo->tipo,
             'nombre' => $archivo->nombre,
             'nombre_original' => $archivo->nombre_original,
-            'url' => asset('storage/' . $archivo->path),
+            'url' => media_url($archivo->path),
             'path' => $archivo->path,
             'mime_type' => $archivo->mime_type,
             'size_bytes' => $archivo->size_bytes,

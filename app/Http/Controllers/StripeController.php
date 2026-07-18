@@ -83,6 +83,43 @@ class StripeController extends Controller
     }
 
     /**
+     * Inicia el pago mensual de una cuenta adicional para Red Médica.
+     */
+    public function memberAddonCheckout(Request $request, StripeService $stripe): RedirectResponse
+    {
+        $user = $request->user()->billingUser();
+
+        if ($user->stripe_plan !== 'red_medica') {
+            return back()->with('error', 'Las cuentas adicionales están disponibles para Red Médica.');
+        }
+
+        $pendingCount = $user->clinica->invitations()
+            ->whereNull('accepted_at')
+            ->whereNull('revoked_at')
+            ->where('expires_at', '>', now())
+            ->count();
+        $memberCount = $user->clinica->usuarios()->count();
+
+        if (($memberCount + $pendingCount) < $user->clinicMemberLimit()) {
+            return back()->with('info', 'Todavía tienes lugares disponibles en tu plan.');
+        }
+
+        try {
+            $session = $stripe->createMemberAddonCheckout(
+                $user,
+                route('stripe.success').'?session_id={CHECKOUT_SESSION_ID}',
+                route('stripe.cancel'),
+            );
+        } catch (Throwable $e) {
+            Log::error('Stripe member addon checkout error', ['message' => $e->getMessage()]);
+
+            return back()->with('error', 'No se pudo iniciar el pago: '.$e->getMessage());
+        }
+
+        return redirect()->away($session->url);
+    }
+
+    /**
      * Crea una sesión de Checkout Embedded y devuelve el client_secret.
      */
     public function checkoutEmbedded(Request $request, StripeService $stripe): JsonResponse
@@ -378,12 +415,16 @@ class StripeController extends Controller
     public function success(Request $request, StripeService $stripe): RedirectResponse
     {
         $sessionId = $request->query('session_id');
+        $message = '¡Pago completado! Tu plan ya está activo.';
 
         if ($sessionId) {
             // Flujo de Checkout (con sesión)
             try {
                 $session = $stripe->client()->checkout->sessions->retrieve($sessionId);
                 $this->syncFromCheckoutSession($session, $stripe);
+                if (($session->metadata->type ?? null) === 'member_addon') {
+                    $message = '¡Pago completado! Ya tienes una cuenta adicional disponible.';
+                }
             } catch (Throwable $e) {
                 Log::warning('Stripe success sync error', ['message' => $e->getMessage()]);
             }
@@ -403,7 +444,7 @@ class StripeController extends Controller
             }
         }
 
-        return redirect()->route('configuracion')->with('success', '¡Pago completado! Tu plan ya está activo.');
+        return redirect()->route('configuracion')->with('success', $message);
     }
 
     /**
@@ -516,6 +557,17 @@ class StripeController extends Controller
 
         $subscriptionId = $session->subscription ?? null;
 
+        if (($session->metadata->type ?? null) === 'member_addon' && $subscriptionId) {
+            try {
+                $subscription = $stripe->retrieveSubscription($subscriptionId);
+                $this->syncMemberAddon($user, $subscription);
+            } catch (Throwable $e) {
+                Log::warning('Could not sync member addon checkout', ['error' => $e->getMessage()]);
+            }
+
+            return;
+        }
+
         $data = [
             'stripe_customer_id' => $session->customer ?? $user->stripe_customer_id,
             'stripe_plan' => $session->metadata->plan ?? $user->stripe_plan,
@@ -566,6 +618,12 @@ class StripeController extends Controller
             return;
         }
 
+        if (($subscription->metadata->type ?? null) === 'member_addon') {
+            $this->syncMemberAddon($user, $subscription);
+
+            return;
+        }
+
         $user->forceFill([
             'stripe_subscription_id' => $subscription->id,
             'subscription_status' => $subscription->status,
@@ -573,6 +631,17 @@ class StripeController extends Controller
                 ? Carbon::createFromTimestamp($subscription->current_period_end)
                 : null,
         ])->save();
+    }
+
+    private function syncMemberAddon(User $user, object $subscription): void
+    {
+        $user->memberAddons()->updateOrCreate(
+            ['stripe_subscription_id' => $subscription->id],
+            [
+                'quantity' => max(1, (int) ($subscription->metadata->quantity ?? 1)),
+                'status' => (string) ($subscription->status ?? 'active'),
+            ],
+        );
     }
 
     /**

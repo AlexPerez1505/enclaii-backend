@@ -1260,9 +1260,9 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
           @forelse($capturas as $cap)
           <div class="studio-thumb" data-id="{{ $cap->id }}">
             <div class="studio-thumb-inner" style="padding:0;overflow:hidden">
-              <img src="{{ asset('storage/'.$cap->path) }}" alt="captura" style="width:100%;height:100%;object-fit:cover;border-radius:8px">
+              <img src="{{ media_url($cap->path) }}" alt="captura" style="width:100%;height:100%;object-fit:cover;border-radius:8px">
             </div>
-            <span class="studio-thumb-time">{{ optional($cap->capturado_en)->format('H:i:s') ?? '' }}</span>
+            <span class="studio-thumb-time">{{ format_user_time_with_seconds($cap->capturado_en) }}</span>
           </div>
           @empty
           <div id="recTimelineEmpty" style="display:flex;align-items:center;color:rgba(255,255,255,.4);font-size:13px;padding:8px 4px">Aún no hay fotos. Presiona “Capturar Foto”.</div>
@@ -1274,6 +1274,12 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
       <div class="studio-bottom">
         {{-- Controles de Grabación --}}
         <div class="studio-rec-controls">
+          <div style="display:flex;align-items:center;gap:8px;margin-right:8px">
+            <label for="deviceSelect" style="color:rgba(255,255,255,.7);font-size:12px;white-space:nowrap">Cámara:</label>
+            <select id="deviceSelect" style="background:#0d1320;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:6px;padding:6px 8px;font-size:12px;max-width:180px">
+              <option value="">Cargando cámaras...</option>
+            </select>
+          </div>
           <button class="studio-captura-btn" id="btnCapturarFoto">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
             Capturar Foto
@@ -1446,11 +1452,11 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
           @forelse($capturas as $i => $cap)
           <div class="studio-final-cap-item {{ $i===0 ? 'sel' : '' }}" data-id="{{ $cap->id }}">
             <div class="studio-final-cap-thumb">
-              <img src="{{ asset('storage/'.$cap->path) }}" alt="captura" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+              <img src="{{ media_url($cap->path) }}" alt="captura" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
               <span class="studio-final-cap-num">{{ $i+1 }}</span>
               <span class="studio-final-cap-check"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
             </div>
-            <div class="studio-final-cap-ts">{{ optional($cap->capturado_en)->format('H:i:s') ?? '' }}</div>
+            <div class="studio-final-cap-ts">{{ format_user_time_with_seconds($cap->capturado_en) }}</div>
           </div>
           @empty
           <div id="sfCapsEmpty" style="color:rgba(255,255,255,.4);font-size:13px;padding:8px 4px">No se capturaron fotos en este estudio.</div>
@@ -1719,6 +1725,10 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
   const FINALIZAR_URL = @json(route('nuevo-estudio.finalizar'));
   const GALERIA_URL = @json($estudio?->paciente_id ? route('galeria.paciente', $estudio->paciente_id) : route('galeria'));
   const MOSTRAR_FINALIZADO = @json($mostrarFinalizado);
+  const SETTINGS = window.enclaiiSettings || {};
+  const AUTO_CAPTURE = SETTINGS.capture_auto_capture !== false;
+  const AUTO_SAVE = SETTINGS.capture_auto_save !== false;
+  const AUTO_INTERVAL = Math.max(5, Math.min(300, parseInt(SETTINGS.capture_auto_interval, 10) || 30)) * 1000;
 
   let secs = 0, paused = false, fotos = {{ $numCapturas }}, clips = 0;
 
@@ -1778,38 +1788,117 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
   btnPausa?.addEventListener('click', function () {
     paused = !paused;
     updatePauseButton();
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      paused ? mediaRecorder.pause() : mediaRecorder.resume();
+    }
   });
 
   /* ── Cámara web en vivo ── */
   const webcam = document.getElementById('studioWebcam');
   const captureCanvas = document.getElementById('captureCanvas');
   const webcamFallback = document.getElementById('webcamFallback');
+  const deviceSelect = document.getElementById('deviceSelect');
   let webcamStream = null;
+  let availableDevices = [];
+  let mediaRecorder = null;
+  let recordedChunks = [];
+  let recordedBlob = null;
 
-  async function initWebcam() {
+  function getRecorderMime() {
+    const types = [
+      'video/webm; codecs=vp9',
+      'video/webm; codecs=vp8',
+      'video/webm'
+    ];
+    return types.find(t => typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || 'video/webm';
+  }
+
+  function startRecorder() {
+    if (!webcamStream || typeof MediaRecorder === 'undefined') return;
+    stopRecorder();
+    recordedChunks = [];
+    recordedBlob = null;
+    const mime = getRecorderMime();
+    try {
+      mediaRecorder = new MediaRecorder(webcamStream, { mimeType: mime });
+      mediaRecorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) recordedChunks.push(e.data); };
+      mediaRecorder.onstop = () => { recordedBlob = new Blob(recordedChunks, { type: mime }); };
+      mediaRecorder.start(1000);
+    } catch (e) {
+      console.warn('No se pudo iniciar la grabación de video:', e);
+    }
+  }
+
+  function stopRecorder() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+      mediaRecorder = null;
+    }
+  }
+
+  async function listVideoDevices() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+    try {
+      await navigator.mediaDevices.getUserMedia({ video: true });
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      availableDevices = devices.filter(d => d.kind === 'videoinput');
+      if (deviceSelect) {
+        deviceSelect.innerHTML = '';
+        if (availableDevices.length === 0) {
+          deviceSelect.innerHTML = '<option value="">No se encontraron cámaras</option>';
+        } else {
+          availableDevices.forEach((device, i) => {
+            const option = document.createElement('option');
+            option.value = device.deviceId;
+            option.textContent = device.label || `Cámara ${i + 1}`;
+            deviceSelect.appendChild(option);
+          });
+        }
+      }
+    } catch (e) {
+      showWebcamError('No se pudo listar cámaras: ' + (e && e.message ? e.message : e));
+    }
+  }
+
+  async function startWebcam(deviceId) {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       showWebcamError('Tu navegador no permite acceder a la cámara.');
       return;
     }
+    stopWebcam();
     try {
-      webcamStream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 1920 }, height: { ideal: 1080 } },
+      const constraints = {
+        video: deviceId ? { deviceId: { exact: deviceId }, width: { ideal: 1920 }, height: { ideal: 1080 } } : { width: { ideal: 1920 }, height: { ideal: 1080 } },
         audio: false
-      });
-      if (webcam) { webcam.srcObject = webcamStream; }
+      };
+      webcamStream = await navigator.mediaDevices.getUserMedia(constraints);
+      if (webcam) { webcam.srcObject = webcamStream; webcam.style.display = ''; }
       if (webcamFallback) webcamFallback.style.display = 'none';
+      startRecorder();
     } catch (e) {
       showWebcamError('No se pudo acceder a la cámara: ' + (e && e.message ? e.message : e));
     }
   }
+
+  async function initWebcam() {
+    await listVideoDevices();
+    const selectedDevice = deviceSelect ? deviceSelect.value : '';
+    await startWebcam(selectedDevice);
+  }
+
   function showWebcamError(msg) {
     if (webcam) webcam.style.display = 'none';
     if (webcamFallback) { webcamFallback.style.display = 'flex'; webcamFallback.textContent = msg; }
   }
+
   function stopWebcam() {
+    stopRecorder();
     if (webcamStream) { webcamStream.getTracks().forEach(t => t.stop()); webcamStream = null; }
   }
-  if (!MOSTRAR_FINALIZADO) initWebcam();
+
+  deviceSelect?.addEventListener('change', () => startWebcam(deviceSelect.value));
+
+  initWebcam();
 
   /* Quitar mensaje "aún no hay fotos" al agregar la primera */
   function removeEmptyHint() {
@@ -1887,6 +1976,9 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
     const fd = new FormData();
     if (ESTUDIO_ID) fd.append('estudio_id', ESTUDIO_ID);
     fd.append('duracion_segundos', secs);
+    if (recordedBlob && recordedBlob.size > 0) {
+      fd.append('video', recordedBlob, 'estudio_' + Date.now() + '.webm');
+    }
     fetch(FINALIZAR_URL, {
       method: 'POST',
       headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
@@ -1928,7 +2020,7 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
 
   /* Capturar Foto */
   const btnCapturarFoto = document.getElementById('btnCapturarFoto');
-  btnCapturarFoto?.addEventListener('click', () => {
+  function triggerCapture() {
     const videoScreen = document.getElementById('videoScreen');
     if (videoScreen) {
       const flash = document.createElement('div');
@@ -1947,12 +2039,22 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
     captureCanvas.height = h;
     captureCanvas.getContext('2d').drawImage(webcam, 0, 0, w, h);
     captureCanvas.toBlob((blob) => { if (blob) uploadCapture(blob); }, 'image/jpeg', 0.92);
-  });
+  }
+  btnCapturarFoto?.addEventListener('click', triggerCapture);
+
+  // Autocaptura periódica según la configuración del usuario
+  let autoCaptureInterval = null;
+  if (AUTO_CAPTURE && !MOSTRAR_FINALIZADO) {
+    autoCaptureInterval = setInterval(() => {
+      if (!paused && webcam && webcam.videoWidth) triggerCapture();
+    }, AUTO_INTERVAL);
+  }
 
   /* Detener grabación */
   const btnDetener = document.getElementById('btnDetener');
   btnDetener?.addEventListener('click', () => {
     clearInterval(iv);
+    if (autoCaptureInterval) { clearInterval(autoCaptureInterval); autoCaptureInterval = null; }
     paused = true;
     updatePauseButton();
     stopWebcam();
@@ -1973,16 +2075,33 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
     showFirstCapture();
   }
 
+  function autoSaveIfEnabled() {
+    if (!AUTO_SAVE) return;
+    const guardarBtn = document.getElementById('btnGuardarEstudio');
+    if (guardarBtn && !guardarBtn.disabled) {
+      setTimeout(() => guardarBtn.click(), 800);
+    }
+  }
+
   btnTerminar?.addEventListener('click', (e) => {
     e.preventDefault();
+    // Detener autocaptura
+    if (autoCaptureInterval) { clearInterval(autoCaptureInterval); autoCaptureInterval = null; }
     // Ocultar interfaz de grabación y mostrar interfaz finalizada
     wrapPrincipal.style.display = 'none';
     wrapFinalizado.classList.add('active');
-    // Detener timer
+    // Detener timer y grabación
     clearInterval(iv);
     stopWebcam();
     showFirstCapture();
+    // Si el usuario tiene activado el guardado automático, guardar el estudio
+    autoSaveIfEnabled();
   });
+
+  // Si la página cargó directamente en vista finalizada y el guardado automático está activo, guardar
+  if (MOSTRAR_FINALIZADO && AUTO_SAVE) {
+    autoSaveIfEnabled();
+  }
 
   /* ── Botón Emergencia ── */
   const btnEmergencia = document.querySelector('.studio-btn-emergency');

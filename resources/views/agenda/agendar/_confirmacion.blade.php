@@ -31,6 +31,8 @@
 .success-card .btn-primary{background:linear-gradient(135deg,var(--ag-blue),#00B4D8);color:#fff}
 .success-card .btn-secondary{background:rgba(255,255,255,.08);color:var(--ag-txt);border:1px solid rgba(255,255,255,.15)}
 html[data-theme="light"] .success-card{background:#fff;border-color:rgba(20,50,120,.18)}
+html[data-theme="light"] .success-card h3{color:#0E1530}
+html[data-theme="light"] .success-card p{color:#5B6A99}
 html[data-theme="light"] .success-card .btn-secondary{background:rgba(20,50,120,.06);border-color:rgba(20,50,120,.15);color:#0E1530}
 .ag-grid-confirm > div{display:flex;flex-direction:column}
 
@@ -65,42 +67,42 @@ html[data-theme="light"] .info-item{color:#5B6A99}
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         <div>
           <div class="confirm-lbl">Paciente</div>
-          <div class="confirm-val" id="cfmPaciente">Sofía Lozano</div>
+          <div class="confirm-val" id="cfmPaciente">Paciente</div>
         </div>
       </div>
       <div class="confirm-item">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         <div>
           <div class="confirm-lbl">Especialista</div>
-          <div class="confirm-val" id="cfmEspecialista">Dr. Victor</div>
+          <div class="confirm-val" id="cfmEspecialista">Especialista</div>
         </div>
       </div>
       <div class="confirm-item">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
         <div>
           <div class="confirm-lbl">Procedimiento</div>
-          <div class="confirm-val" id="cfmProcedimiento">Colonoscopia</div>
+          <div class="confirm-val" id="cfmProcedimiento">Procedimiento</div>
         </div>
       </div>
       <div class="confirm-item">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         <div>
           <div class="confirm-lbl">Fecha</div>
-          <div class="confirm-val" id="cfmFecha">20/05/2026</div>
+          <div class="confirm-val" id="cfmFecha">Fecha</div>
         </div>
       </div>
       <div class="confirm-item">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         <div>
           <div class="confirm-lbl">Hora</div>
-          <div class="confirm-val" id="cfmHora">08:00 AM</div>
+          <div class="confirm-val" id="cfmHora">Hora</div>
         </div>
       </div>
       <div class="confirm-item">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
         <div>
           <div class="confirm-lbl">Sala</div>
-          <div class="confirm-val" id="cfmSala">Sala 3</div>
+          <div class="confirm-val" id="cfmSala">Sala</div>
         </div>
       </div>
     </div>

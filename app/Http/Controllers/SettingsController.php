@@ -6,7 +6,7 @@ use App\Models\LegalAcceptance;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class SettingsController extends Controller
 {
@@ -16,9 +16,9 @@ class SettingsController extends Controller
     public function update(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'timezone' => ['sometimes', 'string', 'max:100'],
+            'timezone' => ['sometimes', 'timezone', 'max:50'],
             'date_format' => ['sometimes', 'string', 'max:20'],
-            'time_format' => ['sometimes', 'string', 'max:30'],
+            'time_format' => ['sometimes', 'in:12 horas (AM/PM),24 horas', 'max:30'],
             'autosave' => ['sometimes', 'boolean'],
             'confirm_delete' => ['sometimes', 'boolean'],
             'default_view' => ['sometimes', 'string', 'max:50'],
@@ -28,9 +28,54 @@ class SettingsController extends Controller
             'reading_mode' => ['sometimes', 'boolean'],
             'notif_email' => ['sometimes', 'boolean'],
             'notif_push' => ['sometimes', 'boolean'],
+            'notif_announcement_email' => ['sometimes', 'boolean'],
+            'notif_announcement_screen' => ['sometimes', 'boolean'],
+            'notif_new_studies_email' => ['sometimes', 'boolean'],
+            'notif_new_studies_screen' => ['sometimes', 'boolean'],
+            'notif_reminders_email' => ['sometimes', 'boolean'],
+            'notif_reminders_screen' => ['sometimes', 'boolean'],
+            'notif_updates_email' => ['sometimes', 'boolean'],
+            'notif_updates_screen' => ['sometimes', 'boolean'],
+            'notif_maintenance_email' => ['sometimes', 'boolean'],
+            'notif_maintenance_screen' => ['sometimes', 'boolean'],
+            'notif_privacy_email' => ['sometimes', 'boolean'],
+            'notif_privacy_screen' => ['sometimes', 'boolean'],
+            'notif_messages_screen' => ['sometimes', 'boolean'],
             'notif_new_studies' => ['sometimes', 'boolean'],
             'notif_reports' => ['sometimes', 'boolean'],
             'notif_reminders' => ['sometimes', 'boolean'],
+            'qr_default_expiration_hours' => ['sometimes', 'string', Rule::in(['24', '48', '168'])],
+            'qr_default_patient_message' => ['sometimes', 'nullable', 'string', 'max:150'],
+            'qr_whatsapp_template' => ['sometimes', 'nullable', 'string', 'max:500'],
+            'qr_patient_photo_enabled' => ['sometimes', 'boolean'],
+            'qr_patient_photo_required' => ['sometimes', 'boolean'],
+            'qr_allow_camera_photo' => ['sometimes', 'boolean'],
+            'qr_allow_gallery_photo' => ['sometimes', 'boolean'],
+            'qr_required_fields' => ['sometimes', 'array'],
+            'qr_required_fields.*' => [
+                'string',
+                Rule::in([
+                    'identificacion',
+                    'sexo',
+                    'email',
+                    'direccion',
+                    'peso',
+                    'altura',
+                    'procedimiento',
+                    'motivo_consulta',
+                    'alergias',
+                    'enfermedades',
+                    'medicamentos_actuales',
+                    'antecedentes_medicos',
+                    'observaciones',
+                ]),
+            ],
+            'qr_consent_text' => ['sometimes', 'nullable', 'string', 'max:700'],
+            'qr_duplicate_check' => ['sometimes', 'boolean'],
+            'qr_duplicate_action' => ['sometimes', 'string', Rule::in(['warn', 'block_acceptance'])],
+            'capture_auto_capture' => ['sometimes', 'boolean'],
+            'capture_auto_save' => ['sometimes', 'boolean'],
+            'capture_auto_interval' => ['sometimes', 'integer', 'min:5', 'max:300'],
         ]);
 
         /** @var User $user */
@@ -51,13 +96,15 @@ class SettingsController extends Controller
 
     public function updatePerfil(Request $request): JsonResponse
     {
+        $request->merge(array_map(fn($v) => $v === '' ? null : $v, $request->all()));
+
         $validated = $request->validate([
-            'name'               => ['sometimes', 'string', 'max:100'],
+            'name'               => ['sometimes', 'nullable', 'string', 'max:100'],
             'apellido_paterno'   => ['sometimes', 'nullable', 'string', 'max:100'],
             'apellido_materno'   => ['sometimes', 'nullable', 'string', 'max:100'],
             'fecha_nacimiento'   => ['sometimes', 'nullable', 'date'],
             'sexo'               => ['sometimes', 'nullable', 'string', 'max:20'],
-            'email'              => ['sometimes', 'email', 'max:150'],
+            'email'              => ['sometimes', 'nullable', 'email', 'max:150'],
             'phone'              => ['sometimes', 'nullable', 'string', 'max:30'],
             'specialty'          => ['sometimes', 'nullable', 'string', 'max:150'],
             'subespecialidad'    => ['sometimes', 'nullable', 'string', 'max:150'],
@@ -71,7 +118,7 @@ class SettingsController extends Controller
             'clinica_estado'     => ['sometimes', 'nullable', 'string', 'max:100'],
             'rfc'                => ['sometimes', 'nullable', 'string', 'max:20'],
             'razon_social'       => ['sometimes', 'nullable', 'string', 'max:200'],
-            'regimen_fiscal'     => ['sometimes', 'nullable', 'string', 'max:100'],
+            'regimen_fiscal'     => ['sometimes', 'nullable', 'string', 'max:255'],
             'correo_facturacion' => ['sometimes', 'nullable', 'email', 'max:150'],
         ]);
 
@@ -128,16 +175,14 @@ class SettingsController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        if ($user->foto_perfil && Storage::disk('public')->exists($user->foto_perfil)) {
-            Storage::disk('public')->delete($user->foto_perfil);
-        }
+        media_delete($user->foto_perfil);
 
-        $path = $request->file('foto')->store('fotos_perfil', 'public');
+        $path = media_store($request->file('foto'), 'fotos_perfil');
         $user->update(['foto_perfil' => $path]);
 
         return response()->json([
             'ok' => true,
-            'url' => Storage::disk('public')->url($path),
+            'url' => media_url($path),
         ]);
     }
 
@@ -150,18 +195,16 @@ class SettingsController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        if ($user->constancia_fiscal && Storage::disk('public')->exists($user->constancia_fiscal)) {
-            Storage::disk('public')->delete($user->constancia_fiscal);
-        }
+        media_delete($user->constancia_fiscal);
 
-        $path = $request->file('constancia')->store('constancias_fiscales', 'public');
+        $path = media_store($request->file('constancia'), 'constancias_fiscales');
         $user->update(['constancia_fiscal' => $path]);
 
         $ext = strtolower($request->file('constancia')->getClientOriginalExtension());
 
         return response()->json([
             'ok'   => true,
-            'url'  => Storage::disk('public')->url($path),
+            'url'  => media_url($path),
             'ext'  => $ext,
             'name' => $request->file('constancia')->getClientOriginalName(),
         ]);
@@ -172,9 +215,7 @@ class SettingsController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        if ($user->constancia_fiscal && Storage::disk('public')->exists($user->constancia_fiscal)) {
-            Storage::disk('public')->delete($user->constancia_fiscal);
-        }
+        media_delete($user->constancia_fiscal);
 
         $user->update(['constancia_fiscal' => null]);
 
@@ -186,9 +227,7 @@ class SettingsController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        if ($user->foto_perfil && Storage::disk('public')->exists($user->foto_perfil)) {
-            Storage::disk('public')->delete($user->foto_perfil);
-        }
+        media_delete($user->foto_perfil);
 
         $user->update(['foto_perfil' => null]);
 

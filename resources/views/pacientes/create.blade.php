@@ -1032,7 +1032,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
       {{-- Foto --}}
       <div class="personal-photo-col">
         <div class="patient-photo-container" id="patientPhotoContainer">
-          <div class="patient-photo-placeholder" id="patientPhotoPlaceholder">👤</div>
+          <div class="patient-photo-placeholder" id="patientPhotoPlaceholder"></div>
           <img id="patientPhoto" style="display:none;" alt="Foto del paciente">
         </div>
         <input type="file" name="foto" id="inputFileFoto" accept="image/*" style="display:none;">
@@ -1123,10 +1123,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
         <div class="form-group" style="margin-bottom:18px;">
           <label>Médico</label>
           <div class="select-with-add">
-            <select id="medicoSelectMed" name="medico">
-              <option value="dr-victor">Dr. Victor</option>
-              <option value="dr-ricardo">Dr. Ricardo</option>
-            </select>
+            <input type="text" id="medicoSelectMed" name="medico" data-campo="medico" placeholder="Ej. Dr. Victor" style="flex:1;">
             <button type="button" class="btn-add-procedimiento" onclick="addMedicoMed()" title="Agregar médico">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
@@ -1135,12 +1132,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
         <div class="form-group" style="margin-bottom:18px;">
           <label>Procedimiento</label>
           <div class="select-with-add">
-          <select id="procedimientoSelect" name="procedimiento">
-            <option value="colonoscopia">Colonoscopia</option>
-            <option value="panendoscopia">Panendoscopia</option>
-            <option value="endoscopia">Endoscopia diagnóstica</option>
-            <option value="gastroscopia">Gastroscopia</option>
-          </select>
+          <input type="text" id="procedimientoSelect" name="procedimiento" data-campo="procedimiento" placeholder="Ej. Colonoscopia" style="flex:1;">
             <button type="button" class="btn-add-procedimiento" onclick="addNuevoProcedimiento()" title="Agregar procedimiento">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
@@ -1150,10 +1142,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
         <div class="form-group" style="margin-bottom:18px;">
           <label>Anestesiólogo</label>
           <div class="select-with-add">
-            <select id="anestesiologoSelect" name="anestesiologo">
-              <option value="dr-victor">Dr. Victor</option>
-              <option value="dr-ricardo">Dr. Ricardo</option>
-            </select>
+            <input type="text" id="anestesiologoSelect" name="anestesiologo" data-campo="anestesiologo" placeholder="Ej. Dr. Ricardo" style="flex:1;">
             <button type="button" class="btn-add-procedimiento" onclick="addAnestesiologo()" title="Agregar anestesiólogo">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
@@ -1162,11 +1151,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
         <div class="form-group" style="margin-bottom:18px;">
           <label>Referido por</label>
           <div class="select-with-add">
-            <select id="referidoSelectMed" name="referido_por">
-              <option value="externo">Externo</option>
-              <option value="dr-victor">Dr. Victor</option>
-              <option value="dr-ricardo">Dr. Ricardo</option>
-            </select>
+            <input type="text" id="referidoSelectMed" name="referido_por" data-campo="referido_por" placeholder="Ej. Externo" style="flex:1;">
             <button type="button" class="btn-add-procedimiento" onclick="addReferidoMed()" title="Agregar referido">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
@@ -1175,12 +1160,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
         <div class="form-group" style="margin-bottom:18px;">
           <label>Equipo utilizado</label>
           <div class="select-with-add">
-            <select id="equipoSelect" name="equipo_utilizado">
-              <option value="endoscopio-olympus">Endoscopio Olympus</option>
-              <option value="endoscopio-fujifilm">Endoscopio Fujifilm</option>
-              <option value="endoscopio-pentax">Endoscopio Pentax</option>
-              <option value="torre-endoscopia">Torre de endoscopia</option>
-            </select>
+            <input type="text" id="equipoSelect" name="equipo_utilizado" data-campo="equipo_utilizado" placeholder="Ej. Endoscopio Olympus" style="flex:1;">
             <button type="button" class="btn-add-procedimiento" onclick="addEquipo()" title="Agregar equipo">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
@@ -1344,7 +1324,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
             <span class="corner corner-tr"></span>
             <span class="corner corner-bl"></span>
             <span class="corner corner-br"></span>
-            <div class="avatar-preview">👤</div>
+            <div class="avatar-preview"></div>
           </div>
           <div class="camera-controls">
             <button class="cam-btn">
@@ -1457,13 +1437,63 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
       var n = document.getElementById('_mmI').value.trim();
       if (!n || !_selId) return;
       var s = document.getElementById(_selId);
+      var campo = s?.dataset.campo;
+      var pacienteId = document.querySelector('input[name="paciente_id"]')?.value;
+      
+      // Si el select tiene data-campo y estamos editando (hay paciente_id), guardar en base de datos
+      if (campo && pacienteId) {
+        fetch('{{ route("pacientes.update-campo", ":paciente_id") }}'.replace(':paciente_id', pacienteId), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+          },
+          body: JSON.stringify({ campo: campo, valor: n })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            if (s && s.tagName === 'INPUT') {
+              s.value = data.valor;
+            } else {
+              s.innerHTML = '';
+              var o = document.createElement('option');
+              o.value = data.valor.toLowerCase().replace(/\s+/g,'-');
+              o.textContent = data.valor;
+              o.selected = true;
+              s.appendChild(o);
+            }
+            window.cerrarMiniModal();
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          if (s && s.tagName === 'INPUT') {
+            s.value = n;
+          } else {
+            agregarOpcionSelect(s, n);
+          }
+          window.cerrarMiniModal();
+        });
+        return;
+      }
+      
+      // En create (sin paciente_id), asignar al input de texto
+      if (s && s.tagName === 'INPUT') {
+        s.value = n;
+      } else {
+        agregarOpcionSelect(s, n);
+      }
+      window.cerrarMiniModal();
+    };
+
+    function agregarOpcionSelect(s, n) {
       var o = document.createElement('option');
       o.value = n.toLowerCase().replace(/\s+/g,'-');
       o.textContent = n;
       o.selected = true;
       s.insertBefore(o, s.lastElementChild);
-      window.cerrarMiniModal();
-    };
+    }
     document.getElementById('_mmC').onclick = window.cerrarMiniModal;
     document.getElementById('_mmO').onclick = window.confirmarMiniModal;
     document.getElementById('_mmI').onkeydown = function(e){
@@ -2132,7 +2162,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
       modalFotoAuto.classList.add('active');
 
       if (avatarPreviewAuto && !currentPhotoDataAuto) {
-        avatarPreviewAuto.textContent = '👤';
+        avatarPreviewAuto.textContent = '';
         avatarPreviewAuto.style.backgroundImage = '';
       }
     });

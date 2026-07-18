@@ -22,7 +22,7 @@ html[data-theme="light"] .cita-icon-wrap svg{color:#5B6A99}
     <div class="ag-input-icon">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <select class="ag-input ag-select" id="citaEspecialista">
-        <option selected>Dr. Victor</option>
+        <option value="" disabled selected>Seleccione especialista</option>
       </select>
     </div>
   </div>
@@ -32,10 +32,7 @@ html[data-theme="light"] .cita-icon-wrap svg{color:#5B6A99}
     <div class="ag-input-icon">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
       <select class="ag-input ag-select" id="citaProcedimiento">
-        <option>Colonoscopia</option>
-        <option>Gastroscopía</option>
-        <option>Dudoescopía</option>
-        <option>Broncoscopia</option>
+        <option value="" disabled selected>Seleccione procedimiento</option>
       </select>
     </div>
   </div>
@@ -45,13 +42,13 @@ html[data-theme="light"] .cita-icon-wrap svg{color:#5B6A99}
       <label class="ag-label">Fecha</label>
       <div class="ag-input-icon">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <input class="ag-input" id="citaFecha" type="text" placeholder="DD/MM/AAAA" value="{{ date('d/m/Y') }}" readonly>
+        <input class="ag-input" id="citaFecha" type="text" placeholder="{{ str_replace(['d','m','Y'], ['DD','MM','AAAA'], user_date_format()) }}" value="{{ date(user_date_format()) }}" readonly>
       </div>
     </div>
 
     <div>
       <label class="ag-label">Hora</label>
-      <input class="ag-input" id="citaHora" type="text" placeholder="08:00 AM" value="08:00 AM" readonly>
+      <input class="ag-input" id="citaHora" type="text" placeholder="08:00 AM" value="" readonly>
     </div>
   </div>
 
@@ -68,9 +65,7 @@ html[data-theme="light"] .cita-icon-wrap svg{color:#5B6A99}
   <div class="ag-field">
     <label class="ag-label">Recursos</label>
     <select class="ag-input ag-select" id="citaRecurso">
-      <option>Endoscopio Olympus</option>
-      <option>Endoscopio Pentax</option>
-      <option>Colonoscopio Fujinon</option>
+      <option value="" disabled selected>Seleccione recurso</option>
     </select>
   </div>
 </div>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\EstudioArchivo;
 use App\Models\EstudioHallazgo;
 use App\Models\Hallazgo;
 use App\Models\Plantilla;
@@ -10,16 +11,76 @@ use App\Services\OpenAiReportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Throwable;
 
 class IaReporteController extends Controller
 {
+    /**
+     * Dashboard principal de IA reportes.
+     */
+    public function index(): View
+    {
+        $ahora = now();
+        $inicioMes = $ahora->copy()->startOfMonth();
+        $inicioMesAnterior = $ahora->copy()->subMonth()->startOfMonth();
+        $finMesAnterior = $inicioMesAnterior->copy()->endOfMonth();
+
+        $reportesMes = Reporte::whereBetween('created_at', [$inicioMes, $ahora])->count();
+        $reportesMesAnterior = Reporte::whereBetween('created_at', [$inicioMesAnterior, $finMesAnterior])->count();
+
+        $estudiosMes = \App\Models\Estudio::whereBetween('created_at', [$inicioMes, $ahora])->count();
+        $estudiosMesAnterior = \App\Models\Estudio::whereBetween('created_at', [$inicioMesAnterior, $finMesAnterior])->count();
+
+        $evidenciasMes = EstudioArchivo::whereBetween('created_at', [$inicioMes, $ahora])->count();
+        $evidenciasMesAnterior = EstudioArchivo::whereBetween('created_at', [$inicioMesAnterior, $finMesAnterior])->count();
+
+        $trend = function (int $actual, int $anterior): int {
+            if ($anterior === 0) {
+                return $actual > 0 ? 100 : 0;
+            }
+
+            return (int) round((($actual - $anterior) / $anterior) * 100);
+        };
+
+        $kpis = [
+            'reportes' => [
+                'valor' => $reportesMes,
+                'trend' => $trend($reportesMes, $reportesMesAnterior),
+            ],
+            'sin_reporte' => [
+                'valor' => \App\Models\Estudio::whereDoesntHave('reportes')->count(),
+            ],
+            'evidencias' => [
+                'valor' => $evidenciasMes,
+                'trend' => $trend($evidenciasMes, $evidenciasMesAnterior),
+            ],
+            'estudios' => [
+                'valor' => $estudiosMes,
+                'trend' => $trend($estudiosMes, $estudiosMesAnterior),
+            ],
+        ];
+
+        $reportes = Reporte::with(['estudio.paciente'])
+            ->latest()
+            ->take(15)
+            ->get();
+
+        $hallazgos = $this->hallazgosData()['hallazgos'];
+
+        return view('ia-reportes.index', compact('kpis', 'reportes', 'hallazgos'));
+    }
+
     public function generar(Request $request, OpenAiReportService $service): JsonResponse
     {
         $validated = $request->validate([
-            'estudio_id' => ['required', 'exists:estudios,id'],
+            'estudio_id' => [
+                'required',
+                Rule::exists('estudios', 'id')->where('clinica_id', $request->user()->clinica_id),
+            ],
             'paciente' => ['nullable', 'string', 'max:255'],
             'tipo_estudio' => ['nullable', 'string', 'max:255'],
             'fecha' => ['nullable', 'string', 'max:50'],
@@ -133,6 +194,196 @@ class IaReporteController extends Controller
     }
 
     /**
+     * Plantillas persistidas en la BD, indexadas por clave (para el editor Tauri).
+     */
+    public function apiPlantillas(): JsonResponse
+    {
+        $plantillas = Plantilla::all()->mapWithKeys(fn ($p) => [
+            $p->clave => [
+                'id' => $p->id,
+                'clave' => $p->clave,
+                'titulo' => $p->titulo,
+                'subtitulo' => $p->subtitulo,
+                'configuracion' => $p->configuracion,
+                'columnas' => $p->columnas,
+                'num_imagenes' => $p->num_imagenes,
+            ],
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'plantillas' => $plantillas,
+        ]);
+    }
+
+    /**
+     * Estudios que aun no tienen reporte, para el selector del editor.
+     */
+    public function apiEstudiosSinReporte(Request $request): JsonResponse
+    {
+        $estudioId = $request->query('estudio_id');
+
+        $estudios = \App\Models\Estudio::with('paciente')
+            ->where(function ($q) use ($estudioId) {
+                $q->whereDoesntHave('reportes');
+                if ($estudioId) {
+                    $q->orWhere('id', $estudioId);
+                }
+            })
+            ->latest()
+            ->limit(100)
+            ->get()
+            ->map(fn ($e) => [
+                'id' => $e->id,
+                'paciente_id' => $e->paciente_id,
+                'label' => trim(($e->paciente?->nombre_completo ?? $e->paciente_nombre ?? 'Paciente')
+                    .' · '.($e->tipo ?? 'Estudio')
+                    .' · '.(optional($e->fecha)->format('d/m/Y') ?? '')),
+            ])
+            ->values();
+
+        return response()->json([
+            'ok' => true,
+            'estudios' => $estudios,
+        ]);
+    }
+
+    /**
+     * Datos para precargar el editor: paciente, estudio, imagenes y reporte existente (si aplica).
+     */
+    public function apiPreload(Request $request): JsonResponse
+    {
+        $pacienteId = $request->query('paciente_id');
+        $estudioId = $request->query('estudio_id');
+        $reporteId = $request->query('reporte_id');
+
+        $reporte = $reporteId
+            ? Reporte::with(['estudio.paciente', 'usuario', 'plantilla'])->find($reporteId)
+            : null;
+
+        $paciente = $pacienteId ? \App\Models\Paciente::find($pacienteId) : null;
+        $estudio = $estudioId ? \App\Models\Estudio::with('paciente')->find($estudioId) : null;
+
+        if ($reporte && ! $estudio) {
+            $estudio = $reporte->estudio;
+        }
+        if ($reporte && ! $paciente) {
+            $paciente = $reporte->estudio?->paciente;
+        }
+        if (! $paciente && $estudio) {
+            $paciente = $estudio->paciente;
+        }
+        if ($paciente && ! $estudio) {
+            $estudio = \App\Models\Estudio::where('paciente_id', $paciente->id)->latest()->first();
+        }
+
+        $estudioImagenes = collect();
+        if ($paciente) {
+            $estudioImagenes = EstudioArchivo::where('paciente_id', $paciente->id)
+                ->where('tipo', 'imagen')
+                ->when($estudio, fn ($q) => $q->where('estudio_id', $estudio->id))
+                ->orderByDesc('capturado_en')
+                ->orderByDesc('id')
+                ->get()
+                ->map(fn ($a) => [
+                    'id' => $a->id,
+                    'url' => media_url($a->path),
+                    'path' => $a->path,
+                    'titulo' => $a->nombre_original,
+                ])
+                ->values();
+        }
+
+        return response()->json([
+            'ok' => true,
+            'data' => [
+                'paciente' => $paciente?->nombre_completo ?? ($estudio?->paciente_nombre ?? ''),
+                'paciente_id' => $paciente?->id,
+                'edad' => $paciente?->edad ? $paciente->edad.' años' : '',
+                'sexo' => $paciente && $paciente->sexo ? ucfirst($paciente->sexo) : '',
+                'nacimiento' => optional($paciente?->fecha_nacimiento)->format('d/m/Y') ?? '',
+                'fecha_estudio' => optional($estudio?->fecha)->format('d/m/Y') ?? now()->format('d/m/Y'),
+                'procedimiento' => $estudio?->tipo ?? $paciente?->procedimiento ?? '',
+                'tipo' => $estudio?->tipo ?? $paciente?->procedimiento ?? '',
+                'medico' => $estudio?->medico ?? $paciente?->medico ?? '',
+                'estudio_id' => $estudio?->id,
+                'imagenes' => $estudioImagenes,
+                'reporte' => $reporte ? [
+                    'id' => $reporte->id,
+                    'estudio_id' => $reporte->estudio_id,
+                    'plantilla_id' => $reporte->plantilla_id,
+                    'contenido_html' => $reporte->contenido_html,
+                    'contenido_texto' => $reporte->contenido_texto,
+                    'contiene_hallazgos_criticos' => (bool) $reporte->contiene_hallazgos_criticos,
+                ] : null,
+            ],
+        ]);
+    }
+
+    /**
+     * Listado completo de reportes (para la vista "Todos los reportes" en Tauri).
+     */
+    public function apiReportesTodos(): JsonResponse
+    {
+        $reportes = Reporte::with(['estudio.paciente'])
+            ->latest()
+            ->get()
+            ->map(function (Reporte $r) {
+                $pacNombre = $r->estudio?->paciente?->nombre_completo ?? $r->estudio?->paciente_nombre ?? 'Sin paciente';
+                $iniciales = collect(explode(' ', $pacNombre))->filter()->take(2)
+                    ->map(fn ($x) => mb_strtoupper(mb_substr($x, 0, 1)))->implode('') ?: 'NA';
+
+                return [
+                    'id' => $r->id,
+                    'reporte_id' => $r->id,
+                    'estudio_id' => $r->estudio_id,
+                    'paciente' => $pacNombre,
+                    'initials' => $iniciales,
+                    'estudio' => $r->estudio?->tipo ?? 'Estudio',
+                    'fecha' => $r->created_at?->format('Y-m-d'),
+                    'hora' => $r->created_at?->format('H:i'),
+                    'critical' => (bool) $r->contiene_hallazgos_criticos,
+                    'estado_texto' => $r->contiene_hallazgos_criticos ? 'Critico' : 'Normal',
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'ok' => true,
+            'reportes' => $reportes,
+        ]);
+    }
+
+    /**
+     * Detalle completo de un reporte (para "Ver" dentro de la app Tauri).
+     */
+    public function apiVer(int $reporte): JsonResponse
+    {
+        $r = Reporte::with(['estudio.paciente', 'usuario', 'plantilla'])->findOrFail($reporte);
+        $paciente = $r->estudio?->paciente;
+
+        return response()->json([
+            'ok' => true,
+            'data' => [
+                'id' => $r->id,
+                'paciente' => $paciente?->nombre_completo ?? $r->estudio?->paciente_nombre ?? 'Sin paciente',
+                'edad' => $paciente?->edad ? $paciente->edad.' años' : '',
+                'sexo' => $paciente && $paciente->sexo ? ucfirst($paciente->sexo) : '',
+                'nacimiento' => optional($paciente?->fecha_nacimiento)->format('d/m/Y') ?? '',
+                'medico' => $r->usuario?->name ?? '',
+                'estudio' => $r->estudio?->tipo ?? 'Estudio',
+                'fecha_estudio' => optional($r->estudio?->fecha)->format('d/m/Y') ?? '',
+                'creado_en' => $r->created_at?->format('d/m/Y H:i'),
+                'contenido_html' => $r->contenido_html,
+                'contenido_texto' => $r->contenido_texto,
+                'critical' => (bool) $r->contiene_hallazgos_criticos,
+                'plantilla_id' => $r->plantilla_id,
+                'plantilla_clave' => $r->plantilla?->clave,
+            ],
+        ]);
+    }
+
+    /**
      * Mapea un tipo de estudio a la clave de plantilla del editor.
      */
     private function tipoEstudioToKey(?string $tipo): string
@@ -216,12 +467,20 @@ class IaReporteController extends Controller
     public function guardar(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'estudio_id' => ['required', 'exists:estudios,id'],
-            'reporte_id' => ['nullable', 'exists:reportes,id'],
+            'estudio_id' => [
+                'required',
+                Rule::exists('estudios', 'id')->where('clinica_id', $request->user()->clinica_id),
+            ],
+            'reporte_id' => [
+                'nullable',
+                Rule::exists('reportes', 'id')->where('clinica_id', $request->user()->clinica_id),
+            ],
             'contenido_texto' => ['nullable', 'string'],
             'contenido_html' => ['nullable', 'string'],
             'contiene_hallazgos_criticos' => ['nullable', 'boolean'],
             'plantilla_id' => ['nullable', 'exists:plantillas,id'],
+            'hallazgos' => ['nullable', 'array'],
+            'hallazgos.*' => ['string', 'max:255'],
         ]);
 
         $data = [
@@ -240,11 +499,124 @@ class IaReporteController extends Controller
             $reporte = Reporte::create($data);
         }
 
+        if (! empty($validated['hallazgos'])) {
+            $this->persistirHallazgosDoctor($validated['estudio_id'], $validated['hallazgos']);
+        }
+
         return response()->json([
             'ok' => true,
             'reporte_id' => $reporte->id,
             'message' => 'Reporte guardado correctamente.',
         ]);
+    }
+
+    /**
+     * Lista todos los hallazgos disponibles + los del estudio actual.
+     */
+    public function listarHallazgos(Request $request): JsonResponse
+    {
+        $estudioId = $request->query('estudio_id');
+
+        $todos = Hallazgo::orderBy('nombre')->get()->map(fn ($h) => [
+            'id' => $h->id,
+            'nombre' => $h->nombre,
+            'es_critico' => $h->es_critico,
+        ]);
+
+        $seleccionados = [];
+        if ($estudioId) {
+            $seleccionados = EstudioHallazgo::where('estudio_id', $estudioId)
+                ->with('hallazgo')
+                ->get()
+                ->map(fn ($eh) => [
+                    'id' => $eh->hallazgo_id,
+                    'nombre' => $eh->hallazgo?->nombre,
+                    'detectado_por' => $eh->detectado_por,
+                ])
+                ->filter(fn ($item) => $item['nombre'] !== null)
+                ->values()
+                ->toArray();
+        }
+
+        return response()->json([
+            'ok' => true,
+            'data' => [
+                'todos' => $todos,
+                'seleccionados' => $seleccionados,
+            ],
+        ]);
+    }
+
+    /**
+     * Crea un hallazgo nuevo y lo devuelve.
+     */
+    public function crearHallazgo(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'nombre' => ['required', 'string', 'max:255'],
+            'es_critico' => ['nullable', 'boolean'],
+        ]);
+
+        $existente = Hallazgo::where('nombre', trim($validated['nombre']))->first();
+        if ($existente) {
+            return response()->json([
+                'ok' => true,
+                'data' => [
+                    'id' => $existente->id,
+                    'nombre' => $existente->nombre,
+                    'es_critico' => $existente->es_critico,
+                    'ya_existe' => true,
+                ],
+            ]);
+        }
+
+        $hallazgo = Hallazgo::create([
+            'nombre' => trim($validated['nombre']),
+            'es_critico' => $validated['es_critico'] ?? false,
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'data' => [
+                'id' => $hallazgo->id,
+                'nombre' => $hallazgo->nombre,
+                'es_critico' => $hallazgo->es_critico,
+                'ya_existe' => false,
+            ],
+        ]);
+    }
+
+    /**
+     * Persiste los hallazgos seleccionados por el doctor en estudio_hallazgos.
+     */
+    private function persistirHallazgosDoctor(int $estudioId, array $nombres): void
+    {
+        $nombres = collect($nombres)
+            ->map(fn ($n) => trim((string) $n))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($nombres->isEmpty()) {
+            return;
+        }
+
+        foreach ($nombres as $nombre) {
+            $hallazgo = Hallazgo::firstOrCreate(
+                ['nombre' => $nombre],
+                ['es_critico' => false]
+            );
+
+            EstudioHallazgo::updateOrCreate(
+                [
+                    'estudio_id' => $estudioId,
+                    'hallazgo_id' => $hallazgo->id,
+                ],
+                [
+                    'detectado_por' => 'doctor',
+                ]
+            );
+        }
     }
 
     /**
@@ -266,27 +638,44 @@ class IaReporteController extends Controller
         return collect($imagenes)
             ->map(function (string $rel) use ($mimes) {
                 // Evita rutas peligrosas (traversal) y normaliza separadores.
-                $rel = str_replace('\\', '/', $rel);
+                $rel = strtok(str_replace('\\', '/', $rel), '?') ?: '';
                 if (str_contains($rel, '..')) {
                     return null;
                 }
 
-                $path = public_path(ltrim($rel, '/'));
-                if (! is_file($path)) {
-                    return null;
-                }
+                $rel = ltrim($rel, '/');
+                $storageRel = Str::startsWith($rel, 'storage/')
+                    ? Str::after($rel, 'storage/')
+                    : $rel;
 
-                $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+                $path = public_path($rel);
+                $ext = strtolower(pathinfo($storageRel, PATHINFO_EXTENSION));
                 if (! isset($mimes[$ext])) {
                     return null;
                 }
 
                 // Límite de seguridad: ~8 MB por imagen.
-                if (filesize($path) > 8 * 1024 * 1024) {
-                    return null;
+                $contents = null;
+
+                if (Storage::disk(media_disk())->exists($storageRel)) {
+                    if (Storage::disk(media_disk())->size($storageRel) > 8 * 1024 * 1024) {
+                        return null;
+                    }
+
+                    $contents = Storage::disk(media_disk())->get($storageRel);
                 }
 
-                $contents = @file_get_contents($path);
+                if ($contents === null) {
+                    if (! is_file($path)) {
+                        return null;
+                    }
+
+                    if (filesize($path) > 8 * 1024 * 1024) {
+                        return null;
+                    }
+
+                    $contents = @file_get_contents($path);
+                }
                 if ($contents === false) {
                     return null;
                 }

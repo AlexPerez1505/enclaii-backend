@@ -8,7 +8,7 @@
     <h3>REPORTES PENDIENTES</h3>
     <div class="big-num" id="numReportes" data-target="{{ $estudiosSinReporte ?? 0 }}">0</div>
     <div class="big-label">pendientes<br><span class="muted">  </span></div>
-    <a class="btn-orange" href="{{ route('ia-reportes.redactar') }}">
+    <a class="btn-orange" href="{{ route('ia-reportes.redactar') }}?from=widget">
       Revisar reportes
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
     </a>

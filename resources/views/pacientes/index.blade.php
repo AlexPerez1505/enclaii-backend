@@ -1732,7 +1732,7 @@
   <div class="filter-overlay" id="filterOverlay" onclick="closeFilters()"></div>
   <div class="filter-modal" id="filterPanel" role="dialog" aria-modal="true">
     <div class="filter-modal-head">
-      <h2>Filtros <span id="filterCount">(0)</span></h2>
+      <h2>Filtros</h2>
       <button class="filter-clear-all" onclick="clearFilters()" id="btnClearAllFilters" style="display:none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
         Limpiar todo
@@ -1740,10 +1740,6 @@
     </div>
     <div class="filter-modal-body">
       <div class="filter-grid" id="filterBasicGrid">
-        <div class="filter-group">
-          <label>Nombre del paciente</label>
-          <input type="text" class="filter-input" placeholder="Ej. María González" id="fNombre">
-        </div>
         <div class="filter-group">
           <label>Médico</label>
           <select class="filter-input filter-select" id="fMedico">
@@ -2113,7 +2109,7 @@
           return [
               'id' => $est->id,
               'tipo' => $est->tipo ?? 'Sin tipo',
-              'fecha' => $est->fecha ? $est->fecha->format('d/m/Y') : 'Sin fecha',
+              'fecha' => $est->fecha ? format_user_date($est->fecha) : 'Sin fecha',
               'reporte_path' => $est->reporte_path,
               'video_path' => $est->video_path,
           ];
@@ -2142,24 +2138,28 @@
           'age' => $edad ? $edad . ' años' : 'Sin edad',
           'gender' => $paciente->sexo ? ucfirst($paciente->sexo) : 'No especificado',
           'folio' => $paciente->folio ?? 'Sin folio',
-          'dob' => $paciente->fecha_nacimiento ? $paciente->fecha_nacimiento->format('d/m/Y') : 'Sin fecha',
+          'dob' => $paciente->fecha_nacimiento ? format_user_date($paciente->fecha_nacimiento) : 'Sin fecha',
           'phone' => $paciente->telefono ?? 'Sin teléfono',
           'email' => $paciente->email ?? 'Sin correo',
           'address' => $paciente->direccion ?? 'Sin dirección',
           'medico' => $paciente->medico ?? 'Sin médico',
-          'study_date' => $ultimoEstudio && $ultimoEstudio->fecha ? $ultimoEstudio->fecha->format('d M Y') : '',
+          'study_date' => $ultimoEstudio && $ultimoEstudio->fecha ? format_user_date($ultimoEstudio->fecha) : '',
           'study_type' => $ultimoEstudio ? ($ultimoEstudio->tipo ?? 'Sin estudio') : '',
           'status' => $ultimoEstudio ? ($ultimoEstudio->estado ?? 'completed') : '',
           'tiene_estudios' => $tieneEstudios,
           'estudios' => $estudiosLista,
+<<<<<<< HEAD
           'documentos' => $documentosLista,
           'foto_url' => $paciente->foto ? asset('storage/' . $paciente->foto) : null,
+=======
+          'foto_url' => $paciente->foto ? media_url($paciente->foto) : null,
+>>>>>>> origin/main
           'proxima_cita' => $proximaCita ? [
-              'fecha' => $proximaCita->fecha->format('d M Y'),
+              'fecha' => format_user_date($proximaCita->fecha),
               'hora' => $proximaCita->hora
                   ? (function ($hora) {
                       try {
-                          return \Illuminate\Support\Carbon::parse($hora)->format('g:i A');
+                          return format_user_time(\Illuminate\Support\Carbon::parse($hora));
                       } catch (\Exception $e) {
                           return $hora;
                       }
@@ -2389,12 +2389,19 @@ async function confirmarEliminar() {
   if (!patient) return;
 
   try {
+    const criticalToken = await window.CriticalSecurity.authorize(
+      'patients',
+      `Confirma tu contraseña para eliminar al paciente ${patient.name}.`
+    );
+    if (criticalToken === null) return;
+
     const response = await fetch(routes.destroy.replace(':id', patient.id), {
       method: 'POST',
       headers: {
         'X-CSRF-TOKEN': '{{ csrf_token() }}',
         'X-Requested-With': 'XMLHttpRequest',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'X-Critical-Authorization': criticalToken
       },
       body: new URLSearchParams({'_method':'DELETE'})
     });
@@ -2517,17 +2524,15 @@ function toggleMoreFilters() {
   if (icon) icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
 }
 function updateFilterCount() {
-  const ids = ['fNombre','fMedico','fEstado','fUltimoEstudio','fFechaNacimiento','fFolio'];
+  const ids = ['fMedico','fEstado','fUltimoEstudio','fFechaNacimiento','fFolio'];
   let count = 0;
   ids.forEach(id => {
     const el = document.getElementById(id);
     if (el && el.value.trim() !== '') count++;
   });
   const countText = count > 0 ? `(${count})` : '(0)';
-  const filterCount = document.getElementById('filterCount');
   const applyFilterCount = document.getElementById('applyFilterCount');
   const btnClear = document.getElementById('btnClearAllFilters');
-  if (filterCount) filterCount.textContent = countText;
   if (applyFilterCount) applyFilterCount.textContent = countText;
   if (btnClear) btnClear.style.display = count > 0 ? 'flex' : 'none';
 }
@@ -2537,7 +2542,7 @@ function setDateFilter(btn, val) {
   updateFilterCounter();
 }
 function updateFilterCounter() {
-  const fields = ['fNombre','fMedico','fEstado','fUltimoEstudio','fFechaNacimiento','fFolio'];
+  const fields = ['fMedico','fEstado','fUltimoEstudio','fFechaNacimiento','fFolio'];
   let count = 0;
   fields.forEach(id => {
     const el = document.getElementById(id);
@@ -2547,10 +2552,8 @@ function updateFilterCounter() {
   const moreOpen = document.getElementById('moreFiltersBox')?.style.display === 'block';
   if (moreOpen) count++;
 
-  const filterCount = document.getElementById('filterCount');
   const applyCount = document.getElementById('applyCount');
   const btnLimpiar = document.getElementById('btnLimpiarTodo');
-  if (filterCount) filterCount.textContent = '(' + count + ')';
   if (applyCount) applyCount.textContent = '(' + count + ')';
   if (btnLimpiar) btnLimpiar.style.display = count > 0 ? 'inline-flex' : 'none';
 }
@@ -2558,7 +2561,6 @@ function applyFilters() {
   updateFilterCount();
   closeFilters();
 
-  const nombre        = document.getElementById('fNombre')?.value.toLowerCase().trim() || '';
   const medico        = document.getElementById('fMedico')?.value.toLowerCase().trim() || '';
   const estado        = document.getElementById('fEstado')?.value.toLowerCase().trim() || '';
   const ultimoEstudio = document.getElementById('fUltimoEstudio')?.value.toLowerCase().trim() || '';
@@ -2576,9 +2578,6 @@ function applyFilters() {
   };
 
   patientsDataFiltered = patientsData.filter(p => {
-    /* Nombre */
-    if (nombre && !(p.name && p.name.toLowerCase().includes(nombre))) return false;
-
     /* Médico */
     if (medico && !(p.medico && p.medico.toLowerCase() === medico)) return false;
 
@@ -2657,7 +2656,7 @@ function filterPatients() {
   renderPage(1);
 }
 function clearFilters() {
-  ['fNombre','fMedico','fEstado','fUltimoEstudio','fFechaNacimiento','fFolio'].forEach(id => {
+  ['fMedico','fEstado','fUltimoEstudio','fFechaNacimiento','fFolio'].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
       if (el.tagName === 'SELECT') el.selectedIndex = 0;
@@ -2668,7 +2667,7 @@ function clearFilters() {
 }
 
 // Actualizar contador cuando cambia cualquier filtro
-['fNombre','fMedico','fEstado','fUltimoEstudio','fFechaNacimiento','fFolio'].forEach(id => {
+['fMedico','fEstado','fUltimoEstudio','fFechaNacimiento','fFolio'].forEach(id => {
   const el = document.getElementById(id);
   if (el) el.addEventListener('change', updateFilterCounter);
   if (el) el.addEventListener('input', updateFilterCounter);
@@ -2677,7 +2676,7 @@ function clearFilters() {
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closeFilters(); });
 
 // Actualizar contador cuando cambia cualquier filtro
-['fNombre','fMedico','fEstado','fUltimoEstudio','fFechaNacimiento','fFolio'].forEach(id => {
+['fMedico','fEstado','fUltimoEstudio','fFechaNacimiento','fFolio'].forEach(id => {
   const el = document.getElementById(id);
   if (el) el.addEventListener('change', updateFilterCount);
 });

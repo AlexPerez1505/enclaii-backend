@@ -2,14 +2,18 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToClinica;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class EstudioArchivo extends Model
 {
+    use BelongsToClinica;
+
     protected $table = 'estudio_archivos';
 
     protected $fillable = [
+        'clinica_id',
         'estudio_id',
         'paciente_id',
         'tipo',

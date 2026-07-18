@@ -2,16 +2,36 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class StorageServeController extends Controller
 {
-    public function show(string $path): StreamedResponse
+    public function show(string $path): RedirectResponse|StreamedResponse
     {
-        $disk = Storage::disk('public');
+        if (media_disk() !== 'public') {
+            abort_unless(media_exists($path), 404);
 
-        if (! $disk->exists($path)) {
+            return redirect()->away(media_url($path));
+        }
+
+        $disk = Storage::disk('public');
+        $exists = $disk->exists($path);
+
+        // Logging temporal de diagnostico (LOG_LEVEL=error en produccion)
+        Log::error('storage.fallback', [
+            'path' => $path,
+            'exists' => $exists,
+            'root' => storage_path('app/public'),
+            'full' => storage_path('app/public/'.$path),
+            'realpath' => @realpath(storage_path('app/public/'.$path)),
+            'cwd' => getcwd(),
+        ]);
+
+        if (! $exists) {
+            Log::error('storage.fallback.404', ['reason' => 'file_not_found', 'path' => $path]);
             abort(404);
         }
 

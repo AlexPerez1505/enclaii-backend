@@ -3,11 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Paciente;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class PacienteController extends Controller
 {
+    public function __construct(
+        private readonly ActivityLogger $activity,
+    ) {}
+
     public function index()
     {
         $pacientes = Paciente::with('documentos')->latest()->get();
@@ -36,7 +41,13 @@ class PacienteController extends Controller
     {
         try {
             $validated = $request->validate([
-                'folio' => ['required', 'string', 'max:255', 'unique:pacientes,folio'],
+                'folio' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    Rule::unique('pacientes', 'folio')
+                        ->where('clinica_id', $request->user()->clinica_id),
+                ],
                 'nombre_completo' => ['required', 'string', 'max:255'],
                 'identificacion' => ['nullable', 'string', 'max:255'],
                 'fecha_nacimiento' => ['nullable', 'date'],
@@ -60,14 +71,24 @@ class PacienteController extends Controller
             ]);
 
             if ($request->hasFile('foto')) {
-                $validated['foto'] = $request->file('foto')->store('pacientes', 'public');
+                $validated['foto'] = media_store(
+                    $request->file('foto'),
+                    'clinicas/'.$request->user()->clinica_id.'/pacientes'
+                );
             }
 
             $paciente = Paciente::create(collect($validated)->except('estudios_archivos')->toArray());
+            $this->activity->record(
+                'patient_created',
+                'patients',
+                'Registró al paciente '.$paciente->folio,
+                $paciente,
+                request: $request,
+            );
 
             if ($request->hasFile('estudios_archivos')) {
                 foreach ($request->file('estudios_archivos') as $archivo) {
-                    $path = $archivo->store('paciente_docs/' . $paciente->id, 'public');
+                    $path = media_store($archivo, 'paciente_docs/' . $paciente->id);
                     \App\Models\PacienteDocumento::create([
                         'paciente_id' => $paciente->id,
                         'path' => $path,
@@ -117,7 +138,14 @@ class PacienteController extends Controller
     public function update(Request $request, Paciente $paciente)
     {
         $validated = $request->validate([
-            'folio' => ['required', 'string', 'max:255', 'unique:pacientes,folio,' . $paciente->id],
+            'folio' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('pacientes', 'folio')
+                    ->where('clinica_id', $request->user()->clinica_id)
+                    ->ignore($paciente->id),
+            ],
             'nombre_completo' => ['required', 'string', 'max:255'],
             'identificacion' => ['nullable', 'string', 'max:255'],
             'fecha_nacimiento' => ['nullable', 'date'],
@@ -141,14 +169,22 @@ class PacienteController extends Controller
         ]);
 
         if ($request->hasFile('foto')) {
-            if ($paciente->foto && Storage::disk('public')->exists($paciente->foto)) {
-                Storage::disk('public')->delete($paciente->foto);
-            }
+            media_delete($paciente->foto);
 
-            $validated['foto'] = $request->file('foto')->store('pacientes', 'public');
+            $validated['foto'] = $request->file('foto')->store(
+                'clinicas/'.$request->user()->clinica_id.'/pacientes',
+                'public',
+            );
         }
 
-        $paciente->update(collect($validated)->except('estudios_archivos')->toArray());
+        $paciente->update($validated);
+        $this->activity->record(
+            'patient_updated',
+            'patients',
+            'Actualizó al paciente '.$paciente->folio,
+            $paciente,
+            request: $request,
+        );
 
         \Log::info('PACIENTE UPDATE - hasFile estudios_archivos: ' . ($request->hasFile('estudios_archivos') ? 'SI' : 'NO'));
         \Log::info('PACIENTE UPDATE - allFiles: ' . json_encode(array_keys($request->allFiles())));
@@ -156,7 +192,7 @@ class PacienteController extends Controller
         if ($request->hasFile('estudios_archivos')) {
             foreach ($request->file('estudios_archivos') as $archivo) {
                 \Log::info('Guardando archivo: ' . $archivo->getClientOriginalName());
-                $path = $archivo->store('paciente_docs/' . $paciente->id, 'public');
+                $path = media_store($archivo, 'paciente_docs/' . $paciente->id);
                 \App\Models\PacienteDocumento::create([
                     'paciente_id' => $paciente->id,
                     'path' => $path,
@@ -176,33 +212,64 @@ class PacienteController extends Controller
             ->with('success', 'Paciente actualizado correctamente.');
     }
 
+    public function addMedico(Request $request, Paciente $paciente)
+    {
+        $validated = $request->validate([
+            'medico' => ['required', 'string', 'max:255'],
+        ]);
+
+        $paciente->medico = $validated['medico'];
+        $paciente->save();
+
+        return response()->json([
+            'success' => true,
+            'medico' => $paciente->medico,
+        ]);
+    }
+
+    public function updateCampo(Request $request, Paciente $paciente)
+    {
+        $camposPermitidos = ['medico', 'procedimiento', 'anestesiologo', 'referido_por', 'equipo_utilizado'];
+
+        $validated = $request->validate([
+            'campo' => ['required', 'string', Rule::in($camposPermitidos)],
+            'valor' => ['required', 'string', 'max:255'],
+        ]);
+
+        $paciente->{$validated['campo']} = $validated['valor'];
+        $paciente->save();
+
+        return response()->json([
+            'success' => true,
+            'campo' => $validated['campo'],
+            'valor' => $paciente->{$validated['campo']},
+        ]);
+    }
+
     public function destroy(Paciente $paciente)
     {
         try {
-            if ($paciente->foto && Storage::disk('public')->exists($paciente->foto)) {
-                Storage::disk('public')->delete($paciente->foto);
-            }
+            media_delete($paciente->foto);
 
             $paciente->estudios()->each(function ($estudio) {
                 $estudio->archivos()->each(function ($archivo) {
-                    if ($archivo->path && Storage::disk('public')->exists($archivo->path)) {
-                        Storage::disk('public')->delete($archivo->path);
-                    }
+                    media_delete($archivo->path);
                     $archivo->delete();
                 });
 
-                if ($estudio->reporte_path && Storage::disk('public')->exists($estudio->reporte_path)) {
-                    Storage::disk('public')->delete($estudio->reporte_path);
-                }
-
-                if ($estudio->video_path && Storage::disk('public')->exists($estudio->video_path)) {
-                    Storage::disk('public')->delete($estudio->video_path);
-                }
+                media_delete($estudio->reporte_path);
+                media_delete($estudio->video_path);
 
                 $estudio->delete();
             });
 
             $paciente->delete();
+            $this->activity->record(
+                'patient_deleted',
+                'patients',
+                'Eliminó al paciente '.$paciente->folio,
+                $paciente,
+            );
 
             return response()->json(['success' => true, 'message' => 'Paciente eliminado correctamente.']);
         } catch (\Exception $e) {

@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('whatsapp_messages')) { return; }
         Schema::create('whatsapp_messages', function (Blueprint $table) {
             $table->id();
             $table->foreignId('paciente_id')->nullable()->constrained('pacientes')->nullOnDelete();
@@ -24,6 +25,7 @@ return new class extends Migration
             $table->timestamp('read_at')->nullable();
             $table->timestamp('failed_at')->nullable();
             $table->timestamps();
+            
 
             $table->index(['paciente_id', 'created_at']);
             $table->index(['wa_id', 'created_at']);

@@ -13,8 +13,10 @@ class EnsureSubscribed
      */
     private array $allowedRoutes = [
         'configuracion',
-        'configuracion.general.update',
+        'plan.only',
         'stripe.checkout',
+        'stripe.checkout.embedded',
+        'stripe.subscribe',
         'stripe.success',
         'stripe.cancel',
         'webhooks.stripe',
@@ -39,7 +41,7 @@ class EnsureSubscribed
             return $next($request);
         }
 
-        return redirect()->route('configuracion')
+        return redirect()->route('plan.only')
             ->with('warning', 'Necesitas seleccionar un plan para acceder a EndoCare.');
     }
 }

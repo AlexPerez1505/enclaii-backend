@@ -35,7 +35,7 @@
             @endphp
             <tr>
               <td><span class="pat"><span class="mini">{{ $mini }}</span>{{ $nombreCita }}</span></td>
-              <td>{{ \Carbon\Carbon::parse($cita->hora ?? '00:00')->format('g:i A') }}</td>
+              <td>{{ format_user_time(\Carbon\Carbon::parse($cita->hora ?? '00:00')) }}</td>
               <td>{{ $cita->procedimiento ?? 'Sin procedimiento' }}</td>
               <td><span class="chip {{ $chipCls }}">{{ $chipLabel }}</span></td>
               <td>{{ $medico }}</td>

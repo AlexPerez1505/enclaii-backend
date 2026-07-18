@@ -58,6 +58,21 @@
 .sw input:checked ~ .track{background:linear-gradient(135deg,var(--blue),var(--cyan))}
 .sw input:checked ~ .knob{transform:translateX(19px)}
 
+/* Opciones de notificación por canal (correo / pantalla) */
+.cfg-notif-opts{display:flex;align-items:center;gap:8px;flex:none}
+.cfg-notif-opt{position:relative;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;cursor:pointer;transition:all .15s}
+.cfg-notif-opt input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+.cfg-notif-opt svg{width:16px;height:16px}
+/* Estado inactivo: rojo para alto contraste visual */
+.cfg-notif-opt.email,.cfg-notif-opt.screen{color:#f87171;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.25)}
+.cfg-notif-opt.email:hover,.cfg-notif-opt.screen:hover{border-color:rgba(239,68,68,.55)}
+/* Correo electrónico activo: azul */
+.cfg-notif-opt.email:has(input:checked){color:#2563eb;background:rgba(59,130,246,.14);border-color:rgba(59,130,246,.5)}
+.cfg-notif-opt.email:has(input:checked):hover{border-color:rgba(59,130,246,.55)}
+/* Aviso en pantalla activo: naranja/campana */
+.cfg-notif-opt.screen:has(input:checked){color:#d97706;background:rgba(245,158,11,.14);border-color:rgba(245,158,11,.5)}
+.cfg-notif-opt.screen:has(input:checked):hover{border-color:rgba(245,158,11,.55)}
+
 /* Almacenamiento (barra reutilizable) */
 .store-box{padding:14px;border-radius:var(--r-md);border:1px solid var(--stroke);background:var(--panel-2);margin-bottom:14px}
 .store-top{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;margin-bottom:11px}
@@ -285,14 +300,16 @@
 
   {{-- Pestañas --}}
   <div class="cfg-tabs rise d1">
-    <button class="cfg-tab active" data-tab="general">General</button>
-    <button class="cfg-tab" data-tab="plan">Plan y almacenamiento</button>
-    <button class="cfg-tab" data-tab="integraciones">Integraciones</button>
-    <button class="cfg-tab" data-tab="seguridad">Seguridad</button>
-    <button class="cfg-tab" data-tab="perfil">Perfil</button>
+    <button type="button" class="cfg-tab active" data-tab="general">General</button>
+    <button type="button" class="cfg-tab" data-tab="qr-preregistro">QR y Pre-registro</button>
+    <button type="button" class="cfg-tab" data-tab="plan">Plan y almacenamiento</button>
+    <button type="button" class="cfg-tab" data-tab="integraciones">Integraciones</button>
+    <button type="button" class="cfg-tab" data-tab="seguridad">Seguridad</button>
+    <button type="button" class="cfg-tab" data-tab="perfil">Perfil</button>
   </div>
 
   @include('configuracion.sections.general')
+  @include('configuracion.sections.qr-preregistro')
   @include('configuracion.sections.plan')
   @include('configuracion.sections.integraciones')
   @include('configuracion.sections.seguridad')
@@ -312,13 +329,35 @@
   /* Pestañas */
   const tabs = document.querySelectorAll('.cfg-tab');
   const panels = document.querySelectorAll('.cfg-panel');
-  tabs.forEach(t => t.addEventListener('click', () => {
+  function activateTab(tabName, updateUrl = false){
+    const panel = document.querySelector(`.cfg-panel[data-panel="${tabName}"]`);
+    if (!panel) tabName = 'general';
+
     tabs.forEach(x => x.classList.remove('active'));
     panels.forEach(p => p.classList.remove('active'));
-    t.classList.add('active');
-    const target = document.querySelector(`.cfg-panel[data-panel="${t.dataset.tab}"]`);
-    if (target) target.classList.add('active');
-  }));
+    const tab = document.querySelector(`.cfg-tab[data-tab="${tabName}"]`);
+    const activePanel = document.querySelector(`.cfg-panel[data-panel="${tabName}"]`);
+    if (tab) tab.classList.add('active');
+    if (activePanel) activePanel.classList.add('active');
+
+    if (updateUrl) {
+      const url = new URL(window.location.href);
+      if (tabName === 'general') {
+        url.searchParams.delete('tab');
+      } else {
+        url.searchParams.set('tab', tabName);
+      }
+      window.history.replaceState({}, '', url);
+    }
+  }
+  tabs.forEach(t => t.addEventListener('click', () => activateTab(t.dataset.tab, true)));
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const requestedTab = urlParams.get('tab');
+  const requestedTabButton = requestedTab
+    ? document.querySelector(`.cfg-tab[data-tab="${requestedTab}"]`)
+    : null;
+  if (requestedTabButton) activateTab(requestedTab);
 
   /* Barras de almacenamiento */
   const bars = document.querySelectorAll('.store-bar i');
@@ -350,10 +389,6 @@
     const current = (window.enclaiiI18n && window.enclaiiI18n.get())
       || localStorage.getItem('enclaii-lang') || 'es';
     langSel.value = current;
-    langSel.addEventListener('change', () => {
-      if (window.enclaiiI18n) window.enclaiiI18n.set(langSel.value);
-      else { localStorage.setItem('enclaii-lang', langSel.value); location.reload(); }
-    });
   }
 
   /* ===== Preferencias generales persistentes (base de datos) ===== */
@@ -397,6 +432,9 @@
       });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       toast('Configuración guardada');
+      Object.entries(payload).forEach(([key, value]) => {
+        document.dispatchEvent(new CustomEvent('enclaiiSettingChanged', { detail: { key, value } }));
+      });
     } catch (err) {
       toast('No se pudo guardar la configuración');
     }
@@ -419,6 +457,23 @@
     t._h = setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(-50%) translateY(10px)'; }, 1600);
   }
 
+  const listGroups = {};
+  document.querySelectorAll('[data-setting-list]').forEach(el => {
+    const key = el.dataset.settingList;
+    if (!listGroups[key]) listGroups[key] = [];
+    listGroups[key].push(el);
+  });
+
+  Object.entries(listGroups).forEach(([key, items]) => {
+    const saved = Array.isArray(SETTINGS[key]) ? SETTINGS[key] : [];
+    items.forEach(item => {
+      item.checked = saved.includes(item.value);
+      item.addEventListener('change', () => {
+        queueSave(key, items.filter(input => input.checked).map(input => input.value));
+      });
+    });
+  });
+
   document.querySelectorAll('[data-setting]').forEach(el => {
     if (el.id === 'cfgTheme' || el.id === 'cfgLang') return; // ya tienen manejo propio
     const key = el.dataset.setting;
@@ -431,12 +486,18 @@
         if (el.dataset.effect) applyEffect(el.dataset.effect, el.checked);
         queueSave(key, el.checked);
       });
-    } else { // select: el value de cada opción es su texto
+    } else if (el.tagName === 'SELECT') { // select: el value de cada opción es su texto
       if (saved !== undefined && saved !== null) {
         const match = Array.from(el.options).find(o => o.value === saved || o.text === saved);
         if (match) el.value = match.value;
       }
       el.addEventListener('change', () => {
+        queueSave(key, el.value);
+      });
+    } else {
+      if (saved !== undefined && saved !== null) el.value = saved;
+      const eventName = el.tagName === 'TEXTAREA' || el.type === 'text' ? 'input' : 'change';
+      el.addEventListener(eventName, () => {
         queueSave(key, el.value);
       });
     }

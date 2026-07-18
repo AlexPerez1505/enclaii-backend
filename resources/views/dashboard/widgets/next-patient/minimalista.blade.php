@@ -4,11 +4,11 @@
   $nombreMinCita   = $pacMinCita?->nombre_completo ?? $proximaCita?->paciente_nombre ?? 'Sin citas próximas';
   $partesMinNombre = preg_split('/\s+/', trim($nombreMinCita), 3);
   $nombreMinCita   = trim(($partesMinNombre[0] ?? '') . ' ' . ($partesMinNombre[1] ?? ''));
-  $horaMinCita     = $proximaCita ? \Carbon\Carbon::parse($proximaCita->hora ?? '00:00')->format('g:i A') : '';
+  $horaMinCita     = $proximaCita ? format_user_time(\Carbon\Carbon::parse($proximaCita->hora ?? '00:00')) : '';
   $procMinCita     = $proximaCita?->procedimiento ?? 'Procedimiento por definir';
   $urlMinCita      = $pacMinCita ? route('pacientes.index', ['paciente_id' => $pacMinCita->id]) : route('pacientes.index');
 @endphp
-<div class="widget widget-minimal mode-hidden d1" data-widget-id="next-patient-min" data-w="3">
+<div class="widget widget-minimal d1" data-widget-id="next-patient-min" data-w="3">
   <span class="widget-drag-handle" aria-hidden="true">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="19" r="1"/></svg>
   </span>
@@ -27,6 +27,6 @@
         <div class="min-meta" style="font-size:clamp(0.65em,3cqi,0.9em)">No hay citas agendadas</div>
       @endif
     </div>
+    <span class="widget-resize-handle"></span>
   </div>
-  <span class="widget-resize-handle"></span>
 </div>
