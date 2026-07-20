@@ -13,6 +13,7 @@ use App\Http\Controllers\CustomerSuccess\DashboardController;
 use App\Http\Controllers\CustomerSuccess\RolesController;
 use App\Http\Controllers\CustomerSuccess\TicketController as CsTicketController;
 use App\Http\Controllers\CustomerSuccessController;
+use App\Http\Controllers\DesktopAppDownloadController;
 use App\Http\Controllers\IaReporteController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NuevoEstudioController;
@@ -87,6 +88,10 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
         if (!auth()->user()->subscribed()) {
             return view('configuracion.plan-only');
         }
+
+        $userAgent = request()->userAgent() ?? '';
+        $showDesktopAppSettings = ! preg_match('/Android|iPhone|iPad|iPod/i', $userAgent);
+
         return view('configuracion.index', [
             'billingUser' => request()->user()->billingUser(),
             'clinicMembers' => request()->user()->clinica
@@ -132,6 +137,7 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
                 ->get(),
             'currentSessionId' => request()->session()->getId(),
             'sessionLimit' => app(\App\Services\SessionLimitService::class)->limitFor(request()->user()),
+            'showDesktopAppSettings' => $showDesktopAppSettings,
         ]);
     })->name('configuracion');
 
@@ -139,6 +145,9 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
     Route::get('/seleccionar-plan', function () {
         return view('configuracion.plan-only');
     })->name('plan.only');
+
+    Route::get('/descargas/enclaii-desktop/windows', DesktopAppDownloadController::class)
+        ->name('desktop-app.download');
 
     Route::patch('/configuracion/general', [SettingsController::class, 'update'])
         ->name('configuracion.general.update');

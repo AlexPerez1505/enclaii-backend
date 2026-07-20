@@ -1,13 +1,11 @@
-@extends('layouts.app')
-
-@section('title', 'Configuración')
-@section('active', 'configuracion')
-@section('header-title', 'Configuracion')
-@section('header-sub')
+<?php $__env->startSection('title', 'Configuración'); ?>
+<?php $__env->startSection('active', 'configuracion'); ?>
+<?php $__env->startSection('header-title', 'Configuracion'); ?>
+<?php $__env->startSection('header-sub'); ?>
   Personaliza tu experiencia y gestiona los ajustes de tu cuenta y sistema
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
 /* ============ CONFIGURACIÓN ============ */
 .cfg-tabs{display:flex;gap:28px;border-bottom:1px solid var(--stroke);margin-bottom:22px;flex-wrap:wrap}
@@ -294,43 +292,43 @@
   .cfg-select svg{width:13px;height:13px;right:9px}
 }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 
-  {{-- Pestañas --}}
+  
   <div class="cfg-tabs rise d1">
     <button type="button" class="cfg-tab active" data-tab="general">General</button>
     <button type="button" class="cfg-tab" data-tab="qr-preregistro">QR y Pre-registro</button>
     <button type="button" class="cfg-tab" data-tab="plan">Plan y almacenamiento</button>
-    @if($showDesktopAppSettings ?? false)
+    <?php if($showDesktopAppSettings ?? false): ?>
       <button type="button" class="cfg-tab" data-tab="aplicacion-escritorio">Aplicación de escritorio</button>
-    @endif
+    <?php endif; ?>
     <button type="button" class="cfg-tab" data-tab="integraciones">Integraciones</button>
     <button type="button" class="cfg-tab" data-tab="seguridad">Seguridad</button>
     <button type="button" class="cfg-tab" data-tab="perfil">Perfil</button>
   </div>
 
-  @include('configuracion.sections.general')
-  @include('configuracion.sections.qr-preregistro')
-  @include('configuracion.sections.plan')
-  @if($showDesktopAppSettings ?? false)
-    @include('configuracion.sections.aplicacion-escritorio')
-  @endif
-  @include('configuracion.sections.integraciones')
-  @include('configuracion.sections.seguridad')
-  @include('configuracion.sections.perfil')
+  <?php echo $__env->make('configuracion.sections.general', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+  <?php echo $__env->make('configuracion.sections.qr-preregistro', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+  <?php echo $__env->make('configuracion.sections.plan', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+  <?php if($showDesktopAppSettings ?? false): ?>
+    <?php echo $__env->make('configuracion.sections.aplicacion-escritorio', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+  <?php endif; ?>
+  <?php echo $__env->make('configuracion.sections.integraciones', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+  <?php echo $__env->make('configuracion.sections.seguridad', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+  <?php echo $__env->make('configuracion.sections.perfil', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 (function(){
   /* Configuración del usuario (desde la base de datos) */
-  const SETTINGS = @json($userSettings ?? []);
-  const SAVE_URL = "{{ route('configuracion.general.update') }}";
+  const SETTINGS = <?php echo json_encode($userSettings ?? [], 15, 512) ?>;
+  const SAVE_URL = "<?php echo e(route('configuracion.general.update')); ?>";
   const CSRF = document.querySelector('meta[name="csrf-token"]')?.content
-    || "{{ csrf_token() }}";
+    || "<?php echo e(csrf_token()); ?>";
 
   /* Pestañas */
   const tabs = document.querySelectorAll('.cfg-tab');
@@ -510,4 +508,6 @@
   });
 })();
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\HP\enclaii-backend\resources\views/configuracion/index.blade.php ENDPATH**/ ?>
