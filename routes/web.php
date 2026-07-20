@@ -80,12 +80,8 @@ Route::middleware('guest')->group(function () {
     Route::post('/registro', [EndoCareAuthController::class, 'register'])->name('register.post');
 });
 
-<<<<<<< HEAD
-Route::middleware('auth')->group(function () {
-    Route::delete('/paciente-documentos/{pacienteDocumento}', [PacienteDocumentoController::class, 'destroy'])->name('paciente-documentos.destroy');
-=======
 Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
->>>>>>> origin/main
+    Route::delete('/paciente-documentos/{pacienteDocumento}', [PacienteDocumentoController::class, 'destroy'])->name('paciente-documentos.destroy');
 
     // Ruta de configuracion: si no tiene plan, muestra vista plan-only
     Route::get('/configuracion', function () {
@@ -149,19 +145,15 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
 
     Route::patch('/configuracion/perfil', [SettingsController::class, 'updatePerfil'])
         ->name('configuracion.perfil.update');
-<<<<<<< HEAD
 
     Route::post('/configuracion/rfc-lookup', [SettingsController::class, 'lookupRfc'])
         ->name('configuracion.rfc.lookup');
 
-    Route::post('/configuracion/constancia-fiscal', [SettingsController::class, 'uploadConstancia'])
-=======
     Route::post('/configuracion/foto', [SettingsController::class, 'updateFoto'])
         ->name('configuracion.foto.update');
     Route::delete('/configuracion/foto', [SettingsController::class, 'deleteFoto'])
         ->name('configuracion.foto.delete');
     Route::post('/configuracion/constancia', [SettingsController::class, 'uploadConstancia'])
->>>>>>> origin/main
         ->name('configuracion.constancia.upload');
     Route::delete('/configuracion/constancia', [SettingsController::class, 'deleteConstancia'])
         ->name('configuracion.constancia.delete');
@@ -939,16 +931,6 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
         ->name('galeria.imagen.guardar-copia');
 
     /* ── Finanzas ── */
-<<<<<<< HEAD
-    // Route::get('/finanzas', function () {
-    //     return view('finanzas.index');
-    // })->name('finanzas');
-
-});
-
-
-Route::resource('pacientes', PacienteController::class);
-=======
     Route::get('/finanzas', function () {
         return view('finanzas.index');
     })->name('finanzas');
@@ -962,7 +944,6 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
         ->name('pacientes.add-medico');
     Route::post('/pacientes/{paciente}/update-campo', [PacienteController::class, 'updateCampo'])
         ->name('pacientes.update-campo');
->>>>>>> origin/main
 
     Route::get('/qr', [QrRegistrationController::class, 'index'])->name('qr.index');
     Route::post('/qr/enlaces', [QrRegistrationController::class, 'store'])->name('qr.links.store');

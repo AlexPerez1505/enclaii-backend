@@ -9,7 +9,7 @@
 
 @push('styles')
 <style>
-/* ============ ESTILOS EDITAR PACIENTE ============ */
+/* ===== ESTILOS EDITAR PACIENTE ===== */
 
 /* Link volver */
 .back-link{
@@ -1721,7 +1721,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!modalFoto) return;
     modalFoto.classList.add('active');
 
-<<<<<<< HEAD
+
     // Cargar la foto actual del paciente en el preview si existe
     if (patientPhoto && patientPhoto.src && patientPhoto.style.display !== 'none') {
       currentPhotoData = patientPhoto.src;
@@ -1737,11 +1737,6 @@ document.addEventListener('DOMContentLoaded', function() {
         avatarPreview.textContent = '👤';
         avatarPreview.style.backgroundImage = '';
       }
-=======
-    if (avatarPreview && !currentPhotoData) {
-      avatarPreview.textContent = '';
-      avatarPreview.style.backgroundImage = '';
->>>>>>> origin/main
     }
   };
 
@@ -1833,7 +1828,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // ============ FUNCIONES PARA MÉDICO ============
+  // ===== FUNCIONES PARA MÉDICO =====
   
   // Cargar médicos personalizados desde localStorage
   function cargarMedicosPersonalizados() {
@@ -1931,7 +1926,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // ============ FUNCIONES PARA REFERIDO POR ============
+  // ===== FUNCIONES PARA REFERIDO POR =====
   
   // Cargar referidos personalizados desde localStorage
   function cargarReferidosPersonalizados() {

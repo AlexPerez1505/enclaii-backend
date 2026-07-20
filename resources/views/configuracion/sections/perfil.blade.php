@@ -587,7 +587,6 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
 
   function openModal() {
     modal.classList.add('active');
-<<<<<<< HEAD
     // Refrescar photoData desde la imagen actual por si cambió o no se cargó al inicio
     if (ava && ava.src && ava.style.display !== 'none') photoData = ava.src;
     console.log('Abriendo modal foto. photoData:', photoData);
@@ -598,9 +597,6 @@ html[data-theme="light"] .pf-input[type="date"]{color-scheme:light}
         avatarPrev.style.backgroundImage=''; avatarPrev.textContent='👤';
       }
     }
-=======
-    if (avatarPrev && !photoData) { avatarPrev.style.backgroundImage=''; avatarPrev.textContent=''; }
->>>>>>> origin/main
   }
   function closeModal() { stopCamera(); modal.classList.remove('active'); }
 
