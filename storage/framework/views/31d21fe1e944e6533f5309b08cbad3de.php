@@ -1,4 +1,4 @@
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
 .int-head h2{font-family:'Sora',sans-serif;font-size:18px;font-weight:700}
 .int-head p{font-size:13px;color:var(--txt-soft);margin:3px 0 18px}
@@ -280,4 +280,5 @@
   .cat-tab{font-size:12px}
 }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
+<?php /**PATH C:\Users\HP\enclaii-backend\resources\views/configuracion/sections/integraciones/_styles.blade.php ENDPATH**/ ?>

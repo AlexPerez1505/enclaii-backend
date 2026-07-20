@@ -76,6 +76,18 @@ class PacienteController extends Controller
     {
 
         $listaProcedimientos = \App\Models\Procedimiento::all();
+        $listaAnestesiologos = \App\Models\Anestesiologo::query()
+            ->where('clinica_id', request()->user()->clinica_id)
+            ->where('activo', true)
+            ->orderBy('apellido_paterno')
+            ->orderBy('nombres')
+            ->get();
+        $listaMedicos = \App\Models\Medico::query()
+            ->where('clinica_id', request()->user()->clinica_id)
+            ->where('activo', true)
+            ->orderBy('apellido_paterno')
+            ->orderBy('nombres')
+            ->get();
 
 
         $ultimoNumero = Paciente::query()
@@ -90,7 +102,7 @@ class PacienteController extends Controller
 
         $folio = 'P-' . str_pad($siguienteNumero, 3, '0', STR_PAD_LEFT);
 
-        return view('pacientes.create', compact('folio', 'listaProcedimientos'));
+        return view('pacientes.create', compact('folio', 'listaProcedimientos', 'listaAnestesiologos', 'listaMedicos'));
     }
 
     public function store(Request $request)
@@ -116,6 +128,7 @@ class PacienteController extends Controller
                 'email' => ['nullable', 'email', 'max:255'],
                 'medico' => ['nullable', 'string', 'max:255'],
                 'procedimiento' => ['nullable', 'string', 'max:255'],
+                'anestesiologo' => ['nullable', 'string', 'max:255'],
                 'diagnostico_preliminar' => ['nullable', 'string'],
                 'enfermedad' => ['nullable', 'string'],
                 'alergias' => ['nullable', 'string'],
@@ -188,9 +201,21 @@ class PacienteController extends Controller
     {
         // Obtenemos todos los procedimientos para llenar el <select>
         $listaProcedimientos = \App\Models\Procedimiento::all();
+        $listaAnestesiologos = \App\Models\Anestesiologo::query()
+            ->where('clinica_id', request()->user()->clinica_id)
+            ->where('activo', true)
+            ->orderBy('apellido_paterno')
+            ->orderBy('nombres')
+            ->get();
+        $listaMedicos = \App\Models\Medico::query()
+            ->where('clinica_id', request()->user()->clinica_id)
+            ->where('activo', true)
+            ->orderBy('apellido_paterno')
+            ->orderBy('nombres')
+            ->get();
         
         // Asegúrate de poner la ruta correcta de tu vista (ej: 'pacientes.edit')
-        return view('pacientes.edit', compact('paciente', 'listaProcedimientos'));
+        return view('pacientes.edit', compact('paciente', 'listaProcedimientos', 'listaAnestesiologos', 'listaMedicos'));
     }
 
 
@@ -287,8 +312,7 @@ class PacienteController extends Controller
 
     public function updateCampo(Request $request, Paciente $paciente)
     {
-    // Eliminamos 'anestesiologo', 'referido_por', 'equipo_utilizado'
-    $camposPermitidos = ['medico', 'procedimiento']; 
+    $camposPermitidos = ['medico', 'procedimiento', 'anestesiologo'];
 
     $validated = $request->validate([
         'campo' => ['required', 'string', Rule::in($camposPermitidos)],
@@ -321,6 +345,176 @@ class PacienteController extends Controller
         ]);
     }
 
+    public function updateProcedimiento(Request $request, \App\Models\Procedimiento $procedimiento)
+    {
+        $request->validate([
+            'nombre' => ['required', 'string', 'max:255', 'unique:procedimientos,nombre,'.$procedimiento->id]
+        ]);
+
+        $procedimiento->update(['nombre' => $request->nombre]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Procedimiento actualizado.',
+            'procedimiento' => $procedimiento
+        ]);
+    }
+
+    public function destroyProcedimiento(\App\Models\Procedimiento $procedimiento)
+    {
+        $procedimiento->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Procedimiento eliminado.',
+        ]);
+    }
+
+    public function storeAnestesiologo(Request $request)
+    {
+        $validated = $request->validate([
+            'nombres' => ['required', 'string', 'max:255'],
+            'apellido_paterno' => ['nullable', 'string', 'max:255'],
+            'apellido_materno' => ['nullable', 'string', 'max:255'],
+            'especialidad' => ['nullable', 'string', 'max:255'],
+            'cedula_profesional' => ['nullable', 'string', 'max:255'],
+            'correo' => ['nullable', 'email', 'max:255'],
+            'telefono' => ['nullable', 'string', 'max:50'],
+            'activo' => ['nullable', 'boolean'],
+        ]);
+
+        $anestesiologo = \App\Models\Anestesiologo::create([
+            'clinica_id' => $request->user()->clinica_id,
+            'nombres' => $validated['nombres'],
+            'apellido_paterno' => $validated['apellido_paterno'] ?? null,
+            'apellido_materno' => $validated['apellido_materno'] ?? null,
+            'especialidad' => $validated['especialidad'] ?? null,
+            'cedula_profesional' => $validated['cedula_profesional'] ?? null,
+            'correo' => $validated['correo'] ?? null,
+            'telefono' => $validated['telefono'] ?? null,
+            'activo' => $request->boolean('activo', true),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Anestesiólogo guardado.',
+            'anestesiologo' => $anestesiologo,
+        ]);
+    }
+
+    public function updateAnestesiologo(Request $request, \App\Models\Anestesiologo $anestesiologo)
+    {
+        $validated = $request->validate([
+            'nombres' => ['required', 'string', 'max:255'],
+            'apellido_paterno' => ['nullable', 'string', 'max:255'],
+            'apellido_materno' => ['nullable', 'string', 'max:255'],
+            'especialidad' => ['nullable', 'string', 'max:255'],
+            'cedula_profesional' => ['nullable', 'string', 'max:255'],
+            'correo' => ['nullable', 'email', 'max:255'],
+            'telefono' => ['nullable', 'string', 'max:50'],
+            'activo' => ['nullable', 'boolean'],
+        ]);
+
+        $anestesiologo->update([
+            'nombres' => $validated['nombres'],
+            'apellido_paterno' => $validated['apellido_paterno'] ?? null,
+            'apellido_materno' => $validated['apellido_materno'] ?? null,
+            'especialidad' => $validated['especialidad'] ?? null,
+            'cedula_profesional' => $validated['cedula_profesional'] ?? null,
+            'correo' => $validated['correo'] ?? null,
+            'telefono' => $validated['telefono'] ?? null,
+            'activo' => $request->boolean('activo', false),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Anestesiólogo actualizado.',
+            'anestesiologo' => $anestesiologo,
+        ]);
+    }
+
+    public function destroyAnestesiologo(\App\Models\Anestesiologo $anestesiologo)
+    {
+        $anestesiologo->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Anestesiólogo eliminado.',
+        ]);
+    }
+
+    public function storeMedico(Request $request)
+    {
+        $validated = $request->validate([
+            'nombres' => ['required', 'string', 'max:255'],
+            'apellido_paterno' => ['nullable', 'string', 'max:255'],
+            'apellido_materno' => ['nullable', 'string', 'max:255'],
+            'especialidad' => ['nullable', 'string', 'max:255'],
+            'cedula_profesional' => ['nullable', 'string', 'max:255'],
+            'correo' => ['nullable', 'email', 'max:255'],
+            'telefono' => ['nullable', 'string', 'max:50'],
+            'activo' => ['nullable', 'boolean'],
+        ]);
+
+        $medico = \App\Models\Medico::create([
+            'clinica_id' => $request->user()->clinica_id,
+            'nombres' => $validated['nombres'],
+            'apellido_paterno' => $validated['apellido_paterno'] ?? null,
+            'apellido_materno' => $validated['apellido_materno'] ?? null,
+            'especialidad' => $validated['especialidad'] ?? null,
+            'cedula_profesional' => $validated['cedula_profesional'] ?? null,
+            'correo' => $validated['correo'] ?? null,
+            'telefono' => $validated['telefono'] ?? null,
+            'activo' => $request->boolean('activo', true),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Médico guardado.',
+            'medico' => $medico,
+        ]);
+    }
+
+    public function updateMedico(Request $request, \App\Models\Medico $medico)
+    {
+        $validated = $request->validate([
+            'nombres' => ['required', 'string', 'max:255'],
+            'apellido_paterno' => ['nullable', 'string', 'max:255'],
+            'apellido_materno' => ['nullable', 'string', 'max:255'],
+            'especialidad' => ['nullable', 'string', 'max:255'],
+            'cedula_profesional' => ['nullable', 'string', 'max:255'],
+            'correo' => ['nullable', 'email', 'max:255'],
+            'telefono' => ['nullable', 'string', 'max:50'],
+            'activo' => ['nullable', 'boolean'],
+        ]);
+
+        $medico->update([
+            'nombres' => $validated['nombres'],
+            'apellido_paterno' => $validated['apellido_paterno'] ?? null,
+            'apellido_materno' => $validated['apellido_materno'] ?? null,
+            'especialidad' => $validated['especialidad'] ?? null,
+            'cedula_profesional' => $validated['cedula_profesional'] ?? null,
+            'correo' => $validated['correo'] ?? null,
+            'telefono' => $validated['telefono'] ?? null,
+            'activo' => $request->boolean('activo', false),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Médico actualizado.',
+            'medico' => $medico,
+        ]);
+    }
+
+    public function destroyMedico(\App\Models\Medico $medico)
+    {
+        $medico->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Médico eliminado.',
+        ]);
+    }
 
     public function destroy(Paciente $paciente)
     {

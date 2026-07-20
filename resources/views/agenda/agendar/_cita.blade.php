@@ -52,15 +52,14 @@ html[data-theme="light"] .cita-icon-wrap svg{color:#5B6A99}
     </div>
   </div>
 
-  <div class="ag-field">
-    <label class="ag-label">Sala</label>
-    <select class="ag-input ag-select" id="citaSala">
-      <option>Sala 1</option>
-      <option>Sala 2</option>
-      <option selected>Sala 3</option>
-      <option>Sala 4</option>
-    </select>
-  </div>
+  <select class="ag-input ag-select" name="sala_id" id="citaSala">
+    <option value="">Seleccione una sala</option>
+    @foreach($salas as $sala)
+        <option value="{{ $sala->id }}" {{ ($citaData['sala_id'] ?? null) == $sala->id ? 'selected' : '' }}>
+            {{ $sala->nombre }}
+        </option>
+    @endforeach
+</select>
 
   
 </div>

@@ -34,8 +34,6 @@ return new class extends Migration
             $table->string('medico')->nullable();
             $table->string('procedimiento')->nullable();
             $table->string('anestesiologo')->nullable();
-            $table->string('referido_por')->nullable();
-            $table->string('equipo_utilizado')->nullable();
 
             $table->text('diagnostico_preliminar')->nullable();
             $table->string('foto')->nullable();

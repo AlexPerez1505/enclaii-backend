@@ -131,6 +131,12 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
                 ->orderByDesc('last_activity')
                 ->get(),
             'currentSessionId' => request()->session()->getId(),
+            'procedimientos' => \App\Models\Procedimiento::orderBy('nombre')->get(),
+            'anestesiologos' => \App\Models\Anestesiologo::query()
+                ->where('clinica_id', request()->user()->clinica_id)
+                ->orderBy('apellido_paterno')
+                ->orderBy('nombres')
+                ->get(),
         ]);
     })->name('configuracion');
 
@@ -925,3 +931,13 @@ Route::middleware(['auth'])->group(function () {
 
 
 Route::post('/procedimientos/store', [App\Http\Controllers\PacienteController::class, 'storeProcedimiento'])->name('procedimientos.store');
+Route::put('/procedimientos/{procedimiento}', [App\Http\Controllers\PacienteController::class, 'updateProcedimiento'])->name('procedimientos.update');
+Route::delete('/procedimientos/{procedimiento}', [App\Http\Controllers\PacienteController::class, 'destroyProcedimiento'])->name('procedimientos.destroy');
+
+Route::post('/anestesiologos/store', [App\Http\Controllers\PacienteController::class, 'storeAnestesiologo'])->name('anestesiologos.store');
+Route::put('/anestesiologos/{anestesiologo}', [App\Http\Controllers\PacienteController::class, 'updateAnestesiologo'])->name('anestesiologos.update');
+Route::delete('/anestesiologos/{anestesiologo}', [App\Http\Controllers\PacienteController::class, 'destroyAnestesiologo'])->name('anestesiologos.destroy');
+
+Route::post('/medicos/store', [App\Http\Controllers\PacienteController::class, 'storeMedico'])->name('medicos.store');
+Route::put('/medicos/{medico}', [App\Http\Controllers\PacienteController::class, 'updateMedico'])->name('medicos.update');
+Route::delete('/medicos/{medico}', [App\Http\Controllers\PacienteController::class, 'destroyMedico'])->name('medicos.destroy');

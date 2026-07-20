@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-
+use App\Models\Sala;
 class Cita extends Model
 {
     use BelongsToClinica;
@@ -23,7 +23,7 @@ class Cita extends Model
         'hora',
         'duracion_minutos',
         'estado',
-        'sala',
+        'sala_id',
         'notas',
     ];
 
@@ -31,6 +31,11 @@ class Cita extends Model
         'fecha' => 'date',
         'duracion_minutos' => 'integer',
     ];
+
+    public function salaRelacion(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Sala::class, 'sala_id'); // Asegúrate que el FK es sala_id
+    }
 
     public function paciente(): BelongsTo
     {
