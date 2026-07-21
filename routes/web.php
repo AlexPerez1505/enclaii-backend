@@ -409,11 +409,19 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
                 ->orderByDesc('capturado_en')
                 ->orderByDesc('id')
                 ->get()
-                ->map(fn ($a) => [
-                    'id' => $a->id,
-                    'url' => media_url($a->path),
-                    'titulo' => $a->nombre_original,
-                ])
+                ->map(function ($a) {
+                    $url = media_url($a->path);
+                    if (! media_exists($a->path) && \Illuminate\Support\Facades\Storage::disk('public')->exists($a->path)) {
+                        $url = url('storage/'.$a->path);
+                    }
+
+                    return [
+                        'id' => $a->id,
+                        'url' => $url,
+                        'titulo' => $a->nombre_original,
+                        'show_url' => route('galeria.imagen', ['id' => $a->id, 'paciente' => $a->paciente_id]),
+                    ];
+                })
                 ->values();
         }
 
@@ -517,12 +525,33 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
         $estudioImagenes = collect();
         if (request()->has('reporte')) {
             $reporte = \App\Models\Reporte::with(['estudio.paciente', 'estudio.archivos', 'usuario', 'plantilla'])->find(request()->query('reporte'));
+            if ($reporte && request()->boolean('download')) {
+                $path = $reporte->estudio?->reporte_path;
+                abort_unless($path && media_exists($path), 404, 'El archivo del reporte no esta disponible.');
+
+                $paciente = $reporte->estudio?->paciente?->nombre_completo
+                    ?? $reporte->estudio?->paciente_nombre
+                    ?? 'paciente';
+                $fecha = $reporte->created_at?->format('Ymd') ?? now()->format('Ymd');
+                $filename = 'Reporte-'.\Illuminate\Support\Str::slug($paciente).'-'.$fecha.'.html';
+
+                return \Illuminate\Support\Facades\Storage::disk(media_disk())->download($path, $filename, [
+                    'Content-Type' => 'text/html; charset=UTF-8',
+                ]);
+            }
             if ($reporte && $reporte->estudio_id) {
                 $estudioImagenes = \App\Models\EstudioArchivo::where('estudio_id', $reporte->estudio_id)
                     ->where('tipo', 'imagen')
                     ->orderByDesc('capturado_en')
                     ->get()
-                    ->map(fn ($a) => ['url' => media_url($a->path), 'titulo' => $a->nombre_original]);
+                    ->map(function ($a) {
+                        $url = media_url($a->path);
+                        if (! media_exists($a->path) && \Illuminate\Support\Facades\Storage::disk('public')->exists($a->path)) {
+                            $url = url('storage/'.$a->path);
+                        }
+
+                        return ['url' => $url, 'titulo' => $a->nombre_original];
+                    });
             }
             // Si el reporte no tiene plantilla asignada, cargar la que corresponda al tipo de estudio
             if ($reporte && ! $reporte->plantilla && $reporte->estudio?->tipo) {

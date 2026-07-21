@@ -1,13 +1,11 @@
-@extends('layouts.app')
-
-@section('title', 'Redactar reporte')
-@section('active', 'ia-reportes')
-@section('header-title', 'Redactar reporte')
-@section('header-sub')
+<?php $__env->startSection('title', 'Redactar reporte'); ?>
+<?php $__env->startSection('active', 'ia-reportes'); ?>
+<?php $__env->startSection('header-title', 'Redactar reporte'); ?>
+<?php $__env->startSection('header-sub'); ?>
   Escribe tu propio reporte con el apoyo del asistente IA
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
 /* ============ EDITOR DE INFORME (manual) ============ */
 .ed-actions{display:flex;justify-content:flex-end;gap:10px;margin-bottom:14px;flex-wrap:wrap}
@@ -318,15 +316,14 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   /* Forzar dimensiones de hoja carta */
   .pv-paper{width:7.7in!important;height:10.2in!important;max-width:none!important}
 }
-.ed-tmp-select{background:rgba(110,160,255,.35);border-radius:2px}
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 
-  {{-- Acciones --}}
+  
   <div class="ed-actions">
-    <a class="ed-btn" href="{{ route('ia-reportes') }}">
+    <a class="ed-btn" href="<?php echo e(route('ia-reportes')); ?>">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Salir
     </a>
@@ -342,16 +339,16 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     </button>
   </div>
 
-  {{-- Meta --}}
+  
   <div class="ed-meta">
     <div class="f grow">
       <label>Estudio</label>
       <select class="ed-ctrl" id="edEstudioSel"
-              onchange="if(this.value){ window.location.href='{{ route('ia-reportes.redactar') }}?estudio='+this.value }">
+              onchange="if(this.value){ window.location.href='<?php echo e(route('ia-reportes.redactar')); ?>?estudio='+this.value }">
         <option value="">Selecciona un estudio sin reporte…</option>
-        @foreach (($estudiosLista ?? []) as $e)
-          <option value="{{ $e['id'] }}" @selected(optional($estudio)->id == $e['id'])>{{ $e['label'] }}</option>
-        @endforeach
+        <?php $__currentLoopData = ($estudiosLista ?? []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $e): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+          <option value="<?php echo e($e['id']); ?>" <?php if(optional($estudio)->id == $e['id']): echo 'selected'; endif; ?>><?php echo e($e['label']); ?></option>
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
       </select>
     </div>
     <div class="f grow">
@@ -367,7 +364,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
       <label>Fecha del reporte</label>
       <div class="ed-ctrl">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <span contenteditable="true" data-ph="{{ str_replace(['d','m','Y'], ['dd','mm','aaaa'], user_date_format()) }}">{{ now()->format(user_date_format()) }}</span>
+        <span contenteditable="true" data-ph="<?php echo e(str_replace(['d','m','Y'], ['dd','mm','aaaa'], user_date_format())); ?>"><?php echo e(now()->format(user_date_format())); ?></span>
       </div>
     </div>
     <div class="f">
@@ -380,7 +377,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     </div>
   </div>
 
-  {{-- Toolbar --}}
+  
   <div class="ed-toolbar">
     <span class="sep"></span>
     <button class="ed-tb" data-cmd="undo" aria-label="Deshacer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg></button>
@@ -408,15 +405,15 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     <button class="ed-tb" data-cmd="insertOrderedList" aria-label="Lista numerada"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg></button>
   </div>
 
-  {{-- Cuerpo --}}
+  
   <div class="ed-body">
 
     <div class="ed-main">
 
-      {{-- Documento editable --}}
+      
       <article class="card ed-doc rise d2">
 
-        {{-- Encabezado: logo + nombre de clínica + ilustración --}}
+        
         <div class="rep-header">
           <div class="rep-logo" id="repLogo">
             <span class="logo-ph">Logo de<br>la clínica</span>
@@ -430,35 +427,35 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
         </div>
 
         <div class="doc-meta">
-          <span class="k">Paciente:</span><span contenteditable="true" data-ph="Nombre del paciente">{{ $datosEstudio['paciente'] ?? '' }}</span>
-          <span class="k">Edad:</span><span contenteditable="true" data-ph="—">{{ $datosEstudio['edad'] ?? '' }}</span>
-          <span class="k">Sexo:</span><span contenteditable="true" data-ph="—">{{ $datosEstudio['sexo'] ?? '' }}</span>
-          <span class="k">Fecha de Nac.:</span><span contenteditable="true" data-ph="dd/mm/aaaa">{{ $datosEstudio['nacimiento'] ?? '' }}</span>
-          <span class="k">Fecha del Estudio:</span><span contenteditable="true" data-ph="dd/mm/aaaa">{{ $datosEstudio['fecha_estudio'] ?? '' }}</span>
-          <span class="k">Procedimiento:</span><span contenteditable="true" data-ph="Tipo de procedimiento">{{ $datosEstudio['procedimiento'] ?? '' }}</span>
+          <span class="k">Paciente:</span><span contenteditable="true" data-ph="Nombre del paciente"><?php echo e($datosEstudio['paciente'] ?? ''); ?></span>
+          <span class="k">Edad:</span><span contenteditable="true" data-ph="—"><?php echo e($datosEstudio['edad'] ?? ''); ?></span>
+          <span class="k">Sexo:</span><span contenteditable="true" data-ph="—"><?php echo e($datosEstudio['sexo'] ?? ''); ?></span>
+          <span class="k">Fecha de Nac.:</span><span contenteditable="true" data-ph="dd/mm/aaaa"><?php echo e($datosEstudio['nacimiento'] ?? ''); ?></span>
+          <span class="k">Fecha del Estudio:</span><span contenteditable="true" data-ph="dd/mm/aaaa"><?php echo e($datosEstudio['fecha_estudio'] ?? ''); ?></span>
+          <span class="k">Procedimiento:</span><span contenteditable="true" data-ph="Tipo de procedimiento"><?php echo e($datosEstudio['procedimiento'] ?? ''); ?></span>
         </div>
 
-        {{-- Imágenes del estudio --}}
+        
         <div class="rep-imgs" id="repImgs">
           <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
           <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
         </div>
 
-        <div id="docSections">@if($reporte?->contenido_html){!! $reporte->contenido_html !!}@elseif($reporte?->contenido_texto)<div contenteditable="true" style="min-height:120px;outline:none">{{ $reporte->contenido_texto }}</div>@endif</div>
-        <input type="hidden" id="existingReporteId" value="{{ $reporte?->id }}">
+        <div id="docSections"><?php if($reporte?->contenido_html): ?><?php echo $reporte->contenido_html; ?><?php elseif($reporte?->contenido_texto): ?><div contenteditable="true" style="min-height:120px;outline:none"><?php echo e($reporte->contenido_texto); ?></div><?php endif; ?></div>
+        <input type="hidden" id="existingReporteId" value="<?php echo e($reporte?->id); ?>">
 
-        {{-- Firma (su posición se cambia desde Configuración) --}}
+        
         <div class="rep-sign" id="repSign" data-pos="center">
           <div class="sign-box">
-            @if(auth()->user()?->signature_path)
+            <?php if(auth()->user()?->signature_path): ?>
               <img
                 class="sign-image"
-                src="{{ route('configuracion.signature.show', ['v' => auth()->user()->signature_updated_at?->timestamp]) }}"
-                alt="Firma digital de {{ auth()->user()->name }}"
+                src="<?php echo e(route('configuracion.signature.show', ['v' => auth()->user()->signature_updated_at?->timestamp])); ?>"
+                alt="Firma digital de <?php echo e(auth()->user()->name); ?>"
               >
-            @endif
+            <?php endif; ?>
             <div class="sign-line">
-              <span contenteditable="true" id="repSignName" data-ph="Dr. Nombre del médico">{{ ($datosEstudio['medico'] ?? '') ?: 'Dr. Nombre del médico' }}</span>
+              <span contenteditable="true" id="repSignName" data-ph="Dr. Nombre del médico"><?php echo e(($datosEstudio['medico'] ?? '') ?: 'Dr. Nombre del médico'); ?></span>
             </div>
           </div>
         </div>
@@ -466,25 +463,25 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 
     </div>
 
-    {{-- Panel lateral --}}
+    
     <aside class="ed-side">
 
       <article class="card cap-panel rise d3">
         <div class="cap-head">
           <h3>Capturas del estudio</h3>
-          <span class="cap-count">{{ ($estudioImagenes ?? collect())->count() }}</span>
+          <span class="cap-count"><?php echo e(($estudioImagenes ?? collect())->count()); ?></span>
         </div>
-        @if(($estudioImagenes ?? collect())->count())
+        <?php if(($estudioImagenes ?? collect())->count()): ?>
           <div class="cap-grid">
-            @foreach(($estudioImagenes ?? collect()) as $img)
-              <a class="cap-thumb" href="{{ $img['show_url'] ?? $img['url'] }}" target="_blank" rel="noopener" title="{{ $img['titulo'] ?? 'Captura' }}">
-                <img src="{{ $img['url'] }}" alt="" loading="lazy" onerror="this.parentElement.classList.add('img-missing');this.remove()">
+            <?php $__currentLoopData = ($estudioImagenes ?? collect()); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $img): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+              <a class="cap-thumb" href="<?php echo e($img['show_url'] ?? $img['url']); ?>" target="_blank" rel="noopener" title="<?php echo e($img['titulo'] ?? 'Captura'); ?>">
+                <img src="<?php echo e($img['url']); ?>" alt="" loading="lazy" onerror="this.parentElement.classList.add('img-missing');this.remove()">
               </a>
-            @endforeach
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
           </div>
-        @else
+        <?php else: ?>
           <p class="cap-empty">Sin capturas asociadas.</p>
-        @endif
+        <?php endif; ?>
       </article>
 
       <article class="card ed-chat rise d3">
@@ -515,7 +512,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
         </form>
       </article>
 
-      {{-- Hallazgos del doctor --}}
+      
       <article class="card ed-panel rise d4" id="hzPanel">
         <h3>Hallazgos</h3>
         <div class="ph-sub">Click para insertar en el reporte o escribe uno nuevo</div>
@@ -529,7 +526,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
         </div>
       </article>
 
-      {{-- Plantillas (debajo del chat) --}}
+      
       <article class="card ed-panel rise d5">
         <h3>Plantillas</h3>
         <div class="ph-sub">Elige una estructura base para tu reporte</div>
@@ -539,41 +536,41 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
         </div>
         <div class="tpl-pane active" id="paneInforme">
         <div class="tpl-list" id="tplList">
-          @php
+          <?php
             $gear = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
             $fileIco = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
-          @endphp
+          ?>
 
           <div class="tpl-item">
             <button type="button" class="tpl-main" data-tpl="colonoscopia">
-              <span class="tpl-ico">{!! $fileIco !!}</span>
+              <span class="tpl-ico"><?php echo $fileIco; ?></span>
               <span class="tpl-tx"><span class="tpl-t">Colonoscopia</span><span class="tpl-d">Preparación, hallazgos por segmento…</span></span>
             </button>
-            <button type="button" class="tpl-cfg" data-tpl-cfg="colonoscopia" aria-label="Editar plantilla" title="Editar plantilla">{!! $gear !!}</button>
+            <button type="button" class="tpl-cfg" data-tpl-cfg="colonoscopia" aria-label="Editar plantilla" title="Editar plantilla"><?php echo $gear; ?></button>
           </div>
 
           <div class="tpl-item">
             <button type="button" class="tpl-main" data-tpl="gastroscopia">
-              <span class="tpl-ico">{!! $fileIco !!}</span>
+              <span class="tpl-ico"><?php echo $fileIco; ?></span>
               <span class="tpl-tx"><span class="tpl-t">Gastroscopia</span><span class="tpl-d">Esófago, estómago, duodeno…</span></span>
             </button>
-            <button type="button" class="tpl-cfg" data-tpl-cfg="gastroscopia" aria-label="Editar plantilla" title="Editar plantilla">{!! $gear !!}</button>
+            <button type="button" class="tpl-cfg" data-tpl-cfg="gastroscopia" aria-label="Editar plantilla" title="Editar plantilla"><?php echo $gear; ?></button>
           </div>
 
           <div class="tpl-item">
             <button type="button" class="tpl-main" data-tpl="duodenoscopia">
-              <span class="tpl-ico">{!! $fileIco !!}</span>
+              <span class="tpl-ico"><?php echo $fileIco; ?></span>
               <span class="tpl-tx"><span class="tpl-t">Duodenoscopia</span><span class="tpl-d">Duodeno, papila, vía biliar…</span></span>
             </button>
-            <button type="button" class="tpl-cfg" data-tpl-cfg="duodenoscopia" aria-label="Editar plantilla" title="Editar plantilla">{!! $gear !!}</button>
+            <button type="button" class="tpl-cfg" data-tpl-cfg="duodenoscopia" aria-label="Editar plantilla" title="Editar plantilla"><?php echo $gear; ?></button>
           </div>
 
           <div class="tpl-item">
             <button type="button" class="tpl-main" data-tpl="broncoscopia">
-              <span class="tpl-ico">{!! $fileIco !!}</span>
+              <span class="tpl-ico"><?php echo $fileIco; ?></span>
               <span class="tpl-tx"><span class="tpl-t">Broncoscopia</span><span class="tpl-d">Árbol bronquial, tráquea, carina…</span></span>
             </button>
-            <button type="button" class="tpl-cfg" data-tpl-cfg="broncoscopia" aria-label="Editar plantilla" title="Editar plantilla">{!! $gear !!}</button>
+            <button type="button" class="tpl-cfg" data-tpl-cfg="broncoscopia" aria-label="Editar plantilla" title="Editar plantilla"><?php echo $gear; ?></button>
           </div>
 
           <div class="tpl-item">
@@ -581,10 +578,10 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
               <span class="tpl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
               <span class="tpl-tx"><span class="tpl-t">En blanco</span><span class="tpl-d">Empieza desde cero</span></span>
             </button>
-            <button type="button" class="tpl-cfg" data-tpl-cfg="blanco" aria-label="Editar plantilla" title="Editar plantilla">{!! $gear !!}</button>
+            <button type="button" class="tpl-cfg" data-tpl-cfg="blanco" aria-label="Editar plantilla" title="Editar plantilla"><?php echo $gear; ?></button>
           </div>
         </div>
-        </div>{{-- /paneInforme --}}
+        </div>
 
         <div class="tpl-pane" id="paneImagenes">
           <div class="ph-sub" style="margin-bottom:10px">Define cuántas imágenes del estudio se incluyen</div>
@@ -593,19 +590,19 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
               <button type="button" class="img-tpl active" data-tpl="img2">
                 <span class="img-prev" style="grid-template-columns:repeat(2,1fr)"><span></span><span></span><span></span><span></span></span>
               </button>
-              <button type="button" class="img-cfg" data-tpl-cfg="img2" aria-label="Editar plantilla" title="Editar plantilla">{!! $gear !!}</button>
+              <button type="button" class="img-cfg" data-tpl-cfg="img2" aria-label="Editar plantilla" title="Editar plantilla"><?php echo $gear; ?></button>
             </div>
             <div class="img-item">
               <button type="button" class="img-tpl" data-tpl="img3">
                 <span class="img-prev" style="grid-template-columns:repeat(3,1fr)"><span></span><span></span><span></span><span></span><span></span><span></span></span>
               </button>
-              <button type="button" class="img-cfg" data-tpl-cfg="img3" aria-label="Editar plantilla" title="Editar plantilla">{!! $gear !!}</button>
+              <button type="button" class="img-cfg" data-tpl-cfg="img3" aria-label="Editar plantilla" title="Editar plantilla"><?php echo $gear; ?></button>
             </div>
             <div class="img-item">
               <button type="button" class="img-tpl" data-tpl="img4">
                 <span class="img-prev" style="grid-template-columns:repeat(4,1fr)"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span>
               </button>
-              <button type="button" class="img-cfg" data-tpl-cfg="img4" aria-label="Editar plantilla" title="Editar plantilla">{!! $gear !!}</button>
+              <button type="button" class="img-cfg" data-tpl-cfg="img4" aria-label="Editar plantilla" title="Editar plantilla"><?php echo $gear; ?></button>
             </div>
             <div class="img-item">
               <button type="button" class="img-tpl" data-tpl="imgNone">
@@ -620,13 +617,13 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 
   </div>
 
-  {{-- Modal de Configuración del reporte --}}
+  
   <div class="cfg-ov" id="cfgModal">
     <div class="cfg-modal" role="dialog" aria-modal="true" aria-labelledby="cfgTitle">
       <h3 id="cfgTitle">Configurar plantilla</h3>
       <div class="cfg-sub" id="cfgSub">Así se verá el encabezado del reporte</div>
 
-      {{-- Vista previa: la hoja completa con elementos arrastrables --}}
+      
       <div class="cfg-pv-tag">Vista previa de la hoja</div>
       <div class="cfg-pv-hint">Arrastra el logo, el nombre o la imagen para moverlos. Usa la esquina azul para hacerlos más grandes o pequeños.</div>
       <div class="cfg-sheet" id="cfgSheet">
@@ -713,7 +710,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     </div>
   </div>
 
-  {{-- Modal de Vista Previa del reporte --}}
+  
   <div class="pv-ov" id="previewModal">
     <div class="pv-bar">
       <span class="pv-title">Vista previa del reporte</span>
@@ -730,12 +727,12 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     </div>
   </div>
 
-  {{-- Aviso flotante --}}
+  
   <div class="ed-toast" id="edToast" role="status" aria-live="polite"></div>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 /* ===== Plantillas + configuración (logo, clínica, imagen, firma) ===== */
 (function(){
@@ -768,12 +765,12 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   const imgsDefault = repImgs ? repImgs.innerHTML : '';
 
   // Imágenes reales del estudio inyectadas desde el backend
-  const STUDY_IMAGES = @json($estudioImagenes ?? []);
+  const STUDY_IMAGES = <?php echo json_encode($estudioImagenes ?? [], 15, 512) ?>;
 
   // Datos del estudio/paciente precargados desde el backend
-  const PRELOAD = @json($datosEstudio ?? []);
+  const PRELOAD = <?php echo json_encode($datosEstudio ?? [], 15, 512) ?>;
   // Reporte ya guardado (si existe) para restaurar su plantilla
-  const REPORTE_DB = @json($reporte ?? null);
+  const REPORTE_DB = <?php echo json_encode($reporte ?? null, 15, 512) ?>;
   // Mapea el procedimiento del estudio a la clave de plantilla correspondiente
   const tipoToKey = (t) => {
     t = (t || '').toLowerCase();
@@ -787,11 +784,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   // Celda del grid: imagen real del estudio o recuadro vacío
   const escAttr = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const imgCell = (img) => img
-<<<<<<< Updated upstream
-    ? '<span class="cell" style="background:none;overflow:hidden"><img src="' + img.url + '" alt="' + (img.titulo || '') + '" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.closest(\'.cell\').style.background=\'linear-gradient(160deg,#1c2435,#10151f)\';this.remove()"></span>'
-=======
     ? '<span class="cell" style="background:none"><img src="' + escAttr(img.url) + '" alt="" title="' + escAttr(img.titulo || 'Captura') + '" loading="lazy" onerror="this.parentElement.classList.add(&quot;img-missing&quot;);this.remove()"></span>'
->>>>>>> Stashed changes
     : '<span class="cell"></span>';
 
   // Rellena el grid de imágenes según la plantilla (columnas + nº de celdas)
@@ -882,7 +875,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   });
 
   // Configuración persistida de cada plantilla (desde la base de datos)
-  const PLANTILLAS_DB = @json($plantillasDb ?? []);
+  const PLANTILLAS_DB = <?php echo json_encode($plantillasDb ?? [], 15, 512) ?>;
   window.PLANTILLAS_DB = PLANTILLAS_DB;
 
   // Cada plantilla parte de su configuración por defecto y, si existe en BD,
@@ -1011,9 +1004,9 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     }
 
     // Guardar la configuración en la BD
-    fetch('{{ url('/plantillas') }}/' + encodeURIComponent(currentKey), {
+    fetch('<?php echo e(url('/plantillas')); ?>/' + encodeURIComponent(currentKey), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': @json(csrf_token()), 'Accept': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': <?php echo json_encode(csrf_token(), 15, 512) ?>, 'Accept': 'application/json' },
       body: JSON.stringify({ configuracion: tpl.cfg }),
     })
       .then(r => r.json())
@@ -1044,9 +1037,9 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     }
 
     // Guardar la configuración en la BD
-    fetch('{{ url('/plantillas') }}/' + encodeURIComponent(currentKey), {
+    fetch('<?php echo e(url('/plantillas')); ?>/' + encodeURIComponent(currentKey), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': @json(csrf_token()), 'Accept': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': <?php echo json_encode(csrf_token(), 15, 512) ?>, 'Accept': 'application/json' },
       body: JSON.stringify({ configuracion: tpl.cfg }),
     })
       .then(r => r.json())
@@ -1079,9 +1072,9 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     });
 
     // Guardar la configuración en la BD
-    fetch('{{ url('/plantillas') }}/' + encodeURIComponent(currentKey), {
+    fetch('<?php echo e(url('/plantillas')); ?>/' + encodeURIComponent(currentKey), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': @json(csrf_token()), 'Accept': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': <?php echo json_encode(csrf_token(), 15, 512) ?>, 'Accept': 'application/json' },
       body: JSON.stringify({ configuracion: tpl.cfg }),
     })
       .then(r => r.json())
@@ -1269,9 +1262,9 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     // Persistir los cambios de la plantilla en la base de datos
     const payload = { configuracion: tpl.cfg };
     if (tpl.imgOnly) { payload.columnas = tpl.cols; payload.num_imagenes = tpl.count; }
-    fetch('{{ url('/plantillas') }}/' + encodeURIComponent(editingKey), {
+    fetch('<?php echo e(url('/plantillas')); ?>/' + encodeURIComponent(editingKey), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': @json(csrf_token()), 'Accept': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': <?php echo json_encode(csrf_token(), 15, 512) ?>, 'Accept': 'application/json' },
       body: JSON.stringify(payload),
     })
       .then(r => r.json().catch(() => ({})).then(d => ({ ok: r.ok && d.ok, d })))
@@ -1436,118 +1429,6 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 
   // Selector de tamaño de letra (en píxeles)
   if (fontSizeInput) {
-    let savedRange = null;
-    let savedMark = null;
-
-    const selectionInsideDoc = () => {
-      const sel = document.getSelection();
-      return sel && sel.anchorNode && docEl && docEl.contains(sel.anchorNode);
-    };
-
-    const findEditableTarget = (range) => {
-      if (!range) return null;
-      let node = range.commonAncestorContainer;
-      if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
-      return node.closest ? node.closest('[contenteditable="true"]') : null;
-    };
-
-    const unwrapIfEmpty = (el) => {
-      const style = (el.getAttribute('style') || '').replace(/font-size:\s*[^;]+;?/gi, '').trim();
-      const hasClass = el.className && el.className !== 'ed-tmp-select';
-      if (!style && !hasClass && !el.getAttribute('size')) {
-        const parent = el.parentNode;
-        while (el.firstChild) parent.insertBefore(el.firstChild, el);
-        parent.removeChild(el);
-      } else {
-        el.removeAttribute('size');
-        el.setAttribute('style', style);
-      }
-    };
-
-    const markSelection = () => {
-      const sel = document.getSelection();
-      savedRange = null;
-      savedMark = null;
-      if (sel && sel.rangeCount && !sel.isCollapsed && selectionInsideDoc()) {
-        try {
-          const range = sel.getRangeAt(0);
-          const mark = document.createElement('span');
-          mark.className = 'ed-tmp-select';
-          range.surroundContents(mark);
-          savedMark = mark;
-          const newRange = document.createRange();
-          newRange.selectNodeContents(mark);
-          sel.removeAllRanges();
-          sel.addRange(newRange);
-          savedRange = newRange.cloneRange();
-        } catch (e) {
-          savedRange = sel.getRangeAt(0).cloneRange();
-        }
-      } else if (sel && sel.rangeCount) {
-        savedRange = sel.getRangeAt(0).cloneRange();
-      }
-    };
-
-    const applyFontSize = (px) => {
-      const size = parseInt(px, 10);
-      if (isNaN(size) || size < 8 || size > 72) {
-        fontSizeInput.value = '14';
-        return;
-      }
-
-      if (savedMark) {
-        savedMark.querySelectorAll('span, font').forEach(unwrapIfEmpty);
-        savedMark.classList.remove('ed-tmp-select');
-        savedMark.style.fontSize = size + 'px';
-        const sel = document.getSelection();
-        const range = document.createRange();
-        range.selectNodeContents(savedMark);
-        sel.removeAllRanges();
-        sel.addRange(range);
-        savedMark = null;
-        savedRange = null;
-        return;
-      }
-
-      const target = findEditableTarget(savedRange) || docEl.querySelector('[contenteditable="true"]');
-      if (!target) return;
-      target.focus();
-
-      const sel = document.getSelection();
-      if (savedRange) {
-        sel.removeAllRanges();
-        sel.addRange(savedRange);
-      }
-
-      const range = sel.rangeCount ? sel.getRangeAt(0) : null;
-      if (!range) return;
-
-      if (range.collapsed) {
-        const span = document.createElement('span');
-        span.style.fontSize = size + 'px';
-        range.insertNode(span);
-        const text = document.createTextNode('');
-        span.appendChild(text);
-        range.setStart(text, 0);
-        range.setEnd(text, 0);
-        sel.removeAllRanges();
-        sel.addRange(range);
-      } else {
-        try {
-          const span = document.createElement('span');
-          span.style.fontSize = size + 'px';
-          range.surroundContents(span);
-        } catch (err) {
-          const fragment = range.extractContents();
-          fragment.querySelectorAll('span, font').forEach(unwrapIfEmpty);
-          const span = document.createElement('span');
-          span.style.fontSize = size + 'px';
-          while (fragment.firstChild) span.appendChild(fragment.firstChild);
-          range.insertNode(span);
-        }
-      }
-    };
-
     // Solo permitir números
     fontSizeInput.addEventListener('input', (e) => {
       e.target.value = e.target.value.replace(/[^0-9]/g, '');
@@ -1556,20 +1437,12 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
         fontSizeInput.dispatchEvent(new Event('change'));
       }
     });
-
-    // Guardar y marcar la selección antes de que el input robe el foco
-    fontSizeInput.addEventListener('mousedown', markSelection);
-
-    fontSizeInput.addEventListener('change', (e) => applyFontSize(e.target.value));
-    fontSizeInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        applyFontSize(e.target.value);
-        const target = findEditableTarget(savedRange) || docEl.querySelector('[contenteditable="true"]');
-        if (target) target.focus();
+    fontSizeInput.addEventListener('change', (e) => {
+      const size = parseInt(e.target.value, 10);
+      if (isNaN(size) || size < 8 || size > 72) {
+        e.target.value = '14';
+        return;
       }
-<<<<<<< Updated upstream
-=======
       // Aplicar tamaño usando execCommand con hack
       restoreDocSelection();
       const target = currentEditableTarget();
@@ -1595,7 +1468,6 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
         refreshToolbar();
         if (docEl) docEl.dispatchEvent(new Event('input', { bubbles: true }));
       }, 10);
->>>>>>> Stashed changes
     });
   }
 
@@ -1615,9 +1487,9 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   }
 })();
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 (function(){
   const form = document.getElementById('chatForm');
@@ -1626,8 +1498,8 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   const chips = document.getElementById('chatChips');
   if (!form || !msgs) return;
 
-  const chatUrl = "{{ route('ia-reportes.chat.post') }}";
-  const csrf = "{{ csrf_token() }}";
+  const chatUrl = "<?php echo e(route('ia-reportes.chat.post')); ?>";
+  const csrf = "<?php echo e(csrf_token()); ?>";
   const docEl = document.querySelector('.ed-doc');
 
   /* ===== Aplicar ediciones de la IA directamente en el reporte ===== */
@@ -1811,10 +1683,10 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   const countEl   = document.getElementById('hzCount');
   if (!chipsEl) return;
 
-  const LIST_URL   = "{{ route('ia-reportes.hallazgos-lista') }}";
-  const CREATE_URL = "{{ route('ia-reportes.hallazgos-crear') }}";
-  const CSRF       = "{{ csrf_token() }}";
-  const ESTUDIO_ID = @json($estudio?->id);
+  const LIST_URL   = "<?php echo e(route('ia-reportes.hallazgos-lista')); ?>";
+  const CREATE_URL = "<?php echo e(route('ia-reportes.hallazgos-crear')); ?>";
+  const CSRF       = "<?php echo e(csrf_token()); ?>";
+  const ESTUDIO_ID = <?php echo json_encode($estudio?->id, 15, 512) ?>;
 
   let allHallazgos = [];
 
@@ -2109,10 +1981,10 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   setTimeout(checkPageFit, 500);
 
   /* ---- Guardar reporte (persistido en BD y ligado al estudio) ---- */
-  const ESTUDIO_ID = @json($estudio?->id);
-  const SAVE_URL   = @json(route('ia-reportes.guardar'));
-  const CSRF       = @json(csrf_token());
-  let savedReporteId = @json($reporte?->id);
+  const ESTUDIO_ID = <?php echo json_encode($estudio?->id, 15, 512) ?>;
+  const SAVE_URL   = <?php echo json_encode(route('ia-reportes.guardar'), 15, 512) ?>;
+  const CSRF       = <?php echo json_encode(csrf_token(), 15, 512) ?>;
+  let savedReporteId = <?php echo json_encode($reporte?->id, 15, 512) ?>;
 
   const collectData = () => ({
     tipo:   (document.getElementById('edTipo')?.value || ''),
@@ -2206,4 +2078,6 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   }
 })();
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\HP\enclaii-backend\resources\views/ia-reportes/redactar.blade.php ENDPATH**/ ?>

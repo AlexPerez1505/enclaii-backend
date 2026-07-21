@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         if (Schema::hasColumn('capture_sessions', 'study_id')) {
             DB::statement('ALTER TABLE capture_sessions MODIFY study_id BIGINT UNSIGNED NULL');
         }
@@ -23,6 +27,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         if (Schema::hasColumn('capture_sessions', 'study_id')) {
             DB::statement('ALTER TABLE capture_sessions MODIFY study_id BIGINT UNSIGNED NOT NULL');
         }

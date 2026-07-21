@@ -13,7 +13,9 @@ return new class extends Migration
             $table->dropForeign(['estudio_id']);
         });
 
-        DB::statement('ALTER TABLE estudio_archivos MODIFY estudio_id BIGINT UNSIGNED NULL');
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE estudio_archivos MODIFY estudio_id BIGINT UNSIGNED NULL');
+        }
 
         Schema::table('estudio_archivos', function (Blueprint $table) {
             $table->foreign('estudio_id')
@@ -29,7 +31,9 @@ return new class extends Migration
             $table->dropForeign(['estudio_id']);
         });
 
-        DB::statement('ALTER TABLE estudio_archivos MODIFY estudio_id BIGINT UNSIGNED NOT NULL');
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE estudio_archivos MODIFY estudio_id BIGINT UNSIGNED NOT NULL');
+        }
 
         Schema::table('estudio_archivos', function (Blueprint $table) {
             $table->foreign('estudio_id')
