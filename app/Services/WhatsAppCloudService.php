@@ -49,10 +49,7 @@ class WhatsAppCloudService
             ]);
 
         if ($response->failed()) {
-            $apiMessage = $response->json('error.message');
-            $message = is_string($apiMessage) && $apiMessage !== ''
-                ? $apiMessage
-                : 'Meta rechazó el envío del mensaje.';
+            $message = $this->formatMetaError($response->json('error', []));
 
             throw new RuntimeException($message);
         }
@@ -72,5 +69,38 @@ class WhatsAppCloudService
     public function normalizePhone(?string $phone): string
     {
         return preg_replace('/\D+/', '', (string) $phone) ?? '';
+    }
+
+    private function formatMetaError(mixed $error): string
+    {
+        if (! is_array($error)) {
+            return 'Meta rechazo el envio del mensaje.';
+        }
+
+        $parts = [];
+        $message = data_get($error, 'message');
+        $details = data_get($error, 'error_data.details');
+        $code = data_get($error, 'code');
+        $subcode = data_get($error, 'error_subcode');
+
+        if (is_string($message) && $message !== '') {
+            $parts[] = $message;
+        }
+
+        if (is_string($details) && $details !== '') {
+            $parts[] = $details;
+        }
+
+        if (is_scalar($code) && $code !== '') {
+            $parts[] = 'Codigo Meta: '.$code;
+        }
+
+        if (is_scalar($subcode) && $subcode !== '') {
+            $parts[] = 'Subcodigo Meta: '.$subcode;
+        }
+
+        return $parts !== []
+            ? implode(' | ', array_unique($parts))
+            : 'Meta rechazo el envio del mensaje.';
     }
 }

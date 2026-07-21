@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\PatientPreregistration;
 use App\Models\PatientRegistrationLink;
 use App\Models\User;
+use App\Services\MediaPathService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -151,7 +152,7 @@ class PublicPatientPreregistrationController extends Controller
                 }
 
                 if ($photo) {
-                    $photoPath = media_store($photo, 'clinicas/'.$link->clinica_id.'/pacientes');
+                    $photoPath = media_store($photo, app(MediaPathService::class)->clinic($link->clinica_id).'/patients/pending/profile');
                 }
 
                 $birthDate = Carbon::parse($validated['fecha_nacimiento']);

@@ -97,6 +97,7 @@ class WhatsAppController extends Controller
                 'type' => $message->type,
                 'body' => $message->body ?? '',
                 'status' => $message->status,
+                'error' => $message->error,
                 'time' => ($message->sent_at ?? $message->created_at)?->format('H:i'),
             ])->values(),
         ]);
@@ -115,6 +116,12 @@ class WhatsAppController extends Controller
         if ($recipient === '') {
             return response()->json([
                 'message' => 'El paciente no tiene un teléfono registrado.',
+            ], 422);
+        }
+
+        if (! $this->hasOpenCustomerServiceWindow($patient, $recipient)) {
+            return response()->json([
+                'message' => 'WhatsApp no permite iniciar una conversacion con texto libre. El paciente debe escribir primero o debes enviar una plantilla aprobada de WhatsApp.',
             ], 422);
         }
 
@@ -160,6 +167,7 @@ class WhatsAppController extends Controller
                 'direction' => $message->direction,
                 'body' => $message->body,
                 'status' => $message->status,
+                'error' => $message->error,
                 'time' => $message->sent_at?->format('H:i'),
             ],
         ], 201);
@@ -308,6 +316,26 @@ class WhatsAppController extends Controller
             ->whereNotNull('telefono')
             ->get()
             ->first(fn (Paciente $patient): bool => $this->whatsapp->normalizePhone($patient->telefono) === $waId);
+    }
+
+    private function hasOpenCustomerServiceWindow(Paciente $patient, string $waId): bool
+    {
+        $cutoff = now()->subHours(24);
+
+        return WhatsAppMessage::query()
+            ->where('direction', 'inbound')
+            ->where(function ($query) use ($patient, $waId): void {
+                $query->where('paciente_id', $patient->id)
+                    ->orWhere('wa_id', $waId);
+            })
+            ->where(function ($query) use ($cutoff): void {
+                $query->where('sent_at', '>=', $cutoff)
+                    ->orWhere(function ($query) use ($cutoff): void {
+                        $query->whereNull('sent_at')
+                            ->where('created_at', '>=', $cutoff);
+                    });
+            })
+            ->exists();
     }
 
     private function sendAutomaticReplyWhenNeeded(WhatsAppMessage $incoming): void

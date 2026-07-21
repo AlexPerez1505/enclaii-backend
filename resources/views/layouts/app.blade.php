@@ -168,6 +168,8 @@ html[data-reading="on"]::after{
   align-self:stretch;
 }
 .main{padding:28px 30px 36px;min-width:0;max-width:100%}
+.app-alert{display:flex;align-items:center;gap:9px;margin:0 0 16px;padding:11px 14px;border-radius:11px;border:1px solid rgba(245,158,45,.32);background:rgba(245,158,45,.1);color:var(--txt);font-size:12.5px;font-weight:700}
+.app-alert svg{width:16px;height:16px;flex:none;color:var(--orange)}
 
 /* ================= SIDEBAR ================= */
 .side{
@@ -529,7 +531,11 @@ html[data-theme="light"] .profile:hover { background: var(--hover-bg); }
   font-weight:700;
   font-size:13px;
   color: #fff;
+  overflow:hidden;
+  flex:none;
 }
+.profile .avatar.has-photo{font-size:0;background:var(--panel)}
+.profile .avatar img{width:100%;height:100%;object-fit:cover;display:block}
 .profile strong{display:block;font-size:13.5px;line-height:1.2; color: var(--txt);}
 .profile span{font-size:11.5px;color:var(--txt-soft)}
 
@@ -1348,7 +1354,13 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
         @endphp
         <div class="profile-wrap">
           <button type="button" class="profile" id="profileBtn" aria-haspopup="true" aria-expanded="false">
-            <div class="avatar" id="headerAvatar" data-initials="{{ $userInitials }}" style="{{ $userFoto ? 'background-image:url('.e($userFoto).');background-size:cover;background-position:center;font-size:0;' : '' }}">{{ $userFoto ? '' : $userInitials }}</div>
+            <div class="avatar {{ $userFoto ? 'has-photo' : '' }}" id="headerAvatar" data-initials="{{ $userInitials }}">
+              @if($userFoto)
+                <img id="headerAvatarImg" src="{{ $userFoto }}" alt="Foto de perfil" loading="eager" onerror="this.remove();this.parentElement.classList.remove('has-photo');this.parentElement.textContent=this.parentElement.dataset.initials || '';">
+              @else
+                {{ $userInitials }}
+              @endif
+            </div>
             <div class="profile-meta">
               <strong>{{ $userName }}</strong>
             </div>
@@ -1383,6 +1395,13 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
         </div>
       </div>
     </header>
+
+    @if(session('session_limit_notice'))
+      <div class="app-alert" role="status">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.6 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>{{ session('session_limit_notice') }}</span>
+      </div>
+    @endif
 
     @yield('content')
 

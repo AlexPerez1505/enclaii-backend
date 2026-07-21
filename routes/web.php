@@ -80,7 +80,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/registro', [EndoCareAuthController::class, 'register'])->name('register.post');
 });
 
-Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
+Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->group(function () {
 
     // Ruta de configuracion: si no tiene plan, muestra vista plan-only
     Route::get('/configuracion', function () {
@@ -131,6 +131,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
                 ->orderByDesc('last_activity')
                 ->get(),
             'currentSessionId' => request()->session()->getId(),
+            'sessionLimit' => app(\App\Services\SessionLimitService::class)->limitFor(request()->user()),
         ]);
     })->name('configuracion');
 
@@ -232,7 +233,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
 
 });
 
-Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
+Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->group(function () {
 
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
@@ -783,7 +784,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
         ]);
 
         $file = $request->file('image');
-        $path = media_store($file, "clinicas/{$estudio->clinica_id}/estudios/{$estudio->id}/archivos");
+        $path = media_store($file, app(\App\Services\MediaPathService::class)->studyImages($estudio));
         $seconds = (float) $request->input('capturado_en_video', 0);
         $copy = \App\Models\EstudioArchivo::create([
             'estudio_id' => $estudio->id,
@@ -915,7 +916,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
         ->name('galeria.imagen.destroy');
 
     Route::post('/galeria/imagen/{id}/guardar', function ($id, \Illuminate\Http\Request $request) {
-        $archivo = \App\Models\EstudioArchivo::findOrFail($id);
+        $archivo = \App\Models\EstudioArchivo::with('estudio')->findOrFail($id);
 
         $request->validate([
             'image' => ['required', 'file', 'mimes:jpg,jpeg,png,webp', 'max:51200'],
@@ -923,7 +924,10 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
 
         $file = $request->file('image');
         $oldPath = $archivo->path;
-        $path = media_store($file, "estudios/{$archivo->estudio_id}/archivos");
+        $path = media_store(
+            $file,
+            app(\App\Services\MediaPathService::class)->studyImages($archivo->estudio ?? $archivo->estudio_id, $archivo->paciente_id)
+        );
 
         $archivo->update([
             'path' => $path,
@@ -949,14 +953,17 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
         ->name('galeria.imagen.guardar');
 
     Route::post('/galeria/imagen/{id}/guardar-copia', function ($id, \Illuminate\Http\Request $request) {
-        $archivo = \App\Models\EstudioArchivo::findOrFail($id);
+        $archivo = \App\Models\EstudioArchivo::with('estudio')->findOrFail($id);
 
         $request->validate([
             'image' => ['required', 'file', 'mimes:jpg,jpeg,png,webp', 'max:51200'],
         ]);
 
         $file = $request->file('image');
-        $path = media_store($file, "estudios/{$archivo->estudio_id}/archivos");
+        $path = media_store(
+            $file,
+            app(\App\Services\MediaPathService::class)->studyImages($archivo->estudio ?? $archivo->estudio_id, $archivo->paciente_id)
+        );
         $copy = \App\Models\EstudioArchivo::create([
             'estudio_id' => $archivo->estudio_id,
             'paciente_id' => $archivo->paciente_id,
@@ -989,7 +996,7 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
 });
 
 
-Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
+Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->group(function () {
     Route::resource('pacientes', PacienteController::class)
         ->middlewareFor(['update', 'destroy'], 'critical.password:patients');
     Route::post('/pacientes/{paciente}/add-medico', [PacienteController::class, 'addMedico'])
