@@ -88,10 +88,30 @@ Route::middleware('auth:sanctum')
             [TauriFrontendController::class, 'agenda']
         );
 
+        Route::get(
+            '/agenda/salas',
+            [TauriFrontendController::class, 'salas']
+        );
+
         Route::post(
             '/agenda/citas',
             [TauriFrontendController::class, 'storeAppointment']
-        );
+        )->name('api.tauri.agenda.citas.store');
+
+        Route::put(
+            '/agenda/citas/{cita}',
+            [TauriFrontendController::class, 'updateAppointment']
+        )->name('api.tauri.agenda.citas.update');
+
+        Route::patch(
+            '/agenda/citas/{cita}/estado',
+            [TauriFrontendController::class, 'updateAppointmentEstado']
+        )->name('api.tauri.agenda.citas.estado');
+
+        Route::delete(
+            '/agenda/citas/{cita}',
+            [TauriFrontendController::class, 'destroyAppointment']
+        )->name('api.tauri.agenda.citas.destroy');
 
         Route::post(
             '/agenda/bloqueos',
