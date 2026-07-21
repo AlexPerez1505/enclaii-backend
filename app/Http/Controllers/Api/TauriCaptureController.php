@@ -530,6 +530,18 @@ class TauriCaptureController extends Controller
         return $study;
     }
 
+    private function generarFolioEstudio(): string
+    {
+        $ultimoId = (int) Estudio::max('id') + 1;
+
+        do {
+            $folio = 'E-'.str_pad($ultimoId, 4, '0', STR_PAD_LEFT);
+            $ultimoId++;
+        } while (Estudio::where('folio', $folio)->exists());
+
+        return $folio;
+    }
+
     private function createStudyArchive(
         CaptureSession $session,
         $file,
