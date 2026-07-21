@@ -168,6 +168,8 @@ html[data-reading="on"]::after{
   align-self:stretch;
 }
 .main{padding:28px 30px 36px;min-width:0;max-width:100%}
+.app-alert{display:flex;align-items:center;gap:9px;margin:0 0 16px;padding:11px 14px;border-radius:11px;border:1px solid rgba(245,158,45,.32);background:rgba(245,158,45,.1);color:var(--txt);font-size:12.5px;font-weight:700}
+.app-alert svg{width:16px;height:16px;flex:none;color:var(--orange)}
 
 /* ================= SIDEBAR ================= */
 .side{
@@ -295,15 +297,19 @@ html[data-theme="light"] .side-help { background: var(--bg); border:none; }
   z-index:1000;
 }
 .profile-wrap.open{z-index:2000}
+.head > div:first-child{flex:1;min-width:0}
 .head h1{
   font-family:'Sora',sans-serif;
   font-size:24px; 
   font-weight:700;
   letter-spacing:-0.01em;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 .head .sub{margin-top:4px;font-size:14px;color:var(--txt-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:600px}
 .head .sub b{color:var(--cyan);font-weight:700}
-.head-right{display:flex;align-items:center;gap:12px}
+.head-right{display:flex;align-items:center;gap:12px;flex-shrink:0}
 .btn-ai{
   display:flex;align-items:center;gap:8px;
   padding:10px 16px;
@@ -529,7 +535,11 @@ html[data-theme="light"] .profile:hover { background: var(--hover-bg); }
   font-weight:700;
   font-size:13px;
   color: #fff;
+  overflow:hidden;
+  flex:none;
 }
+.profile .avatar.has-photo{font-size:0;background:var(--panel)}
+.profile .avatar img{width:100%;height:100%;object-fit:cover;display:block}
 .profile strong{display:block;font-size:13.5px;line-height:1.2; color: var(--txt);}
 .profile span{font-size:11.5px;color:var(--txt-soft)}
 
@@ -804,6 +814,12 @@ html[data-theme="light"] .db-editor-body::-webkit-scrollbar-thumb{background:rgb
   .profile{padding:8px}
   .head{margin-bottom:18px}
 }
+@media (max-width:400px){
+  .head{gap:8px}
+  .head-right{gap:6px}
+  .btn-ai{padding:9px}
+}
+
 
 /* Toggle de tema: luna en modo oscuro (ir a claro: sol), y viceversa */
 #themeToggle .icon-moon{display:none}
@@ -1348,7 +1364,14 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
         ?>
         <div class="profile-wrap">
           <button type="button" class="profile" id="profileBtn" aria-haspopup="true" aria-expanded="false">
-            <div class="avatar" id="headerAvatar" data-initials="<?php echo e($userInitials); ?>" style="<?php echo e($userFoto ? 'background-image:url('.e($userFoto).');background-size:cover;background-position:center;font-size:0;' : ''); ?>"><?php echo e($userFoto ? '' : $userInitials); ?></div>
+            <div class="avatar <?php echo e($userFoto ? 'has-photo' : ''); ?>" id="headerAvatar" data-initials="<?php echo e($userInitials); ?>">
+              <?php if($userFoto): ?>
+                <img id="headerAvatarImg" src="<?php echo e($userFoto); ?>" alt="Foto de perfil" loading="eager" onerror="this.remove();this.parentElement.classList.remove('has-photo');this.parentElement.textContent=this.parentElement.dataset.initials || '';">
+              <?php else: ?>
+                <?php echo e($userInitials); ?>
+
+              <?php endif; ?>
+            </div>
             <div class="profile-meta">
               <strong><?php echo e($userName); ?></strong>
             </div>
@@ -1383,6 +1406,13 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
         </div>
       </div>
     </header>
+
+    <?php if(session('session_limit_notice')): ?>
+      <div class="app-alert" role="status">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.6 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span><?php echo e(session('session_limit_notice')); ?></span>
+      </div>
+    <?php endif; ?>
 
     <?php echo $__env->yieldContent('content'); ?>
 
@@ -2551,6 +2581,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
       recordatorio_1h:    { title: 'Recordatorio: cita en 1h',  type: 'amber',  icon: 'bell' },
       recordatorio_24h:   { title: 'Recordatorio: cita mañana', type: 'blue',   icon: 'bell' },
       anuncio:            { title: e.titulo || 'Nuevo anuncio',  type: 'blue',   icon: 'megaphone' },
+      ticket_resuelto:    { title: e.subject || 'Ticket resuelto', type: 'green', icon: 'ticket' },
       ticket:             { title: e.titulo || 'Nuevo ticket',   type: 'amber',  icon: 'ticket' },
       notificacion:       { title: e.titulo || 'Notificación',   type: 'blue',   icon: 'bell' },
       anuncios_internos:  { title: e.titulo || 'Comunicado',     type: 'blue',   icon: 'radio' },
@@ -2573,6 +2604,10 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
     if (tipo === 'ticket') {
       const parts = [item.user_name, item.folio, item.subject].filter(Boolean);
       return parts.length ? parts.join(' — ') : 'Nuevo ticket recibido';
+    }
+    if (tipo === 'ticket_resuelto') {
+      const parts = [item.resolution_summary, item.resolver_name].filter(Boolean);
+      return parts.length ? parts.join(' — ') : 'Tu ticket ha sido resuelto';
     }
     if (tipo === 'reprogramada') {
       const paciente = item.paciente || 'Paciente';
@@ -2615,6 +2650,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
 
     item.addEventListener('click', () => {
       if (isPreview) openPreview(id);
+      else if (data && data.ticket_url) window.location.href = data.ticket_url + '#respuesta';
     });
 
     if (prepend) list.prepend(item);
