@@ -88,6 +88,21 @@ Route::middleware('auth:sanctum')
             [TauriFrontendController::class, 'agenda']
         );
 
+        Route::post(
+            '/agenda/citas',
+            [TauriFrontendController::class, 'storeAppointment']
+        );
+
+        Route::post(
+            '/agenda/bloqueos',
+            [TauriFrontendController::class, 'storeBloqueo']
+        );
+
+        Route::delete(
+            '/agenda/bloqueos/{bloqueo}',
+            [TauriFrontendController::class, 'destroyBloqueo']
+        );
+
         Route::get(
             '/reportes',
             [TauriFrontendController::class, 'reports']

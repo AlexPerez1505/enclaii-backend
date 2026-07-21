@@ -3131,5 +3131,17 @@ document.addEventListener('click', function(e) {
   renderPage(page);
   setTimeout(() => openPanel(index), 150);
 })();
+
+// Enfocar buscador si se llegó desde "Buscar paciente" del dashboard
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('focus') === 'search') {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+      searchInput.focus();
+      searchInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+})();
 </script>
 @endpush

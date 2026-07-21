@@ -306,6 +306,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   /* Forzar dimensiones de hoja carta */
   .pv-paper{width:7.7in!important;height:10.2in!important;max-width:none!important}
 }
+.ed-tmp-select{background:rgba(110,160,255,.35);border-radius:2px}
 </style>
 @endpush
 
@@ -1337,27 +1338,134 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   // Selector de tamaño de letra (en píxeles)
   const fontSizeInput = document.getElementById('fontSizeInput');
   if (fontSizeInput) {
+    let savedRange = null;
+    let savedMark = null;
+
+    const selectionInsideDoc = () => {
+      const sel = document.getSelection();
+      return sel && sel.anchorNode && docEl && docEl.contains(sel.anchorNode);
+    };
+
+    const findEditableTarget = (range) => {
+      if (!range) return null;
+      let node = range.commonAncestorContainer;
+      if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+      return node.closest ? node.closest('[contenteditable="true"]') : null;
+    };
+
+    const unwrapIfEmpty = (el) => {
+      const style = (el.getAttribute('style') || '').replace(/font-size:\s*[^;]+;?/gi, '').trim();
+      const hasClass = el.className && el.className !== 'ed-tmp-select';
+      if (!style && !hasClass && !el.getAttribute('size')) {
+        const parent = el.parentNode;
+        while (el.firstChild) parent.insertBefore(el.firstChild, el);
+        parent.removeChild(el);
+      } else {
+        el.removeAttribute('size');
+        el.setAttribute('style', style);
+      }
+    };
+
+    const markSelection = () => {
+      const sel = document.getSelection();
+      savedRange = null;
+      savedMark = null;
+      if (sel && sel.rangeCount && !sel.isCollapsed && selectionInsideDoc()) {
+        try {
+          const range = sel.getRangeAt(0);
+          const mark = document.createElement('span');
+          mark.className = 'ed-tmp-select';
+          range.surroundContents(mark);
+          savedMark = mark;
+          const newRange = document.createRange();
+          newRange.selectNodeContents(mark);
+          sel.removeAllRanges();
+          sel.addRange(newRange);
+          savedRange = newRange.cloneRange();
+        } catch (e) {
+          savedRange = sel.getRangeAt(0).cloneRange();
+        }
+      } else if (sel && sel.rangeCount) {
+        savedRange = sel.getRangeAt(0).cloneRange();
+      }
+    };
+
+    const applyFontSize = (px) => {
+      const size = parseInt(px, 10);
+      if (isNaN(size) || size < 8 || size > 72) {
+        fontSizeInput.value = '14';
+        return;
+      }
+
+      if (savedMark) {
+        savedMark.querySelectorAll('span, font').forEach(unwrapIfEmpty);
+        savedMark.classList.remove('ed-tmp-select');
+        savedMark.style.fontSize = size + 'px';
+        const sel = document.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(savedMark);
+        sel.removeAllRanges();
+        sel.addRange(range);
+        savedMark = null;
+        savedRange = null;
+        return;
+      }
+
+      const target = findEditableTarget(savedRange) || docEl.querySelector('[contenteditable="true"]');
+      if (!target) return;
+      target.focus();
+
+      const sel = document.getSelection();
+      if (savedRange) {
+        sel.removeAllRanges();
+        sel.addRange(savedRange);
+      }
+
+      const range = sel.rangeCount ? sel.getRangeAt(0) : null;
+      if (!range) return;
+
+      if (range.collapsed) {
+        const span = document.createElement('span');
+        span.style.fontSize = size + 'px';
+        range.insertNode(span);
+        const text = document.createTextNode('');
+        span.appendChild(text);
+        range.setStart(text, 0);
+        range.setEnd(text, 0);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      } else {
+        try {
+          const span = document.createElement('span');
+          span.style.fontSize = size + 'px';
+          range.surroundContents(span);
+        } catch (err) {
+          const fragment = range.extractContents();
+          fragment.querySelectorAll('span, font').forEach(unwrapIfEmpty);
+          const span = document.createElement('span');
+          span.style.fontSize = size + 'px';
+          while (fragment.firstChild) span.appendChild(fragment.firstChild);
+          range.insertNode(span);
+        }
+      }
+    };
+
     // Solo permitir números
     fontSizeInput.addEventListener('input', (e) => {
       e.target.value = e.target.value.replace(/[^0-9]/g, '');
     });
-    fontSizeInput.addEventListener('change', (e) => {
-      const size = parseInt(e.target.value, 10);
-      if (isNaN(size) || size < 8 || size > 72) {
-        e.target.value = '14';
-        return;
+
+    // Guardar y marcar la selección antes de que el input robe el foco
+    fontSizeInput.addEventListener('mousedown', markSelection);
+
+    fontSizeInput.addEventListener('change', (e) => applyFontSize(e.target.value));
+    fontSizeInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        applyFontSize(e.target.value);
+        const target = findEditableTarget(savedRange) || docEl.querySelector('[contenteditable="true"]');
+        if (target) target.focus();
       }
-      // Aplicar tamaño usando execCommand con hack
-      document.execCommand('styleWithCSS', false, true);
-      document.execCommand('fontSize', false, '7');
-      // Buscar elementos font[size="7"] y aplicar el tamaño en píxeles
-      setTimeout(() => {
-        const fontElements = document.querySelectorAll('font[size="7"]');
-        fontElements.forEach(el => {
-          el.removeAttribute('size');
-          el.style.fontSize = size + 'px';
-        });
-      }, 10);
     });
   }
 

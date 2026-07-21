@@ -12,16 +12,25 @@ return new class extends Migration
     public function up(): void
 {
     Schema::table('salas', function (Blueprint $table) {
-        $table->foreignId('clinica_id')->constrained('clinicas')->cascadeOnDelete();
-        $table->boolean('activa')->default(true);
+        if (!Schema::hasColumn('salas', 'clinica_id')) {
+            $table->foreignId('clinica_id')->constrained('clinicas')->cascadeOnDelete();
+        }
+        if (!Schema::hasColumn('salas', 'activa')) {
+            $table->boolean('activa')->default(true);
+        }
     });
 }
 
     public function down(): void
     {
         Schema::table('salas', function (Blueprint $table) {
-            $table->dropForeign(['clinica_id']);
-            $table->dropColumn(['clinica_id', 'activa']);
+            if (Schema::hasColumn('salas', 'clinica_id')) {
+                $table->dropForeign(['clinica_id']);
+                $table->dropColumn('clinica_id');
+            }
+            if (Schema::hasColumn('salas', 'activa')) {
+                $table->dropColumn('activa');
+            }
         });
     }
 };
