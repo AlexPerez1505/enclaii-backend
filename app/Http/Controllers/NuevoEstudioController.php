@@ -381,7 +381,9 @@ class NuevoEstudioController extends Controller
     {
         $estudio = $archivo->estudio;
 
-        media_delete($archivo->path);
+        if ($archivo->path && Storage::disk('public')->exists($archivo->path)) {
+            Storage::disk('public')->delete($archivo->path);
+        }
 
         $archivo->delete();
         $this->activity->record(
@@ -451,6 +453,11 @@ class NuevoEstudioController extends Controller
 
     private function guardarArchivoEstudio(Estudio $estudio, $file, ?string $categoria = null, ?string $descripcion = null): EstudioArchivo
     {
+        $path = media_store($file, "clinicas/{$estudio->clinica_id}/estudios/{$estudio->id}/archivos");
+        $path = $file->store(
+            "clinicas/{$estudio->clinica_id}/estudios/{$estudio->id}/archivos",
+            'public',
+        );
         $mime = $file->getMimeType();
 
         $tipo = match (true) {
