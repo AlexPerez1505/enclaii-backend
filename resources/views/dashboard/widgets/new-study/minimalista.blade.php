@@ -12,7 +12,7 @@
     <a class="min-btn" href="{{ route('mensajes') }}">
       WhatsApp
     </a>
-    <a class="min-btn" href="{{ route('pacientes.index') }}">
+    <a class="min-btn" href="{{ route('pacientes.index', ['focus' => 'search']) }}">
       Buscar paciente
     </a>
     <span class="widget-resize-handle"></span>
