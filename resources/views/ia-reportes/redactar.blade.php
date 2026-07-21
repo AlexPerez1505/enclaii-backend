@@ -756,7 +756,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 
   // Celda del grid: imagen real del estudio o recuadro vacío
   const imgCell = (img) => img
-    ? '<span class="cell" style="background:none;overflow:hidden"><img src="' + img.url + '" alt="' + (img.titulo || '') + '" style="width:100%;height:100%;object-fit:cover;display:block"></span>'
+    ? '<span class="cell" style="background:none;overflow:hidden"><img src="' + img.url + '" alt="' + (img.titulo || '') + '" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.closest(\'.cell\').style.background=\'linear-gradient(160deg,#1c2435,#10151f)\';this.remove()"></span>'
     : '<span class="cell"></span>';
 
   // Rellena el grid de imágenes según la plantilla (columnas + nº de celdas)
