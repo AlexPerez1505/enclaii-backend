@@ -1,0 +1,1 @@
+<?php /**PATH C:\Users\HP\enclaii-backend\resources\views\galeria\verimagen\_modal_comentarios.blade.php ENDPATH**/ ?>

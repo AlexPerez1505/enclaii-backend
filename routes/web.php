@@ -137,6 +137,11 @@ Route::middleware(['auth', 'auth.session', 'subscribed'])->group(function () {
                 ->orderBy('apellido_paterno')
                 ->orderBy('nombres')
                 ->get(),
+            'salas' => \App\Models\Sala::query()
+                ->where('clinica_id', request()->user()->clinica_id)
+                ->where('activa', true)
+                ->orderBy('nombre')
+                ->get(),
         ]);
     })->name('configuracion');
 
@@ -941,3 +946,7 @@ Route::delete('/anestesiologos/{anestesiologo}', [App\Http\Controllers\PacienteC
 Route::post('/medicos/store', [App\Http\Controllers\PacienteController::class, 'storeMedico'])->name('medicos.store');
 Route::put('/medicos/{medico}', [App\Http\Controllers\PacienteController::class, 'updateMedico'])->name('medicos.update');
 Route::delete('/medicos/{medico}', [App\Http\Controllers\PacienteController::class, 'destroyMedico'])->name('medicos.destroy');
+
+Route::post('/salas/store', [App\Http\Controllers\PacienteController::class, 'storeSala'])->name('salas.store');
+Route::put('/salas/{sala}', [App\Http\Controllers\PacienteController::class, 'updateSala'])->name('salas.update');
+Route::delete('/salas/{sala}', [App\Http\Controllers\PacienteController::class, 'destroySala'])->name('salas.destroy');

@@ -39,13 +39,12 @@ $catIsClinicOwner = auth()->user()->clinica_rol === 'propietario';
             <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0Z" />
           </svg>
           Anestesiólogo
-        </button>
-        <button type="button" class="cat-tab" data-tab="estudios">
+        
+        <button type="button" class="cat-tab" data-tab="salas">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h6v4.5H9v-4.5Zm0 6.75h6v4.5H9v-4.5Z" />
           </svg>
-          Estudios
+          Salas
         </button>
       </nav>
     </div>
@@ -60,13 +59,15 @@ $catIsClinicOwner = auth()->user()->clinica_rol === 'propietario';
       <div id="catalog-panel-anestesiologo" class="cat-panel hidden">
         <?php echo $__env->make('configuracion.sections.integraciones.__Int_hospital_catalog.__anesthesiologist.__table_anesthesiologist', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
       </div>
-      <div id="catalog-panel-estudios" class="cat-panel hidden">
-        <div class="cat-empty">Aquí se mostrará la tabla de estudios...</div>
+      
+      <div id="catalog-panel-salas" class="cat-panel hidden">
+        <?php echo $__env->make('configuracion.sections.integraciones.__Int_hospital_catalog.__rooms.rooms_table', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
       </div>
     </div>
 
     <?php echo $__env->make('configuracion.sections.integraciones.__Int_hospital_catalog.__process.__crud_process', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     <?php echo $__env->make('configuracion.sections.integraciones.__Int_hospital_catalog.__anesthesiologist.__crud_anesthesiologist', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    <?php echo $__env->make('configuracion.sections.integraciones.__Int_hospital_catalog.__rooms.__crud_rooms', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
   </div>
 </div>
 
@@ -85,6 +86,7 @@ $catIsClinicOwner = auth()->user()->clinica_rol === 'propietario';
     procedimientos: 'Agregar procedimiento',
     anestesiologo: 'Agregar anestesiólogo',
     estudios: 'Agregar estudio',
+    salas: 'Agregar sala',
   };
 
   let activeTab = 'personal';
@@ -139,6 +141,10 @@ $catIsClinicOwner = auth()->user()->clinica_rol === 'propietario';
       }
       if (activeTab === 'anestesiologo') {
         openAnestModal();
+        return;
+      }
+      if (activeTab === 'salas') {
+        openRoomModal();
         return;
       }
       if (activeTab !== 'personal') {
@@ -254,6 +260,43 @@ $catIsClinicOwner = auth()->user()->clinica_rol === 'propietario';
     if (event.key === 'Escape' && anestModal?.classList.contains('open')) closeAnestModal();
   });
 
+  const roomModal = document.getElementById('catRoomModal');
+  const roomForm = document.getElementById('catRoomForm');
+  const roomId = document.getElementById('catRoomId');
+  const roomName = document.getElementById('catRoomName');
+  const roomActivo = document.getElementById('catRoomActivo');
+  const roomTitle = document.getElementById('catRoomTitle');
+  const roomSubmit = document.getElementById('catRoomSubmit');
+
+  function openRoomModal(id = null, data = {}) {
+    if (!roomModal || !roomForm) return;
+    roomId.value = id || '';
+    roomName.value = data.nombre || '';
+    roomActivo.checked = data.activo !== undefined ? data.activo : true;
+    roomTitle.textContent = id ? 'Editar sala' : 'Agregar sala';
+    roomSubmit.textContent = id ? 'Actualizar' : 'Guardar';
+    roomModal.classList.add('open');
+    roomModal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => roomName.focus(), 80);
+  }
+
+  function closeRoomModal() {
+    if (!roomModal) return;
+    roomModal.classList.remove('open');
+    roomModal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    if (roomForm) roomForm.reset();
+    if (roomId) roomId.value = '';
+  }
+
+  document.getElementById('catRoomClose')?.addEventListener('click', closeRoomModal);
+  document.getElementById('catRoomCancel')?.addEventListener('click', closeRoomModal);
+  roomModal?.addEventListener('click', event => { if (event.target === roomModal) closeRoomModal(); });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && roomModal?.classList.contains('open')) closeRoomModal();
+  });
+
   anestForm?.addEventListener('submit', async event => {
     event.preventDefault();
     const id = anestId.value;
@@ -284,6 +327,32 @@ $catIsClinicOwner = auth()->user()->clinica_rol === 'propietario';
       alert(err.message);
       anestSubmit.disabled = false;
       anestSubmit.textContent = id ? 'Actualizar' : 'Guardar';
+    }
+  });
+
+  roomForm?.addEventListener('submit', async event => {
+    event.preventDefault();
+    const id = roomId.value;
+    const nombre = roomName.value.trim();
+    if (!nombre) {
+      alert('Escribe el nombre de la sala.');
+      return;
+    }
+    roomSubmit.disabled = true;
+    roomSubmit.textContent = id ? 'Actualizando...' : 'Guardando...';
+    try {
+      const url = id
+        ? roomForm.dataset.updateUrlTemplate.replace('__ID__', id)
+        : roomForm.dataset.storeUrl;
+      const data = await catJson(url, id ? 'PUT' : 'POST', {
+        nombre,
+        activa: roomActivo.checked ? 1 : 0,
+      });
+      catReload(data.message || (id ? 'Sala actualizada.' : 'Sala guardada.'));
+    } catch (err) {
+      alert(err.message);
+      roomSubmit.disabled = false;
+      roomSubmit.textContent = id ? 'Actualizar' : 'Guardar';
     }
   });
 
@@ -383,6 +452,31 @@ $catIsClinicOwner = auth()->user()->clinica_rol === 'propietario';
       try {
         const data = await catApi(url, 'DELETE');
         catReload(data.message || 'Procedimiento eliminado.');
+      } catch (err) {
+        alert(err.message);
+        button.disabled = false;
+      }
+    });
+  });
+
+  wrapper.querySelectorAll('.cat-room-edit').forEach(button => {
+    button.addEventListener('click', () => {
+      openRoomModal(button.dataset.id, {
+        nombre: button.dataset.nombre,
+        activo: button.dataset.activo === '1',
+      });
+    });
+  });
+
+  wrapper.querySelectorAll('.cat-room-remove').forEach(button => {
+    button.addEventListener('click', async () => {
+      const url = button.dataset.action;
+      const name = button.dataset.roomName;
+      if (!url || !confirm(`¿Eliminar la sala "${name}"?`)) return;
+      button.disabled = true;
+      try {
+        const data = await catApi(url, 'DELETE');
+        catReload(data.message || 'Sala eliminada.');
       } catch (err) {
         alert(err.message);
         button.disabled = false;

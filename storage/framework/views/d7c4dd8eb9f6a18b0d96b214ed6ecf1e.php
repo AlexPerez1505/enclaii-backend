@@ -28,7 +28,8 @@ $catIsClinicOwner = auth()->user()->clinica_rol === 'propietario';
               <span class="cat-badge cat-badge-off">Inactivo</span>
             <?php endif; ?>
           </td>
-          <td class="cat-actions">
+          <td class="text-center">
+            <div class="cat-actions">
             <?php if($catIsClinicOwner): ?>
               <button type="button" class="cat-edit-btn cat-anest-edit"
                 data-id="<?php echo e($anestesiologo->id); ?>"
@@ -53,6 +54,7 @@ $catIsClinicOwner = auth()->user()->clinica_rol === 'propietario';
             <?php else: ?>
               <span class="cat-no-action" title="Solo el propietario puede eliminar anestesiólogos">—</span>
             <?php endif; ?>
+            </div>
           </td>
         </tr>
       <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>

@@ -516,6 +516,55 @@ class PacienteController extends Controller
         ]);
     }
 
+    public function storeSala(Request $request)
+    {
+        $validated = $request->validate([
+            'nombre' => ['required', 'string', 'max:255'],
+            'activa' => ['nullable', 'boolean'],
+        ]);
+
+        $sala = \App\Models\Sala::create([
+            'clinica_id' => $request->user()->clinica_id,
+            'nombre' => $validated['nombre'],
+            'activa' => $request->boolean('activa', true),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Sala guardada.',
+            'sala' => $sala,
+        ]);
+    }
+
+    public function updateSala(Request $request, \App\Models\Sala $sala)
+    {
+        $validated = $request->validate([
+            'nombre' => ['required', 'string', 'max:255'],
+            'activa' => ['nullable', 'boolean'],
+        ]);
+
+        $sala->update([
+            'nombre' => $validated['nombre'],
+            'activa' => $request->boolean('activa', false),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Sala actualizada.',
+            'sala' => $sala,
+        ]);
+    }
+
+    public function destroySala(\App\Models\Sala $sala)
+    {
+        $sala->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Sala eliminada.',
+        ]);
+    }
+
     public function destroy(Paciente $paciente)
     {
         try {

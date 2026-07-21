@@ -88,7 +88,8 @@
   });
 
   document.getElementById('citaSala')?.addEventListener('change', function() {
-    document.getElementById('cfmSala').textContent = this.value || 'Sala';
+    const selected = this.options[this.selectedIndex];
+    document.getElementById('cfmSala').textContent = selected?.textContent?.trim() || 'Sala';
   });
 
   function setSelectValue(selectId, value) {
@@ -151,7 +152,7 @@
     if (cfmPaciente) cfmPaciente.textContent = CITA_EDITAR.paciente_nombre || 'Paciente';
 
     setSelectValue('citaProcedimiento', CITA_EDITAR.procedimiento || 'Procedimiento');
-    setSelectValue('citaSala', CITA_EDITAR.sala || 'Sala 3');
+    setSelectValue('citaSala', CITA_EDITAR.sala_id || CITA_EDITAR.sala || 'Sala 3');
 
     const fecha = document.getElementById('citaFecha');
     if (fecha) fecha.value = CITA_EDITAR.fecha_formato || '';
@@ -178,10 +179,12 @@
     if (cfmHora) cfmHora.textContent = CITA_EDITAR.hora_formato || 'Hora';
 
     initConfirmation();
+    if (window.__updateSalasDisponibles) window.__updateSalasDisponibles();
   }
 
   initConfirmation();
   cargarCitaEditar();
+  if (window.__updateSalasDisponibles) window.__updateSalasDisponibles();
 
   document.getElementById('cfmCancelar')?.addEventListener('click', () => {
     window.location.href = '{{ route('agenda') }}';
@@ -221,7 +224,7 @@
     const procedimiento = document.getElementById('cfmProcedimiento').textContent.trim() || document.getElementById('citaProcedimiento')?.value || 'Procedimiento';
     const fechaTexto = document.getElementById('cfmFecha').textContent.trim() || document.getElementById('citaFecha')?.value || '';
     const horaTexto = document.getElementById('cfmHora').textContent.trim() || document.getElementById('citaHora')?.value || '';
-    const sala = document.getElementById('cfmSala').textContent.trim() || document.getElementById('citaSala')?.value || 'Sala 3';
+    const sala = document.getElementById('citaSala')?.value || document.getElementById('cfmSala').textContent.trim() || 'Sala 3';
     const notas = document.getElementById('motivoText')?.value || '';
     const duracion = document.getElementById('citaDuracion')?.value || '60';
 

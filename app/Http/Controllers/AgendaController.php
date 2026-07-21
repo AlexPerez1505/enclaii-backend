@@ -89,7 +89,10 @@ class AgendaController extends Controller
             ->orderBy('nombre_completo')
             ->get();
     
-        $salas = \App\Models\Sala::where('activa', true)->get();
+        $salas = \App\Models\Sala::query()
+            ->where('clinica_id', $request->user()->clinica_id)
+            ->where('activa', true)
+            ->get();
         
         $citas = Cita::query()
             ->with('paciente')
@@ -309,6 +312,21 @@ class AgendaController extends Controller
             ?? $citaActual?->estado
             ?? 'proximo';
 
+        if (!empty($validated['sala'])) {
+            if (is_numeric($validated['sala'])) {
+                $validated['sala_id'] = (int) $validated['sala'];
+            } else {
+                $sala = \App\Models\Sala::query()
+                    ->where('nombre', $validated['sala'])
+                    ->where('clinica_id', auth()->user()->clinica_id)
+                    ->first();
+                if ($sala) {
+                    $validated['sala_id'] = $sala->id;
+                }
+            }
+            unset($validated['sala']);
+        }
+
         return $validated;
     }
 
@@ -352,6 +370,7 @@ class AgendaController extends Controller
             'estado' => $cita->estado,
             'estado_texto' => $cita->estado_texto,
             'cls' => $cita->estado_clase,
+            'sala_id' => $cita->sala_id,
             'sala' => $cita->salaRelacion ? $cita->salaRelacion->nombre : ($cita->sala ?? 'Sala 3'),
             'notas' => $cita->notas,
             'delete_url' => route('agenda.citas.destroy', $cita),

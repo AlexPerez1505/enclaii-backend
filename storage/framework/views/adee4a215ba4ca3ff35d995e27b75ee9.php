@@ -16,7 +16,8 @@ $catIsClinicOwner = auth()->user()->clinica_rol === 'propietario';
         <tr>
           <td class="cat-name"><?php echo e($procedimiento->nombre); ?></td>
           <td class="cat-soft"><?php echo e($procedimiento->created_at?->format('d/m/Y') ?? '—'); ?></td>
-          <td class="cat-actions">
+          <td class="text-center">
+            <div class="cat-actions">
             <?php if($catIsClinicOwner): ?>
               <button type="button" class="cat-edit-btn cat-proc-edit" data-id="<?php echo e($procedimiento->id); ?>" data-nombre="<?php echo e($procedimiento->nombre); ?>" title="Editar">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -31,6 +32,7 @@ $catIsClinicOwner = auth()->user()->clinica_rol === 'propietario';
             <?php else: ?>
               <span class="cat-no-action" title="Solo el propietario puede eliminar procedimientos">—</span>
             <?php endif; ?>
+            </div>
           </td>
         </tr>
       <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>

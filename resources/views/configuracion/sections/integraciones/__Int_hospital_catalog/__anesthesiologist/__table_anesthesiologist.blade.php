@@ -28,7 +28,8 @@ $catIsClinicOwner = auth()->user()->clinica_rol === 'propietario';
               <span class="cat-badge cat-badge-off">Inactivo</span>
             @endif
           </td>
-          <td class="cat-actions">
+          <td class="text-center">
+            <div class="cat-actions">
             @if($catIsClinicOwner)
               <button type="button" class="cat-edit-btn cat-anest-edit"
                 data-id="{{ $anestesiologo->id }}"
@@ -53,6 +54,7 @@ $catIsClinicOwner = auth()->user()->clinica_rol === 'propietario';
             @else
               <span class="cat-no-action" title="Solo el propietario puede eliminar anestesiólogos">—</span>
             @endif
+            </div>
           </td>
         </tr>
       @empty

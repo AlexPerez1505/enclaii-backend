@@ -63,3 +63,71 @@ html[data-theme="light"] .cita-icon-wrap svg{color:#5B6A99}
 
   
 </div>
+
+@push('scripts')
+<script>
+(function(){
+  function fechaDdMmYyyyToKey(fecha) {
+    const match = String(fecha || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (!match) return '';
+    const y = parseInt(match[3], 10);
+    const m = parseInt(match[2], 10);
+    const d = parseInt(match[1], 10);
+    return `${y}-${m}-${d}`;
+  }
+
+  function hora12ToMinutes(hora) {
+    const value = String(hora || '').trim();
+    const match = value.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+    if (!match) return null;
+    let h = parseInt(match[1], 10);
+    const min = parseInt(match[2], 10);
+    const ampm = match[3] ? match[3].toUpperCase() : '';
+    if (ampm === 'PM' && h < 12) h += 12;
+    if (ampm === 'AM' && h === 12) h = 0;
+    return h * 60 + min;
+  }
+
+  function overlaps(start, end, events, salaId) {
+    return events.some(ev => {
+      if (!ev || String(ev.sala_id) !== String(salaId)) return false;
+      if (window.__CITA_EDITAR_ID && String(ev.id || '') === String(window.__CITA_EDITAR_ID)) return false;
+      const [h, m] = String(ev.hora || '00:00').split(':').map(Number);
+      const evStart = (h || 0) * 60 + (m || 0);
+      const evEnd = evStart + (parseInt(ev.duracion || ev.duration || 60, 10));
+      return start < evEnd && end > evStart;
+    });
+  }
+
+  window.__updateSalasDisponibles = function() {
+    const select = document.getElementById('citaSala');
+    const fechaInput = document.getElementById('citaFecha');
+    const horaInput = document.getElementById('citaHora');
+    const duracionInput = document.getElementById('citaDuracion');
+    if (!select || !fechaInput || !horaInput) return;
+
+    const key = fechaDdMmYyyyToKey(fechaInput.value);
+    const start = hora12ToMinutes(horaInput.value);
+    if (!key || start === null) return;
+
+    const duracion = parseInt(duracionInput?.value, 10) || 60;
+    const end = start + duracion;
+    const events = (window.__AGENDA_EVENTS && window.__AGENDA_EVENTS[key]) || [];
+
+    Array.from(select.options).forEach(opt => {
+      if (!opt.value) return;
+      const ocupada = overlaps(start, end, events, opt.value);
+      if (ocupada) {
+        opt.disabled = true;
+        if (select.value === opt.value) select.value = '';
+      } else {
+        opt.disabled = false;
+      }
+    });
+  };
+
+  document.getElementById('citaSala')?.addEventListener('change', window.__updateSalasDisponibles);
+  window.__updateSalasDisponibles();
+})();
+</script>
+@endpush
