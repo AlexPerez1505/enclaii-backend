@@ -11,7 +11,6 @@ use App\Models\Paciente;
 use App\Models\PatientPreregistration;
 use App\Models\PatientRegistrationLink;
 use App\Models\Reporte;
-use App\Models\Sala;
 use App\Models\User;
 use App\Services\ActivityLogger;
 use App\Services\MediaPathService;
@@ -281,95 +280,6 @@ class TauriFrontendController extends Controller
             'appointment' => $this->appointmentPayload($cita->fresh('paciente')),
             'cita' => $this->appointmentPayload($cita->fresh('paciente')),
         ], 201);
-    }
-
-    public function updateAppointment(Request $request, Cita $cita): JsonResponse
-    {
-        $clinicaId = $request->user()?->clinica_id;
-        $pacienteExistsRule = Rule::exists('pacientes', 'id');
-        if ($clinicaId) {
-            $pacienteExistsRule = $pacienteExistsRule->where('clinica_id', $clinicaId);
-        }
-
-        $validated = $request->validate([
-            'paciente_id' => [
-                'nullable',
-                $pacienteExistsRule,
-            ],
-            'paciente_nombre' => ['nullable', 'string', 'max:255'],
-            'procedimiento' => ['nullable', 'string', 'max:255'],
-            'fecha' => ['required', 'date', 'after_or_equal:today'],
-            'hora' => ['required', 'date_format:H:i'],
-            'duracion_minutos' => ['nullable', 'integer', 'min:1', 'max:1440'],
-            'sala' => ['nullable', 'string', 'max:255'],
-            'notas' => ['nullable', 'string'],
-        ]);
-
-        $patient = ! empty($validated['paciente_id']) ? Paciente::find($validated['paciente_id']) : null;
-
-        $cita->update([
-            'paciente_id' => $patient?->id,
-            'paciente_nombre' => $patient?->nombre_completo ?? ($validated['paciente_nombre'] ?? $cita->paciente_nombre),
-            'procedimiento' => $validated['procedimiento'] ?? $cita->procedimiento,
-            'fecha' => $validated['fecha'],
-            'hora' => $validated['hora'],
-            'duracion_minutos' => $validated['duracion_minutos'] ?? $cita->duracion_minutos,
-            'estado' => 'proximo',
-            'sala' => $validated['sala'] ?? $cita->sala,
-            'notas' => $validated['notas'] ?? $cita->notas,
-        ]);
-
-        return response()->json([
-            'ok' => true,
-            'message' => 'Cita reprogramada desde Tauri.',
-            'appointment' => $this->appointmentPayload($cita->fresh('paciente')),
-            'cita' => $this->appointmentPayload($cita->fresh('paciente')),
-        ]);
-    }
-
-    public function updateAppointmentEstado(Request $request, Cita $cita): JsonResponse
-    {
-        $validated = $request->validate([
-            'estado' => ['required', 'in:completado,en_espera,cancelado,proximo'],
-        ]);
-
-        $cita->update(['estado' => $validated['estado']]);
-
-        return response()->json([
-            'ok' => true,
-            'message' => 'Estado actualizado desde Tauri.',
-            'appointment' => $this->appointmentPayload($cita->fresh('paciente')),
-            'cita' => $this->appointmentPayload($cita->fresh('paciente')),
-        ]);
-    }
-
-    public function destroyAppointment(Cita $cita): JsonResponse
-    {
-        $cita->delete();
-
-        return response()->json([
-            'ok' => true,
-            'message' => 'Cita eliminada desde Tauri.',
-        ]);
-    }
-
-    public function salas(Request $request): JsonResponse
-    {
-        $clinicaId = $request->user()?->clinica_id;
-
-        $salas = Sala::query()
-            ->when($clinicaId, fn ($query) => $query->where('clinica_id', $clinicaId))
-            ->where('activa', true)
-            ->orderBy('nombre')
-            ->get();
-
-        return response()->json([
-            'ok' => true,
-            'salas' => $salas->map(fn (Sala $sala) => [
-                'id' => $sala->id,
-                'nombre' => $sala->nombre,
-            ])->values(),
-        ]);
     }
 
     public function storeBloqueo(Request $request): JsonResponse
@@ -1012,10 +922,9 @@ class TauriFrontendController extends Controller
             'hora_label' => $hora,
             'hora_h' => (int) substr($hora, 0, 2),
             'duracion_minutos' => (int) ($cita->duracion_minutos ?? 60),
-            'cls' => $cita->estado_clase,
+            'cls' => 'ev-soon',
             'sala' => $cita->sala ?: 'Sala 3',
             'notas' => $cita->notas ?? '',
-            'paciente_id' => $cita->paciente_id,
             'patient' => $cita->paciente?->nombre_completo ?: $cita->paciente_nombre ?: 'Paciente sin nombre',
             'paciente' => $cita->paciente?->nombre_completo ?: $cita->paciente_nombre ?: 'Paciente sin nombre',
             'type' => $cita->procedimiento ?: 'Procedimiento',
@@ -1024,10 +933,6 @@ class TauriFrontendController extends Controller
             'estado' => $cita->estado ?: 'proximo',
             'estado_texto' => $cita->estado_texto,
             'medico' => $cita->paciente?->medico ?: 'Sin medico',
-            'delete_url' => route('api.tauri.agenda.citas.destroy', ['cita' => $cita->id], false),
-            'update_url' => route('api.tauri.agenda.citas.update', ['cita' => $cita->id], false),
-            'estado_url' => route('api.tauri.agenda.citas.estado', ['cita' => $cita->id], false),
-            'reprogramar_url' => '#agendar?cita_id=' . $cita->id,
         ];
     }
 
