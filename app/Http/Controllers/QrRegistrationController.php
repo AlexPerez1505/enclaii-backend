@@ -287,6 +287,7 @@ class QrRegistrationController extends Controller
 
         if ($photoToDelete) {
             media_delete($photoToDelete);
+            Storage::disk('public')->delete($photoToDelete);
         }
 
         $preregistration->refresh();

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\EstudioArchivo;
 use App\Models\EstudioHallazgo;
 use App\Models\Hallazgo;
 use App\Models\Plantilla;
@@ -10,6 +11,7 @@ use App\Services\OpenAiReportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -17,88 +19,59 @@ use Throwable;
 
 class IaReporteController extends Controller
 {
-    public function index(Request $request)
+    /**
+     * Dashboard principal de IA reportes.
+     */
+    public function index(): View
     {
-        $reportes = Reporte::with(['estudio.paciente', 'usuario'])
-            ->latest()
-            ->get();
+        $ahora = now();
+        $inicioMes = $ahora->copy()->startOfMonth();
+        $inicioMesAnterior = $ahora->copy()->subMonth()->startOfMonth();
+        $finMesAnterior = $inicioMesAnterior->copy()->endOfMonth();
 
-        // ===== KPIs con datos reales =====
-        $inicioMes = now()->startOfMonth();
-        $finMes = now()->endOfMonth();
-        $inicioMesPrev = now()->subMonthNoOverflow()->startOfMonth();
-        $finMesPrev = now()->subMonthNoOverflow()->endOfMonth();
+        $reportesMes = Reporte::whereBetween('created_at', [$inicioMes, $ahora])->count();
+        $reportesMesAnterior = Reporte::whereBetween('created_at', [$inicioMesAnterior, $finMesAnterior])->count();
 
-        // % de variación entre dos conteos
-        $pct = function (int $actual, int $previo): int {
-            if ($previo === 0) {
+        $estudiosMes = \App\Models\Estudio::whereBetween('created_at', [$inicioMes, $ahora])->count();
+        $estudiosMesAnterior = \App\Models\Estudio::whereBetween('created_at', [$inicioMesAnterior, $finMesAnterior])->count();
+
+        $evidenciasMes = EstudioArchivo::whereBetween('created_at', [$inicioMes, $ahora])->count();
+        $evidenciasMesAnterior = EstudioArchivo::whereBetween('created_at', [$inicioMesAnterior, $finMesAnterior])->count();
+
+        $trend = function (int $actual, int $anterior): int {
+            if ($anterior === 0) {
                 return $actual > 0 ? 100 : 0;
             }
 
-            return (int) round((($actual - $previo) / $previo) * 100);
+            return (int) round((($actual - $anterior) / $anterior) * 100);
         };
 
-        // 1. Reportes generados (este mes)
-        $repMes = Reporte::whereBetween('created_at', [$inicioMes, $finMes])->count();
-        $repPrev = Reporte::whereBetween('created_at', [$inicioMesPrev, $finMesPrev])->count();
-
-        // 2. Estudios sin reporte (pendientes reales)
-        $estudiosSinReporte = \App\Models\Estudio::whereDoesntHave('reportes')->count();
-
-        // 3. Evidencias (imágenes) capturadas este mes
-        $evMes = \App\Models\EstudioArchivo::where('tipo', 'imagen')
-            ->whereBetween('created_at', [$inicioMes, $finMes])->count();
-        $evPrev = \App\Models\EstudioArchivo::where('tipo', 'imagen')
-            ->whereBetween('created_at', [$inicioMesPrev, $finMesPrev])->count();
-
-        // 4. Estudios realizados este mes
-        $estMes = \App\Models\Estudio::whereBetween('created_at', [$inicioMes, $finMes])->count();
-        $estPrev = \App\Models\Estudio::whereBetween('created_at', [$inicioMesPrev, $finMesPrev])->count();
-
         $kpis = [
-            'reportes' => ['valor' => $repMes, 'trend' => $pct($repMes, $repPrev)],
-            'sin_reporte' => ['valor' => $estudiosSinReporte],
-            'evidencias' => ['valor' => $evMes, 'trend' => $pct($evMes, $evPrev)],
-            'estudios' => ['valor' => $estMes, 'trend' => $pct($estMes, $estPrev)],
+            'reportes' => [
+                'valor' => $reportesMes,
+                'trend' => $trend($reportesMes, $reportesMesAnterior),
+            ],
+            'sin_reporte' => [
+                'valor' => \App\Models\Estudio::whereDoesntHave('reportes')->count(),
+            ],
+            'evidencias' => [
+                'valor' => $evidenciasMes,
+                'trend' => $trend($evidenciasMes, $evidenciasMesAnterior),
+            ],
+            'estudios' => [
+                'valor' => $estudiosMes,
+                'trend' => $trend($estudiosMes, $estudiosMesAnterior),
+            ],
         ];
 
-        $hallazgosData = $this->hallazgosData();
-        $hallazgos = collect($hallazgosData['hallazgos'])->take(5)->all();
+        $reportes = Reporte::with(['estudio.paciente'])
+            ->latest()
+            ->take(15)
+            ->get();
 
-        if ($request->expectsJson()) {
-            $reportesJson = $reportes->map(function (Reporte $r) {
-                $pacNombre = $r->estudio?->paciente?->nombre_completo ?? $r->estudio?->paciente_nombre ?? 'Sin paciente';
-                $critico = (bool) $r->contiene_hallazgos_criticos;
+        $hallazgos = $this->hallazgosData()['hallazgos'];
 
-                return [
-                    'id' => $r->id,
-                    'paciente' => $pacNombre,
-                    'estudio' => $r->estudio?->tipo ?? '—',
-                    'fecha' => optional($r->created_at)->format('d/m/Y'),
-                    'hora' => optional($r->created_at)->format('H:i'),
-                    'critical' => $critico,
-                    'estado_texto' => $critico ? 'Crítico' : 'Normal',
-                    'view_url' => route('ia-reportes.ver', ['reporte' => $r->id]),
-                    'download_url' => route('ia-reportes.ver', ['reporte' => $r->id, 'download' => 1]),
-                    'edit_url' => route('ia-reportes.editar', ['reporte' => $r->id]),
-                ];
-            })->values();
-
-            $findings = collect($hallazgos)->map(fn ($h) => [
-                'nombre' => $h['nombre'],
-                'porcentaje' => $h['porcentaje'],
-                'es_critico' => $h['es_critico'],
-            ])->values();
-
-            return response()->json([
-                'ok' => true,
-                'reportes' => $reportesJson,
-                'kpis' => $kpis,
-                'hallazgos' => $findings,
-            ]);
-        }
-
-        return view('ia-reportes.index', compact('reportes', 'kpis', 'hallazgos'));
+        return view('ia-reportes.index', compact('kpis', 'reportes', 'hallazgos'));
     }
 
     public function generar(Request $request, OpenAiReportService $service): JsonResponse
@@ -218,6 +191,196 @@ class IaReporteController extends Controller
             'totalCriticos' => $totalCriticos,
             'hallazgoPrincipal' => $hallazgoPrincipal,
         ];
+    }
+
+    /**
+     * Plantillas persistidas en la BD, indexadas por clave (para el editor Tauri).
+     */
+    public function apiPlantillas(): JsonResponse
+    {
+        $plantillas = Plantilla::all()->mapWithKeys(fn ($p) => [
+            $p->clave => [
+                'id' => $p->id,
+                'clave' => $p->clave,
+                'titulo' => $p->titulo,
+                'subtitulo' => $p->subtitulo,
+                'configuracion' => $p->configuracion,
+                'columnas' => $p->columnas,
+                'num_imagenes' => $p->num_imagenes,
+            ],
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'plantillas' => $plantillas,
+        ]);
+    }
+
+    /**
+     * Estudios que aun no tienen reporte, para el selector del editor.
+     */
+    public function apiEstudiosSinReporte(Request $request): JsonResponse
+    {
+        $estudioId = $request->query('estudio_id');
+
+        $estudios = \App\Models\Estudio::with('paciente')
+            ->where(function ($q) use ($estudioId) {
+                $q->whereDoesntHave('reportes');
+                if ($estudioId) {
+                    $q->orWhere('id', $estudioId);
+                }
+            })
+            ->latest()
+            ->limit(100)
+            ->get()
+            ->map(fn ($e) => [
+                'id' => $e->id,
+                'paciente_id' => $e->paciente_id,
+                'label' => trim(($e->paciente?->nombre_completo ?? $e->paciente_nombre ?? 'Paciente')
+                    .' · '.($e->tipo ?? 'Estudio')
+                    .' · '.(optional($e->fecha)->format('d/m/Y') ?? '')),
+            ])
+            ->values();
+
+        return response()->json([
+            'ok' => true,
+            'estudios' => $estudios,
+        ]);
+    }
+
+    /**
+     * Datos para precargar el editor: paciente, estudio, imagenes y reporte existente (si aplica).
+     */
+    public function apiPreload(Request $request): JsonResponse
+    {
+        $pacienteId = $request->query('paciente_id');
+        $estudioId = $request->query('estudio_id');
+        $reporteId = $request->query('reporte_id');
+
+        $reporte = $reporteId
+            ? Reporte::with(['estudio.paciente', 'usuario', 'plantilla'])->find($reporteId)
+            : null;
+
+        $paciente = $pacienteId ? \App\Models\Paciente::find($pacienteId) : null;
+        $estudio = $estudioId ? \App\Models\Estudio::with('paciente')->find($estudioId) : null;
+
+        if ($reporte && ! $estudio) {
+            $estudio = $reporte->estudio;
+        }
+        if ($reporte && ! $paciente) {
+            $paciente = $reporte->estudio?->paciente;
+        }
+        if (! $paciente && $estudio) {
+            $paciente = $estudio->paciente;
+        }
+        if ($paciente && ! $estudio) {
+            $estudio = \App\Models\Estudio::where('paciente_id', $paciente->id)->latest()->first();
+        }
+
+        $estudioImagenes = collect();
+        if ($paciente) {
+            $estudioImagenes = EstudioArchivo::where('paciente_id', $paciente->id)
+                ->where('tipo', 'imagen')
+                ->when($estudio, fn ($q) => $q->where('estudio_id', $estudio->id))
+                ->orderByDesc('capturado_en')
+                ->orderByDesc('id')
+                ->get()
+                ->map(fn ($a) => [
+                    'id' => $a->id,
+                    'url' => media_url($a->path),
+                    'path' => $a->path,
+                    'titulo' => $a->nombre_original,
+                ])
+                ->values();
+        }
+
+        return response()->json([
+            'ok' => true,
+            'data' => [
+                'paciente' => $paciente?->nombre_completo ?? ($estudio?->paciente_nombre ?? ''),
+                'paciente_id' => $paciente?->id,
+                'edad' => $paciente?->edad ? $paciente->edad.' años' : '',
+                'sexo' => $paciente && $paciente->sexo ? ucfirst($paciente->sexo) : '',
+                'nacimiento' => optional($paciente?->fecha_nacimiento)->format('d/m/Y') ?? '',
+                'fecha_estudio' => optional($estudio?->fecha)->format('d/m/Y') ?? now()->format('d/m/Y'),
+                'procedimiento' => $estudio?->tipo ?? $paciente?->procedimiento ?? '',
+                'tipo' => $estudio?->tipo ?? $paciente?->procedimiento ?? '',
+                'medico' => $estudio?->medico ?? $paciente?->medico ?? '',
+                'estudio_id' => $estudio?->id,
+                'imagenes' => $estudioImagenes,
+                'reporte' => $reporte ? [
+                    'id' => $reporte->id,
+                    'estudio_id' => $reporte->estudio_id,
+                    'plantilla_id' => $reporte->plantilla_id,
+                    'contenido_html' => $reporte->contenido_html,
+                    'contenido_texto' => $reporte->contenido_texto,
+                    'contiene_hallazgos_criticos' => (bool) $reporte->contiene_hallazgos_criticos,
+                ] : null,
+            ],
+        ]);
+    }
+
+    /**
+     * Listado completo de reportes (para la vista "Todos los reportes" en Tauri).
+     */
+    public function apiReportesTodos(): JsonResponse
+    {
+        $reportes = Reporte::with(['estudio.paciente'])
+            ->latest()
+            ->get()
+            ->map(function (Reporte $r) {
+                $pacNombre = $r->estudio?->paciente?->nombre_completo ?? $r->estudio?->paciente_nombre ?? 'Sin paciente';
+                $iniciales = collect(explode(' ', $pacNombre))->filter()->take(2)
+                    ->map(fn ($x) => mb_strtoupper(mb_substr($x, 0, 1)))->implode('') ?: 'NA';
+
+                return [
+                    'id' => $r->id,
+                    'reporte_id' => $r->id,
+                    'estudio_id' => $r->estudio_id,
+                    'paciente' => $pacNombre,
+                    'initials' => $iniciales,
+                    'estudio' => $r->estudio?->tipo ?? 'Estudio',
+                    'fecha' => $r->created_at?->format('Y-m-d'),
+                    'hora' => $r->created_at?->format('H:i'),
+                    'critical' => (bool) $r->contiene_hallazgos_criticos,
+                    'estado_texto' => $r->contiene_hallazgos_criticos ? 'Critico' : 'Normal',
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'ok' => true,
+            'reportes' => $reportes,
+        ]);
+    }
+
+    /**
+     * Detalle completo de un reporte (para "Ver" dentro de la app Tauri).
+     */
+    public function apiVer(int $reporte): JsonResponse
+    {
+        $r = Reporte::with(['estudio.paciente', 'usuario', 'plantilla'])->findOrFail($reporte);
+        $paciente = $r->estudio?->paciente;
+
+        return response()->json([
+            'ok' => true,
+            'data' => [
+                'id' => $r->id,
+                'paciente' => $paciente?->nombre_completo ?? $r->estudio?->paciente_nombre ?? 'Sin paciente',
+                'edad' => $paciente?->edad ? $paciente->edad.' años' : '',
+                'sexo' => $paciente && $paciente->sexo ? ucfirst($paciente->sexo) : '',
+                'nacimiento' => optional($paciente?->fecha_nacimiento)->format('d/m/Y') ?? '',
+                'medico' => $r->usuario?->name ?? '',
+                'estudio' => $r->estudio?->tipo ?? 'Estudio',
+                'fecha_estudio' => optional($r->estudio?->fecha)->format('d/m/Y') ?? '',
+                'creado_en' => $r->created_at?->format('d/m/Y H:i'),
+                'contenido_html' => $r->contenido_html,
+                'contenido_texto' => $r->contenido_texto,
+                'critical' => (bool) $r->contiene_hallazgos_criticos,
+                'plantilla_id' => $r->plantilla_id,
+                'plantilla_clave' => $r->plantilla?->clave,
+            ],
+        ]);
     }
 
     /**
@@ -475,27 +638,44 @@ class IaReporteController extends Controller
         return collect($imagenes)
             ->map(function (string $rel) use ($mimes) {
                 // Evita rutas peligrosas (traversal) y normaliza separadores.
-                $rel = str_replace('\\', '/', $rel);
+                $rel = strtok(str_replace('\\', '/', $rel), '?') ?: '';
                 if (str_contains($rel, '..')) {
                     return null;
                 }
 
-                $path = public_path(ltrim($rel, '/'));
-                if (! is_file($path)) {
-                    return null;
-                }
+                $rel = ltrim($rel, '/');
+                $storageRel = Str::startsWith($rel, 'storage/')
+                    ? Str::after($rel, 'storage/')
+                    : $rel;
 
-                $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+                $path = public_path($rel);
+                $ext = strtolower(pathinfo($storageRel, PATHINFO_EXTENSION));
                 if (! isset($mimes[$ext])) {
                     return null;
                 }
 
                 // Límite de seguridad: ~8 MB por imagen.
-                if (filesize($path) > 8 * 1024 * 1024) {
-                    return null;
+                $contents = null;
+
+                if (Storage::disk(media_disk())->exists($storageRel)) {
+                    if (Storage::disk(media_disk())->size($storageRel) > 8 * 1024 * 1024) {
+                        return null;
+                    }
+
+                    $contents = Storage::disk(media_disk())->get($storageRel);
                 }
 
-                $contents = @file_get_contents($path);
+                if ($contents === null) {
+                    if (! is_file($path)) {
+                        return null;
+                    }
+
+                    if (filesize($path) > 8 * 1024 * 1024) {
+                        return null;
+                    }
+
+                    $contents = @file_get_contents($path);
+                }
                 if ($contents === false) {
                     return null;
                 }

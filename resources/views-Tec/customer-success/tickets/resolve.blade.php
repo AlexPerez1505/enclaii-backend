@@ -69,8 +69,6 @@
 .rv-error{font-size:13px;color:var(--rv-red);margin-bottom:16px;padding:12px 16px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:12px;display:none}
 .rv-msg-block{margin-top:16px}
 
-<<<<<<< HEAD
-=======
 /* ===== TEMA CLARO ===== */
 html[data-theme="light"] .rv-page{--rv-bg:#f8fafc;--rv-panel:#ffffff;--rv-panel-2:#f1f5f9;--rv-border:#e2e8f0;--rv-border-soft:#e2e8f0;--rv-text:#0f172a;--rv-text-soft:#64748b}
 html[data-theme="light"] .rv-card{box-shadow:0 4px 16px rgba(15,23,42,.06)}
@@ -91,7 +89,6 @@ html[data-theme="light"] .rv-error{background:rgba(239,68,68,.06);border-color:r
 html[data-theme="light"] .rv-ticket-info{background:#f8fafc;border-color:#e2e8f0}
 html[data-theme="light"] .rv-ticket-info-icon{background:rgba(59,130,246,.08)}
 
->>>>>>> origin/Carlos-Soporte
 @media(max-width:640px){
   .rv-header{padding:24px 20px 0}
   .rv-sub{padding:8px 20px 0}

@@ -320,6 +320,7 @@ class User extends Authenticatable
             'capture_auto_capture' => true,
             'capture_auto_save' => true,
             'capture_auto_interval' => 30,
+            'dashboard_layout' => [],
         ];
     }
 
@@ -329,5 +330,14 @@ class User extends Authenticatable
     public function resolvedSettings(): array
     {
         return array_merge(static::defaultSettings(), $this->settings ?? []);
+    }
+
+    public function getNombreCompletoAttribute(): string
+    {
+        return trim(implode(' ', array_filter([
+            $this->name,
+            $this->apellido_paterno,
+            $this->apellido_materno,
+        ])));
     }
 }

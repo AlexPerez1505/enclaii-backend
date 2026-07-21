@@ -416,10 +416,10 @@ html[data-theme="light"] .widget[data-widget-id="agenda-today"] .card h3{color:#
 
 /* Tabla */
 .tbl-wrap{flex:1;overflow-x:auto;min-height:0}
-table.tbl{width:100%;border-collapse:collapse;font-size:0.9em;min-width:540px;height:100%}
+table.tbl{width:100%;border-collapse:collapse;font-size:0.9em;min-width:540px}
 .tbl th{text-align:left;font-size:0.85em;font-weight:600;color:var(--txt-soft);padding:0.6em 0.75em;border-bottom:1px solid var(--stroke)}
 .tbl td{padding:0.85em 0.75em;border-bottom:1px solid rgba(110,160,255,.08)}
-.tbl tbody tr{height:1%;transition:background-color 150ms ease}
+.tbl tbody tr{transition:background-color 150ms ease}
 @media (hover:hover) and (pointer:fine){.tbl tbody tr:hover{background:rgba(110,160,255,.05)}}
 .tbl tr:last-child td{border-bottom:0}
 .pat{display:flex;align-items:center;gap:0.6em;font-weight:600}

@@ -224,6 +224,13 @@ class TauriFrontendController extends Controller
             ->map(fn (Reporte $report) => $this->reportPayload($report))
             ->values();
 
+        $hallazgos = app(\App\Http\Controllers\IaReporteController::class)->hallazgosData()['hallazgos'];
+        $findings = collect($hallazgos)->map(fn ($h) => [
+            'name' => $h['nombre'],
+            'percentage' => $h['porcentaje'],
+            'critical' => $h['es_critico'],
+        ])->values();
+
         return response()->json([
             'ok' => true,
             'reports' => $reports,
@@ -234,11 +241,7 @@ class TauriFrontendController extends Controller
                 'evidencias' => ['valor' => EstudioArchivo::where('tipo', 'imagen')->count()],
                 'estudios' => ['valor' => Estudio::count()],
             ],
-            'findings' => [
-                ['name' => 'Gastritis', 'percentage' => 42, 'critical' => false],
-                ['name' => 'Polipo', 'percentage' => 18, 'critical' => true],
-                ['name' => 'Reflujo', 'percentage' => 27, 'critical' => false],
-            ],
+            'findings' => $findings,
         ]);
     }
 
@@ -278,6 +281,37 @@ class TauriFrontendController extends Controller
             'pacientes' => $patients,
             'doctors' => $patients->pluck('doctor')->filter()->unique()->values(),
             'procedures' => $patients->pluck('procedure')->filter()->unique()->values(),
+        ]);
+    }
+
+    public function dashboardLayout(Request $request): JsonResponse
+    {
+        $layout = $request->user()?->resolvedSettings()['dashboard_layout'] ?? [];
+
+        return response()->json([
+            'ok' => true,
+            'layout' => $layout,
+        ]);
+    }
+
+    public function updateDashboardLayout(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'layout' => ['required', 'array'],
+            'layout.*.widget_id' => ['required', 'string'],
+            'layout.*.w' => ['required', 'integer', 'min:1', 'max:13'],
+            'layout.*.h' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $user = $request->user();
+        $settings = $user?->settings ?? [];
+        $settings['dashboard_layout'] = $validated['layout'];
+        $user->settings = $settings;
+        $user->save();
+
+        return response()->json([
+            'ok' => true,
+            'layout' => $validated['layout'],
         ]);
     }
 
@@ -526,12 +560,25 @@ class TauriFrontendController extends Controller
 
     private function appointmentPayload(Cita $cita): array
     {
+        $fechaIso = $cita->fecha?->format('Y-m-d');
+        $fechaKey = $cita->fecha?->format('Y-n-j');
+        $hora = $cita->hora
+            ? \Illuminate\Support\Carbon::parse($cita->hora)->format('H:i')
+            : '00:00';
+
         return [
             'id' => $cita->id,
-            'date' => $cita->fecha?->format('Y-m-d'),
-            'fecha' => $cita->fecha?->format('Y-m-d'),
-            'time' => substr((string) $cita->hora, 0, 5),
-            'hora' => substr((string) $cita->hora, 0, 5),
+            'date' => $fechaIso,
+            'fecha' => $fechaIso,
+            'fecha_key' => $fechaKey,
+            'time' => $hora,
+            'hora' => $hora,
+            'hora_label' => $hora,
+            'hora_h' => (int) substr($hora, 0, 2),
+            'duracion_minutos' => (int) ($cita->duracion_minutos ?? 60),
+            'cls' => 'ev-soon',
+            'sala' => $cita->sala ?: 'Sala 3',
+            'notas' => $cita->notas ?? '',
             'patient' => $cita->paciente?->nombre_completo ?: $cita->paciente_nombre ?: 'Paciente sin nombre',
             'paciente' => $cita->paciente?->nombre_completo ?: $cita->paciente_nombre ?: 'Paciente sin nombre',
             'type' => $cita->procedimiento ?: 'Procedimiento',
@@ -551,6 +598,8 @@ class TauriFrontendController extends Controller
 
         return [
             'id' => $report->id,
+            'reporte_id' => $report->id,
+            'estudio_id' => $study?->id,
             'paciente' => $name,
             'initials' => $this->initials($name),
             'estudio' => $study?->tipo ?: 'Estudio',
@@ -756,11 +805,17 @@ class TauriFrontendController extends Controller
 
     private function userPayload(Request $request): array
     {
-        $user = $request->user() ?: User::query()->first();
+        $user = $request->user();
+
+        $accountName = $user?->nombre_completo ?: $user?->name ?: 'Doctor';
+        $role = $user?->clinica_rol === 'propietario'
+            ? 'Médico'
+            : ($user?->clinica_rol ?: 'Médico');
 
         return [
             'name' => $user?->name ?: 'Doctor',
-            'role' => $user?->clinica_rol ?: 'Medico',
+            'account_name' => $accountName,
+            'role' => $role,
             'email' => $user?->email ?: '',
             'clinic' => $user?->clinica?->nombre ?: 'Clinica principal',
             'specialty' => $user?->especialidad ?: 'Endoscopia',
