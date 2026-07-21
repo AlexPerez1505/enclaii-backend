@@ -787,11 +787,15 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   // Celda del grid: imagen real del estudio o recuadro vacío
   const escAttr = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const imgCell = (img) => img
+<<<<<<< HEAD
 <<<<<<< Updated upstream
     ? '<span class="cell" style="background:none;overflow:hidden"><img src="' + img.url + '" alt="' + (img.titulo || '') + '" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.closest(\'.cell\').style.background=\'linear-gradient(160deg,#1c2435,#10151f)\';this.remove()"></span>'
 =======
     ? '<span class="cell" style="background:none"><img src="' + escAttr(img.url) + '" alt="" title="' + escAttr(img.titulo || 'Captura') + '" loading="lazy" onerror="this.parentElement.classList.add(&quot;img-missing&quot;);this.remove()"></span>'
 >>>>>>> Stashed changes
+=======
+    ? '<span class="cell" style="background:none;overflow:hidden"><img src="' + img.url + '" alt="' + (img.titulo || '') + '" style="width:100%;height:100%;object-fit:cover;display:block"></span>'
+>>>>>>> parent of ed2a10c (si)
     : '<span class="cell"></span>';
 
   // Rellena el grid de imágenes según la plantilla (columnas + nº de celdas)
