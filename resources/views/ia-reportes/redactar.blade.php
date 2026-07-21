@@ -788,6 +788,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   const escAttr = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const imgCell = (img) => img
 <<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< Updated upstream
     ? '<span class="cell" style="background:none;overflow:hidden"><img src="' + img.url + '" alt="' + (img.titulo || '') + '" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.closest(\'.cell\').style.background=\'linear-gradient(160deg,#1c2435,#10151f)\';this.remove()"></span>'
 =======
@@ -796,6 +797,9 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 =======
     ? '<span class="cell" style="background:none;overflow:hidden"><img src="' + img.url + '" alt="' + (img.titulo || '') + '" style="width:100%;height:100%;object-fit:cover;display:block"></span>'
 >>>>>>> parent of ed2a10c (si)
+=======
+    ? '<span class="cell" style="background:none"><img src="' + escAttr(img.url) + '" alt="" title="' + escAttr(img.titulo || 'Captura') + '" loading="lazy" onerror="this.parentElement.classList.add(&quot;img-missing&quot;);this.remove()"></span>'
+>>>>>>> 4ff4f50817fdb7365ae054e326eb119f17d57269
     : '<span class="cell"></span>';
 
   // Rellena el grid de imágenes según la plantilla (columnas + nº de celdas)
@@ -1572,34 +1576,8 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
         const target = findEditableTarget(savedRange) || docEl.querySelector('[contenteditable="true"]');
         if (target) target.focus();
       }
-<<<<<<< Updated upstream
-=======
       // Aplicar tamaño usando execCommand con hack
-      restoreDocSelection();
-      const target = currentEditableTarget();
-      const sel = document.getSelection();
-      if (!sel || !sel.rangeCount || sel.isCollapsed || !selectionInsideDoc()) {
-        if (target) {
-          target.style.fontSize = size + 'px';
-          refreshToolbar();
-          if (docEl) docEl.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-        return;
-      }
-      document.execCommand('styleWithCSS', false, false);
-      document.execCommand('fontSize', false, '7');
       // Buscar elementos font[size="7"] y aplicar el tamaño en píxeles
-      setTimeout(() => {
-        const fontElements = (docEl || document).querySelectorAll('font[size="7"]');
-        fontElements.forEach(el => {
-          el.removeAttribute('size');
-          el.style.fontSize = size + 'px';
-        });
-        saveDocSelection();
-        refreshToolbar();
-        if (docEl) docEl.dispatchEvent(new Event('input', { bubbles: true }));
-      }, 10);
->>>>>>> Stashed changes
     });
   }
 
