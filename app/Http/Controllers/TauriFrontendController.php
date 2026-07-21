@@ -12,12 +12,22 @@ use App\Models\PatientPreregistration;
 use App\Models\PatientRegistrationLink;
 use App\Models\Reporte;
 use App\Models\User;
+use App\Services\ActivityLogger;
 use App\Services\MediaPathService;
+use App\Services\PatientFolioGenerator;
+use Endroid\QrCode\Color\Color;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\ErrorCorrectionLevel;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\RoundBlockSizeMode;
+use Endroid\QrCode\Writer\SvgWriter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class TauriFrontendController extends Controller
 {
@@ -527,19 +537,24 @@ class TauriFrontendController extends Controller
 
     public function createQr(Request $request): JsonResponse
     {
-        $user = auth()->user() ?: User::query()->first();
+        $user = $request->user();
 
         if (! $user) {
             return response()->json([
                 'ok' => false,
-                'message' => 'No hay usuario en Laravel para crear QR.',
+                'message' => 'No hay usuario autenticado en Laravel para crear QR.',
             ], 422);
         }
 
+        $qrSettings = $user->resolvedSettings();
         $validated = $request->validate([
             'expires_in_hours' => ['nullable', 'integer', 'in:24,48,168'],
             'patient_message' => ['nullable', 'string', 'max:150'],
         ]);
+        $expiresInHours = (int) ($validated['expires_in_hours'] ?? $qrSettings['qr_default_expiration_hours'] ?? 48);
+        $patientMessage = array_key_exists('patient_message', $validated)
+            ? $validated['patient_message']
+            : ($qrSettings['qr_default_patient_message'] ?? null);
 
         $token = Str::random(64);
         $link = PatientRegistrationLink::create([
@@ -548,28 +563,235 @@ class TauriFrontendController extends Controller
             'token' => $token,
             'token_hash' => hash('sha256', $token),
             'status' => 'active',
-            'patient_message' => $validated['patient_message'] ?? null,
-            'expires_at' => now()->addHours((int) ($validated['expires_in_hours'] ?? 48)),
+            'patient_message' => $patientMessage ?: null,
+            'expires_at' => now()->addHours($expiresInHours),
         ]);
 
+        app(ActivityLogger::class)->record(
+            'patient_qr_created',
+            'patients',
+            'Generó un QR de pre-registro de paciente',
+            $link,
+            ['expires_at' => $link->expires_at->toIso8601String()],
+            request: $request,
+        );
+
         return response()->json($this->qrPayload($link->id, [
-            'message' => 'Codigo QR generado por Laravel.',
+            'message' => 'Código QR generado correctamente.',
         ]), 201);
     }
 
-    public function reviewPreregistration(PatientPreregistration $preregistration, string $action): JsonResponse
+    public function revokeQrLink(Request $request, PatientRegistrationLink $link): JsonResponse
     {
-        $preregistration->update([
-            'status' => $action === 'aceptar' ? 'accepted' : 'rejected',
-            'reviewed_at' => now(),
-            'reviewed_by' => auth()->id(),
+        if ($link->status !== 'active' || $link->preregistration()->exists()) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Este QR ya no puede cancelarse.',
+            ], 422);
+        }
+
+        $link->update([
+            'status' => 'revoked',
+            'revoked_at' => now(),
         ]);
 
-        return response()->json($this->qrPayload(null, [
-            'message' => $action === 'aceptar'
-                ? 'Pre-registro aceptado desde Laravel.'
-                : 'Pre-registro rechazado desde Laravel.',
-        ]));
+        app(ActivityLogger::class)->record(
+            'patient_qr_revoked',
+            'patients',
+            'Canceló un QR de pre-registro',
+            $link,
+            request: $request,
+        );
+
+        return response()->json($this->qrPayload(null, ['message' => 'Código QR cancelado.']));
+    }
+
+    public function archiveQrLink(Request $request, PatientRegistrationLink $link): JsonResponse
+    {
+        if ($link->archived_at) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Este QR ya fue eliminado del historial.',
+            ], 404);
+        }
+
+        $updates = ['archived_at' => now()];
+        if ($link->status === 'active') {
+            $updates['status'] = 'revoked';
+            $updates['revoked_at'] = now();
+        }
+        $link->update($updates);
+
+        app(ActivityLogger::class)->record(
+            'patient_qr_archived',
+            'patients',
+            'Eliminó un QR del historial visible',
+            $link,
+            request: $request,
+        );
+
+        return response()->json($this->qrPayload(null, ['message' => 'Código QR eliminado de la lista.']));
+    }
+
+    public function reviewPreregistration(Request $request, PatientPreregistration $preregistration, string $action): JsonResponse
+    {
+        abort_unless(in_array($action, ['aceptar', 'rechazar'], true), 404);
+
+        return $action === 'aceptar'
+            ? $this->acceptPreregistration($request, $preregistration)
+            : $this->rejectPreregistration($request, $preregistration);
+    }
+
+    private function acceptPreregistration(Request $request, PatientPreregistration $preregistration): JsonResponse
+    {
+        $user = $request->user();
+
+        try {
+            DB::transaction(function () use ($request, $preregistration, $user): void {
+                $record = PatientPreregistration::query()
+                    ->whereKey($preregistration->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                abort_unless($record->status === 'pending', 422, 'Este pre-registro ya fue revisado.');
+
+                $qrSettings = $user->resolvedSettings();
+                if (
+                    ($qrSettings['qr_duplicate_check'] ?? true)
+                    && ($qrSettings['qr_duplicate_action'] ?? 'warn') === 'block_acceptance'
+                    && $this->hasPossibleDuplicate($record)
+                ) {
+                    abort(422, 'Existe un paciente con el mismo teléfono o correo. Revisa el expediente existente antes de aceptar este pre-registro.');
+                }
+
+                $patient = Paciente::create([
+                    'clinica_id' => $user->clinica_id,
+                    'folio' => app(PatientFolioGenerator::class)->next($user->clinica_id),
+                    'nombre_completo' => $record->nombre_completo,
+                    'identificacion' => $record->identificacion,
+                    'fecha_nacimiento' => $record->fecha_nacimiento,
+                    'edad' => $record->edad,
+                    'peso' => $record->peso,
+                    'altura' => $record->altura,
+                    'sexo' => $record->sexo,
+                    'direccion' => $record->direccion,
+                    'telefono' => $record->telefono,
+                    'email' => $record->email,
+                    'medico' => $user->name,
+                    'procedimiento' => $record->procedimiento,
+                    'diagnostico_preliminar' => $record->motivo_consulta,
+                    'alergias' => $record->alergias,
+                    'enfermedades' => $record->enfermedades,
+                    'medicamentos_actuales' => $record->medicamentos_actuales,
+                    'antecedentes_medicos' => $record->antecedentes_medicos,
+                    'foto' => null,
+                ]);
+
+                $photoPath = $this->movePatientPhotoToProfile($record->foto, $patient);
+                if ($photoPath) {
+                    $patient->update(['foto' => $photoPath]);
+                }
+
+                $record->update([
+                    'status' => 'accepted',
+                    'patient_id' => $patient->id,
+                    'reviewed_by' => $user->id,
+                    'reviewed_at' => now(),
+                    'foto' => $photoPath,
+                ]);
+
+                app(ActivityLogger::class)->record(
+                    'patient_preregistration_accepted',
+                    'patients',
+                    'Aceptó el pre-registro de '.$patient->nombre_completo,
+                    $patient,
+                    ['preregistration_id' => $record->id],
+                    request: $request,
+                );
+            });
+        } catch (HttpException $e) {
+            return response()->json(['ok' => false, 'message' => $e->getMessage()], $e->getStatusCode());
+        }
+
+        return response()->json($this->qrPayload(null, ['message' => 'Pre-registro aceptado y expediente creado.']));
+    }
+
+    private function rejectPreregistration(Request $request, PatientPreregistration $preregistration): JsonResponse
+    {
+        $user = $request->user();
+
+        try {
+            $photoToDelete = DB::transaction(function () use ($preregistration, $user): ?string {
+                $record = PatientPreregistration::query()
+                    ->whereKey($preregistration->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                abort_unless($record->status === 'pending', 422, 'Este pre-registro ya fue revisado.');
+
+                $photo = $record->foto;
+                $record->update([
+                    'status' => 'rejected',
+                    'reviewed_by' => $user->id,
+                    'reviewed_at' => now(),
+                    'foto' => null,
+                ]);
+
+                return $photo;
+            });
+        } catch (HttpException $e) {
+            return response()->json(['ok' => false, 'message' => $e->getMessage()], $e->getStatusCode());
+        }
+
+        if ($photoToDelete) {
+            media_delete($photoToDelete);
+            Storage::disk('public')->delete($photoToDelete);
+        }
+
+        $preregistration->refresh();
+        app(ActivityLogger::class)->record(
+            'patient_preregistration_rejected',
+            'patients',
+            'Rechazó el pre-registro de '.$preregistration->nombre_completo,
+            $preregistration,
+            request: $request,
+        );
+
+        return response()->json($this->qrPayload(null, ['message' => 'Pre-registro rechazado.']));
+    }
+
+    private function movePatientPhotoToProfile(?string $currentPath, Paciente $patient): ?string
+    {
+        if (! $currentPath) {
+            return null;
+        }
+
+        $extension = pathinfo($currentPath, PATHINFO_EXTENSION) ?: 'jpg';
+        $targetPath = app(MediaPathService::class)->patientProfile($patient).'/profile-'.Str::random(12).'.'.$extension;
+        $disk = Storage::disk(media_disk());
+
+        if (! $disk->exists($currentPath)) {
+            return $currentPath;
+        }
+
+        $disk->copy($currentPath, $targetPath);
+        $disk->delete($currentPath);
+
+        return $targetPath;
+    }
+
+    private function hasPossibleDuplicate(PatientPreregistration $preregistration): bool
+    {
+        return Paciente::query()
+            ->where(function ($filter) use ($preregistration): void {
+                if ($preregistration->email) {
+                    $filter->orWhereRaw('LOWER(email) = ?', [Str::lower($preregistration->email)]);
+                }
+                if ($preregistration->telefono) {
+                    $filter->orWhere('telefono', $preregistration->telefono);
+                }
+            })
+            ->exists();
     }
 
     public function storeCapture(Request $request): JsonResponse
