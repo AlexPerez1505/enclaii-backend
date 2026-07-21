@@ -15,6 +15,9 @@ Route::prefix('tauri')->middleware('auth:sanctum')->controller(TauriFrontendCont
     Route::post('/pacientes/eliminar', 'deletePatientByPayload');
 
     Route::get('/agenda', 'agenda');
+    Route::post('/agenda/citas', 'storeAppointment');
+    Route::post('/agenda/bloqueos', 'storeBloqueo');
+    Route::delete('/agenda/bloqueos/{bloqueo}', 'destroyBloqueo');
     Route::get('/galeria', 'gallery');
     Route::get('/reportes', 'reports');
 

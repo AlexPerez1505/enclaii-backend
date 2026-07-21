@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bloqueo;
 use App\Models\CaptureSession;
 use App\Models\Cita;
 use App\Models\Estudio;
@@ -16,6 +17,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class TauriFrontendController extends Controller
 {
@@ -208,11 +210,133 @@ class TauriFrontendController extends Controller
             ->map(fn (Cita $cita) => $this->appointmentPayload($cita))
             ->values();
 
+        $blocks = Bloqueo::query()
+            ->whereYear('fecha', $year)
+            ->whereMonth('fecha', $month)
+            ->orderBy('fecha')
+            ->orderBy('hora')
+            ->get()
+            ->map(fn (Bloqueo $bloqueo) => $this->blockPayload($bloqueo))
+            ->values();
+
         return response()->json([
             'ok' => true,
             'appointments' => $appointments,
             'citas' => $appointments,
+            'blocks' => $blocks,
+            'bloqueos' => $blocks,
         ]);
+    }
+
+    public function storeAppointment(Request $request): JsonResponse
+    {
+        $clinicaId = $request->user()?->clinica_id;
+        $pacienteExistsRule = Rule::exists('pacientes', 'id');
+        if ($clinicaId) {
+            $pacienteExistsRule = $pacienteExistsRule->where('clinica_id', $clinicaId);
+        }
+
+        $validated = $request->validate([
+            'paciente_id' => [
+                'nullable',
+                $pacienteExistsRule,
+            ],
+            'paciente_nombre' => ['nullable', 'string', 'max:255'],
+            'procedimiento' => ['nullable', 'string', 'max:255'],
+            'fecha' => ['required', 'date', 'after_or_equal:today'],
+            'hora' => ['required', 'date_format:H:i'],
+            'duracion_minutos' => ['nullable', 'integer', 'min:1', 'max:1440'],
+            'sala' => ['nullable', 'string', 'max:255'],
+            'notas' => ['nullable', 'string'],
+        ]);
+
+        $patient = ! empty($validated['paciente_id']) ? Paciente::find($validated['paciente_id']) : null;
+
+        $cita = Cita::create([
+            'paciente_id' => $patient?->id,
+            'paciente_nombre' => $patient?->nombre_completo ?? ($validated['paciente_nombre'] ?? 'Paciente sin nombre'),
+            'procedimiento' => $validated['procedimiento'] ?? null,
+            'fecha' => $validated['fecha'],
+            'hora' => $validated['hora'],
+            'duracion_minutos' => $validated['duracion_minutos'] ?? 60,
+            'estado' => 'proximo',
+            'sala' => $validated['sala'] ?? null,
+            'notas' => $validated['notas'] ?? null,
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Cita registrada desde Tauri.',
+            'appointment' => $this->appointmentPayload($cita->fresh('paciente')),
+            'cita' => $this->appointmentPayload($cita->fresh('paciente')),
+        ], 201);
+    }
+
+    public function storeBloqueo(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'label' => ['nullable', 'string', 'max:255'],
+            'fechas' => ['required', 'array', 'min:1', 'max:400'],
+            'fechas.*' => ['required', 'date'],
+            'hora' => ['required', 'date_format:H:i'],
+            'hora_fin' => ['nullable', 'date_format:H:i'],
+        ]);
+
+        $label = $validated['label'] ?: 'Bloqueo de tiempo';
+        $hora = $validated['hora'];
+        $horaFin = $validated['hora_fin'] ?? null;
+        $fechas = array_unique($validated['fechas']);
+
+        $creados = collect($fechas)->map(function ($fecha) use ($label, $hora, $horaFin) {
+            return $this->blockPayload(Bloqueo::create([
+                'label' => $label,
+                'fecha' => $fecha,
+                'hora' => $hora,
+                'hora_fin' => $horaFin,
+            ]));
+        })->values();
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Bloqueo registrado desde Tauri.',
+            'blocks' => $creados,
+            'bloqueos' => $creados,
+        ], 201);
+    }
+
+    public function destroyBloqueo(Bloqueo $bloqueo): JsonResponse
+    {
+        $bloqueo->delete();
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Bloqueo eliminado desde Tauri.',
+        ]);
+    }
+
+    private function blockPayload(Bloqueo $bloqueo): array
+    {
+        [$hI, $mI] = array_map('intval', array_pad(explode(':', $bloqueo->hora), 2, 0));
+        $duracion = 60;
+
+        if ($bloqueo->hora_fin) {
+            [$hF, $mF] = array_map('intval', array_pad(explode(':', $bloqueo->hora_fin), 2, 0));
+            $diff = ($hF * 60 + $mF) - ($hI * 60 + $mI);
+            if ($diff > 0) {
+                $duracion = $diff;
+            }
+        }
+
+        return [
+            'id' => $bloqueo->id,
+            'label' => $bloqueo->label,
+            'fecha' => $bloqueo->fecha?->format('Y-m-d'),
+            'fecha_key' => $bloqueo->fecha?->format('Y-n-j'),
+            'hora' => $bloqueo->hora,
+            'hora_fin' => $bloqueo->hora_fin,
+            'h' => $hI,
+            'duracion' => $duracion,
+        ];
     }
 
     public function reports(): JsonResponse
