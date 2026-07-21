@@ -303,6 +303,9 @@
     <button type="button" class="cfg-tab active" data-tab="general">General</button>
     <button type="button" class="cfg-tab" data-tab="qr-preregistro">QR y Pre-registro</button>
     <button type="button" class="cfg-tab" data-tab="plan">Plan y almacenamiento</button>
+    @if($showDesktopAppSettings ?? false)
+      <button type="button" class="cfg-tab" data-tab="aplicacion-escritorio">Aplicación de escritorio</button>
+    @endif
     <button type="button" class="cfg-tab" data-tab="integraciones">Integraciones</button>
     <button type="button" class="cfg-tab" data-tab="seguridad">Seguridad</button>
     <button type="button" class="cfg-tab" data-tab="perfil">Perfil</button>
@@ -311,6 +314,9 @@
   @include('configuracion.sections.general')
   @include('configuracion.sections.qr-preregistro')
   @include('configuracion.sections.plan')
+  @if($showDesktopAppSettings ?? false)
+    @include('configuracion.sections.aplicacion-escritorio')
+  @endif
   @include('configuracion.sections.integraciones')
   @include('configuracion.sections.seguridad')
   @include('configuracion.sections.perfil')

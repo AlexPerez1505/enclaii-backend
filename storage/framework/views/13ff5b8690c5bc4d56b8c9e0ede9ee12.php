@@ -8,6 +8,7 @@
   $clinicMemberPercent = min(100, (int) round(($clinicMemberUsed / max(1, $clinicMemberLimit)) * 100));
   $clinicMemberUpgradeOffer = auth()->user()->clinicMemberUpgradeOffer();
   $isClinicOwner = auth()->user()->clinica_rol === 'propietario';
+  $storageSummary = app(\App\Services\StorageQuotaService::class)->summaryFor(auth()->user(), $clinicMembers);
 ?>
 
 <?php echo $__env->make('configuracion.sections.plan._panel', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>

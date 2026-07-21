@@ -10,7 +10,10 @@
   <?php echo $__env->make('configuracion.sections.integraciones._copias', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
   <?php echo $__env->make('configuracion.sections.integraciones._informacion-sistema', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
   <?php echo $__env->make('configuracion.sections.integraciones._servicios', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<<<<<<< HEAD
   <?php echo $__env->make('configuracion.sections.integraciones._catalogo-hospital', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+=======
+>>>>>>> origin/main
   <?php echo $__env->make('configuracion.sections.integraciones._modal-copia', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
   <?php echo $__env->make('configuracion.sections.integraciones._modal-firma', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 </div>

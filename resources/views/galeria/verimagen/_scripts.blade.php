@@ -31,7 +31,7 @@
     }
     /* meta */
     document.getElementById('viMetaTs').textContent  = c.ts;
-    document.getElementById('viInfoTs').textContent  = c.ts.replace(':','0:0').replace(/^(\d):/, '00:0$1:');
+    updateImageInfo(c);
     /* contador */
     document.getElementById('viCounter').textContent = 'Imagen ' + (idx+1) + ' de ' + total;
     /* header label */
@@ -40,6 +40,7 @@
     document.querySelectorAll('.vi-strip-item').forEach(el => {
       el.classList.toggle('sel', parseInt(el.dataset.idx) === idx);
     });
+    updateDownloadPreview();
   }
 
   /* Tira clic */
@@ -71,7 +72,7 @@
   });
 
   /* Zoom */
-  let zoom = 148;
+  let zoom = 100;
   function setZoom(v){
     zoom = Math.min(Math.max(v, 50), 300);
     document.getElementById('viZoomPct').textContent = zoom + '%';
@@ -100,8 +101,113 @@
     }[char]));
   }
 
-  function printCurrentImage(){
-    const c = caps[current];
+  function setText(id, value){
+    const el = document.getElementById(id);
+    if(el) el.textContent = value || '—';
+  }
+
+  function updateImageInfo(c){
+    const info = c?.info || {};
+    setText('viInfoImageId', info.image_id);
+    setText('viInfoCapturedAt', info.captured_at);
+    setText('viInfoStudyType', info.study_type);
+    setText('viInfoEquipment', info.equipment);
+    setText('viInfoResolution', info.resolution);
+    setText('viInfoDuration', info.duration);
+    setText('viInfoTs', info.frame || c?.ts);
+  }
+
+  function formatBytes(bytes){
+    const value = Number(bytes || 0);
+    if(!value) return 'Archivo';
+    if(value < 1024) return value + ' B';
+    if(value < 1024 * 1024) return (value / 1024).toFixed(1) + ' KB';
+    return (value / 1024 / 1024).toFixed(1) + ' MB';
+  }
+
+  function selectedFormat(){
+    return document.querySelector('.vi-fmt-item.sel')?.dataset.fmt || 'JPG';
+  }
+
+  function sanitizeFilename(name){
+    return String(name || 'imagen-estudio.jpg')
+      .replace(/[\\/:*?"<>|]+/g, '-')
+      .replace(/\s+/g, ' ')
+      .trim() || 'imagen-estudio.jpg';
+  }
+
+  function filenameForCurrentDownload(){
+    const c = caps[current] || {};
+    const base = sanitizeFilename(c.filename || `imagen-estudio-${c.id || current + 1}.jpg`);
+    const fmt = selectedFormat().toLowerCase();
+
+    if(fmt === 'png') return base.replace(/\.[^.]+$/, '') + '.png';
+    if(fmt === 'jpg' || fmt === 'jpeg') return base.replace(/\.[^.]+$/, '') + '.jpg';
+    return base;
+  }
+
+  function updateDownloadPreview(){
+    const c = caps[current] || {};
+    const info = c.info || {};
+    const preview = document.getElementById('viDlPreviewImage');
+    const previewBox = preview?.closest('.vi-dl-thumb');
+    const badge = document.getElementById('viDlImageBadge');
+    const fmtLabel = document.getElementById('viDlFmt');
+    const sizeLabel = document.getElementById('viDlSize');
+    const resolutionLabel = document.getElementById('viDlResolution');
+
+    if(preview && c.src){
+      preview.src = c.src;
+      previewBox?.classList.add('has-image');
+    } else {
+      if(preview) preview.removeAttribute('src');
+      previewBox?.classList.remove('has-image');
+    }
+
+    if(badge) badge.textContent = info.image_id || `IMG-${String(c.id || current + 1).padStart(4, '0')}`;
+    if(fmtLabel) fmtLabel.textContent = selectedFormat();
+    if(sizeLabel) sizeLabel.textContent = formatBytes(c.size_bytes);
+    if(resolutionLabel) resolutionLabel.textContent = info.resolution || 'Imagen del estudio';
+  }
+
+  function convertImageBlob(blob, format){
+    return new Promise(resolve => {
+      const img = new Image();
+      const sourceUrl = URL.createObjectURL(blob);
+
+      img.onload = function(){
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        const canvasCtx = canvas.getContext('2d');
+        canvasCtx.drawImage(img, 0, 0);
+        URL.revokeObjectURL(sourceUrl);
+
+        const mime = format === 'PNG' ? 'image/png' : 'image/jpeg';
+        canvas.toBlob(converted => resolve(converted || blob), mime, 0.92);
+      };
+
+      img.onerror = function(){
+        URL.revokeObjectURL(sourceUrl);
+        resolve(blob);
+      };
+
+      img.src = sourceUrl;
+    });
+  }
+
+  function waitForImageLoad(img){
+    return new Promise(resolve => {
+      if(!img) return resolve();
+      if(img.complete && img.naturalWidth > 0) return resolve();
+      img.onload = () => resolve();
+      img.onerror = () => resolve();
+    });
+  }
+
+  async function printCurrentImage(){
+    const c = caps[current] || {};
+    const info = c.info || {};
     const mainImage = document.getElementById('viMainImage');
     const imageSrc = mainImage.currentSrc || mainImage.src || c.src;
 
@@ -111,8 +217,16 @@
     }
 
     const imageNumber = current + 1;
-    const timestamp = document.getElementById('viInfoTs').textContent || c.ts;
+    const imageId = info.image_id || `IMG-${String(c.id || imageNumber).padStart(4, '0')}`;
+    const timestamp = info.frame || document.getElementById('viInfoTs').textContent || c.ts;
     const imageFilter = mainImage.style.filter || 'none';
+    let printableImageSrc = imageSrc;
+
+    try {
+      printableImageSrc = drawEditedImageCopy();
+    } catch (error) {
+      printableImageSrc = imageSrc;
+    }
 
     let printStyles = document.getElementById('viPrintStyles');
     if(!printStyles){
@@ -121,28 +235,29 @@
       printStyles.textContent = `
         #viPrintSheet{display:none}
         @media print{
-          @page{size:A4;margin:16mm}
+          @page{size:A4;margin:12mm}
           body.vi-printing *{visibility:hidden!important}
           body.vi-printing #viPrintSheet,
           body.vi-printing #viPrintSheet *{visibility:visible!important}
-          body.vi-printing #viPrintSheet{display:flex!important;position:absolute;inset:0;width:100%;background:#fff;color:#111827;font-family:Arial,Helvetica,sans-serif;flex-direction:column;gap:14px}
+          body.vi-printing{background:#fff!important;overflow:hidden!important}
+          body.vi-printing #viPrintSheet{display:flex!important;position:fixed;left:0;top:0;width:100%;height:auto;background:#fff;color:#111827;font-family:Arial,Helvetica,sans-serif;flex-direction:column;gap:8px}
           #viPrintSheet *{box-sizing:border-box}
-          #viPrintSheet .head{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #d1d5db;padding-bottom:12px}
-          #viPrintSheet .brand{font-size:22px;font-weight:800;letter-spacing:4px;color:#0f172a}
-          #viPrintSheet .sub{font-size:11px;letter-spacing:2px;color:#64748b;margin-top:4px;text-transform:uppercase}
+          #viPrintSheet .head{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #d1d5db;padding-bottom:8px}
+          #viPrintSheet .brand{font-size:20px;font-weight:800;letter-spacing:4px;color:#0f172a}
+          #viPrintSheet .sub{font-size:10px;letter-spacing:2px;color:#64748b;margin-top:3px;text-transform:uppercase}
           #viPrintSheet .title{text-align:right}
-          #viPrintSheet .title h1{font-size:18px;margin:0 0 5px;color:#0f172a}
-          #viPrintSheet .title span{font-size:12px;color:#475569}
-          #viPrintSheet .image-wrap{border:1px solid #d1d5db;background:#050505;min-height:430px;display:flex;align-items:center;justify-content:center;padding:10px}
-          #viPrintSheet .image-wrap img{max-width:100%;max-height:560px;object-fit:contain}
-          #viPrintSheet .meta{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 18px;font-size:12px}
-          #viPrintSheet .item{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #e5e7eb;padding:6px 0}
+          #viPrintSheet .title h1{font-size:16px;margin:0 0 4px;color:#0f172a}
+          #viPrintSheet .title span{font-size:11px;color:#475569}
+          #viPrintSheet .image-wrap{border:1px solid #d1d5db;background:#050505;height:430px;display:flex;align-items:center;justify-content:center;padding:8px;overflow:hidden}
+          #viPrintSheet .image-wrap img{width:100%;height:100%;object-fit:contain}
+          #viPrintSheet .meta{display:grid;grid-template-columns:repeat(2,1fr);gap:4px 14px;font-size:10.5px}
+          #viPrintSheet .item{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #e5e7eb;padding:4px 0}
           #viPrintSheet .label{color:#64748b}
           #viPrintSheet .value{font-weight:700;color:#111827;text-align:right}
-          #viPrintSheet .findings{border:1px solid #d1d5db;padding:12px;margin-top:2px}
-          #viPrintSheet .findings h2{font-size:13px;margin:0 0 8px;color:#0f172a}
-          #viPrintSheet .findings ul{margin:0;padding-left:18px;font-size:12px;line-height:1.7}
-          #viPrintSheet .foot{font-size:10px;color:#64748b;border-top:1px solid #e5e7eb;padding-top:8px;margin-top:4px}
+          #viPrintSheet .findings{border:1px solid #d1d5db;padding:8px;margin-top:2px}
+          #viPrintSheet .findings h2{font-size:12px;margin:0 0 5px;color:#0f172a}
+          #viPrintSheet .findings ul{margin:0;padding-left:16px;font-size:10.5px;line-height:1.45}
+          #viPrintSheet .foot{font-size:9px;color:#64748b;border-top:1px solid #e5e7eb;padding-top:6px;margin-top:2px}
         }
       `;
       document.head.appendChild(printStyles);
@@ -163,19 +278,19 @@
             </div>
             <div class="title">
               <h1>Imagen ${escapeHtml(imageNumber)} del estudio</h1>
-              <span>EDD-2025-001245 · IMG-${String(imageNumber).padStart(4, '0')}</span>
+              <span>${escapeHtml(imageId)}</span>
             </div>
           </section>
           <section class="image-wrap">
-            <img src="${escapeHtml(imageSrc)}" alt="Imagen endoscopica" style="filter:${escapeHtml(imageFilter)}">
+            <img id="viPrintImage" src="${escapeHtml(printableImageSrc)}" alt="Imagen endoscopica" style="filter:${escapeHtml(printableImageSrc === imageSrc ? imageFilter : 'none')}">
           </section>
           <section class="meta">
-            <div class="item"><span class="label">Paciente</span><span class="value">Maria Gonzales</span></div>
-            <div class="item"><span class="label">Fecha de captura</span><span class="value">15/07/2025 · 10:30 AM</span></div>
-            <div class="item"><span class="label">Tipo de estudio</span><span class="value">Endoscopia Digestiva Alta</span></div>
+            <div class="item"><span class="label">Paciente</span><span class="value">${escapeHtml(info.patient_name)}</span></div>
+            <div class="item"><span class="label">Fecha de captura</span><span class="value">${escapeHtml(info.captured_at)}</span></div>
+            <div class="item"><span class="label">Tipo de estudio</span><span class="value">${escapeHtml(info.study_type)}</span></div>
             <div class="item"><span class="label">Fotograma</span><span class="value">${escapeHtml(timestamp)}</span></div>
-            <div class="item"><span class="label">Equipo</span><span class="value">Pentax EPK-i7010</span></div>
-            <div class="item"><span class="label">Resolucion</span><span class="value">1920 x 1080</span></div>
+            <div class="item"><span class="label">Equipo</span><span class="value">${escapeHtml(info.equipment)}</span></div>
+            <div class="item"><span class="label">Resolucion</span><span class="value">${escapeHtml(info.resolution)}</span></div>
           </section>
           <section class="findings">
             <h2>IA Hallazgos</h2>
@@ -189,6 +304,8 @@
     `;
 
     document.body.classList.add('vi-printing');
+    await waitForImageLoad(document.getElementById('viPrintImage'));
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     window.print();
     setTimeout(() => document.body.classList.remove('vi-printing'), 500);
   }
@@ -1052,7 +1169,13 @@
 
   /* ── Modal descarga ── */
   const dlOverlay = document.getElementById('viDlOverlay');
-  function abrirDl(){ if(dlOverlay){ dlOverlay.classList.add('open'); document.body.style.overflow='hidden'; } }
+  function abrirDl(){
+    if(dlOverlay){
+      updateDownloadPreview();
+      dlOverlay.classList.add('open');
+      document.body.style.overflow='hidden';
+    }
+  }
   function cerrarDl(){ if(dlOverlay){ dlOverlay.classList.remove('open'); document.body.style.overflow=''; } }
 
   const dlBtn = document.querySelector('.vi-btn.dl');
@@ -1071,6 +1194,7 @@
       this.classList.add('sel');
       const fmtLabel = document.getElementById('viDlFmt');
       if(fmtLabel) fmtLabel.textContent = this.dataset.fmt;
+      updateDownloadPreview();
     });
   });
 
@@ -1085,17 +1209,60 @@
     });
   });
 
-  /* Confirmar descarga (simulado) */
+  async function downloadCurrentStudyImage(button){
+    const c = caps[current] || {};
+    const imageSrc = document.getElementById('viMainImage')?.currentSrc || c.src;
+    const fmt = selectedFormat();
+
+    if(!imageSrc){
+      alert('No hay imagen cargada para descargar.');
+      return;
+    }
+
+    if(fmt === 'DICOM' || fmt === 'PDF'){
+      alert('Por ahora la descarga directa está disponible como imagen JPG o PNG.');
+      return;
+    }
+
+    const original = button.innerHTML;
+    button.disabled = true;
+    button.textContent = 'Descargando...';
+
+    try {
+      const response = await fetch(imageSrc, { credentials: 'same-origin' });
+      if(!response.ok) throw new Error('No se pudo leer la imagen.');
+
+      const blob = await response.blob();
+      const downloadBlob = await convertImageBlob(blob, fmt);
+      const objectUrl = URL.createObjectURL(downloadBlob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = filenameForCurrentDownload();
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+      cerrarDl();
+    } catch (error) {
+      const link = document.createElement('a');
+      link.href = imageSrc;
+      link.download = filenameForCurrentDownload();
+      link.target = '_blank';
+      link.rel = 'noopener';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      cerrarDl();
+    } finally {
+      button.disabled = false;
+      button.innerHTML = original;
+    }
+  }
+
+  /* Confirmar descarga */
   const dlConfirmBtn = document.getElementById('viDlConfirm');
   if(dlConfirmBtn) dlConfirmBtn.addEventListener('click', function(){
-    const fmt = document.querySelector('.vi-fmt-item.sel').dataset.fmt;
-    this.textContent = 'Descargando...';
-    this.style.background = 'var(--green)';
-    setTimeout(() => {
-      this.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Descargar imagen';
-      this.style.background = '';
-      cerrarDl();
-    }, 1800);
+    downloadCurrentStudyImage(this);
   });
 
   /* Guardar observación */

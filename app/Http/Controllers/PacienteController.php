@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Paciente;
 use App\Services\ActivityLogger;
+use App\Services\MediaPathService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -11,63 +12,12 @@ class PacienteController extends Controller
 {
     public function __construct(
         private readonly ActivityLogger $activity,
+        private readonly MediaPathService $mediaPaths,
     ) {}
 
-    public function index(Request $request)
+    public function index()
     {
         $pacientes = Paciente::latest()->get();
-
-        if ($request->expectsJson()) {
-            $pacientes->load(['estudios' => fn ($q) => $q->latest('fecha')]);
-
-            $data = $pacientes->map(function (Paciente $paciente) {
-                $ultimoEstudio = $paciente->estudios->first();
-
-                $proximaCita = \App\Models\Cita::where('paciente_id', $paciente->id)
-                    ->whereNotIn('estado', ['completado', 'cancelado'])
-                    ->orderBy('fecha')
-                    ->orderBy('hora')
-                    ->first();
-
-                $iniciales = collect(explode(' ', $paciente->nombre_completo ?? ''))
-                    ->filter()
-                    ->take(2)
-                    ->map(fn ($x) => mb_strtoupper(mb_substr($x, 0, 1)))
-                    ->implode('');
-
-                return [
-                    'id' => $paciente->id,
-                    'patient_id' => $paciente->id,
-                    'name' => $paciente->nombre_completo,
-                    'initials' => $iniciales ?: 'PX',
-                    'age' => $paciente->edad ? $paciente->edad.' años' : null,
-                    'gender' => $paciente->sexo,
-                    'folio' => $paciente->folio,
-                    'dob' => optional($paciente->fecha_nacimiento)->format('d/m/Y'),
-                    'phone' => $paciente->telefono,
-                    'email' => $paciente->email,
-                    'address' => $paciente->direccion,
-                    'medico' => $paciente->medico,
-                    'foto_url' => $paciente->foto ? media_url($paciente->foto) : null,
-                    'status' => $ultimoEstudio?->estado,
-                    'study_date' => optional($ultimoEstudio?->fecha)->format('d/m/Y'),
-                    'study_type' => $ultimoEstudio?->tipo,
-                    'estudios' => $paciente->estudios->map(fn ($estudio) => [
-                        'tipo' => $estudio->tipo,
-                        'fecha' => optional($estudio->fecha)->format('d/m/Y'),
-                    ])->values(),
-                    'proxima_cita' => $proximaCita ? [
-                        'fecha' => optional($proximaCita->fecha)->format('d/m/Y'),
-                        'hora' => $proximaCita->hora,
-                    ] : null,
-                ];
-            })->values();
-
-            return response()->json([
-                'ok' => true,
-                'pacientes' => $data,
-            ]);
-        }
 
         return view('pacientes.index', compact('pacientes'));
     }
@@ -136,14 +86,16 @@ class PacienteController extends Controller
                 'estudios_archivos.*' => ['nullable', 'file', 'max:20480'],
             ]);
 
-            if ($request->hasFile('foto')) {
-                $validated['foto'] = media_store(
-                    $request->file('foto'),
-                    'clinicas/'.$request->user()->clinica_id.'/pacientes'
-                );
-            }
+            $paciente = Paciente::create(collect($validated)->except('estudios_archivos', 'foto')->toArray());
 
-            $paciente = Paciente::create(collect($validated)->except('estudios_archivos')->toArray());
+            if ($request->hasFile('foto')) {
+                $paciente->update([
+                    'foto' => media_store(
+                        $request->file('foto'),
+                        $this->mediaPaths->patientProfile($paciente)
+                    ),
+                ]);
+            }
             $this->activity->record(
                 'patient_created',
                 'patients',
@@ -154,7 +106,7 @@ class PacienteController extends Controller
 
             if ($request->hasFile('estudios_archivos')) {
                 foreach ($request->file('estudios_archivos') as $archivo) {
-                    $path = media_store($archivo, 'paciente_docs/' . $paciente->id);
+                    $path = media_store($archivo, $this->mediaPaths->patientDocuments($paciente));
                     \App\Models\PacienteDocumento::create([
                         'paciente_id' => $paciente->id,
                         'path' => $path,
@@ -256,11 +208,11 @@ class PacienteController extends Controller
 
             $validated['foto'] = media_store(
                 $request->file('foto'),
-                'clinicas/'.$request->user()->clinica_id.'/pacientes'
+                $this->mediaPaths->patientProfile($paciente)
             );
         }
 
-        $paciente->update(collect($validated)->except('estudios_archivos')->toArray());
+        $paciente->update($validated);
         $this->activity->record(
             'patient_updated',
             'patients',
@@ -275,7 +227,7 @@ class PacienteController extends Controller
         if ($request->hasFile('estudios_archivos')) {
             foreach ($request->file('estudios_archivos') as $archivo) {
                 \Log::info('Guardando archivo: ' . $archivo->getClientOriginalName());
-                $path = media_store($archivo, 'paciente_docs/' . $paciente->id);
+                $path = media_store($archivo, $this->mediaPaths->patientDocuments($paciente));
                 \App\Models\PacienteDocumento::create([
                     'paciente_id' => $paciente->id,
                     'path' => $path,

@@ -212,6 +212,12 @@ html[data-theme="light"] .tkt-search-clear:hover{background:#e2e8f0;color:#0f172
               </tr>
             </thead>
             <tbody>
+              @php
+                $categoryLabels = ['facturacion'=>'Facturación','tecnico'=>'Problema técnico','funcion'=>'Solicitud de función','como-hacer'=>'Cómo hacer','otro'=>'Otro'];
+                $priorityLabels = ['alta'=>'Alta','media'=>'Media','baja'=>'Baja'];
+                $statusLabels = ['nuevo'=>'Nuevo','abierto'=>'Abierto','en_proceso'=>'En proceso','en progreso'=>'En progreso','resuelto'=>'Resuelto','cerrado'=>'Cerrado'];
+                $statusBadge = ['nuevo'=>'abierto','abierto'=>'abierto','en_proceso'=>'progreso','en progreso'=>'progreso','resuelto'=>'resuelto','cerrado'=>'resuelto'];
+              @endphp
               @forelse ($tickets as $ticket)
                 @php
                   $catLabel = $categoryLabels[$ticket->category] ?? ucfirst(str_replace('-',' ',$ticket->category));

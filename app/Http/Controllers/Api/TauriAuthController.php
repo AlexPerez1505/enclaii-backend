@@ -3,11 +3,16 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\SessionLimitService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class TauriAuthController extends Controller
 {
+    public function __construct(
+        private readonly SessionLimitService $sessionLimits,
+    ) {}
+
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -28,15 +33,23 @@ class TauriAuthController extends Controller
 
         $user = Auth::user();
 
-        $token = $user->createToken('tauri-app')->plainTextToken;
+        $newToken = $user->createToken('tauri-app');
+        $closedTokens = $this->sessionLimits->enforceApiTokens(
+            $user,
+            $newToken->accessToken->getKey(),
+            'tauri-app',
+        );
 
         return response()->json([
             'ok' => true,
             'message' => 'Sesión iniciada correctamente.',
-            'token' => $token,
+            'token' => $newToken->plainTextToken,
+            'session_limit' => $this->sessionLimits->limitFor($user),
+            'closed_sessions_by_limit' => $closedTokens,
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
+                'account_name' => $user->nombre_completo ?: $user->name,
                 'email' => $user->email,
                 'clinica_id' => $user->clinica_id,
             ],

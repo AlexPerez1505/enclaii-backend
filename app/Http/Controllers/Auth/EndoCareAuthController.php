@@ -7,6 +7,7 @@ use App\Models\Clinica;
 use App\Models\ClinicaInvitation;
 use App\Models\User;
 use App\Services\ActivityLogger;
+use App\Services\SessionLimitService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,7 @@ class EndoCareAuthController extends Controller
 {
     public function __construct(
         private readonly ActivityLogger $activity,
+        private readonly SessionLimitService $sessionLimits,
     ) {}
 
     public function showLogin()
@@ -37,10 +39,16 @@ class EndoCareAuthController extends Controller
             $request->session()->regenerate();
 
             $user = Auth::user();
+            $this->sessionLimits->syncCurrentDatabaseSession($request, $user);
+            $closedSessions = $this->sessionLimits->enforceDatabaseSessions($user, $request->session()->getId());
             $this->activity->record(
                 'login',
                 'authentication',
                 'Inició sesión',
+                metadata: [
+                    'session_limit' => $this->sessionLimits->limitFor($user),
+                    'closed_sessions_by_limit' => $closedSessions,
+                ],
                 user: $user,
                 request: $request,
             );
@@ -121,6 +129,10 @@ class EndoCareAuthController extends Controller
         });
 
         Auth::login($user);
+        $request->session()->regenerate();
+        $this->sessionLimits->syncCurrentDatabaseSession($request, $user);
+        $this->sessionLimits->enforceDatabaseSessions($user, $request->session()->getId());
+
         $this->activity->record(
             'account_created',
             'authentication',

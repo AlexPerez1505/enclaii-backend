@@ -1,4 +1,11 @@
 
+<?php
+  $fmtGb = $fmtGb ?? function ($value) {
+    $formatted = number_format((float) $value, 2, '.', ',');
+    return rtrim(rtrim($formatted, '0'), '.') . ' GB';
+  };
+  $storagePlans = $storagePlans ?? $storageSummary['plans'];
+?>
 <div class="gp-ov" id="gpModal" aria-hidden="true">
   <div class="gp-modal" role="dialog" aria-modal="true" aria-labelledby="gpTitle">
     <button class="gp-x" id="gpClose" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
@@ -27,7 +34,7 @@
               <span class="gp-crown"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4 3 5-7 5 7 4-3-2 12H5L3 8z"/></svg></span>
               <div class="gp-plan-info">
                 <div class="gp-plan-name">
-                  <b>Plan <?php echo e(ucfirst(str_replace('_', ' ', $planUser->stripe_plan ?? 'Gratuito'))); ?></b>
+                  <b>Plan <?php echo e($storageSummary['plan_label']); ?></b>
                   <span class="gp-badge" style="background:<?php echo e($planUser->subscription_status === 'active' ? 'rgba(61,220,151,.14)' : 'rgba(255,160,0,.14)'); ?>;color:<?php echo e($planUser->subscription_status === 'active' ? 'var(--green)' : 'var(--orange)'); ?>">
                     <?php echo e(ucfirst($planUser->subscription_status ?? 'Inactivo')); ?>
 
@@ -39,15 +46,16 @@
                 <?php if($planUser->pm_last_four): ?>
                   <p>Tarjeta: <?php echo e(ucfirst($planUser->pm_brand)); ?> ····<?php echo e($planUser->pm_last_four); ?></p>
                 <?php endif; ?>
+                <p><?php echo e($fmtGb($storageSummary['quota_gb'])); ?> totales &middot; <?php echo e($fmtGb($storageSummary['quota_per_person_gb'])); ?> por persona</p>
               </div>
               <ul class="gp-feat">
                 <?php
                   $planFeatures = [
-                    'clinica' => ['50 GB de almacenamiento en la nube', 'IA Reportes basica', 'Soporte por email'],
-                    'hospital' => ['100 GB de almacenamiento en la nube', 'IA Reportes avanzada', 'Soporte prioritario', 'Exportacion de reportes'],
-                    'red_medica' => ['250 GB de almacenamiento en la nube', 'Integraciones avanzadas', 'Soporte 24/7'],
+                    'clinica' => [$fmtGb($storagePlans['clinica']['gb_per_person']) . ' por persona en almacenamiento en la nube', 'IA Reportes basica', 'Soporte por email'],
+                    'hospital' => [$fmtGb($storagePlans['hospital']['gb_per_person']) . ' por persona en almacenamiento en la nube', 'IA Reportes avanzada', 'Soporte prioritario', 'Exportacion de reportes'],
+                    'red_medica' => [$fmtGb($storagePlans['red_medica']['gb_per_person']) . ' por persona en almacenamiento en la nube', 'Integraciones avanzadas', 'Soporte 24/7'],
                   ];
-                  $currentPlan = $planUser->stripe_plan;
+                  $currentPlan = str_replace('-', '_', $planUser->stripe_plan ?? 'clinica');
                   $features = $planFeatures[$currentPlan] ?? ['Plan gratuito'];
                 ?>
                 <?php $__currentLoopData = $features; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $feat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -144,7 +152,7 @@
           <h3>Facturacion y pago</h3>
           <div class="gp-summary-row">
             <span class="gp-soft">Plan actual</span>
-            <span>Plan <?php echo e(ucfirst(str_replace('_', ' ', $planUser->stripe_plan ?? 'Gratuito'))); ?></span>
+            <span>Plan <?php echo e($storageSummary['plan_label']); ?></span>
           </div>
           <div class="gp-summary-row">
             <span class="gp-soft">Estado</span>

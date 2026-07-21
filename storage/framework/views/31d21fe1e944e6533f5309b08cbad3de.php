@@ -226,6 +226,7 @@
 .int-dev-btns{display:flex;gap:8px;margin-top:13px}
 .int-dev-btn{flex:1;text-align:center;padding:8px;border-radius:9px;border:1px solid var(--stroke-strong);font-size:11.5px;font-weight:700;color:var(--cyan);transition:background-color .15s}
 @media (hover:hover){.int-dev-btn:hover{background:rgba(56,199,244,.1)}}
+<<<<<<< HEAD
 
 /* ===== Catálogo de hospital ===== */
 .cat-hospital-card{background:var(--card);border:1px solid var(--stroke);border-radius:var(--r-lg);padding:20px;box-shadow:0 16px 40px rgba(0,0,0,.25)}
@@ -279,6 +280,8 @@
   .cat-tabs{gap:14px}
   .cat-tab{font-size:12px}
 }
+=======
+>>>>>>> origin/main
 </style>
 <?php $__env->stopPush(); ?>
 <?php /**PATH C:\Users\HP\enclaii-backend\resources\views/configuracion/sections/integraciones/_styles.blade.php ENDPATH**/ ?>
