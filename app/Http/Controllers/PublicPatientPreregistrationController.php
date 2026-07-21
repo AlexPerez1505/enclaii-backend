@@ -5,11 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\PatientPreregistration;
 use App\Models\PatientRegistrationLink;
 use App\Models\User;
-use App\Services\MediaPathService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -123,8 +123,7 @@ class PublicPatientPreregistrationController extends Controller
             'privacy_consent.accepted' => 'Debes aceptar el aviso de privacidad para enviar tus datos.',
         ]);
 
-        $photo = (($cameraAllowed || $galleryAllowed) ? $request->file('foto_upload') : null)
-            ?? ($cameraAllowed ? $request->file('foto_camera') : null)
+        $photo = ($cameraAllowed ? $request->file('foto_camera') : null)
             ?? ($galleryAllowed ? $request->file('foto') : null);
 
         if (
@@ -152,7 +151,10 @@ class PublicPatientPreregistrationController extends Controller
                 }
 
                 if ($photo) {
-                    $photoPath = media_store($photo, app(MediaPathService::class)->clinic($link->clinica_id).'/patients/pending/profile');
+                    $photoPath = $photo->store(
+                        'clinicas/'.$link->clinica_id.'/pacientes',
+                        'public',
+                    );
                 }
 
                 $birthDate = Carbon::parse($validated['fecha_nacimiento']);
@@ -192,7 +194,7 @@ class PublicPatientPreregistrationController extends Controller
             });
         } catch (\Throwable $exception) {
             if ($photoPath) {
-                media_delete($photoPath);
+                Storage::disk('public')->delete($photoPath);
             }
 
             throw $exception;

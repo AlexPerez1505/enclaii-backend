@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\CustomerSuccess;
 
 use App\Http\Controllers\Controller;
-<<<<<<< HEAD
 use App\Mail\TicketResuelto;
 use App\Models\Notification;
 use App\Models\Ticket;
@@ -13,13 +12,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-=======
-use App\Models\Notification;
-use App\Models\Ticket;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
->>>>>>> origin/main
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -118,26 +110,18 @@ class TicketController extends Controller
         ]);
     }
 
-<<<<<<< HEAD
     public function resolveForm(Ticket $ticket): Response
-=======
-    public function resolveForm(Ticket $ticket): View
->>>>>>> origin/main
     {
         if (in_array($ticket->status, ['nuevo', 'abierto'])) {
             $ticket->update(['status' => 'en_proceso']);
         }
 
         $ticket->load('user');
-<<<<<<< HEAD
         return response()
             ->view('customer-success.tickets.resolve', compact('ticket'))
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
             ->header('Pragma', 'no-cache')
             ->header('Expires', '0');
-=======
-        return view('customer-success.tickets.resolve', compact('ticket'));
->>>>>>> origin/main
     }
 
     public function resolve(Request $request, Ticket $ticket): JsonResponse
@@ -145,7 +129,6 @@ class TicketController extends Controller
         $validated = $request->validate([
             'status' => ['required', 'string', 'in:resuelto,cerrado'],
             'resolution_type' => ['required', 'string', 'in:problema_corregido,configuracion_realizada,error_usuario,capacitacion,incidencia_externa,otro'],
-<<<<<<< HEAD
             'resolution_type_other' => ['nullable', 'string', 'max:255'],
             'resolution_summary' => ['required', 'string', 'max:2000'],
             'evidence' => ['nullable', 'array'],
@@ -170,36 +153,17 @@ class TicketController extends Controller
             foreach ($request->file('evidence') as $file) {
                 $evidencePaths[] = $file->store('tickets/evidence', 'public');
             }
-=======
-            'resolution_summary' => ['required', 'string', 'max:2000'],
-            'send_message' => ['nullable', 'boolean'],
-            'client_message' => ['nullable', 'required_if:send_message,true', 'string', 'max:2000'],
-            'evidence' => ['nullable', 'file', 'max:10240'],
-        ]);
-
-        $evidencePath = null;
-        if ($request->hasFile('evidence')) {
-            $evidencePath = $request->file('evidence')->store('tickets/evidence', 'public');
->>>>>>> origin/main
         }
 
         $ticket->update([
             'status' => $validated['status'],
-<<<<<<< HEAD
             'resolution_type' => $resolutionType,
             'resolution_summary' => $validated['resolution_summary'],
             'evidence_paths' => $evidencePaths,
-=======
-            'resolution_type' => $validated['resolution_type'],
-            'resolution_summary' => $validated['resolution_summary'],
-            'client_message' => $validated['client_message'] ?? null,
-            'evidence_path' => $evidencePath,
->>>>>>> origin/main
             'resolved_by' => Auth::id(),
             'resolved_at' => now(),
         ]);
 
-<<<<<<< HEAD
         $notifyWeb = (bool) ($validated['notify_web'] ?? false);
         $notifyEmail = (bool) ($validated['notify_email'] ?? false);
 
@@ -226,23 +190,6 @@ class TicketController extends Controller
             Mail::to($ticket->user->email)->send(new TicketResuelto($ticket->fresh(['user', 'resolver'])));
         }
 
-=======
-        if (! empty($validated['send_message']) && ! empty($validated['client_message']) && $ticket->user_id) {
-            Notification::create([
-                'user_id' => $ticket->user_id,
-                'tipo' => 'ticket',
-                'data' => json_encode([
-                    'tipo' => 'ticket',
-                    'titulo' => 'Tu ticket fue resuelto',
-                    'folio' => $ticket->operation_folio,
-                    'subject' => $ticket->subject,
-                    'message' => $validated['client_message'],
-                ]),
-                'read' => false,
-            ]);
-        }
-
->>>>>>> origin/main
         return response()->json([
             'ok' => true,
             'ticket' => $ticket->fresh(['user', 'resolver']),
@@ -252,9 +199,6 @@ class TicketController extends Controller
     public function reopen(Ticket $ticket): JsonResponse
     {
         $ticket->update([
-<<<<<<< HEAD
-            'status' => 'en_proceso',
-=======
             'status' => 'abierto',
             'resolution_type' => null,
             'resolution_summary' => null,
@@ -262,12 +206,10 @@ class TicketController extends Controller
             'evidence_path' => null,
             'resolved_by' => null,
             'resolved_at' => null,
->>>>>>> origin/main
         ]);
 
         return response()->json([
             'ok' => true,
-<<<<<<< HEAD
             'ticket' => $ticket->fresh(['user']),
             'redirect_url' => route('customer-success.tickets.show', $ticket),
         ]);
@@ -311,9 +253,4 @@ class TicketController extends Controller
 
         Notification::insert($notifications);
     }
-=======
-            'ticket' => $ticket->fresh(),
-        ]);
-    }
->>>>>>> origin/main
 }
