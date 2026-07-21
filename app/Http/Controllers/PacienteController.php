@@ -175,15 +175,14 @@ class PacienteController extends Controller
         if ($request->hasFile('foto')) {
             media_delete($paciente->foto);
 
-<<<<<<< HEAD
-            $validated['foto'] = $request->file('foto')->store(
-                'clinicas/'.$request->user()->clinica_id.'/pacientes',
-                'public',
-=======
             $validated['foto'] = media_store(
                 $request->file('foto'),
                 $this->mediaPaths->patientProfile($paciente)
->>>>>>> bb6541f7ee6bb991ce3ff3b5033654a56071bfa3
+
+            $validated['foto'] = $request->file('foto')->store(
+                'clinicas/'.$request->user()->clinica_id.'/pacientes',
+                'public',
+
             );
         }
 

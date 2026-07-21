@@ -453,14 +453,14 @@ class NuevoEstudioController extends Controller
 
     private function guardarArchivoEstudio(Estudio $estudio, $file, ?string $categoria = null, ?string $descripcion = null): EstudioArchivo
     {
-<<<<<<< HEAD
+
         $path = media_store($file, "clinicas/{$estudio->clinica_id}/estudios/{$estudio->id}/archivos");
         $path = $file->store(
             "clinicas/{$estudio->clinica_id}/estudios/{$estudio->id}/archivos",
             'public',
         );
-=======
->>>>>>> bb6541f7ee6bb991ce3ff3b5033654a56071bfa3
+
+
         $mime = $file->getMimeType();
 
         $tipo = match (true) {
