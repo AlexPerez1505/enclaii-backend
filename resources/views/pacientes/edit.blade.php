@@ -998,7 +998,7 @@ textarea{
 
       <div class="form-group">
         <label>Teléfono</label>
-        <input type="tel" name="telefono" value="{{ old('telefono', $paciente->telefono) }}">
+        <input type="tel" name="telefono" value="{{ old('telefono', $paciente->telefono) }}" placeholder="7221620815" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/\D/g,'').slice(0,10)">
       </div>
       <div class="form-group span-3">
         <label>e-mail</label>

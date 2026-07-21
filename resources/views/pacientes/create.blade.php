@@ -1103,7 +1103,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
 
       <div class="form-group">
         <label>Teléfono</label>
-        <input type="tel" name="telefono" value="{{ old('telefono') }}" placeholder="722 162 0815">
+        <input type="tel" name="telefono" value="{{ old('telefono') }}" placeholder="7221620815" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/\D/g,'').slice(0,10)">
       </div>
       <div class="form-group span-3">
         <label>e-mail</label>
