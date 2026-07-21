@@ -8,9 +8,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('pacientes', function (Blueprint $table) {
-            $table->dropColumn(['referido_por', 'equipo_utilizado']);
-        });
+        $columns = array_values(array_filter(
+            ['referido_por', 'equipo_utilizado'],
+            fn (string $column) => Schema::hasColumn('pacientes', $column),
+        ));
+
+        if ($columns) {
+            Schema::table('pacientes', function (Blueprint $table) use ($columns) {
+                $table->dropColumn($columns);
+            });
+        }
     }
 
     public function down(): void
