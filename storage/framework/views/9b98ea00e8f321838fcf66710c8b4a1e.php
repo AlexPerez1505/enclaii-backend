@@ -13,7 +13,7 @@
         <span class="pc-badge">Plan actual</span>
       <?php endif; ?>
     </div>
-    <h4>Clinica</h4><div class="pc-gb">50 GB</div>
+    <h4>Clinica</h4><div class="pc-gb">5 GB por persona</div>
     <ul class="pc-feat">
       <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Almacenamiento en la nube</li>
       <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>IA Reportes básica</li>
@@ -39,7 +39,7 @@
         <span class="pc-badge">Plan actual</span>
       <?php endif; ?>
     </div>
-    <h4>Hospital</h4><div class="pc-gb">100 GB</div>
+    <h4>Hospital</h4><div class="pc-gb">10 GB por persona</div>
     <ul class="pc-feat">
       <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>IA Reportes avanzada</li>
       <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Almacenamiento ampliado</li>
@@ -66,7 +66,7 @@
         <span class="pc-badge">Plan actual</span>
       <?php endif; ?>
     </div>
-    <h4>Red medica</h4><div class="pc-gb">250 GB</div>
+    <h4>Red medica</h4><div class="pc-gb">15 GB por persona</div>
     <ul class="pc-feat">
       <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Todo lo del plan Profesional</li>
       <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Más almacenamiento</li>

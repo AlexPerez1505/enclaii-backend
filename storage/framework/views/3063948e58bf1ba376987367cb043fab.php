@@ -124,6 +124,9 @@
 .bubble.received{background:var(--panel);border:1px solid var(--stroke);color:var(--txt);border-bottom-left-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.07);}
 .bubble.sent{background:linear-gradient(135deg,#2e7bf6,#4f9cf7);color:#fff;border-bottom-right-radius:4px;box-shadow:0 2px 10px rgba(46,123,246,.3);}
 .bubble-time{font-size:10px;opacity:.6;display:flex;align-items:center;justify-content:flex-end;gap:3px;margin-top:4px;}
+.bubble-time .message-status{font-weight:800;}
+.bubble-time .status-failed{color:#ffd2d2;opacity:1;}
+.bubble-time .status-delivered,.bubble-time .status-read{color:#dcffe9;opacity:1;}
 .email-body-wrap{flex:1;overflow-y:auto;padding:18px 22px 10px;}
 .email-body-wrap::-webkit-scrollbar{width:4px;}
 .email-body-wrap::-webkit-scrollbar-thumb{background:var(--stroke);border-radius:4px;}
@@ -758,6 +761,33 @@
     }
   };
 
+  function whatsappStatusMeta(status) {
+    const normalized = String(status || '').toLowerCase();
+    const labels = {
+      pending: 'Pendiente',
+      accepted: 'Aceptado',
+      sent: 'Enviado',
+      delivered: 'Entregado',
+      read: 'Leído',
+      failed: 'Falló'
+    };
+
+    return {
+      key: normalized || 'sent',
+      label: labels[normalized] || (normalized ? normalized : 'Enviado')
+    };
+  }
+
+  function applyWhatsAppMessageStatus(row, message) {
+    const state = row.querySelector('[data-role="message-status"]');
+    if (!state) return;
+
+    const meta = whatsappStatusMeta(message.status);
+    state.className = 'message-status status-' + meta.key;
+    state.textContent = ' ' + meta.label;
+    state.title = message.error || meta.label;
+  }
+
   function appendWhatsAppMessage(message, initials, color) {
     const msgs = document.getElementById('chatMessages');
     const row = document.createElement('div');
@@ -785,9 +815,9 @@
 
     if (!received) {
       const state = document.createElement('span');
-      state.textContent = message.status === 'read' ? ' Leído' : ' Enviado';
-      state.title = message.status || 'enviado';
+      state.dataset.role = 'message-status';
       time.appendChild(state);
+      applyWhatsAppMessageStatus(time, message);
     }
 
     bubble.appendChild(time);
@@ -825,7 +855,18 @@
         return;
       }
 
-      const newMessages = payload.messages.filter(message => !loadedMessageIds.has(String(message.id)));
+      const newMessages = [];
+
+      payload.messages.forEach(message => {
+        const key = String(message.id);
+        if (loadedMessageIds.has(key)) {
+          const row = Array.from(msgs.querySelectorAll('[data-message-id]'))
+            .find(item => item.dataset.messageId === key);
+          if (row) applyWhatsAppMessageStatus(row, message);
+          return;
+        }
+        newMessages.push(message);
+      });
 
       if (newMessages.length && msgs.querySelector('.chat-placeholder')) {
         msgs.innerHTML = '';

@@ -3,7 +3,8 @@
 /* ===== VER IMAGEN ===== */
 .main{padding-top:18px}
 .head{margin-bottom:14px}
-.vi-wrap{display:grid;grid-template-columns:1fr 280px;gap:18px;align-items:start}
+.vi-wrap{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:18px;align-items:start}
+.vi-main-col{min-width:0}
 
 /* Topbar */
 .vi-topbar{display:flex;align-items:center;gap:8px;margin-bottom:14px}
@@ -42,7 +43,8 @@
 /* Visor de imagen */
 .vi-viewer-box{
   background:#000;border-radius:14px;overflow:hidden;
-  position:relative;aspect-ratio:4/3;
+  position:relative;aspect-ratio:16/9;
+  width:100%;max-height:min(68vh,720px);
   display:flex;align-items:center;justify-content:center;
 }
 .vi-img-bg{
@@ -51,7 +53,7 @@
 }
 .vi-main-image{
   position:relative;z-index:2;
-  max-width:100%;max-height:100%;
+  max-width:100%;max-height:100%;width:auto;height:auto;
   object-fit:contain;display:none;
   transform-origin:center center;
   transition:transform 160ms var(--ease-out);
@@ -403,6 +405,12 @@
   background:radial-gradient(ellipse at 50% 45%,#6a1a10 0%,#3a0808 35%,#0a0410 70%,#06081c 100%);
   display:grid;place-items:center;margin-bottom:10px;
 }
+.vi-dl-preview-image{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:contain;background:#000;display:none;
+}
+.vi-dl-thumb.has-image .vi-dl-preview-image{display:block}
+.vi-dl-thumb.has-image > svg{display:none}
 .vi-dl-thumb-badge{
   position:absolute;top:8px;right:8px;
   background:rgba(0,0,0,.6);backdrop-filter:blur(6px);

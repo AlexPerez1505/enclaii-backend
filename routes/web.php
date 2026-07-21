@@ -600,9 +600,11 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
     Route::post('/capture/pairing-code', [\App\Http\Controllers\CapturePairingCodeController::class, 'store'])
         ->name('capture.pairing-code.store');
 
-    Route::get('/nuevo-estudio/importar', function () {
-        return view('estudios.importar.index');
-    })->name('nuevo-estudio.importar');
+    Route::get('/nuevo-estudio/importar', [NuevoEstudioController::class, 'importar'])
+        ->name('nuevo-estudio.importar');
+
+    Route::post('/nuevo-estudio/importar', [NuevoEstudioController::class, 'importarStore'])
+        ->name('nuevo-estudio.importar.store');
 
     Route::post('/nuevo-estudio', [NuevoEstudioController::class, 'store'])
         ->name('nuevo-estudio.store');

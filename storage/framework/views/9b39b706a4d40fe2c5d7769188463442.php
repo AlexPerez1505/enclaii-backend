@@ -29,6 +29,10 @@
   position:absolute;inset:0;
   background:radial-gradient(ellipse at 50% 50%,#5a1a10 0%,#2a0808 40%,#060810 100%);
 }
+.vv-video-el{
+  position:absolute;inset:0;z-index:1;
+  width:100%;height:100%;object-fit:contain;background:#000;
+}
 .vv-player-icon{
   position:absolute;inset:0;z-index:2;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
@@ -114,6 +118,7 @@
   display:grid;place-items:center;position:relative;
   background:radial-gradient(ellipse at 50% 50%,#3a1208 0%,#0a060e 100%);
 }
+.vv-cap-thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .vv-cap-num{
   position:absolute;top:4px;left:5px;
   width:18px;height:18px;border-radius:6px;
@@ -127,6 +132,7 @@
 }
 .vv-cap-item.sel .vv-cap-check{display:grid}
 .vv-cap-ts{font-size:10px;color:var(--txt-soft);text-align:center;padding:4px 0 2px}
+.vv-empty-caps{padding:16px;color:var(--txt-soft);font-size:12.5px;border:1px dashed var(--stroke);border-radius:var(--r-md)}
 
 /* Sidebar info */
 .vv-side{display:flex;flex-direction:column;gap:14px}

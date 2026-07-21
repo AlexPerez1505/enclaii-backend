@@ -703,7 +703,15 @@ table.tbl{width:100%;border-collapse:collapse;font-size:0.9em;min-width:540px}
       applySizeLimits(document.getElementById('widgetGridMinimal'));
       return;
     }
-    if (grid.offsetParent === null) return; // grid oculto, no aplicar
+    if (grid.offsetParent === null) {
+      // grid aun oculto, reintentar unas veces por si acaba de mostrarse
+      const retries = parseInt(grid.dataset.applyRetries, 10) || 0;
+      if (retries < 20) {
+        grid.dataset.applyRetries = retries + 1;
+        requestAnimationFrame(() => applySizeLimits(grid));
+      }
+      return;
+    }
     const visible = Array.from(grid.querySelectorAll('.widget:not(.widget-ghost):not(.widget-hidden):not(.mode-hidden)'));
     let needsRetry = false;
     visible.forEach(w => {

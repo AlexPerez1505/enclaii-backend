@@ -1,5 +1,5 @@
 <style>
-.ip-shell{max-width:1040px}
+.ip-shell{width:100%;max-width:100%;box-sizing:border-box}
 .ip-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
 .ip-back{
   height:44px;display:inline-flex;align-items:center;gap:8px;padding:0 16px;
@@ -9,7 +9,9 @@
   text-decoration:none;
 }
 .ip-back:hover{background:var(--panel);border-color:var(--blue)}
-.ip-title{font-size:18px;font-weight:700;color:var(--txt);margin-left:auto}
+.ip-title{font-size:18px;font-weight:700;color:var(--txt);margin:0 auto}
+.ip-patient{margin-bottom:14px;padding:12px 16px;border:1px solid var(--stroke);border-radius:10px;background:var(--panel-2);color:var(--txt-soft);font-size:13px}
+.ip-patient strong{color:var(--txt)}
 
 .ip-dropzone{
   border:2px dashed rgba(46,123,246,.35);border-radius:18px;
@@ -93,5 +95,16 @@ html[data-theme="light"] .ip-preview-item .ip-file-name{background:linear-gradie
 html[data-theme="light"] .ip-preview-remove{background:rgba(0,0,0,.45);color:#fff}
 html[data-theme="light"] .ip-btn-primary{color:#fff}
 html[data-theme="light"] .ip-btn-primary:hover{background:#2563eb;border-color:#2563eb}
+
+@media(max-width:720px){
+  .ip-dropzone{padding:32px 16px}
+  .ip-dropzone-icon{width:48px;height:48px}
+}
+
+.ip-lightbox{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box}
+.ip-lightbox-inner{max-width:90vw;max-height:90vh;position:relative}
+.ip-lightbox-inner img,.ip-lightbox-inner video{max-width:100%;max-height:85vh;border-radius:12px;display:block}
+.ip-lightbox-close{position:fixed;top:16px;right:16px;width:40px;height:40px;border:none;border-radius:10px;background:rgba(0,0,0,.5);color:#fff;display:grid;place-items:center;cursor:pointer;z-index:10000}
+.ip-lightbox-close:hover{background:rgba(0,0,0,.75)}
 </style>
 <?php /**PATH C:\Users\HP\enclaii-backend\resources\views\estudios\importar\importar-css.blade.php ENDPATH**/ ?>

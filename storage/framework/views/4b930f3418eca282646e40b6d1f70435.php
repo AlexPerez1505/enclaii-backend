@@ -1272,6 +1272,12 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
       <div class="studio-bottom">
         
         <div class="studio-rec-controls">
+          <div style="display:flex;align-items:center;gap:8px;margin-right:8px">
+            <label for="deviceSelect" style="color:rgba(255,255,255,.7);font-size:12px;white-space:nowrap">Cámara:</label>
+            <select id="deviceSelect" style="background:#0d1320;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:6px;padding:6px 8px;font-size:12px;max-width:180px">
+              <option value="">Cargando cámaras...</option>
+            </select>
+          </div>
           <button class="studio-captura-btn" id="btnCapturarFoto">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
             Capturar Foto
@@ -1781,38 +1787,117 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
   btnPausa?.addEventListener('click', function () {
     paused = !paused;
     updatePauseButton();
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      paused ? mediaRecorder.pause() : mediaRecorder.resume();
+    }
   });
 
   /* ── Cámara web en vivo ── */
   const webcam = document.getElementById('studioWebcam');
   const captureCanvas = document.getElementById('captureCanvas');
   const webcamFallback = document.getElementById('webcamFallback');
+  const deviceSelect = document.getElementById('deviceSelect');
   let webcamStream = null;
+  let availableDevices = [];
+  let mediaRecorder = null;
+  let recordedChunks = [];
+  let recordedBlob = null;
 
-  async function initWebcam() {
+  function getRecorderMime() {
+    const types = [
+      'video/webm; codecs=vp9',
+      'video/webm; codecs=vp8',
+      'video/webm'
+    ];
+    return types.find(t => typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || 'video/webm';
+  }
+
+  function startRecorder() {
+    if (!webcamStream || typeof MediaRecorder === 'undefined') return;
+    stopRecorder();
+    recordedChunks = [];
+    recordedBlob = null;
+    const mime = getRecorderMime();
+    try {
+      mediaRecorder = new MediaRecorder(webcamStream, { mimeType: mime });
+      mediaRecorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) recordedChunks.push(e.data); };
+      mediaRecorder.onstop = () => { recordedBlob = new Blob(recordedChunks, { type: mime }); };
+      mediaRecorder.start(1000);
+    } catch (e) {
+      console.warn('No se pudo iniciar la grabación de video:', e);
+    }
+  }
+
+  function stopRecorder() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+      mediaRecorder = null;
+    }
+  }
+
+  async function listVideoDevices() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+    try {
+      await navigator.mediaDevices.getUserMedia({ video: true });
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      availableDevices = devices.filter(d => d.kind === 'videoinput');
+      if (deviceSelect) {
+        deviceSelect.innerHTML = '';
+        if (availableDevices.length === 0) {
+          deviceSelect.innerHTML = '<option value="">No se encontraron cámaras</option>';
+        } else {
+          availableDevices.forEach((device, i) => {
+            const option = document.createElement('option');
+            option.value = device.deviceId;
+            option.textContent = device.label || `Cámara ${i + 1}`;
+            deviceSelect.appendChild(option);
+          });
+        }
+      }
+    } catch (e) {
+      showWebcamError('No se pudo listar cámaras: ' + (e && e.message ? e.message : e));
+    }
+  }
+
+  async function startWebcam(deviceId) {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       showWebcamError('Tu navegador no permite acceder a la cámara.');
       return;
     }
+    stopWebcam();
     try {
-      webcamStream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 1920 }, height: { ideal: 1080 } },
+      const constraints = {
+        video: deviceId ? { deviceId: { exact: deviceId }, width: { ideal: 1920 }, height: { ideal: 1080 } } : { width: { ideal: 1920 }, height: { ideal: 1080 } },
         audio: false
-      });
-      if (webcam) { webcam.srcObject = webcamStream; }
+      };
+      webcamStream = await navigator.mediaDevices.getUserMedia(constraints);
+      if (webcam) { webcam.srcObject = webcamStream; webcam.style.display = ''; }
       if (webcamFallback) webcamFallback.style.display = 'none';
+      startRecorder();
     } catch (e) {
       showWebcamError('No se pudo acceder a la cámara: ' + (e && e.message ? e.message : e));
     }
   }
+
+  async function initWebcam() {
+    await listVideoDevices();
+    const selectedDevice = deviceSelect ? deviceSelect.value : '';
+    await startWebcam(selectedDevice);
+  }
+
   function showWebcamError(msg) {
     if (webcam) webcam.style.display = 'none';
     if (webcamFallback) { webcamFallback.style.display = 'flex'; webcamFallback.textContent = msg; }
   }
+
   function stopWebcam() {
+    stopRecorder();
     if (webcamStream) { webcamStream.getTracks().forEach(t => t.stop()); webcamStream = null; }
   }
-  if (!MOSTRAR_FINALIZADO) initWebcam();
+
+  deviceSelect?.addEventListener('change', () => startWebcam(deviceSelect.value));
+
+  initWebcam();
 
   /* Quitar mensaje "aún no hay fotos" al agregar la primera */
   function removeEmptyHint() {
@@ -1890,6 +1975,9 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
     const fd = new FormData();
     if (ESTUDIO_ID) fd.append('estudio_id', ESTUDIO_ID);
     fd.append('duracion_segundos', secs);
+    if (recordedBlob && recordedBlob.size > 0) {
+      fd.append('video', recordedBlob, 'estudio_' + Date.now() + '.webm');
+    }
     fetch(FINALIZAR_URL, {
       method: 'POST',
       headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
@@ -2001,7 +2089,7 @@ html[data-theme="light"] .studio-emergencia-wrap .sf-play-big:hover { background
     // Ocultar interfaz de grabación y mostrar interfaz finalizada
     wrapPrincipal.style.display = 'none';
     wrapFinalizado.classList.add('active');
-    // Detener timer
+    // Detener timer y grabación
     clearInterval(iv);
     stopWebcam();
     showFirstCapture();

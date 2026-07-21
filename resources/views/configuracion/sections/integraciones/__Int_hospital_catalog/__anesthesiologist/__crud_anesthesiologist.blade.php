@@ -1,4 +1,4 @@
-﻿<div class="int-bk-overlay" id="catAnestModal" aria-hidden="true">
+<div class="int-bk-overlay" id="catAnestModal" aria-hidden="true">
   <form class="int-bk-modal" id="catAnestForm" data-store-url="{{ route('anestesiologos.store') }}" data-update-url-template="{{ url('/anestesiologos/__ID__') }}">
     @csrf
     <input type="hidden" id="catAnestId" name="id">
@@ -46,4 +46,3 @@
     </div>
   </form>
 </div>
-

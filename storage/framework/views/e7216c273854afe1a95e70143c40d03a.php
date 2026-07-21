@@ -1,4 +1,4 @@
-﻿<div class="int-bk-overlay" id="catAnestModal" aria-hidden="true">
+<div class="int-bk-overlay" id="catAnestModal" aria-hidden="true">
   <form class="int-bk-modal" id="catAnestForm" data-store-url="<?php echo e(route('anestesiologos.store')); ?>" data-update-url-template="<?php echo e(url('/anestesiologos/__ID__')); ?>">
     <?php echo csrf_field(); ?>
     <input type="hidden" id="catAnestId" name="id">
@@ -46,5 +46,4 @@
     </div>
   </form>
 </div>
-
 <?php /**PATH C:\Users\HP\enclaii-backend\resources\views\configuracion\sections\integraciones\__Int_hospital_catalog\__anesthesiologist\__crud_anesthesiologist.blade.php ENDPATH**/ ?>

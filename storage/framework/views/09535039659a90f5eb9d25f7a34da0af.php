@@ -168,6 +168,8 @@ html[data-reading="on"]::after{
   align-self:stretch;
 }
 .main{padding:28px 30px 36px;min-width:0;max-width:100%}
+.app-alert{display:flex;align-items:center;gap:9px;margin:0 0 16px;padding:11px 14px;border-radius:11px;border:1px solid rgba(245,158,45,.32);background:rgba(245,158,45,.1);color:var(--txt);font-size:12.5px;font-weight:700}
+.app-alert svg{width:16px;height:16px;flex:none;color:var(--orange)}
 
 /* ================= SIDEBAR ================= */
 .side{
@@ -533,7 +535,11 @@ html[data-theme="light"] .profile:hover { background: var(--hover-bg); }
   font-weight:700;
   font-size:13px;
   color: #fff;
+  overflow:hidden;
+  flex:none;
 }
+.profile .avatar.has-photo{font-size:0;background:var(--panel)}
+.profile .avatar img{width:100%;height:100%;object-fit:cover;display:block}
 .profile strong{display:block;font-size:13.5px;line-height:1.2; color: var(--txt);}
 .profile span{font-size:11.5px;color:var(--txt-soft)}
 
@@ -1279,20 +1285,14 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
       <span class="nav-label">Reportes</span>
     </a>
 
-    <a class="nav-item <?php echo e($active === 'mensajes' ? 'active' : ''); ?>" href="<?php echo e(route('mensajes')); ?>" title="Mensajes">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      <span class="nav-label">Mensajes</span>
-    </a>
+    
 
     <a class="nav-item <?php echo e($active === 'galeria' ? 'active' : ''); ?>" href="<?php echo e(route('galeria')); ?>" title="Galería">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
       <span class="nav-label">Galería</span>
     </a>
 
-    <a class="nav-item <?php echo e($active === 'finanzas' ? 'active' : ''); ?>" href="<?php echo e(url('/finanzas')); ?>" title="Finanzas">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>
-      <span class="nav-label">Finanzas</span>
-    </a>
+    
 
     <a class="nav-item <?php echo e($active === 'configuracion' ? 'active' : ''); ?>" href="<?php echo e(url('/configuracion')); ?>" title="Configuración">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87 1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
@@ -1358,7 +1358,14 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
         ?>
         <div class="profile-wrap">
           <button type="button" class="profile" id="profileBtn" aria-haspopup="true" aria-expanded="false">
-            <div class="avatar" id="headerAvatar" data-initials="<?php echo e($userInitials); ?>" style="<?php echo e($userFoto ? 'background-image:url('.e($userFoto).');background-size:cover;background-position:center;font-size:0;' : ''); ?>"><?php echo e($userFoto ? '' : $userInitials); ?></div>
+            <div class="avatar <?php echo e($userFoto ? 'has-photo' : ''); ?>" id="headerAvatar" data-initials="<?php echo e($userInitials); ?>">
+              <?php if($userFoto): ?>
+                <img id="headerAvatarImg" src="<?php echo e($userFoto); ?>" alt="Foto de perfil" loading="eager" onerror="this.remove();this.parentElement.classList.remove('has-photo');this.parentElement.textContent=this.parentElement.dataset.initials || '';">
+              <?php else: ?>
+                <?php echo e($userInitials); ?>
+
+              <?php endif; ?>
+            </div>
             <div class="profile-meta">
               <strong><?php echo e($userName); ?></strong>
             </div>
@@ -1393,6 +1400,13 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
         </div>
       </div>
     </header>
+
+    <?php if(session('session_limit_notice')): ?>
+      <div class="app-alert" role="status">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.6 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span><?php echo e(session('session_limit_notice')); ?></span>
+      </div>
+    <?php endif; ?>
 
     <?php echo $__env->yieldContent('content'); ?>
 
@@ -2316,10 +2330,25 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
           if (minimalGrid) minimalGrid.offsetHeight;
           if (window.applyWidgetSizeLimits) window.applyWidgetSizeLimits();
         }, 120);
+        setTimeout(() => {
+          if (window.applyWidgetSizeLimits) window.applyWidgetSizeLimits();
+        }, 350);
+
+        // Asegura que las preferencias de visibilidad se apliquen al grid visible.
+        try {
+          const prefs = JSON.parse(localStorage.getItem('dbWidgetPrefs') || '{}');
+          window.dispatchEvent(new CustomEvent('dbWidgetsChanged', {detail: prefs}));
+        } catch(e) {}
       }
 
-      originalBtn.addEventListener('click', () => applyMode('original'));
-      minimalBtn.addEventListener('click', () => applyMode('minimal'));
+      originalBtn.addEventListener('click', () => {
+        try { localStorage.setItem('dbMode', 'original'); } catch(e) {}
+        window.location.reload();
+      });
+      minimalBtn.addEventListener('click', () => {
+        try { localStorage.setItem('dbMode', 'minimal'); } catch(e) {}
+        window.location.reload();
+      });
 
       let savedMode = 'original';
       try { savedMode = localStorage.getItem('dbMode') || 'original'; } catch(e) {}

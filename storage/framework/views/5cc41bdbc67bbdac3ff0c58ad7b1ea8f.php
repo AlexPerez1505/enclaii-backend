@@ -178,6 +178,7 @@
       <div class="cfg-card-head">
         <h2>Dispositivos conectados</h2>
         <p>Revisa y cierra las sesiones activas de tu cuenta</p>
+        <p>Tu plan permite <?php echo e($sessionLimit ?? 1); ?> <?php echo e(($sessionLimit ?? 1) === 1 ? 'sesiÃ³n activa' : 'sesiones activas'); ?> por cuenta. Al superar el lÃ­mite se cerrarÃ¡ la sesiÃ³n mÃ¡s antigua.</p>
       </div>
 
       <div class="sec-table-wrap">

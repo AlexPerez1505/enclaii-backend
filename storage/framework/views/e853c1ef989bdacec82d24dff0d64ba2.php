@@ -301,6 +301,9 @@
     <button type="button" class="cfg-tab active" data-tab="general">General</button>
     <button type="button" class="cfg-tab" data-tab="qr-preregistro">QR y Pre-registro</button>
     <button type="button" class="cfg-tab" data-tab="plan">Plan y almacenamiento</button>
+    <?php if($showDesktopAppSettings ?? false): ?>
+      <button type="button" class="cfg-tab" data-tab="aplicacion-escritorio">Aplicación de escritorio</button>
+    <?php endif; ?>
     <button type="button" class="cfg-tab" data-tab="integraciones">Integraciones</button>
     <button type="button" class="cfg-tab" data-tab="seguridad">Seguridad</button>
     <button type="button" class="cfg-tab" data-tab="perfil">Perfil</button>
@@ -309,6 +312,9 @@
   <?php echo $__env->make('configuracion.sections.general', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
   <?php echo $__env->make('configuracion.sections.qr-preregistro', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
   <?php echo $__env->make('configuracion.sections.plan', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+  <?php if($showDesktopAppSettings ?? false): ?>
+    <?php echo $__env->make('configuracion.sections.aplicacion-escritorio', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+  <?php endif; ?>
   <?php echo $__env->make('configuracion.sections.integraciones', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
   <?php echo $__env->make('configuracion.sections.seguridad', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
   <?php echo $__env->make('configuracion.sections.perfil', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>

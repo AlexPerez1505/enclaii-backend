@@ -1285,20 +1285,20 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
       <span class="nav-label">Reportes</span>
     </a>
 
-    <a class="nav-item {{ $active === 'mensajes' ? 'active' : '' }}" href="{{ route('mensajes') }}" title="Mensajes">
+    {{-- <a class="nav-item {{ $active === 'mensajes' ? 'active' : '' }}" href="{{ route('mensajes') }}" title="Mensajes">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       <span class="nav-label">Mensajes</span>
-    </a>
+    </a> --}}
 
     <a class="nav-item {{ $active === 'galeria' ? 'active' : '' }}" href="{{ route('galeria') }}" title="Galería">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
       <span class="nav-label">Galería</span>
     </a>
 
-    <a class="nav-item {{ $active === 'finanzas' ? 'active' : '' }}" href="{{ url('/finanzas') }}" title="Finanzas">
+    {{--<a class="nav-item {{ $active === 'finanzas' ? 'active' : '' }}" href="{{ url('/finanzas') }}" title="Finanzas">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>
       <span class="nav-label">Finanzas</span>
-    </a>
+    </a> --}}
 
     <a class="nav-item {{ $active === 'configuracion' ? 'active' : '' }}" href="{{ url('/configuracion') }}" title="Configuración">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87 1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
@@ -2335,10 +2335,25 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
           if (minimalGrid) minimalGrid.offsetHeight;
           if (window.applyWidgetSizeLimits) window.applyWidgetSizeLimits();
         }, 120);
+        setTimeout(() => {
+          if (window.applyWidgetSizeLimits) window.applyWidgetSizeLimits();
+        }, 350);
+
+        // Asegura que las preferencias de visibilidad se apliquen al grid visible.
+        try {
+          const prefs = JSON.parse(localStorage.getItem('dbWidgetPrefs') || '{}');
+          window.dispatchEvent(new CustomEvent('dbWidgetsChanged', {detail: prefs}));
+        } catch(e) {}
       }
 
-      originalBtn.addEventListener('click', () => applyMode('original'));
-      minimalBtn.addEventListener('click', () => applyMode('minimal'));
+      originalBtn.addEventListener('click', () => {
+        try { localStorage.setItem('dbMode', 'original'); } catch(e) {}
+        window.location.reload();
+      });
+      minimalBtn.addEventListener('click', () => {
+        try { localStorage.setItem('dbMode', 'minimal'); } catch(e) {}
+        window.location.reload();
+      });
 
       let savedMode = 'original';
       try { savedMode = localStorage.getItem('dbMode') || 'original'; } catch(e) {}

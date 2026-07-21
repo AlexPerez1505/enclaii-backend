@@ -120,13 +120,10 @@ html[data-theme="light"] .info-item{color:#5B6A99}
     </div>
     <div class="info-item">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-      El paciente recibirá una notificación por WhatsApp y correo
+      Informa al paciente que debera llegar 15 minutos antes a la cita 
     </div>
-    <div class="info-item">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-      Llegará 15 minutos antes de la cita
-    </div>
-  </div>
+    
+  </div> 
 </div>
 
 
@@ -134,10 +131,10 @@ html[data-theme="light"] .info-item{color:#5B6A99}
   <div class="success-card">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6"/></svg>
     <h3>¡Cita agendada!</h3>
-    <p id="successText">La cita se guardó correctamente. Se enviará una notificación al paciente.</p>
+    
     <div class="success-actions">
       <a class="btn-primary" href="<?php echo e(route('agenda')); ?>">Salir</a>
-      <a class="btn-secondary" href="<?php echo e(route('mensajes')); ?>" id="btnGoChat">Ver mensaje</a>
+      
     </div>
   </div>
 </div>
