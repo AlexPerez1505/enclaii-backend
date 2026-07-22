@@ -88,13 +88,20 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 .ed-panel h3{font-size:14px;font-weight:700;margin-bottom:3px}
 .ed-panel .ph-sub{font-size:11.5px;color:var(--txt-soft);margin-bottom:12px}
 .cap-panel{padding:15px 16px}
+.cap-panel.is-collapsed{padding-bottom:15px}
 .cap-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.cap-panel.is-collapsed .cap-head{margin-bottom:0}
 .cap-head h3{font-size:14px;font-weight:700;margin:0}
 .cap-actions{display:flex;align-items:center;gap:8px}
 .cap-count{font-size:11.5px;color:var(--txt-soft)}
-.cap-reset{width:28px;height:28px;display:grid;place-items:center;border-radius:8px;border:1px solid var(--stroke);background:var(--panel-2);color:var(--txt-soft);transition:color .15s,background-color .15s,border-color .15s}
-.cap-reset svg{width:14px;height:14px}
-@media(hover:hover){.cap-reset:hover{color:var(--cyan);border-color:rgba(56,199,244,.45);background:rgba(56,199,244,.1)}}
+.cap-reset,.cap-toggle{width:28px;height:28px;display:grid;place-items:center;border-radius:8px;border:1px solid var(--stroke);background:var(--panel-2);color:var(--txt-soft);transition:color .15s,background-color .15s,border-color .15s}
+.cap-reset svg,.cap-toggle svg{width:14px;height:14px}
+.cap-toggle svg{transition:transform .18s ease}
+.cap-panel.is-collapsed .cap-toggle svg{transform:rotate(180deg)}
+@media(hover:hover){.cap-reset:hover,.cap-toggle:hover{color:var(--cyan);border-color:rgba(56,199,244,.45);background:rgba(56,199,244,.1)}}
+.cap-body{overflow:hidden;transition:grid-template-rows .2s ease,opacity .18s ease;display:grid;grid-template-rows:1fr;opacity:1}
+.cap-body-inner{min-height:0}
+.cap-panel.is-collapsed .cap-body{grid-template-rows:0fr;opacity:0;pointer-events:none}
 .cap-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
 .cap-thumb-wrap{position:relative;min-width:0}
 .cap-thumb{display:block;width:100%;aspect-ratio:4/3;border-radius:8px;border:1px solid var(--stroke);overflow:hidden;background:#020714;transition:border-color .15s,transform .15s,opacity .15s;cursor:pointer;padding:0;position:relative}
@@ -421,7 +428,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     <button class="ed-tb" data-cmd="underline"><u>U</u></button>
     <button class="ed-tb" data-cmd="strikeThrough"><s>S</s></button>
     <span class="sep"></span>
-    <input type="text" class="ed-tb" id="fontSizeInput" aria-label="Tamaño de letra" min="8" max="72" value="14" style="width: 60px; padding: 4px 8px; background: var(--panel); color: var(--txt); border: 1px solid var(--stroke);">
+    <input type="text" class="ed-tb" id="fontSizeInput" aria-label="Tamaño de letra" inputmode="numeric" pattern="[0-9]*" min="8" max="72" value="14" style="width: 60px; padding: 4px 8px; background: var(--panel); color: var(--txt); border: 1px solid var(--stroke);">
     <span class="ed-color-wrap">
       <button type="button" class="ed-tb ed-color-btn" id="textColorBtn" aria-label="Color de letra" title="Color de letra">
         <span class="ed-color-letter">A</span>
@@ -514,25 +521,32 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
             <button type="button" class="cap-reset" id="imgRestoreAll" aria-label="Mostrar todas las capturas" title="Mostrar todas">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.5-6.2"/><path d="M21 12a9 9 0 0 1-15.5 6.2"/><path d="M18 3v5h-5"/><path d="M6 21v-5h5"/></svg>
             </button>
+            <button type="button" class="cap-toggle" id="capPanelToggle" aria-label="Contraer capturas del estudio" aria-expanded="true" aria-controls="capPanelBody" title="Contraer capturas">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg>
+            </button>
           </div>
         </div>
-        @if(($estudioImagenes ?? collect())->count())
-          <div class="cap-grid">
-            @foreach(($estudioImagenes ?? collect()) as $i => $img)
-              <div class="cap-thumb-wrap">
-              <button type="button" class="cap-thumb" data-img-index="{{ $i }}" title="Agregar o quitar del reporte">
-                <img src="{{ $img['url'] }}" alt="" loading="lazy" onerror="this.parentElement.classList.add('img-missing');this.remove()">
-                <span class="cap-state">En reporte</span>
-              </button>
-              <a class="cap-open" href="{{ $img['show_url'] ?? $img['url'] }}" target="_blank" rel="noopener" aria-label="Abrir captura completa" title="Abrir captura completa">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>
-              </a>
+        <div class="cap-body" id="capPanelBody">
+          <div class="cap-body-inner">
+            @if(($estudioImagenes ?? collect())->count())
+              <div class="cap-grid">
+                @foreach(($estudioImagenes ?? collect()) as $i => $img)
+                  <div class="cap-thumb-wrap">
+                  <button type="button" class="cap-thumb" data-img-index="{{ $i }}" title="Agregar o quitar del reporte">
+                    <img src="{{ $img['url'] }}" alt="" loading="lazy" onerror="this.parentElement.classList.add('img-missing');this.remove()">
+                    <span class="cap-state">En reporte</span>
+                  </button>
+                  <a class="cap-open" href="{{ $img['show_url'] ?? $img['url'] }}" target="_blank" rel="noopener" aria-label="Abrir captura completa" title="Abrir captura completa">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>
+                  </a>
+                  </div>
+                @endforeach
               </div>
-            @endforeach
+            @else
+              <p class="cap-empty">Sin capturas asociadas.</p>
+            @endif
           </div>
-        @else
-          <p class="cap-empty">Sin capturas asociadas.</p>
-        @endif
+        </div>
       </article>
 
       <article class="card ed-chat rise d3">
@@ -785,6 +799,20 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 
 @push('scripts')
 <script>
+/* ===== Contraer/expandir capturas del estudio ===== */
+(function(){
+  const panel = document.querySelector('.cap-panel');
+  const toggle = document.getElementById('capPanelToggle');
+  if (!panel || !toggle) return;
+
+  toggle.addEventListener('click', () => {
+    const collapsed = panel.classList.toggle('is-collapsed');
+    toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    toggle.setAttribute('aria-label', collapsed ? 'Expandir capturas del estudio' : 'Contraer capturas del estudio');
+    toggle.setAttribute('title', collapsed ? 'Expandir capturas' : 'Contraer capturas');
+  });
+})();
+
 /* ===== Plantillas + configuración (logo, clínica, imagen, firma) ===== */
 (function(){
   const cont = document.getElementById('docSections');
@@ -1624,9 +1652,36 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     return el.closest('[contenteditable="true"], p, li, h4, h2, .doc-meta span') || el;
   };
 
+  const inlineFontSizeTargetFromRange = (range) => {
+    if (!range || !docEl) return null;
+    const candidates = [range.startContainer, range.commonAncestorContainer, range.endContainer];
+
+    for (const node of candidates) {
+      let el = elementFromNode(node);
+      while (el && el !== docEl) {
+        if (el.style?.fontSize || el.getAttribute?.('size')) return el;
+        el = el.parentElement;
+      }
+    }
+
+    return null;
+  };
+
+  const currentFontSizeTarget = () => {
+    const sel = document.getSelection();
+    let range = null;
+    if (sel && sel.rangeCount && selectionInsideDoc()) {
+      range = sel.getRangeAt(0);
+    } else if (savedDocRange && rangeInsideDoc(savedDocRange)) {
+      range = savedDocRange;
+    }
+
+    return inlineFontSizeTargetFromRange(range) || currentEditableTarget();
+  };
+
   const syncFontSizeInput = () => {
     if (!fontSizeInput || document.activeElement === fontSizeInput) return;
-    const target = currentEditableTarget();
+    const target = currentFontSizeTarget();
     if (!target) return;
     const size = Math.round(parseFloat(getComputedStyle(target).fontSize));
     if (size) fontSizeInput.value = String(size);
@@ -1707,6 +1762,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   if (fontSizeInput) {
     let savedRange = null;
     let savedMark = null;
+    let activeTypingFontSize = null;
 
     const selectionInsideDoc = () => {
       const sel = document.getSelection();
@@ -1731,6 +1787,15 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
         el.removeAttribute('size');
         el.setAttribute('style', style);
       }
+    };
+
+    const releaseSavedMark = () => {
+      if (savedMark) {
+        savedMark.classList.remove('ed-tmp-select');
+        unwrapIfEmpty(savedMark);
+        savedMark = null;
+      }
+      savedRange = null;
     };
 
     const markSelection = () => {
@@ -1760,9 +1825,12 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     const applyFontSize = (px) => {
       const size = parseInt(px, 10);
       if (isNaN(size) || size < 8 || size > 72) {
-        fontSizeInput.value = '14';
+        fontSizeInput.value = String(activeTypingFontSize || 14);
+        releaseSavedMark();
         return;
       }
+      activeTypingFontSize = size;
+      fontSizeInput.value = String(size);
 
       if (savedMark) {
         savedMark.querySelectorAll('span, font').forEach(unwrapIfEmpty);
@@ -1795,15 +1863,10 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
       if (!range) return;
 
       if (range.collapsed) {
-        const span = document.createElement('span');
-        span.style.fontSize = size + 'px';
-        range.insertNode(span);
-        const text = document.createTextNode('');
-        span.appendChild(text);
-        range.setStart(text, 0);
-        range.setEnd(text, 0);
-        sel.removeAllRanges();
-        sel.addRange(range);
+        saveDocSelection();
+        refreshToolbar();
+        if (docEl) docEl.dispatchEvent(new Event('input', { bubbles: true }));
+        return;
       } else {
         try {
           const span = document.createElement('span');
@@ -1824,16 +1887,42 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     };
 
     // Solo permitir números
+    const insertTextWithFontSize = (text) => {
+      if (!text || !selectionInsideDoc()) return false;
+      const size = parseInt(activeTypingFontSize, 10);
+      if (isNaN(size) || size < 8 || size > 72) return false;
+
+      const sel = document.getSelection();
+      if (!sel || !sel.rangeCount) return false;
+
+      const range = sel.getRangeAt(0);
+      if (!range.collapsed) range.deleteContents();
+
+      const span = document.createElement('span');
+      span.style.fontSize = size + 'px';
+      span.textContent = text;
+      range.insertNode(span);
+
+      const nextRange = document.createRange();
+      nextRange.setStartAfter(span);
+      nextRange.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(nextRange);
+      saveDocSelection();
+      refreshToolbar();
+      if (docEl) docEl.dispatchEvent(new Event('input', { bubbles: true }));
+      return true;
+    };
+
     fontSizeInput.addEventListener('input', (e) => {
       e.target.value = e.target.value.replace(/[^0-9]/g, '');
-      const size = parseInt(e.target.value, 10);
-      if (!isNaN(size) && size >= 8 && size <= 72) {
-        fontSizeInput.dispatchEvent(new Event('change'));
-      }
     });
 
     // Guardar y marcar la selección antes de que el input robe el foco
     fontSizeInput.addEventListener('mousedown', markSelection);
+    fontSizeInput.addEventListener('focus', () => {
+      if (!savedRange && !savedMark) markSelection();
+    });
 
     fontSizeInput.addEventListener('change', (e) => applyFontSize(e.target.value));
     fontSizeInput.addEventListener('keydown', (e) => {
@@ -1843,6 +1932,15 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
       const target = findEditableTarget(savedRange) || docEl.querySelector('[contenteditable="true"]');
       if (target) target.focus();
     });
+
+    if (docEl) {
+      docEl.addEventListener('beforeinput', (e) => {
+        if (e.inputType !== 'insertText' || e.isComposing) return;
+        if (!activeTypingFontSize || document.activeElement === fontSizeInput) return;
+        e.preventDefault();
+        insertTextWithFontSize(e.data);
+      });
+    }
   }
 
   const applyTextColor = (color) => {
