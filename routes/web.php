@@ -318,7 +318,25 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
                 ->orderByDesc('capturado_en')
                 ->orderByDesc('id')
                 ->get()
-                ->map(fn ($a) => 'storage/'.$a->path.'?v='.($a->updated_at?->timestamp ?? $a->id))
+                ->map(function ($a) {
+                    $existsOnMediaDisk = media_exists($a->path);
+                    $existsOnPublicDisk = ! $existsOnMediaDisk
+                        && \Illuminate\Support\Facades\Storage::disk('public')->exists($a->path);
+
+                    if (! $existsOnMediaDisk && ! $existsOnPublicDisk) {
+                        // El archivo ya no existe en ningún disco: es un registro huérfano.
+                        $a->delete();
+
+                        return null;
+                    }
+
+                    $version = '?v='.($a->updated_at?->timestamp ?? $a->id);
+
+                    return $existsOnPublicDisk
+                        ? url('storage/'.$a->path).$version
+                        : media_url($a->path).$version;
+                })
+                ->filter()
                 ->values();
         }
 
@@ -410,10 +428,19 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
                 ->orderByDesc('id')
                 ->get()
                 ->map(function ($a) {
-                    $url = media_url($a->path);
-                    if (! media_exists($a->path) && \Illuminate\Support\Facades\Storage::disk('public')->exists($a->path)) {
-                        $url = url('storage/'.$a->path);
+                    $existsOnMediaDisk = media_exists($a->path);
+                    $existsOnPublicDisk = ! $existsOnMediaDisk
+                        && \Illuminate\Support\Facades\Storage::disk('public')->exists($a->path);
+
+                    if (! $existsOnMediaDisk && ! $existsOnPublicDisk) {
+                        // El archivo ya no existe en ningún disco: es un registro huérfano.
+                        // Se elimina de nuestros registros para que no vuelva a intentarse mostrar.
+                        $a->delete();
+
+                        return null;
                     }
+
+                    $url = $existsOnPublicDisk ? url('storage/'.$a->path) : media_url($a->path);
 
                     return [
                         'id' => $a->id,
@@ -422,6 +449,7 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
                         'show_url' => route('galeria.imagen', ['id' => $a->id, 'paciente' => $a->paciente_id]),
                     ];
                 })
+                ->filter()
                 ->values();
         }
 
