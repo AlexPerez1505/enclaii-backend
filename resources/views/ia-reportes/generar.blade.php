@@ -52,9 +52,11 @@
 .gen-ev-tools button{width:28px;height:28px;border:1px solid var(--stroke);border-radius:8px;display:grid;place-items:center;color:var(--txt-soft)}
 .gen-ev-tools svg{width:15px;height:15px}
 .gen-thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
-.gen-thumb{aspect-ratio:4/3;border-radius:10px;border:1px solid var(--stroke);overflow:hidden;background:var(--off)}
-.gen-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.gen-thumb{aspect-ratio:4/3;border-radius:10px;border:1px solid var(--stroke);overflow:hidden;background:#020714}
+.gen-thumb img{width:100%;height:100%;object-fit:contain;object-position:center;display:block;background:#020714}
 .gen-thumb.sel{border-color:var(--cyan);box-shadow:0 0 0 1.5px var(--cyan)}
+.gen-thumb.missing{display:grid;place-items:center;color:var(--txt-soft);font-size:11px;text-align:center;padding:8px}
+.gen-thumb.missing::after{content:"Imagen no disponible"}
 .gen-dots{display:flex;justify-content:center;gap:6px;margin-top:11px}
 .gen-dots i{width:7px;height:7px;border-radius:50%;background:var(--off)}
 .gen-dots i.on{background:var(--cyan);width:18px;border-radius:99px}
@@ -211,7 +213,13 @@
         <div class="gen-thumbs" id="genThumbs">
           @forelse ($evidencias as $i => $ev)
             <div class="gen-thumb {{ $i === 0 ? 'sel' : '' }}">
-              <img src="{{ $ev }}" alt="Evidencia {{ $i + 1 }}" loading="lazy">
+              <img
+                src="{{ $ev['url'] }}"
+                alt="{{ $ev['titulo'] ?? 'Evidencia '.($i + 1) }}"
+                title="{{ $ev['titulo'] ?? 'Evidencia '.($i + 1) }}"
+                loading="lazy"
+                onerror="this.closest('.gen-thumb')?.classList.add('missing');this.remove()"
+              >
             </div>
           @empty
             <p style="grid-column:1/-1;color:var(--txt-soft);font-size:12.5px;margin:0">No hay imágenes asociadas a este estudio.</p>
@@ -337,7 +345,7 @@
       fecha: document.getElementById('genFecha')?.value || '',
       observaciones: (document.getElementById('genObs')?.value || '').trim(),
       opciones,
-      imagenes: @json($evidencias),
+      imagen_ids: @json($evidencias->pluck('id')->values()),
     };
 
     if (!ESTUDIO_ID) {

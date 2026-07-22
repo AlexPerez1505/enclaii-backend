@@ -44,7 +44,8 @@
 
 /* Imágenes */
 .rep-imgs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:14px 0 20px}
-.rep-imgs .cell{aspect-ratio:4/3;background:#e5e5e5;border:1px solid var(--stroke);border-radius:4px}
+.rep-imgs .cell{aspect-ratio:4/3;background:#020714;border:1px solid var(--stroke);border-radius:4px;overflow:hidden}
+.rep-imgs .cell img{width:100%;height:100%;object-fit:contain;object-position:center;display:block;background:#020714}
 
 /* Firma */
 .rep-sign{margin-top:38px;display:flex;justify-content:center}
@@ -82,8 +83,8 @@
   .rep-anat { width: 70px; }
   .rep-clinic { left: 76px; right: 76px; }
   .rep-imgs { grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 8px 0 12px; }
-  .rep-imgs .cell { aspect-ratio: 4/3; max-height: 1.4in; background: #e5e5e5; }
-  .rep-imgs .cell img { max-height: 1.4in; object-fit: cover; }
+  .rep-imgs .cell { aspect-ratio: 4/3; max-height: 1.4in; background: #020714; }
+  .rep-imgs .cell img { max-height: 1.4in; object-fit: contain; }
   .rep-sign { margin-top: 18px; }
   .rep-sign .sign-box .nm { font-size: 10pt; }
   .rep-header, .rep-imgs, .doc-meta, .doc-content { page-break-inside: avoid; }
@@ -118,8 +119,32 @@
 
     $contenidoHtml = $reporte?->contenido_html;
     $contenidoTexto = $reporte?->contenido_texto ?? '';
+    $imagenesConfig = is_array($reporte?->imagenes_config) ? $reporte->imagenes_config : [];
+    $imagenesEnabled = ($imagenesConfig['enabled'] ?? true) !== false;
+    $imgItems = is_array($imagenesConfig['items'] ?? null) ? $imagenesConfig['items'] : [];
+    $cols = $imagenesEnabled ? ($imagenesConfig['cols'] ?? $reporte?->plantilla?->columnas ?? 4) : 0;
+    if ($cols < 1 || $cols > 8) $cols = 4;
 
-    $imagenes = $estudioImagenes->map(fn ($img) => is_array($img) ? ($img['url'] ?? null) : $img)->filter()->values();
+    $imagenes = $imagenesEnabled ? $estudioImagenes->values()
+      ->map(function ($img, $i) use ($imgItems, $cols) {
+        if (! is_array($img)) return null;
+
+        $key = (string) ($img['id'] ?? $i);
+        $state = $imgItems[$key] ?? [];
+        if (($state['visible'] ?? true) === false) return null;
+
+        $size = (int) ($state['size'] ?? 1);
+        if ($size < 1) $size = 1;
+        if ($size > $cols) $size = $cols;
+
+        return [
+          'url' => $img['url'] ?? null,
+          'titulo' => $img['titulo'] ?? 'Captura',
+          'size' => $size,
+        ];
+      })
+      ->filter(fn ($img) => is_array($img) && filled($img['url'] ?? null))
+      ->values() : collect();
   @endphp
 
   <div class="vw-actions">
@@ -168,17 +193,15 @@
     </div>
 
     @php
-      $cols = $reporte?->plantilla?->columnas ?? 4;
-      if ($cols < 1 || $cols > 8) $cols = 4;
       $imgCount = $imagenes->count();
-      $repImgsStyle = $imgCount ? 'grid-template-columns:repeat(' . min($cols, $imgCount) . ',1fr);' : '';
+      $repImgsStyle = $imgCount ? 'grid-template-columns:repeat(' . $cols . ',1fr);' : '';
     @endphp
     {{-- Imágenes del estudio --}}
     @if($imgCount)
       <div class="rep-imgs" style="{{ $repImgsStyle }}">
-        @foreach($imagenes as $url)
-          <span class="cell" style="background:none;overflow:hidden">
-            <img src="{{ $url }}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">
+        @foreach($imagenes as $img)
+          <span class="cell" style="grid-column:span {{ $img['size'] }};overflow:hidden">
+            <img src="{{ $img['url'] }}" alt="{{ $img['titulo'] }}" style="width:100%;height:100%;object-fit:contain;object-position:center;display:block;background:#020714">
           </span>
         @endforeach
       </div>

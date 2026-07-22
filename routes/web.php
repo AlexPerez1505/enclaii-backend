@@ -307,6 +307,8 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
 
 
     Route::get('/ia-reportes', [IaReporteController::class, 'index'])->name('ia-reportes');
+    Route::get('/ia-reportes/evidencia/{archivo}', [IaReporteController::class, 'evidencia'])
+        ->name('ia-reportes.evidencia');
 
     Route::get('/ia-reportes/generar', function () {
         $estudioId = request()->query('estudio');
@@ -346,11 +348,15 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
                         return null;
                     }
 
-                    $version = '?v='.($a->updated_at?->timestamp ?? $a->id);
-
-                    return $existsOnPublicDisk
-                        ? url('storage/'.$a->path).$version
-                        : media_url($a->path).$version;
+                    return [
+                        'id' => $a->id,
+                        'url' => route('ia-reportes.evidencia', [
+                            'archivo' => $a->id,
+                            'v' => $a->updated_at?->timestamp ?? $a->id,
+                        ]),
+                        'titulo' => $a->nombre_original ?: basename((string) $a->path),
+                        'path' => $a->path,
+                    ];
                 })
                 ->filter()
                 ->values();
@@ -462,6 +468,7 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
                         'id' => $a->id,
                         'url' => $url,
                         'titulo' => $a->nombre_original,
+                        'path' => $a->path,
                         'show_url' => route('galeria.imagen', ['id' => $a->id, 'paciente' => $a->paciente_id]),
                     ];
                 })
@@ -594,7 +601,12 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
                             $url = url('storage/'.$a->path);
                         }
 
-                        return ['url' => $url, 'titulo' => $a->nombre_original];
+                        return [
+                            'id' => $a->id,
+                            'url' => $url,
+                            'titulo' => $a->nombre_original,
+                            'path' => $a->path,
+                        ];
                     });
             }
             // Si el reporte no tiene plantilla asignada, cargar la que corresponda al tipo de estudio
