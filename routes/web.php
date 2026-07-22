@@ -383,6 +383,7 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
             'evidencias' => $evidencias,
             'datos' => $datos,
             'estudiosLista' => $estudiosLista,
+            'userSettings' => request()->user()->resolvedSettings(),
         ]);
     })->name('ia-reportes.generar');
 

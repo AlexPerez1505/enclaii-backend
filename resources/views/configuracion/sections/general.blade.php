@@ -27,7 +27,7 @@
         </div>
       </div>
 
-      <div class="cfg-row">
+      {{-- <div class="cfg-row">
         <span class="cfg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
         <div class="cfg-info"><div class="t">Zona horaria</div><div class="d">Configura tu zona horaria local</div></div>
         <div class="cfg-select">
@@ -41,8 +41,8 @@
           </select>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-      </div>
-
+      </div> --}}
+      
       <div class="cfg-row">
         <span class="cfg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
         <div class="cfg-info"><div class="t">Formato de fecha</div><div class="d">Selecciona el formato de fecha</div></div>
@@ -96,17 +96,17 @@
         </div>
       </div>
 
-      <div class="cfg-row">
+      {{-- <div class="cfg-row">
         <span class="cfg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/></svg></span>
         <div class="cfg-info"><div class="t">Animaciones y transiciones</div><div class="d">Habilitar animaciones en la interfaz</div></div>
         <label class="sw"><input type="checkbox" data-setting="animations" data-effect="animations" checked><span class="track"></span><span class="knob"></span></label>
-      </div>
+      </div> --}}
 
-      <div class="cfg-row">
+      {{--<div class="cfg-row">
         <span class="cfg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="3" y2="18"/></svg></span>
         <div class="cfg-info"><div class="t">Modo compacto</div><div class="d">Reducir espacios y mostrar más información</div></div>
         <label class="sw"><input type="checkbox" data-setting="compact" data-effect="compact"><span class="track"></span><span class="knob"></span></label>
-      </div>
+      </div>--}}
 
       <div class="cfg-card-head cfg-sec">
         <h2>Notificaciones</h2>
@@ -203,7 +203,7 @@
         </div>
       </div>
 
-      <div class="cfg-row">
+      {{--<div class="cfg-row">
         <span class="cfg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
         <div class="cfg-info"><div class="t">Mensajes</div><div class="d">Alertas de nuevos mensajes y respuestas de pacientes.</div></div>
         <div class="cfg-notif-opts">
@@ -212,7 +212,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
           </label>
         </div>
-      </div>
+      </div>--}}
 
     </article>
 

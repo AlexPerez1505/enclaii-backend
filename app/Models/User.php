@@ -336,6 +336,9 @@ class User extends Authenticatable
             'capture_auto_capture' => true,
             'capture_auto_save' => true,
             'capture_auto_interval' => 30,
+            'ai_analyze_photos' => true,
+            'ai_suggest_diagnoses' => true,
+            'ai_recommend_procedures' => true,
             'dashboard_layout' => [],
         ];
     }

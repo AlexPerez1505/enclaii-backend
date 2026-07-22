@@ -227,11 +227,11 @@
           <svg class="step-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11.5 14.5 16 9.5"/></svg>
         </div>
         <div class="gen-checks" id="genOpts">
-          <label class="gen-check"><input type="checkbox" data-opt="Analizar imágenes" checked> Analizar imágenes</label>
-          <label class="gen-check"><input type="checkbox" data-opt="Generar recomendaciones" checked> Generar recomendaciones</label>
+          <label class="gen-check"><input type="checkbox" data-opt="Analizar imágenes" @checked($userSettings['ai_analyze_photos'] ?? true)> Analizar imágenes</label>
+          <label class="gen-check"><input type="checkbox" data-opt="Generar recomendaciones" @checked($userSettings['ai_recommend_procedures'] ?? true)> Generar recomendaciones</label>
           <label class="gen-check"><input type="checkbox" data-opt="Comparar estudios previos" checked> Comparar estudios previos</label>
           <label class="gen-check"><input type="checkbox" data-opt="Sugerir biopsias" checked> Sugerir biopsias</label>
-          <label class="gen-check"><input type="checkbox" data-opt="Detectar patologías" checked> Detectar patologías</label>
+          <label class="gen-check"><input type="checkbox" data-opt="Detectar patologías" @checked($userSettings['ai_suggest_diagnoses'] ?? true)> Detectar patologías</label>
           <label class="gen-check"><input type="checkbox" data-opt="Análisis de riesgo" checked> Análisis de riesgo</label>
         </div>
       </div>
