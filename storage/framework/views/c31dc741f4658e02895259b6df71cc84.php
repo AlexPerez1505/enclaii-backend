@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="csrf-token" content="{{ csrf_token() }}">
+<meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
 <meta name="google" content="notranslate">
-<link rel="icon" type="image/png" href="{{ asset('images/enclaii-favicon.png') }}?v=4">
-<link rel="shortcut icon" type="image/png" href="{{ asset('images/enclaii-favicon.png') }}?v=4">
+<link rel="icon" type="image/png" href="<?php echo e(asset('images/enclaii-favicon.png')); ?>?v=4">
+<link rel="shortcut icon" type="image/png" href="<?php echo e(asset('images/enclaii-favicon.png')); ?>?v=4">
 <script>
   /* Aplicar tema guardado antes del primer render (evita parpadeo) */
   document.documentElement.dataset.theme = localStorage.getItem('enclaii-theme') || 'dark';
@@ -27,19 +27,19 @@
     document.documentElement.dataset.reading = pref('reading_mode', '0') === '1' ? 'on' : 'off';
   })();
 </script>
-<title>@yield('title', 'ENCLAII') — ENCLAII</title>
-@auth
+<title><?php echo $__env->yieldContent('title', 'ENCLAII'); ?> — ENCLAII</title>
+<?php if(auth()->guard()->check()): ?>
 <script>
-window.enclaiiSettings = @json(array_merge(auth()->user()->resolvedSettings(), ['user_id' => auth()->id()]));
+window.enclaiiSettings = <?php echo json_encode(array_merge(auth()->user()->resolvedSettings(), ['user_id' => auth()->id()]), 512) ?>;
 </script>
-@endauth
+<?php endif; ?>
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap"></noscript>
-<script defer src="{{ asset('js/i18n.js') }}?v=30260702-1"></script>
-<script defer src="{{ asset('js/preferences.js') }}"></script>
-@vite(['resources/js/app.js'])
+<script defer src="<?php echo e(asset('js/i18n.js')); ?>?v=30260702-1"></script>
+<script defer src="<?php echo e(asset('js/preferences.js')); ?>"></script>
+<?php echo app('Illuminate\Foundation\Vite')(['resources/js/app.js']); ?>
 <style>
 /* ================= TOKENS Y BASE (compartido por toda la app) ================= */
 :root{
@@ -1222,27 +1222,27 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
 }
 .app-alert-btn:hover{opacity:.9}
 </style>
-@stack('styles')
+<?php echo $__env->yieldPushContent('styles'); ?>
 </head>
 <body>
 
-@php
+<?php
   // Página activa del menú: cada vista la declara con @section('active', 'nombre')
   $active = trim($__env->yieldContent('active'));
-@endphp
+?>
 
 <div class="dash">
 
-  {{-- ============ SIDEBAR (compartido) ============ --}}
-  @hasSection('sidebar')
-    @yield('sidebar')
-  @else
+  
+  <?php if (! empty(trim($__env->yieldContent('sidebar')))): ?>
+    <?php echo $__env->yieldContent('sidebar'); ?>
+  <?php else: ?>
   <aside class="side">
     <div class="side-top">
       <div class="side-brand-row">
         <div class="side-brand">
-          <img class="logo-dark" src="{{ asset('images/logo-dark.png') }}" alt="Logotipo ENCLAII">
-          <img class="logo-light" src="{{ asset('images/logo.png') }}" alt="Logotipo ENCLAII">
+          <img class="logo-dark" src="<?php echo e(asset('images/logo-dark.png')); ?>" alt="Logotipo ENCLAII">
+          <img class="logo-light" src="<?php echo e(asset('images/logo.png')); ?>" alt="Logotipo ENCLAII">
           <div class="side-brand-copy">
             <div class="side-brand-name">ENCLA<span>II</span></div>
             <div class="side-brand-tag">Endoscopia · Nube · IA</div>
@@ -1261,47 +1261,41 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
       </div>
     </div>
 
-    <a class="nav-item {{ $active === 'dashboard' ? 'active' : '' }}" href="{{ url('/dashboard') }}" title="Dashboard">
+    <a class="nav-item <?php echo e($active === 'dashboard' ? 'active' : ''); ?>" href="<?php echo e(url('/dashboard')); ?>" title="Dashboard">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
       <span class="nav-label">Dashboard</span>
     </a>
 
-    <a class="nav-item {{ $active === 'agenda' ? 'active' : '' }}" href="{{ route('agenda') }}" title="Agenda">
+    <a class="nav-item <?php echo e($active === 'agenda' ? 'active' : ''); ?>" href="<?php echo e(route('agenda')); ?>" title="Agenda">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       <span class="nav-label">Agenda</span>
     </a>
 
-    <a class="nav-item {{ $active === 'pacientes' ? 'active' : '' }}" href="{{ route('pacientes.index') }}" title="Pacientes">
+    <a class="nav-item <?php echo e($active === 'pacientes' ? 'active' : ''); ?>" href="<?php echo e(route('pacientes.index')); ?>" title="Pacientes">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <span class="nav-label">Pacientes</span>
     </a>
 
-    <a class="nav-item {{ $active === 'qr' ? 'active' : '' }}" href="{{ route('qr.index') }}" title="QR">
+    <a class="nav-item <?php echo e($active === 'qr' ? 'active' : ''); ?>" href="<?php echo e(route('qr.index')); ?>" title="QR">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20h1"/></svg>
       <span class="nav-label">QR</span>
     </a>
 
-    <a class="nav-item {{ $active === 'ia-reportes' ? 'active' : '' }}" href="{{ url('/ia-reportes') }}" title="Reportes">
+    <a class="nav-item <?php echo e($active === 'ia-reportes' ? 'active' : ''); ?>" href="<?php echo e(url('/ia-reportes')); ?>" title="Reportes">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><path d="M12.5 12.5 14 11l1.5 1.5"/><path d="M14 16a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
       <span class="nav-label">Reportes</span>
     </a>
 
-    {{-- <a class="nav-item {{ $active === 'mensajes' ? 'active' : '' }}" href="{{ route('mensajes') }}" title="Mensajes">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      <span class="nav-label">Mensajes</span>
-    </a> --}}
+    
 
-    <a class="nav-item {{ $active === 'galeria' ? 'active' : '' }}" href="{{ route('galeria') }}" title="Galería">
+    <a class="nav-item <?php echo e($active === 'galeria' ? 'active' : ''); ?>" href="<?php echo e(route('galeria')); ?>" title="Galería">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
       <span class="nav-label">Galería</span>
     </a>
 
-    {{--<a class="nav-item {{ $active === 'finanzas' ? 'active' : '' }}" href="{{ url('/finanzas') }}" title="Finanzas">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>
-      <span class="nav-label">Finanzas</span>
-    </a> --}}
+    
 
-    <a class="nav-item {{ $active === 'configuracion' ? 'active' : '' }}" href="{{ url('/configuracion') }}" title="Configuración">
+    <a class="nav-item <?php echo e($active === 'configuracion' ? 'active' : ''); ?>" href="<?php echo e(url('/configuracion')); ?>" title="Configuración">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87 1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
       <span class="nav-label">Configuración</span>
     </a>
@@ -1312,23 +1306,23 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
       </div>
       <strong>¿Necesitas ayuda?</strong>
       <span>Soporte 24/7</span>
-      <a class="btn-ghost" href="{{ route('soporte') }}" style="text-decoration:none;color:inherit;display:inline-block">Contactar soporte</a>
+      <a class="btn-ghost" href="<?php echo e(route('soporte')); ?>" style="text-decoration:none;color:inherit;display:inline-block">Contactar soporte</a>
     </div>
   </aside>
-  @endif
+  <?php endif; ?>
 
-  {{-- ============ MAIN ============ --}}
+  
   <main class="main">
 
     <header class="head rise d1">
       <div>
-        <h1>@yield('header-title', 'Panel')</h1>
-        @hasSection('header-sub')
-          <p class="sub">@yield('header-sub')</p>
-        @endif
+        <h1><?php echo $__env->yieldContent('header-title', 'Panel'); ?></h1>
+        <?php if (! empty(trim($__env->yieldContent('header-sub')))): ?>
+          <p class="sub"><?php echo $__env->yieldContent('header-sub'); ?></p>
+        <?php endif; ?>
       </div>
       <div class="head-right">
-        @yield('header-extra')
+        <?php echo $__env->yieldContent('header-extra'); ?>
         <button class="btn-ai" id="openAiAssistantBtn" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/></svg>
           <span>Asistente IA</span>
@@ -1353,8 +1347,8 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
           </div>
         </div>
 
-        {{-- Preview modal para anuncios (se renderiza al final del body via JS) --}}
-        @php
+        
+        <?php
           $userName = auth()->check() ? trim(auth()->user()->name ?? 'Doctor') : 'Doctor';
           $userParts = preg_split('/\s+/', $userName);
           $userInitials = collect($userParts)->take(2)->map(fn($p) => mb_substr($p, 0, 1))->join('');
@@ -1362,18 +1356,19 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
           $userFoto = auth()->check() && auth()->user()->foto_perfil
               ? media_url(auth()->user()->foto_perfil)
               : null;
-        @endphp
+        ?>
         <div class="profile-wrap">
           <button type="button" class="profile" id="profileBtn" aria-haspopup="true" aria-expanded="false">
-            <div class="avatar {{ $userFoto ? 'has-photo' : '' }}" id="headerAvatar" data-initials="{{ $userInitials }}">
-              @if($userFoto)
-                <img id="headerAvatarImg" src="{{ $userFoto }}" alt="Foto de perfil" loading="eager" onerror="this.remove();this.parentElement.classList.remove('has-photo');this.parentElement.textContent=this.parentElement.dataset.initials || '';">
-              @else
-                {{ $userInitials }}
-              @endif
+            <div class="avatar <?php echo e($userFoto ? 'has-photo' : ''); ?>" id="headerAvatar" data-initials="<?php echo e($userInitials); ?>">
+              <?php if($userFoto): ?>
+                <img id="headerAvatarImg" src="<?php echo e($userFoto); ?>" alt="Foto de perfil" loading="eager" onerror="this.remove();this.parentElement.classList.remove('has-photo');this.parentElement.textContent=this.parentElement.dataset.initials || '';">
+              <?php else: ?>
+                <?php echo e($userInitials); ?>
+
+              <?php endif; ?>
             </div>
             <div class="profile-meta">
-              <strong>{{ $userName }}</strong>
+              <strong><?php echo e($userName); ?></strong>
             </div>
             <svg class="profile-caret" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
@@ -1381,78 +1376,78 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
           <div class="profile-menu" id="profileMenu" role="menu">
             <div class="pm-head"><strong>Acciones rápidas</strong><span>Acciones y herramientas</span></div>
 
-            <a href="{{ route('configuracion') }}?tab=perfil" class="pm-item" role="menuitem">
+            <a href="<?php echo e(route('configuracion')); ?>?tab=perfil" class="pm-item" role="menuitem">
               <span class="pm-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
               <span class="pm-txt"><span class="t">Editar perfil</span><span class="d">Actualiza tu información personal</span></span>
             </a>
-            @if(request()->routeIs('dashboard'))
+            <?php if(request()->routeIs('dashboard')): ?>
             <div class="pm-sep"></div>
             <button type="button" class="pm-item edit-db" id="editDashboardBtn" role="menuitem">
               <span class="pm-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
               <span class="pm-txt"><span class="t">Editar Dashboard</span><span class="d">Configura y organiza tus widgets</span></span>
             </button>
-            @endif
+            <?php endif; ?>
             <div class="pm-sep"></div>
-            @auth
-            <form method="POST" action="{{ auth()->user()->hasRole('Customer Success') ? route('customer-success.logout') : route('logout') }}">
-              @csrf
+            <?php if(auth()->guard()->check()): ?>
+            <form method="POST" action="<?php echo e(auth()->user()->hasRole('Customer Success') ? route('customer-success.logout') : route('logout')); ?>">
+              <?php echo csrf_field(); ?>
               <button type="submit" class="pm-item danger" role="menuitem">
                 <span class="pm-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>
                 <span class="pm-txt"><span class="t">Cerrar sesión</span><span class="d">Cerrar sesión en tu cuenta actual</span></span>
               </button>
             </form>
-            @endauth
+            <?php endif; ?>
           </div>
         </div>
       </div>
     </header>
 
-    @if(session('session_limit_notice'))
+    <?php if(session('session_limit_notice')): ?>
       <div class="app-alert" role="status">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.6 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        <span>{{ session('session_limit_notice') }}</span>
+        <span><?php echo e(session('session_limit_notice')); ?></span>
       </div>
-    @endif
+    <?php endif; ?>
 
-    @yield('content')
+    <?php echo $__env->yieldContent('content'); ?>
 
   </main>
 
-  {{-- Bottom nav para móvil --}}
-  @hasSection('bottom-nav')
-    @yield('bottom-nav')
-  @else
+  
+  <?php if (! empty(trim($__env->yieldContent('bottom-nav')))): ?>
+    <?php echo $__env->yieldContent('bottom-nav'); ?>
+  <?php else: ?>
   <nav class="mobile-nav">
-    <a class="mobile-nav-item {{ $active === 'dashboard' ? 'active' : '' }}" href="{{ url('/dashboard') }}">
+    <a class="mobile-nav-item <?php echo e($active === 'dashboard' ? 'active' : ''); ?>" href="<?php echo e(url('/dashboard')); ?>">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
       Inicio
     </a>
-    <a class="mobile-nav-item {{ $active === 'pacientes' ? 'active' : '' }}" href="{{ route('pacientes.index') }}">
+    <a class="mobile-nav-item <?php echo e($active === 'pacientes' ? 'active' : ''); ?>" href="<?php echo e(route('pacientes.index')); ?>">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       Pacientes
     </a>
-    <a class="mobile-nav-item {{ $active === 'agenda' ? 'active' : '' }}" href="{{ route('agenda') }}">
+    <a class="mobile-nav-item <?php echo e($active === 'agenda' ? 'active' : ''); ?>" href="<?php echo e(route('agenda')); ?>">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       Agenda
     </a>
-    <a class="mobile-nav-item {{ $active === 'finanzas' ? 'active' : '' }}" href="{{ url('/finanzas') }}">
+    <a class="mobile-nav-item <?php echo e($active === 'finanzas' ? 'active' : ''); ?>" href="<?php echo e(url('/finanzas')); ?>">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>
       Finanzas
     </a>
-    <a class="mobile-nav-item {{ $active === 'configuracion' ? 'active' : '' }}" href="{{ url('/configuracion') }}">
+    <a class="mobile-nav-item <?php echo e($active === 'configuracion' ? 'active' : ''); ?>" href="<?php echo e(url('/configuracion')); ?>">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87 1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
       Config
     </a>
   </nav>
-  @endif
+  <?php endif; ?>
 
 </div>
 
-@auth
-  @include('components.critical-password-modal')
-@endauth
+<?php if(auth()->guard()->check()): ?>
+  <?php echo $__env->make('components.critical-password-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<?php endif; ?>
 
-{{-- Dashboard Editor Panel --}}
+
 <div class="db-editor-overlay" id="dbEditorOverlay"></div>
 <div class="db-editor" id="dbEditorPanel" role="dialog" aria-label="Editar Dashboard">
   <div class="db-editor-head">
@@ -1495,7 +1490,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
 </div>
 
 
-{{-- AI Assistant Drawer --}}
+
 <div class="ai-overlay" id="aiOverlay"></div>
 <aside class="ai-drawer" id="aiDrawer" role="dialog" aria-modal="true" aria-label="Asistente IA">
   <div class="ai-drawer-head">
@@ -1639,11 +1634,11 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
 
     if (!drawer || !overlay) return;
 
-    const AI_ENDPOINT = '{{ route("ia.chat") }}';
-    const AI_START = '{{ route("ia.conversations.start") }}';
-    const AI_CONVERSATIONS = '{{ route("ia.conversations") }}';
-    const AI_SHOW_BASE = '{{ url("/ia/conversations") }}';
-    const AI_RESET = '{{ route("ia.reset") }}';
+    const AI_ENDPOINT = '<?php echo e(route("ia.chat")); ?>';
+    const AI_START = '<?php echo e(route("ia.conversations.start")); ?>';
+    const AI_CONVERSATIONS = '<?php echo e(route("ia.conversations")); ?>';
+    const AI_SHOW_BASE = '<?php echo e(url("/ia/conversations")); ?>';
+    const AI_RESET = '<?php echo e(route("ia.reset")); ?>';
     const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
     let currentConversationId = null;
@@ -2469,7 +2464,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
   })();
 </script>
 
-{{-- Modal de alerta genérico --}}
+
 <div class="app-alert-overlay" id="appAlertOverlay" onclick="if(event.target===this) hideAppAlert();">
   <div class="app-alert-modal" role="alertdialog" aria-modal="true" aria-labelledby="appAlertTitle" aria-describedby="appAlertMessage">
     <div class="app-alert-icon">
@@ -2508,7 +2503,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
   });
 </script>
 
-@stack('scripts')
+<?php echo $__env->yieldPushContent('scripts'); ?>
 
 <script>
 (function(){
@@ -2776,7 +2771,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
       .catch(() => {});
   }
 
-  @auth
+  <?php if(auth()->guard()->check()): ?>
   let _pollInterval = null;
 
   function startPolling() {
@@ -2796,10 +2791,10 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
   }
 
   startPolling();
-  @endauth
+  <?php endif; ?>
 })();
 </script>
-{{-- Preview modal para anuncios --}}
+
 <div class="notif-preview-ov" id="notifPreviewOv">
   <div class="notif-preview-box">
     <div class="notif-preview-body" id="notifPreviewBody"></div>
@@ -2807,3 +2802,4 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
 </div>
 </body>
 </html>
+<?php /**PATH C:\Users\LENOVO\enclaii-backend\resources\views/layouts/app.blade.php ENDPATH**/ ?>

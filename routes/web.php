@@ -165,6 +165,8 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
 
     Route::patch('/configuracion/perfil', [SettingsController::class, 'updatePerfil'])
         ->name('configuracion.perfil.update');
+    Route::post('/configuracion/rfc-lookup', [SettingsController::class, 'lookupRfc'])
+        ->name('configuracion.rfc.lookup');
     Route::post('/configuracion/foto', [SettingsController::class, 'updateFoto'])
         ->name('configuracion.foto.update');
     Route::delete('/configuracion/foto', [SettingsController::class, 'deleteFoto'])

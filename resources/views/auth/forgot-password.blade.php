@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}?v=20260627-2">
+<link rel="icon" type="image/png" href="{{ asset('images/enclaii-favicon.png') }}?v=4">
+<link rel="shortcut icon" type="image/png" href="{{ asset('images/enclaii-favicon.png') }}?v=4">
 <title>Recuperar contraseña — ENCLAII</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

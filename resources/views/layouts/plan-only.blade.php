@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}?v=20260627-2">
+<link rel="icon" type="image/png" href="{{ asset('images/enclaii-favicon.png') }}?v=4">
+<link rel="shortcut icon" type="image/png" href="{{ asset('images/enclaii-favicon.png') }}?v=4">
 <script>
   document.documentElement.dataset.theme = localStorage.getItem('enclaii-theme') || 'dark';
   document.documentElement.lang = localStorage.getItem('enclaii-lang') || 'es';

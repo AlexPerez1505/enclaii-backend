@@ -3,11 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="{{ asset('images/enclaii-favicon.png') }}?v=4">
-<link rel="shortcut icon" type="image/png" href="{{ asset('images/enclaii-favicon.png') }}?v=4">
+<link rel="icon" type="image/svg+xml" href="<?php echo e(asset('favicon.svg')); ?>?v=20260627-2">
 <title>Iniciar sesión — ENCLAII</title>
 <script>document.documentElement.lang = localStorage.getItem('enclaii-lang') || 'es';</script>
-<script defer src="{{ asset('js/i18n.js') }}"></script>
+<script defer src="<?php echo e(asset('js/i18n.js')); ?>"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -834,15 +833,15 @@ body{
     <main class="ec-form-panel">
       <form
         method="POST"
-        action="{{ route('login.post') }}"
+        action="<?php echo e(route('login.post')); ?>"
         id="loginForm"
-        class="ec-form @if($errors->any()) ec-shake @endif"
+        class="ec-form <?php if($errors->any()): ?> ec-shake <?php endif; ?>"
         novalidate
       >
-        @csrf
+        <?php echo csrf_field(); ?>
 
         <div class="ec-brand ec-stagger">
-          <img src="{{ asset('images/logo.png') }}" alt="Logotipo">
+          <img src="<?php echo e(asset('images/logo.png')); ?>" alt="Logotipo">
           <div class="ec-brand-name">ENCLA<span>II</span></div>
           <div class="ec-brand-tag">Endoscopia · Nube · Inteligencia Artificial · Innovacion</div>
         </div>
@@ -852,17 +851,17 @@ body{
           <p class="ec-subtitle">Accede a tu plataforma para continuar con tus procesos.</p>
         </div>
 
-        @if (session('status'))
-          <div class="ec-alert success ec-stagger">{{ session('status') }}</div>
-        @endif
+        <?php if(session('status')): ?>
+          <div class="ec-alert success ec-stagger"><?php echo e(session('status')); ?></div>
+        <?php endif; ?>
 
-        @if ($errors->any())
+        <?php if($errors->any()): ?>
           <div class="ec-alert error ec-stagger">
-            @foreach ($errors->all() as $error)
-              <div>{{ $error }}</div>
-            @endforeach
+            <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+              <div><?php echo e($error); ?></div>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
           </div>
-        @endif
+        <?php endif; ?>
 
         <div class="ec-field ec-stagger">
           <label class="ec-label" for="email">Correo electrónico</label>
@@ -874,22 +873,37 @@ body{
               autocomplete="email"
               required
               autofocus
-              value="{{ old('email') }}"
+              value="<?php echo e(old('email')); ?>"
               placeholder="tucorreo@ejemplo.com"
-              class="ec-input @error('email') is-invalid @enderror"
+              class="ec-input <?php $__errorArgs = ['email'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
             >
           </div>
 
-          @error('email')
+          <?php $__errorArgs = ['email'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
             <p class="ec-error">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"/>
                 <line x1="12" y1="8" x2="12" y2="12"/>
                 <line x1="12" y1="16" x2="12.01" y2="16"/>
               </svg>
-              {{ $message }}
+              <?php echo e($message); ?>
+
             </p>
-          @enderror
+          <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
         </div>
 
         <div class="ec-field ec-stagger">
@@ -902,7 +916,14 @@ body{
               autocomplete="current-password"
               required
               placeholder="••••••••"
-              class="ec-input @error('password') is-invalid @enderror"
+              class="ec-input <?php $__errorArgs = ['password'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
             >
 
             <button
@@ -925,21 +946,29 @@ body{
             </button>
           </div>
 
-          @error('password')
+          <?php $__errorArgs = ['password'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
             <p class="ec-error">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"/>
                 <line x1="12" y1="8" x2="12" y2="12"/>
                 <line x1="12" y1="16" x2="12.01" y2="16"/>
               </svg>
-              {{ $message }}
+              <?php echo e($message); ?>
+
             </p>
-          @enderror
+          <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
         </div>
 
         <div class="ec-links-row ec-stagger">
-          <a class="ec-link" href="{{ route('password.request') }}">¿Olvidaste tu contraseña?</a>
-          <a class="ec-link" id="link_register" href="{{ route('register') }}">Registrarse</a>
+          <a class="ec-link" href="<?php echo e(route('password.request')); ?>">¿Olvidaste tu contraseña?</a>
+          <a class="ec-link" id="link_register" href="<?php echo e(route('register')); ?>">Registrarse</a>
         </div>
 
         <div class="ec-stagger">
@@ -980,7 +1009,7 @@ body{
 
         <lottie-player
           class="ec-lottie"
-          src="{{ asset('animations/medico2.json') }}"
+          src="<?php echo e(asset('animations/medico2.json')); ?>"
           background="transparent"
           speed="1"
           loop
@@ -1209,3 +1238,4 @@ body{
   </script>
 </body>
 </html>
+<?php /**PATH C:\Users\LENOVO\enclaii-backend\resources\views/auth/endocare-login.blade.php ENDPATH**/ ?>
