@@ -15,6 +15,7 @@ use App\Http\Controllers\CustomerSuccess\TicketController as CsTicketController;
 use App\Http\Controllers\CustomerSuccessController;
 use App\Http\Controllers\DesktopAppDownloadController;
 use App\Http\Controllers\IaReporteController;
+use App\Http\Controllers\LaunchPromoRegistrationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NuevoEstudioController;
 use App\Http\Controllers\PacienteController;
@@ -72,6 +73,21 @@ Route::post('/registro-paciente/{token}', [PublicPatientPreregistrationControlle
     ->where('token', '[A-Za-z0-9]{64}')
     ->middleware('throttle:5,1')
     ->name('qr.public.store');
+
+Route::get('/registro-promocion/{token}', [LaunchPromoRegistrationController::class, 'show'])
+    ->where('token', '[A-Za-z0-9]{64}')
+    ->name('promo.register.show');
+Route::get('/registro-promocion/{token}/qr', [LaunchPromoRegistrationController::class, 'image'])
+    ->where('token', '[A-Za-z0-9]{64}')
+    ->name('promo.register.qr');
+Route::post('/registro-promocion/{token}', [LaunchPromoRegistrationController::class, 'register'])
+    ->where('token', '[A-Za-z0-9]{64}')
+    ->middleware(['guest', 'throttle:5,1'])
+    ->name('promo.register.store');
+Route::post('/registro-promocion/{token}/checkout', [LaunchPromoRegistrationController::class, 'checkout'])
+    ->where('token', '[A-Za-z0-9]{64}')
+    ->middleware(['auth', 'throttle:6,1'])
+    ->name('promo.register.checkout');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [EndoCareAuthController::class, 'showLogin'])->name('login');

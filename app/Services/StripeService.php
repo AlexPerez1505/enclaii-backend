@@ -83,6 +83,38 @@ class StripeService
     }
 
     /**
+     * Crea una sesion de Checkout promocional: tarjeta obligatoria y trial gratis.
+     */
+    public function createPromoTrialCheckout(
+        User $user,
+        string $priceId,
+        int $trialEndTimestamp,
+        string $successUrl,
+        string $cancelUrl,
+        array $metadata = [],
+    ): \Stripe\Checkout\Session {
+        $sessionMetadata = array_merge(['user_id' => (string) $user->id], $metadata);
+
+        return $this->client->checkout->sessions->create([
+            'mode' => 'subscription',
+            'customer' => $this->resolveCustomer($user),
+            'line_items' => [[
+                'price' => $priceId,
+                'quantity' => 1,
+            ]],
+            'success_url' => $successUrl,
+            'cancel_url' => $cancelUrl,
+            'payment_method_collection' => 'always',
+            'billing_address_collection' => 'auto',
+            'metadata' => $sessionMetadata,
+            'subscription_data' => [
+                'trial_end' => $trialEndTimestamp,
+                'metadata' => $sessionMetadata,
+            ],
+        ]);
+    }
+
+    /**
      * Crea una suscripción mensual independiente para una cuenta adicional.
      */
     public function createMemberAddonCheckout(User $user, string $successUrl, string $cancelUrl): \Stripe\Checkout\Session

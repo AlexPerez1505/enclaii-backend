@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LaunchPromoCode;
 use App\Models\User;
 use App\Services\StripeService;
 use Illuminate\Http\JsonResponse;
@@ -424,6 +425,8 @@ class StripeController extends Controller
                 $this->syncFromCheckoutSession($session, $stripe);
                 if (($session->metadata->type ?? null) === 'member_addon') {
                     $message = '¡Pago completado! Ya tienes una cuenta adicional disponible.';
+                } elseif (($session->metadata->type ?? null) === 'promo_trial') {
+                    $message = 'Tarjeta validada. Tu promocion de 6 meses gratis ya esta activa.';
                 }
             } catch (Throwable $e) {
                 Log::warning('Stripe success sync error', ['message' => $e->getMessage()]);
@@ -602,6 +605,14 @@ class StripeController extends Controller
         }
 
         $user->forceFill($data)->save();
+
+        if (($session->metadata->type ?? null) === 'promo_trial') {
+            $this->syncPromoCode(
+                $user,
+                $session->metadata->promo_code_id ?? null,
+                $subscriptionId,
+            );
+        }
     }
 
     /**
@@ -624,13 +635,52 @@ class StripeController extends Controller
             return;
         }
 
-        $user->forceFill([
+        $data = [
             'stripe_subscription_id' => $subscription->id,
             'subscription_status' => $subscription->status,
             'subscription_renews_at' => ! empty($subscription->current_period_end)
                 ? Carbon::createFromTimestamp($subscription->current_period_end)
                 : null,
-        ])->save();
+        ];
+
+        if (! empty($subscription->metadata->plan)) {
+            $data['stripe_plan'] = $subscription->metadata->plan;
+        }
+
+        $user->forceFill($data)->save();
+
+        if (($subscription->metadata->type ?? null) === 'promo_trial') {
+            $this->syncPromoCode(
+                $user,
+                $subscription->metadata->promo_code_id ?? null,
+                $subscription->id ?? null,
+            );
+        }
+    }
+
+    private function syncPromoCode(User $user, ?string $promoCodeId, ?string $subscriptionId): void
+    {
+        if (! $promoCodeId) {
+            return;
+        }
+
+        $promoCode = LaunchPromoCode::find($promoCodeId);
+
+        if (! $promoCode) {
+            return;
+        }
+
+        if ($promoCode->reserved_by && (int) $promoCode->reserved_by !== (int) $user->id) {
+            Log::warning('Promo code reserved by a different user', [
+                'promo_code_id' => $promoCode->id,
+                'reserved_by' => $promoCode->reserved_by,
+                'stripe_user_id' => $user->id,
+            ]);
+
+            return;
+        }
+
+        $promoCode->markRedeemedFor($user, $subscriptionId);
     }
 
     private function syncMemberAddon(User $user, object $subscription): void
