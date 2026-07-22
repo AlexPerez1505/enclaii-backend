@@ -297,7 +297,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 .pv-bar-actions .cfg-btn{display:inline-flex;align-items:center;gap:7px}
 .pv-bar-actions .cfg-btn svg{width:15px;height:15px}
 .pv-scroll{flex:1;overflow:auto;padding:20px;display:flex;justify-content:center;align-items:flex-start}
-.pv-paper{position:relative;width:7.7in;max-width:none;background:#fff;color:#143036;border-radius:6px;box-shadow:0 18px 50px -18px rgba(0,0,0,.7);padding:0;overflow:visible;flex:none;transform-origin:top center}
+.pv-paper{position:relative;width:8.5in;height:11in;max-width:none;background:#fff;color:#143036;border-radius:6px;box-shadow:0 18px 50px -18px rgba(0,0,0,.7);padding:.4in;box-sizing:border-box;overflow:hidden;flex:none;transform-origin:top center}
 .pv-paper .rep-header{overflow:hidden}
 .pv-paper .ed-doc{box-sizing:border-box}
 .pv-paper .rep-imgs{max-width:100%;overflow:hidden}
@@ -316,42 +316,23 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 .ed-toast.err{background:linear-gradient(135deg,#d3443f,#f0635c)}
 
 @media print{
-  @page { size: letter; margin: 0.4in; }
-  body { margin: 0; padding: 0; }
-  /* Ocultar TODOS los botones de edición de secciones al imprimir (global) */
-  .sec-add, .sec-hide, .sec-delete, .rep-img-tools, .rep-img-size { display: none !important; }
-  /* Ocultar todo el layout de la app excepto el documento del informe */
-  body > * { display: none !important; }
-  .pv-ov,.pv-ov *{visibility:visible!important}
-  .pv-ov{position:absolute;inset:0;background:#fff;backdrop-filter:none}
-  .pv-bar{display:none!important}
-  .pv-scroll{overflow:visible;padding:0}
-  .pv-paper{max-width:none;width:100%;box-shadow:none;border-radius:0;zoom:1!important;transform:none!important}
-  /* Ocultar botones de edición de secciones al imprimir */
-  .pv-paper .sec-add,
-  .pv-paper .sec-hide,
-  .pv-paper .sec-delete,
-  .pv-paper .rep-img-tools,
-  .pv-paper .rep-img-size{display:none!important}
-  /* Reducir tamaño de fuente al imprimir */
-  .pv-paper{font-size:11px!important;line-height:1.3!important}
-  .pv-paper h2{font-size:16px!important;margin-bottom:10px!important}
-  .pv-paper h4{font-size:11px!important;margin:12px 0 4px!important}
-  .pv-paper p,.pv-paper ul{font-size:11px!important;margin:4px 0!important}
-  .pv-paper .doc-meta{font-size:10px!important;margin-bottom:12px!important}
-  /* Reducir márgenes y espaciados */
-  .pv-paper{padding:15px!important}
-  .pv-paper .doc-h{margin-bottom:15px!important}
-  /* Evitar cortes en secciones */
-  .pv-paper h4,.pv-paper p,.pv-paper ul{page-break-inside:avoid}
-  .pv-paper .doc-h{page-break-after:avoid}
-  /* Forzar dimensiones de hoja carta */
-  .pv-paper{width:7.7in!important;height:10.2in!important;max-width:none!important}
-  html,body{margin:0!important;padding:0!important;background:#fff!important}
-  .pv-ov{display:block!important;position:absolute!important;inset:0!important;background:#fff!important;backdrop-filter:none!important}
-  .pv-scroll{display:block!important;overflow:visible!important;padding:0!important}
-  .pv-paper{display:block!important;width:7.7in!important;height:10.2in!important;max-width:none!important;overflow:hidden!important;background:#fff!important;color:#111!important;box-shadow:none!important;border:0!important;border-radius:0!important;padding:0!important;margin:0!important;zoom:1!important;transform:none!important}
-  .pv-paper>.ed-doc{width:var(--report-print-width,7.7in)!important;min-height:0!important;height:auto!important;max-width:none!important;background:#fff!important;color:#111!important;border:0!important;border-radius:0!important;box-shadow:none!important;margin:0!important;padding:.22in .24in!important;box-sizing:border-box!important;font-size:10.5px!important;line-height:1.22!important;transform:scale(var(--report-print-scale,1))!important;transform-origin:top left!important;overflow:visible!important}
+  @page{size:letter;margin:0}
+  html,body{width:8.5in!important;height:11in!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important;background:#fff!important}
+  body>:not(.dash){display:none!important}
+  .dash{display:block!important;width:8.5in!important;height:11in!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important;background:#fff!important}
+  .dash>:not(.main){display:none!important}
+  .main{display:block!important;width:8.5in!important;height:11in!important;margin:0!important;padding:0!important;overflow:hidden!important;background:#fff!important}
+  .main>:not(#previewModal){display:none!important}
+  #previewModal{display:block!important;position:static!important;width:8.5in!important;height:11in!important;margin:0!important;padding:0!important;overflow:hidden!important;background:#fff!important;backdrop-filter:none!important;z-index:auto!important}
+  #previewModal .pv-bar{display:none!important}
+  #previewModal .pv-scroll{display:block!important;width:8.5in!important;height:11in!important;margin:0!important;padding:0!important;overflow:visible!important;background:#fff!important}
+  #previewModal .pv-paper{display:block!important;position:relative!important;width:8.5in!important;height:11in!important;max-width:none!important;margin:0!important;padding:.4in!important;box-sizing:border-box!important;overflow:hidden!important;background:#fff!important;color:#111!important;border:0!important;border-radius:0!important;box-shadow:none!important;zoom:1!important;transform:none!important}
+  #previewModal .pv-paper>.ed-doc{display:flex!important;flex-direction:column!important;width:var(--report-print-width,7.7in)!important;min-width:0!important;max-width:none!important;min-height:10.2in!important;height:auto!important;margin:0!important;padding:0!important;overflow:visible!important;background:#fff!important;color:#111!important;border:0!important;border-radius:0!important;box-shadow:none!important;box-sizing:border-box!important;font-size:10.5px!important;line-height:1.22!important;transform:scale(var(--report-print-scale,1))!important;transform-origin:top left!important}
+  #previewModal .sec-add,
+  #previewModal .sec-hide,
+  #previewModal .sec-delete,
+  #previewModal .rep-img-tools,
+  #previewModal .rep-img-size{display:none!important}
   .pv-paper .rep-header{margin-bottom:8px!important}
   .pv-paper .doc-h{margin-bottom:10px!important}
   .pv-paper .doc-h h2{font-size:14.5px!important;margin:0 0 4px!important}
@@ -1093,6 +1074,45 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     }
     if (repSignNm && cfg.signName) repSignNm.textContent = cfg.signName;
     if (repSign) repSign.setAttribute('data-pos', cfg.signPos || 'center');
+  };
+
+  const applyConfigToReportRoot = (root, cfg, targetWidthPx) => {
+    if (!root || !cfg) return;
+    const s = (targetWidthPx || PAGE_W) / PAGE_W;
+    const header = root.querySelector('.rep-header');
+    if (header) header.style.height = (cfg.headH * s) + 'px';
+    const place = (selector, box) => {
+      const el = root.querySelector(selector);
+      if (!el || !box) return;
+      el.style.left   = (box.x * s) + 'px';
+      el.style.top    = (box.y * s) + 'px';
+      el.style.width  = (box.w * s) + 'px';
+      el.style.height = (box.h * s) + 'px';
+    };
+    place('#repLogo', cfg.logo);
+    place('#repClinicBox', cfg.name);
+    place('#repAnat', cfg.anat);
+
+    const clinic = root.querySelector('#repClinicName');
+    if (clinic) clinic.style.fontSize = (cfg.name.fontSize * s) + 'px';
+
+    const anat = root.querySelector('#repAnat');
+    if (anat) {
+      const studyImg = tipoSel ? STUDY_IMG[tipoSel.value] : null;
+      const anatSrc = cfg.anatImg || studyImg || null;
+      if (anatSrc) {
+        anat.innerHTML = '<img src="' + anatSrc + '" alt="Imagen lateral">';
+      } else if (!anat.innerHTML.trim()) {
+        anat.innerHTML = anatDefault;
+      }
+    }
+  };
+
+  window.getCurrentTemplateKey = () => currentKey;
+  window.applyReportHeaderForPaper = (root, targetWidthPx) => {
+    const tpl = currentKey ? TEMPLATES[currentKey] : null;
+    if (!tpl || !tpl.cfg) return;
+    applyConfigToReportRoot(root, tpl.cfg, targetWidthPx || (7.7 * 96));
   };
 
   // Reescalar el encabezado del documento si cambia el ancho de la ventana
@@ -2245,13 +2265,15 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 
     pvPaper.style.zoom = '1';
     pvPaper.style.transform = 'none';
-    pvPaper.style.width = '7.7in';
+    pvPaper.style.width = '8.5in';
+    pvPaper.style.height = '11in';
     pvPaper.style.maxWidth = 'none';
+    pvPaper.style.padding = '.4in';
 
     const availableW = Math.max(280, scroll.clientWidth - 40);
     const availableH = Math.max(220, scroll.clientHeight - 40);
-    const naturalW = pvPaper.scrollWidth || pvPaper.offsetWidth || 1;
-    const naturalH = pvPaper.scrollHeight || pvPaper.offsetHeight || 1;
+    const naturalW = pvPaper.offsetWidth || pvPaper.scrollWidth || 1;
+    const naturalH = pvPaper.offsetHeight || pvPaper.scrollHeight || 1;
     const scale = Math.min(1, availableW / naturalW, availableH / naturalH);
 
     if ('zoom' in pvPaper.style) {
@@ -2272,22 +2294,31 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 
     pvPaper.style.zoom = '1';
     pvPaper.style.transform = 'none';
-    pvPaper.style.width = '7.7in';
+    pvPaper.style.width = '8.5in';
+    pvPaper.style.height = '11in';
     pvPaper.style.maxWidth = 'none';
+    pvPaper.style.padding = '.4in';
 
     const printable = pvPaper.firstElementChild;
     printable.style.transform = 'none';
     printable.style.transformOrigin = 'top left';
     printable.style.width = '7.7in';
+    printable.style.padding = '0';
+    printable.style.display = 'flex';
+    printable.style.flexDirection = 'column';
+    printable.style.minHeight = '10.2in';
 
     const targetW = 7.7 * 96;
     const targetH = 10.2 * 96;
     const naturalW = Math.max(targetW, printable.scrollWidth || targetW);
     const naturalH = Math.max(1, printable.scrollHeight || targetH);
     const scale = Math.max(0.35, Math.min(1, targetW / naturalW, targetH / naturalH));
+    const scaledWidth = 7.7 / scale;
 
     document.documentElement.style.setProperty('--report-print-scale', String(scale));
-    document.documentElement.style.setProperty('--report-print-width', (7.7 / scale) + 'in');
+    document.documentElement.style.setProperty('--report-print-width', scaledWidth + 'in');
+    printable.style.width = scaledWidth + 'in';
+    printable.style.transform = 'scale(' + scale + ')';
 
     return true;
   };
@@ -2308,8 +2339,10 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     if (!doc || !pvPaper || !pvModal) return;
     pvPaper.style.zoom = '1';
     pvPaper.style.transform = 'none';
-    pvPaper.style.width = '7.7in';
+    pvPaper.style.width = '8.5in';
+    pvPaper.style.height = '11in';
     pvPaper.style.maxWidth = 'none';
+    pvPaper.style.padding = '.4in';
     
     // Construir HTML limpio sin botones de edición
     const clone = doc.cloneNode(true);
@@ -2319,7 +2352,11 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     clone.querySelectorAll('[contenteditable]').forEach(el => {
       el.removeAttribute('contenteditable');
       const txt = (el.textContent || '').trim();
-      if (!txt) el.remove();
+      if (!txt && el.closest('.doc-meta')) {
+        el.textContent = '-';
+      } else if (!txt && el.closest('#docSections')) {
+        el.remove();
+      }
     });
     
     // Remover TODOS los botones (enfoque más amplio)
@@ -2328,11 +2365,14 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     // Aplicar estilos de impresión
     clone.style.position = 'relative';
     clone.style.width = '7.7in';
+    clone.style.minHeight = '10.2in';
     clone.style.height = 'auto';
+    clone.style.display = 'flex';
+    clone.style.flexDirection = 'column';
     clone.style.transform = 'none';
     clone.style.background = '#fff';
     clone.style.color = '#000';
-    clone.style.padding = '30px 34px';
+    clone.style.padding = '0';
     clone.style.margin = '0';
     clone.style.maxWidth = 'none';
     clone.style.boxShadow = 'none';
@@ -2340,11 +2380,15 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     clone.style.boxSizing = 'border-box';
     clone.style.fontSize = '11px';
     clone.style.lineHeight = '1.3';
+    if (window.applyReportHeaderForPaper) {
+      window.applyReportHeaderForPaper(clone, 7.7 * 96);
+    }
     
     pvPaper.innerHTML = '';
     pvPaper.appendChild(clone);
     pvModal.classList.add('open');
     document.body.style.overflow = 'hidden';
+    preparePreviewPrint();
     requestAnimationFrame(fitPreviewPaper);
   };
   const closePreview = () => {
