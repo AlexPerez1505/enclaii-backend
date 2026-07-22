@@ -101,8 +101,17 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
 
     // Ruta de configuracion: si no tiene plan, muestra vista plan-only
     Route::get('/configuracion', function () {
+        $pendingPromoCode = \App\Models\LaunchPromoCode::query()
+            ->where('reserved_by', auth()->id())
+            ->where('status', \App\Models\LaunchPromoCode::STATUS_RESERVED)
+            ->whereNotNull('stripe_promotion_code_id')
+            ->latest()
+            ->first();
+
         if (!auth()->user()->subscribed()) {
-            return view('configuracion.plan-only');
+            return view('configuracion.plan-only', [
+                'pendingPromoCode' => $pendingPromoCode,
+            ]);
         }
 
         $userAgent = request()->userAgent() ?? '';
@@ -170,7 +179,16 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
 
     // Ruta dedicada para seleccionar plan (sin sidebar ni header)
     Route::get('/seleccionar-plan', function () {
-        return view('configuracion.plan-only');
+        $pendingPromoCode = \App\Models\LaunchPromoCode::query()
+            ->where('reserved_by', auth()->id())
+            ->where('status', \App\Models\LaunchPromoCode::STATUS_RESERVED)
+            ->whereNotNull('stripe_promotion_code_id')
+            ->latest()
+            ->first();
+
+        return view('configuracion.plan-only', [
+            'pendingPromoCode' => $pendingPromoCode,
+        ]);
     })->name('plan.only');
 
     Route::get('/descargas/enclaii-desktop/windows', DesktopAppDownloadController::class)
@@ -239,6 +257,8 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
         ->name('stripe.checkout.embedded');
     Route::post('/stripe/subscribe', [StripeController::class, 'createSubscriptionElement'])
         ->name('stripe.subscribe');
+    Route::post('/stripe/promo-subscribe', [StripeController::class, 'promoSubscribe'])
+        ->name('stripe.promo.subscribe');
     Route::post('/stripe/change-plan', [StripeController::class, 'changePlan'])
         ->name('stripe.change.plan');
     Route::post('/stripe/member-addon/checkout', [StripeController::class, 'memberAddonCheckout'])

@@ -176,25 +176,43 @@ class LaunchPromoRegistrationController extends Controller
                 ->with('error', 'El plan promocional aun no tiene precio configurado en Stripe.');
         }
 
-        $trialStart = $promoCode->reserved_at ?: now();
-        $trialEndsAt = $trialStart->copy()->addMonthsNoOverflow($promoCode->trial_months);
+        $metadata = [
+            'promo_code_id' => (string) $promoCode->id,
+            'promo_code' => $promoCode->code,
+            'plan' => $promoCode->plan,
+            'interval' => $promoCode->interval,
+        ];
 
         try {
-            $session = $stripe->createPromoTrialCheckout(
-                $user,
-                $priceId,
-                $trialEndsAt->timestamp,
-                route('stripe.success').'?session_id={CHECKOUT_SESSION_ID}',
-                route('promo.register.show', ['token' => $promoCode->token]),
-                [
-                    'type' => 'promo_trial',
-                    'promo_code_id' => (string) $promoCode->id,
-                    'promo_code' => $promoCode->code,
-                    'plan' => $promoCode->plan,
-                    'interval' => $promoCode->interval,
-                    'trial_months' => (string) $promoCode->trial_months,
-                ],
-            );
+            if ($promoCode->hasStripePromotionCode()) {
+                $session = $stripe->createPromoCouponCheckout(
+                    $user,
+                    $priceId,
+                    $promoCode->stripe_promotion_code_id,
+                    route('stripe.success').'?session_id={CHECKOUT_SESSION_ID}',
+                    route('promo.register.show', ['token' => $promoCode->token]),
+                    array_merge($metadata, [
+                        'type' => 'promo_coupon',
+                        'stripe_promotion_code_id' => $promoCode->stripe_promotion_code_id,
+                        'discount_months' => (string) $promoCode->trial_months,
+                    ]),
+                );
+            } else {
+                $trialStart = $promoCode->reserved_at ?: now();
+                $trialEndsAt = $trialStart->copy()->addMonthsNoOverflow($promoCode->trial_months);
+
+                $session = $stripe->createPromoTrialCheckout(
+                    $user,
+                    $priceId,
+                    $trialEndsAt->timestamp,
+                    route('stripe.success').'?session_id={CHECKOUT_SESSION_ID}',
+                    route('promo.register.show', ['token' => $promoCode->token]),
+                    array_merge($metadata, [
+                        'type' => 'promo_trial',
+                        'trial_months' => (string) $promoCode->trial_months,
+                    ]),
+                );
+            }
 
             $promoCode->forceFill(['checkout_session_id' => $session->id])->save();
         } catch (Throwable $e) {

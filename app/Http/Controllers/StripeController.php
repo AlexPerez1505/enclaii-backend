@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -410,6 +411,86 @@ class StripeController extends Controller
         ]);
     }
 
+    public function promoSubscribe(Request $request, StripeService $stripe): JsonResponse
+    {
+        $validated = $request->validate([
+            'promo_code_id' => ['required', 'integer', 'exists:launch_promo_codes,id'],
+            'payment_method' => ['required', 'string'],
+        ]);
+
+        $user = $request->user();
+
+        if (! $user) {
+            return response()->json(['error' => 'Debes iniciar sesion.'], 401);
+        }
+
+        try {
+            return DB::transaction(function () use ($validated, $stripe, $user): JsonResponse {
+                $promoCode = LaunchPromoCode::query()
+                    ->whereKey($validated['promo_code_id'])
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $promoCode || ! $promoCode->isOwnedBy($user)) {
+                    return response()->json(['error' => 'Este cupon no esta ligado a tu cuenta.'], 422);
+                }
+
+                if ($promoCode->revoked_at || ! $promoCode->hasStripePromotionCode()) {
+                    return response()->json(['error' => 'Este cupon ya no puede usarse.'], 422);
+                }
+
+                if ($promoCode->redeemed_by || $promoCode->stripe_subscription_id) {
+                    return response()->json(['error' => 'Este cupon ya fue usado.'], 422);
+                }
+
+                if ($user->subscribed()) {
+                    return response()->json(['error' => 'Tu cuenta ya tiene una suscripcion activa.'], 422);
+                }
+
+                $priceId = $stripe->priceId($promoCode->plan, $promoCode->interval);
+
+                if (! $priceId) {
+                    return response()->json(['error' => 'El plan promocional aun no tiene precio configurado en Stripe.'], 422);
+                }
+
+                $stripe->setDefaultPaymentMethod($user, $validated['payment_method']);
+
+                $subscription = $stripe->createPromoCouponSubscription(
+                    $user,
+                    $priceId,
+                    $promoCode->stripe_promotion_code_id,
+                    $validated['payment_method'],
+                    [
+                        'type' => 'promo_coupon',
+                        'promo_code_id' => (string) $promoCode->id,
+                        'promo_code' => $promoCode->code,
+                        'stripe_promotion_code_id' => $promoCode->stripe_promotion_code_id,
+                        'plan' => $promoCode->plan,
+                        'interval' => $promoCode->interval,
+                        'discount_months' => (string) $promoCode->trial_months,
+                    ],
+                );
+
+                $this->syncUserFromSubscription($user, $subscription, $stripe);
+                $promoCode->markRedeemedFor($user, $subscription->id ?? null);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Tu promocion de 6 meses gratis ya esta activa.',
+                    'redirect' => route('dashboard'),
+                ]);
+            });
+        } catch (Throwable $e) {
+            Log::error('Stripe promo subscription element error', [
+                'user_id' => $user->id,
+                'promo_code_id' => $validated['promo_code_id'],
+                'message' => $e->getMessage(),
+            ]);
+
+            return response()->json(['error' => 'No se pudo activar la promocion: '.$e->getMessage()], 500);
+        }
+    }
+
     /**
      * Página de retorno tras un pago exitoso.
      */
@@ -423,10 +504,11 @@ class StripeController extends Controller
             try {
                 $session = $stripe->client()->checkout->sessions->retrieve($sessionId);
                 $this->syncFromCheckoutSession($session, $stripe);
-                if (($session->metadata->type ?? null) === 'member_addon') {
+                $metadataType = $session->metadata->type ?? null;
+                if ($metadataType === 'member_addon') {
                     $message = '¡Pago completado! Ya tienes una cuenta adicional disponible.';
-                } elseif (($session->metadata->type ?? null) === 'promo_trial') {
-                    $message = 'Tarjeta validada. Tu promocion de 6 meses gratis ya esta activa.';
+                } elseif ($this->isPromoMetadataType($metadataType)) {
+                    $message = 'Cupon aplicado. Tu promocion de 6 meses gratis ya esta activa.';
                 }
             } catch (Throwable $e) {
                 Log::warning('Stripe success sync error', ['message' => $e->getMessage()]);
@@ -606,7 +688,7 @@ class StripeController extends Controller
 
         $user->forceFill($data)->save();
 
-        if (($session->metadata->type ?? null) === 'promo_trial') {
+        if ($this->isPromoMetadataType($session->metadata->type ?? null)) {
             $this->syncPromoCode(
                 $user,
                 $session->metadata->promo_code_id ?? null,
@@ -649,13 +731,18 @@ class StripeController extends Controller
 
         $user->forceFill($data)->save();
 
-        if (($subscription->metadata->type ?? null) === 'promo_trial') {
+        if ($this->isPromoMetadataType($subscription->metadata->type ?? null)) {
             $this->syncPromoCode(
                 $user,
                 $subscription->metadata->promo_code_id ?? null,
                 $subscription->id ?? null,
             );
         }
+    }
+
+    private function isPromoMetadataType(?string $type): bool
+    {
+        return in_array($type, ['promo_trial', 'promo_coupon'], true);
     }
 
     private function syncPromoCode(User $user, ?string $promoCodeId, ?string $subscriptionId): void

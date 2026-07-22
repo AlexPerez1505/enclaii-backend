@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 
 class LaunchPromoCode extends Model
 {
@@ -23,6 +24,8 @@ class LaunchPromoCode extends Model
         'plan',
         'interval',
         'trial_months',
+        'stripe_coupon_id',
+        'stripe_promotion_code_id',
         'status',
         'reserved_by',
         'reserved_at',
@@ -49,6 +52,18 @@ class LaunchPromoCode extends Model
     {
         return static::query()
             ->where('token_hash', hash('sha256', $token))
+            ->first();
+    }
+
+    public static function normalizeCode(?string $code): string
+    {
+        return preg_replace('/\s+/', '', Str::upper(trim($code ?? ''))) ?? '';
+    }
+
+    public static function findByCode(string $code): ?self
+    {
+        return static::query()
+            ->where('code', static::normalizeCode($code))
             ->first();
     }
 
@@ -79,6 +94,11 @@ class LaunchPromoCode extends Model
     {
         return (int) $this->reserved_by === (int) $user->id
             || (int) $this->redeemed_by === (int) $user->id;
+    }
+
+    public function hasStripePromotionCode(): bool
+    {
+        return filled($this->stripe_promotion_code_id);
     }
 
     public function reserveFor(User $user): void
