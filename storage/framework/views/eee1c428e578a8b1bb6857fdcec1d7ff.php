@@ -134,4 +134,4 @@
   };
 })();
 </script>
-<?php /**PATH C:\Users\HP\enclaii-backend\resources\views/components/critical-password-modal.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\Users\gmedi\enclaii-backend\resources\views/components/critical-password-modal.blade.php ENDPATH**/ ?>

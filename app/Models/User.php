@@ -18,21 +18,29 @@ class User extends Authenticatable
     protected static function booted(): void
     {
         static::creating(function (User $user): void {
-            if (! $user->clinica_id && Schema::hasTable('clinicas')) {
-                $hasPlan = in_array($user->subscription_status, ['active', 'trialing'], true);
-                $clinica = $hasPlan
-                    ? Clinica::create([
-                        'nombre' => 'Clínica de '.$user->name,
-                        'is_shared' => false,
-                    ])
-                    : Clinica::shared();
-
-                $user->clinica_id = $clinica->id;
-                $user->clinica_rol = $hasPlan ? 'propietario' : 'usuario';
+            if ($user->clinica_id || ! Schema::hasTable('clinicas')) {
+                return;
             }
+
+            $hasPlan = in_array($user->subscription_status, ['active', 'trialing'], true);
+            $clinica = $hasPlan
+                ? Clinica::create([
+                    'nombre' => 'Clínica de '.$user->name,
+                    'is_shared' => false,
+                ])
+                : Clinica::shared();
+
+            $user->clinica_id = $clinica->id;
+            $user->clinica_rol = $hasPlan ? 'propietario' : 'usuario';
         });
 
         static::saved(function (User $user): void {
+            // Los usuarios de Customer Success no pertenecen a ninguna clínica.
+            if ($user->isCustomerSuccess() && ($user->clinica_id || $user->clinica_rol)) {
+                $user->forceFill(['clinica_id' => null, 'clinica_rol' => null])->saveQuietly();
+                return;
+            }
+
             $user->ensurePrivateClinicForPlan();
         });
     }
@@ -270,6 +278,14 @@ class User extends Authenticatable
     public function auditSensitiveActionsEnabled(): bool
     {
         return $this->securityPreferences()['audit_sensitive_actions'];
+    }
+
+    /**
+     * Indica si el usuario tiene rol de Customer Success.
+     */
+    public function isCustomerSuccess(): bool
+    {
+        return $this->hasRole('Customer Success');
     }
 
     public function clinica(): BelongsTo

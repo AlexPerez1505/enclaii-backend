@@ -32,31 +32,6 @@ class AgendaController extends Controller
             ->orderBy('fecha')
             ->orderBy('hora');
 
-        if ($request->expectsJson()) {
-            $year = (int) $request->query('year', $now->year);
-            $month = (int) $request->query('month', $now->month);
-            $inicioMes = Carbon::create($year, $month, 1)->startOfMonth();
-            $finMes = $inicioMes->copy()->endOfMonth();
-
-            $citas = $citasQuery
-                ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
-                ->get();
-
-            return response()->json([
-                'ok' => true,
-                'citas' => $citas->map(fn (Cita $cita) => $this->citaParaAgenda($cita))->values(),
-            ]);
-        }
-
-        $citas = $citasQuery->get();
-
-        $citasAgenda = $citas->map(fn (Cita $cita) => $this->citaParaAgenda($cita))->values();
-
-        $citasHoy = Cita::query()
-            ->whereDate('fecha', today())
-            ->whereIn('estado', ['en_espera', 'proximo'])
-            ->count();
-
         $bloqueos = Bloqueo::query()->orderBy('fecha')->orderBy('hora')->get();
 
         $bloqueosData = $bloqueos->map(function ($b) {
@@ -79,6 +54,32 @@ class AgendaController extends Controller
                 'duracion'=> $duracion,
             ];
         })->values();
+
+        if ($request->expectsJson()) {
+            $year = (int) $request->query('year', $now->year);
+            $month = (int) $request->query('month', $now->month);
+            $inicioMes = Carbon::create($year, $month, 1)->startOfMonth();
+            $finMes = $inicioMes->copy()->endOfMonth();
+
+            $citas = $citasQuery
+                ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
+                ->get();
+
+            return response()->json([
+                'ok' => true,
+                'citas' => $citas->map(fn (Cita $cita) => $this->citaParaAgenda($cita))->values(),
+                'bloqueos' => $bloqueosData,
+            ]);
+        }
+
+        $citas = $citasQuery->get();
+
+        $citasAgenda = $citas->map(fn (Cita $cita) => $this->citaParaAgenda($cita))->values();
+
+        $citasHoy = Cita::query()
+            ->whereDate('fecha', today())
+            ->whereIn('estado', ['en_espera', 'proximo'])
+            ->count();
 
         return view('agenda.index', compact('citasAgenda', 'citasHoy', 'bloqueosData'));
     }

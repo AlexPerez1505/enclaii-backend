@@ -16,7 +16,6 @@
 @push('styles')
 <style>
 .rv-page{--rv-bg:#060b14;--rv-panel:#0c1222;--rv-panel-2:#0f1629;--rv-border:#1e293b;--rv-border-soft:#253047;--rv-text:#e2e8f0;--rv-text-soft:#94a3b8;--rv-blue:#3b82f6;--rv-green:#22c55e;--rv-red:#ef4444;--rv-amber:#f59e0b;--rv-radius:18px}
-<<<<<<< HEAD
 .rv-page{max-width:860px;margin:0 auto}
 .rv-back{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--rv-text-soft);text-decoration:none;margin-bottom:22px;padding:8px 14px;border-radius:10px;border:1px solid var(--rv-border);background:var(--rv-panel-2);transition:all 150ms}
 .rv-back:hover{border-color:var(--rv-blue);color:var(--rv-blue)}
@@ -52,23 +51,6 @@ html[data-theme="light"] .rv-header-close:hover{border-color:#ef4444;color:#ef44
 .rv-ticket-detail-value{font-size:13px;color:var(--rv-text);line-height:1.5}
 .rv-ticket-detail-value pre{white-space:pre-wrap;word-break:break-word;font-family:inherit;margin:0;font-size:13px;line-height:1.5}
 .rv-ticket-category-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(59,130,246,.12);border-radius:8px;font-size:12px;font-weight:600;color:var(--rv-blue)}
-=======
-.rv-page{max-width:680px;margin:0 auto}
-.rv-back{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--rv-text-soft);text-decoration:none;margin-bottom:22px;padding:8px 14px;border-radius:10px;border:1px solid var(--rv-border);background:var(--rv-panel-2);transition:all 150ms}
-.rv-back:hover{border-color:var(--rv-blue);color:var(--rv-blue)}
-.rv-card{background:var(--rv-panel);border:1px solid var(--rv-border);border-radius:var(--rv-radius);box-shadow:0 10px 40px rgba(0,0,0,.3);position:relative;overflow:hidden}
-.rv-card::before{content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;background:linear-gradient(135deg,rgba(34,197,94,.3),rgba(59,130,246,.15),transparent 50%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
-.rv-header{padding:32px 32px 0;display:flex;align-items:center;gap:16px}
-.rv-header-icon{width:50px;height:50px;border-radius:50%;background:rgba(34,197,94,.12);display:grid;place-items:center;box-shadow:0 0 30px rgba(34,197,94,.2)}
-.rv-header-icon svg{color:var(--rv-green)}
-.rv-header h1{font-size:22px;font-weight:800;color:var(--rv-text);margin:0}
-.rv-sub{padding:10px 32px 0;font-size:14px;color:var(--rv-text-soft)}
-.rv-ticket-info{margin:20px 32px 0;padding:16px;background:var(--rv-panel-2);border:1px solid var(--rv-border);border-radius:14px;display:flex;align-items:center;gap:16px}
-.rv-ticket-info-icon{width:40px;height:40px;border-radius:10px;background:rgba(59,130,246,.12);display:grid;place-items:center;color:var(--rv-blue);flex-shrink:0}
-.rv-ticket-info-text{flex:1}
-.rv-ticket-info-text strong{font-size:14px;color:var(--rv-text);display:block}
-.rv-ticket-info-text span{font-size:12px;color:var(--rv-text-soft)}
->>>>>>> origin/main
 .rv-body{padding:32px}
 .rv-sep{border:0;border-top:1px solid var(--rv-border);margin:24px 0}
 .rv-label{font-size:13px;font-weight:700;color:var(--rv-text);margin-bottom:12px;display:block;letter-spacing:.02em}
@@ -83,7 +65,6 @@ html[data-theme="light"] .rv-header-close:hover{border-color:#ef4444;color:#ef44
 .rv-radio-lbl{font-size:14px;color:var(--rv-text-soft);font-weight:600;transition:color 150ms}
 .rv-select{width:100%;background:var(--rv-panel-2);border:1px solid var(--rv-border);border-radius:12px;padding:14px 16px;color:var(--rv-text);font-size:14px;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:40px}
 .rv-select:focus{border-color:var(--rv-blue);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
-<<<<<<< HEAD
 .rv-dropdown{position:relative;width:100%}
 .rv-dropdown-trigger{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;background:var(--rv-panel-2);border:1px solid var(--rv-border);border-radius:12px;color:var(--rv-text-soft);font-size:14px;font-weight:500;cursor:pointer;transition:all 150ms;text-align:left}
 .rv-dropdown-trigger:hover,.rv-dropdown.open .rv-dropdown-trigger{border-color:var(--rv-blue);color:var(--rv-text);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
@@ -104,18 +85,12 @@ html[data-theme="light"] .rv-header-close:hover{border-color:#ef4444;color:#ef44
 .rv-resolution-other{width:100%;margin-top:14px;background:var(--rv-panel-2);border:1px solid var(--rv-border);border-radius:12px;padding:14px 16px;color:var(--rv-text);font-size:14px;outline:none;transition:border-color 150ms;box-sizing:border-box}
 .rv-resolution-other::placeholder{color:var(--rv-text-soft)}
 .rv-resolution-other:focus{border-color:var(--rv-blue);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
-=======
-.rv-textarea{width:100%;min-height:110px;background:var(--rv-panel-2);border:1px solid var(--rv-border);border-radius:12px;padding:14px 16px;color:var(--rv-text);font-size:14px;outline:none;resize:vertical;font-family:inherit;box-sizing:border-box;line-height:1.6}
-.rv-textarea::placeholder{color:#475569}
-.rv-textarea:focus{border-color:var(--rv-blue);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
->>>>>>> origin/main
 .rv-checkbox{display:flex;align-items:center;gap:12px;cursor:pointer;font-size:14px;color:var(--rv-text);padding:14px 18px;background:var(--rv-panel-2);border:1px solid var(--rv-border);border-radius:12px;transition:all 150ms}
 .rv-checkbox:hover{border-color:var(--rv-blue)}
 .rv-checkbox input{display:none}
 .rv-checkbox .box{width:22px;height:22px;border-radius:7px;border:2px solid #334155;display:grid;place-items:center;transition:all 150ms;flex-shrink:0}
 .rv-checkbox input:checked+.box{background:var(--rv-blue);border-color:var(--rv-blue);box-shadow:0 0 12px rgba(59,130,246,.3)}
 .rv-checkbox input:checked+.box::after{content:'\2713';color:#fff;font-size:13px;font-weight:700}
-<<<<<<< HEAD
 .rv-file-input{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:14px}
 .rv-file-input input{display:none}
 .rv-file-label{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;background:var(--rv-panel-2);border:1px solid var(--rv-border);border-radius:12px;cursor:pointer;transition:all 150ms;font-weight:600;font-size:13px;color:var(--rv-text-soft)}
@@ -129,13 +104,6 @@ html[data-theme="light"] .rv-header-close:hover{border-color:#ef4444;color:#ef44
 .rv-modal-card .rv-evidence-img{width:100%;aspect-ratio:1/1;object-fit:contain;display:block;border-radius:10px}
 .rv-remove-file{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--rv-panel);border:1px solid var(--rv-border);color:var(--rv-text-soft);cursor:pointer;margin-left:6px;transition:all 150ms;box-sizing:border-box}
 .rv-remove-file:hover{border-color:var(--rv-red);color:var(--rv-red)}
-=======
-.rv-file-input{display:flex;align-items:center;gap:10px;margin-top:14px}
-.rv-file-input input{display:none}
-.rv-file-label{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;background:var(--rv-panel-2);border:1px solid var(--rv-border);border-radius:12px;cursor:pointer;transition:all 150ms;font-weight:600;font-size:13px;color:var(--rv-text-soft)}
-.rv-file-label:hover{border-color:var(--rv-blue);color:var(--rv-blue)}
-.rv-file-name{font-size:13px;color:var(--rv-text);font-weight:600}
->>>>>>> origin/main
 .rv-footer{padding:0 32px 32px;display:flex;justify-content:flex-end;gap:14px}
 .rv-btn{display:inline-flex;align-items:center;gap:10px;padding:14px 28px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:all 150ms;border:1px solid transparent;text-decoration:none}
 .rv-btn-cancel{background:var(--rv-panel-2);border-color:var(--rv-border);color:var(--rv-text-soft)}
@@ -144,7 +112,6 @@ html[data-theme="light"] .rv-header-close:hover{border-color:#ef4444;color:#ef44
 .rv-btn-submit:hover{filter:brightness(1.1);transform:translateY(-1px)}
 .rv-btn-submit:disabled{opacity:.5;cursor:not-allowed;filter:none;transform:none}
 .rv-error{font-size:13px;color:var(--rv-red);margin-bottom:16px;padding:12px 16px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:12px;display:none}
-<<<<<<< HEAD
 .rv-notify-info{display:flex;align-items:flex-start;gap:10px;margin:4px 0 0 34px;padding:12px 14px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:10px;font-size:13px;color:var(--rv-green);line-height:1.5}
 .rv-notify-info svg{flex-shrink:0;color:var(--rv-green);margin-top:1px}
 html[data-theme="light"] .rv-notify-info{background:#f0fdf4;border-color:#bbf7d0;color:#15803d}
@@ -211,9 +178,6 @@ html[data-theme="light"] .rv-modal-card .tk-icon-btn:hover{border-color:#3b82f6;
   .rv-modal-card .tk-card-header{padding:18px}
   .rv-modal-card .tk-card-body{padding:18px}
 }
-=======
-.rv-msg-block{margin-top:16px}
->>>>>>> origin/main
 
 /* ===== TEMA CLARO ===== */
 html[data-theme="light"] .rv-page{--rv-bg:#f8fafc;--rv-panel:#ffffff;--rv-panel-2:#f1f5f9;--rv-border:#e2e8f0;--rv-border-soft:#e2e8f0;--rv-text:#0f172a;--rv-text-soft:#64748b}
@@ -234,7 +198,6 @@ html[data-theme="light"] .rv-btn-cancel{background:#f8fafc;border-color:#e2e8f0;
 html[data-theme="light"] .rv-error{background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.15)}
 html[data-theme="light"] .rv-ticket-info{background:#f8fafc;border-color:#e2e8f0}
 html[data-theme="light"] .rv-ticket-info-icon{background:rgba(59,130,246,.08)}
-<<<<<<< HEAD
 html[data-theme="light"] .rv-modal-overlay{background:rgba(15,23,42,.45)}
 html[data-theme="light"] .rv-modal-card{background:#ffffff;border-color:#e2e8f0;box-shadow:0 24px 60px rgba(15,23,42,.2)}
 html[data-theme="light"] .rv-modal-card .rv-header-icon{background:rgba(34,197,94,.08);box-shadow:none}
@@ -260,16 +223,6 @@ html[data-theme="light"] .rv-modal-card .rv-preview-sep{border-color:#e2e8f0}
   .rv-dropdown-menu{max-height:220px}
   .rv-file-input{align-items:flex-start;flex-wrap:wrap}
   .rv-file-name{max-width:100%;overflow-wrap:anywhere}
-=======
-
-@media(max-width:640px){
-  .rv-header{padding:24px 20px 0}
-  .rv-sub{padding:8px 20px 0}
-  .rv-ticket-info{margin:16px 20px 0}
-  .rv-body{padding:20px}
-  .rv-footer{padding:0 20px 24px}
-  .rv-radio-group{flex-direction:column}
->>>>>>> origin/main
 }
 </style>
 @endpush
@@ -289,7 +242,6 @@ html[data-theme="light"] .rv-modal-card .rv-preview-sep{border-color:#e2e8f0}
       </div>
       <h1>Resolver ticket</h1>
     </div>
-<<<<<<< HEAD
     <div class="rv-sub">Completa los datos para registrar la resolución.</div>
 
     <div class="rv-ticket-info" id="ticketInfoToggle">
@@ -404,88 +356,22 @@ html[data-theme="light"] .rv-modal-card .rv-preview-sep{border-color:#e2e8f0}
           <input type="hidden" name="resolution_type" id="resolutionTypeInput" value="{{ $isResolutionKnown ? $storedResolutionType : 'otro' }}" required>
           <input type="text" name="resolution_type_other" id="resolutionTypeOther" class="rv-resolution-other" value="{{ $isResolutionKnown ? '' : $storedResolutionType }}" placeholder="Especifica el tipo de solución..." style="{{ ($isResolutionKnown || !$storedResolutionType) ? 'display:none' : 'display:block' }}">
         </div>
-=======
-    <div class="rv-sub">El cliente será notificado automáticamente.</div>
-
-    <div class="rv-ticket-info">
-      <div class="rv-ticket-info-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      </div>
-      <div class="rv-ticket-info-text">
-        <strong>{{ $ticket->subject }}</strong>
-        <span>{{ $ticket->operation_folio }} &bull; {{ $ticket->user?->name }} {{ $ticket->user?->apellido_paterno }}</span>
-      </div>
-    </div>
-
-    <form id="resolveForm" enctype="multipart/form-data">
-      <div class="rv-body">
-        <div id="resolveError" class="rv-error"></div>
-
-        <label class="rv-label">Estado final</label>
-        <div class="rv-radio-group">
-          <label class="rv-radio">
-            <input type="radio" name="status" value="resuelto" checked>
-            <div class="circle"></div>
-            <span class="rv-radio-lbl">Resuelto</span>
-          </label>
-          <label class="rv-radio">
-            <input type="radio" name="status" value="cerrado">
-            <div class="circle"></div>
-            <span class="rv-radio-lbl">Cerrado</span>
-          </label>
-        </div>
-
-        <hr class="rv-sep">
-
-        <label class="rv-label">Tipo de solución</label>
-        <select name="resolution_type" class="rv-select" required>
-          <option value="" disabled selected>Selecciona una opción</option>
-          <option value="problema_corregido">Problema corregido</option>
-          <option value="configuracion_realizada">Configuración realizada</option>
-          <option value="error_usuario">Error del usuario</option>
-          <option value="capacitacion">Capacitación</option>
-          <option value="incidencia_externa">Incidencia externa</option>
-          <option value="otro">Otro</option>
-        </select>
->>>>>>> origin/main
 
         <hr class="rv-sep">
 
         <label class="rv-label">Resumen de la solución</label>
-<<<<<<< HEAD
         <textarea name="resolution_summary" class="rv-textarea" placeholder="Describe qué hiciste para resolver el problema..." required>{{ $ticket->resolution_summary }}</textarea>
 
-=======
-        <textarea name="resolution_summary" class="rv-textarea" placeholder="Describe qué hiciste para resolver el problema..." required></textarea>
-
-        <hr class="rv-sep">
-
-        <label class="rv-checkbox" id="sendMsgToggle">
-          <input type="checkbox" name="send_message" value="1" checked>
-          <div class="box"></div>
-          ¿Deseas enviar un mensaje al cliente?
-        </label>
-
-        <div class="rv-msg-block" id="clientMsgBlock">
-          <label class="rv-label" style="margin-top:16px">Mensaje</label>
-          <textarea name="client_message" class="rv-textarea" placeholder="Hola, tu solicitud fue resuelta...">Hola, tu ticket ha sido resuelto. Si necesitas más ayuda, no dudes en contactarnos.</textarea>
-        </div>
->>>>>>> origin/main
 
         <hr class="rv-sep">
 
         <label class="rv-file-input">
-<<<<<<< HEAD
           <input type="file" name="evidence[]" accept="image/*,.pdf,.doc,.docx" id="evidenceInput" multiple>
           <input type="hidden" name="remove_evidence" id="removeEvidenceInput" value="[]">
-=======
-          <input type="file" name="evidence" accept="image/*,.pdf,.doc,.docx" id="evidenceInput">
->>>>>>> origin/main
           <span class="rv-file-label">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
             Adjuntar evidencia
           </span>
-<<<<<<< HEAD
           <span class="rv-file-name" id="evidenceFileName" data-existing="@json($ticket->evidence_paths ?? [])">
             @if(!empty($ticket->evidence_paths))
               @foreach($ticket->evidence_paths as $path)
@@ -529,10 +415,6 @@ html[data-theme="light"] .rv-modal-card .rv-preview-sep{border-color:#e2e8f0}
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
           Vista previa de la resolución
         </button>
-=======
-          <span class="rv-file-name" id="evidenceFileName"></span>
-        </label>
->>>>>>> origin/main
       </div>
 
       <div class="rv-footer">
@@ -543,7 +425,6 @@ html[data-theme="light"] .rv-modal-card .rv-preview-sep{border-color:#e2e8f0}
         </button>
       </div>
     </form>
-<<<<<<< HEAD
     @endif
   </div>
 
@@ -640,11 +521,6 @@ html[data-theme="light"] .rv-modal-card .rv-preview-sep{border-color:#e2e8f0}
 <div class="rv-modal-overlay" id="attachmentOverlay" style="padding:0">
   <img id="attachmentLightboxImg" class="rv-lightbox-img" src="" alt="Adjunto del ticket">
 </div>
-=======
-  </div>
-
-</div>
->>>>>>> origin/main
 @endsection
 
 @push('scripts')
@@ -657,7 +533,6 @@ html[data-theme="light"] .rv-modal-card .rv-preview-sep{border-color:#e2e8f0}
   var form = document.getElementById('resolveForm');
   var btnSubmit = document.getElementById('btnSubmit');
   var errorEl = document.getElementById('resolveError');
-<<<<<<< HEAD
   var evidenceInput = document.getElementById('evidenceInput');
   var fileNameEl = document.getElementById('evidenceFileName');
   var selectedEvidenceFiles = [];
@@ -1036,21 +911,6 @@ html[data-theme="light"] .rv-modal-card .rv-preview-sep{border-color:#e2e8f0}
   });
 
   if(form && btnSubmit && errorEl){
-=======
-  var sendMsgToggle = document.querySelector('#sendMsgToggle input');
-  var clientMsgBlock = document.getElementById('clientMsgBlock');
-  var evidenceInput = document.getElementById('evidenceInput');
-  var fileNameEl = document.getElementById('evidenceFileName');
-
-  sendMsgToggle.addEventListener('change', function(){
-    clientMsgBlock.style.display = this.checked ? '' : 'none';
-  });
-
-  evidenceInput.addEventListener('change', function(){
-    fileNameEl.textContent = this.files.length ? this.files[0].name : '';
-  });
-
->>>>>>> origin/main
   form.addEventListener('submit', function(e){
     e.preventDefault();
     errorEl.style.display = 'none';
@@ -1059,15 +919,6 @@ html[data-theme="light"] .rv-modal-card .rv-preview-sep{border-color:#e2e8f0}
 
     var fd = new FormData(form);
     fd.append('_token', csrfToken);
-<<<<<<< HEAD
-=======
-    if(!sendMsgToggle.checked){
-      fd.delete('client_message');
-      fd.set('send_message', '0');
-    } else {
-      fd.set('send_message', '1');
-    }
->>>>>>> origin/main
 
     fetch(resolveUrl, {
       method: 'POST',
@@ -1077,10 +928,7 @@ html[data-theme="light"] .rv-modal-card .rv-preview-sep{border-color:#e2e8f0}
     .then(function(r){ return r.json().then(function(d){ return {ok: r.ok, data: d}; }); })
     .then(function(res){
       if(res.ok && res.data.ok){
-<<<<<<< HEAD
         clearStored();
-=======
->>>>>>> origin/main
         window.location.href = showUrl;
       } else {
         var msg = 'Error al resolver.';
@@ -1103,7 +951,6 @@ html[data-theme="light"] .rv-modal-card .rv-preview-sep{border-color:#e2e8f0}
       btnSubmit.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Resolver ticket';
     });
   });
-<<<<<<< HEAD
   }
 
   // Attachment lightbox
@@ -1121,8 +968,6 @@ html[data-theme="light"] .rv-modal-card .rv-preview-sep{border-color:#e2e8f0}
       if(e.target === attachmentOverlay) attachmentOverlay.classList.remove('open');
     });
   }
-=======
->>>>>>> origin/main
 })();
 </script>
 @endpush

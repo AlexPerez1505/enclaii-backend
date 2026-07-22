@@ -211,7 +211,7 @@
         <div class="gen-thumbs" id="genThumbs">
           @forelse ($evidencias as $i => $ev)
             <div class="gen-thumb {{ $i === 0 ? 'sel' : '' }}">
-              <img src="{{ asset($ev) }}" alt="Evidencia {{ $i + 1 }}" loading="lazy">
+              <img src="{{ $ev }}" alt="Evidencia {{ $i + 1 }}" loading="lazy">
             </div>
           @empty
             <p style="grid-column:1/-1;color:var(--txt-soft);font-size:12.5px;margin:0">No hay imágenes asociadas a este estudio.</p>
@@ -380,7 +380,7 @@
           tipo_estudio: payload.tipo_estudio,
           fecha: payload.fecha,
         },
-        imagenes: @json($evidencias->map(fn ($e) => asset($e))->values()),
+        imagenes: @json($evidencias->values()),
       }));
       label.textContent = 'Abriendo editor...';
       // Pausa breve para que el profesional vea la propuesta de la IA antes de editar.

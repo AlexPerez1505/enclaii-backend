@@ -787,7 +787,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   // Celda del grid: imagen real del estudio o recuadro vacío
   const escAttr = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const imgCell = (img) => img
-    ? '<span class="cell" style="background:none"><img src="' + escAttr(img.url) + '" alt="" title="' + escAttr(img.titulo || 'Captura') + '" loading="lazy" onerror="this.parentElement.classList.add(&quot;img-missing&quot;);this.remove()"></span>'
+    ? '<span class="cell" style="background:none"><img src="' + escAttr(img.url) + '" alt="" title="' + escAttr(img.titulo || 'Captura') + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block" onerror="var c=this.parentElement;if(c)c.remove();else this.remove()"></span>'
     : '<span class="cell"></span>';
 
   // Rellena el grid de imágenes según la plantilla (columnas + nº de celdas)
@@ -1565,7 +1565,30 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
         if (target) target.focus();
       }
       // Aplicar tamaño usando execCommand con hack
+      restoreDocSelection();
+      const target = currentEditableTarget();
+      const sel = document.getSelection();
+      if (!sel || !sel.rangeCount || sel.isCollapsed || !selectionInsideDoc()) {
+        if (target) {
+          target.style.fontSize = size + 'px';
+          refreshToolbar();
+          if (docEl) docEl.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        return;
+      }
+      document.execCommand('styleWithCSS', false, false);
+      document.execCommand('fontSize', false, '7');
       // Buscar elementos font[size="7"] y aplicar el tamaño en píxeles
+      setTimeout(() => {
+        const fontElements = (docEl || document).querySelectorAll('font[size="7"]');
+        fontElements.forEach(el => {
+          el.removeAttribute('size');
+          el.style.fontSize = size + 'px';
+        });
+        saveDocSelection();
+        refreshToolbar();
+        if (docEl) docEl.dispatchEvent(new Event('input', { bubbles: true }));
+      }, 10);
     });
   }
 

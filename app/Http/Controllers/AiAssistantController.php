@@ -310,6 +310,10 @@ class AiAssistantController extends Controller
 
         foreach ($request->file('attachments', []) as $file) {
             $path = media_store($file, 'clinicas/'.$request->user()->clinica_id.'/ai_uploads/'.now()->format('Y/m'));
+            $path = $file->store(
+                'clinicas/'.$request->user()->clinica_id.'/ai_uploads/'.now()->format('Y/m'),
+                'public',
+            );
 
             $attachment = AiAttachment::create([
                 'ai_message_id' => $messageId,

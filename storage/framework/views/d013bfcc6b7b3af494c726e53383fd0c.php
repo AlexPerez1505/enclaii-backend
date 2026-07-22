@@ -2792,4 +2792,4 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
 </div>
 </body>
 </html>
-<?php /**PATH C:\Users\HP\enclaii-backend\resources\views/layouts/app.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\Users\gmedi\enclaii-backend\resources\views/layouts/app.blade.php ENDPATH**/ ?>
