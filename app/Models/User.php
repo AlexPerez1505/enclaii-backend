@@ -251,7 +251,18 @@ class User extends Authenticatable
             'require_password_for_studies' => $settings?->require_password_for_studies ?? true,
             'require_password_for_patients' => $settings?->require_password_for_patients ?? true,
             'audit_sensitive_actions' => $settings?->audit_sensitive_actions ?? true,
+            'two_factor_email_enabled' => $settings?->two_factor_email_enabled ?? false,
+            'two_factor_email_confirmed_at' => $settings?->two_factor_email_confirmed_at,
         ];
+    }
+
+    public function twoFactorEmailEnabled(): bool
+    {
+        $settings = $this->relationLoaded('securitySetting')
+            ? $this->getRelation('securitySetting')
+            : $this->securitySetting()->first();
+
+        return $settings?->two_factor_email_enabled ?? false;
     }
 
     public function criticalPasswordRequired(string $scope): bool

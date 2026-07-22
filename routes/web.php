@@ -36,6 +36,7 @@ use App\Models\Reporte;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TwoFactorController;
 
 Route::get('/storage/{path}', [StorageServeController::class, 'show'])
     ->where('path', '.*')
@@ -202,6 +203,14 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
         ->middleware('critical.password:security_settings')
         ->name('configuracion.security-settings.update');
 
+    // ===== Autenticación de Dos Factores (2FA Email) =====
+    Route::post('/configuracion/seguridad/2fa/enviar', [TwoFactorController::class, 'enable'])
+        ->name('configuracion.2fa.send');
+    Route::post('/configuracion/seguridad/2fa/confirmar', [TwoFactorController::class, 'confirm'])
+        ->name('configuracion.2fa.confirm');
+    Route::delete('/configuracion/seguridad/2fa', [TwoFactorController::class, 'disable'])
+        ->name('configuracion.2fa.disable');
+
     Route::middleware('clinic.owner')->group(function () {
         Route::post('/configuracion/clinica/invitaciones', [ClinicaMemberController::class, 'storeInvitation'])
             ->name('configuracion.clinic-invitations.store');
@@ -250,8 +259,14 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
     Route::delete('/notifications', [NotificationController::class, 'destroy'])->name('notifications.destroy');
 
     Route::post('/logout', [EndoCareAuthController::class, 'logout'])->name('logout');
+    
 
 });
+
+// ===== 2FA challenge (sin auth) =====
+Route::get('/dos-pasos', [TwoFactorController::class, 'challenge'])->name('2fa.challenge');
+Route::post('/dos-pasos', [TwoFactorController::class, 'verifyChallenge'])->name('2fa.verify');
+Route::post('/dos-pasos/reenviar', [TwoFactorController::class, 'resend'])->name('2fa.resend');
 
 Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->group(function () {
 

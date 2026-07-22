@@ -159,9 +159,42 @@
       </div>
 
       <div class="sec-row">
-        <span class="sec-ico g"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg></span>
-        <div class="sec-info"><div class="t">Autenticación de dos factores (2FA)</div><div class="d">Recibe un código por correo al iniciar sesión</div></div>
-        <label class="sw"><input type="checkbox" checked><span class="track"></span><span class="knob"></span></label>
+        <span class="sec-ico g">...</svg></span>
+        <div class="sec-info">
+          <div class="t">Verificación en dos pasos</div>
+          <div class="d" id="sec2faStatus">
+            <?php echo e($securitySettings['two_factor_email_enabled'] ? 'Activada' : 'Recibirás un código por correo al iniciar sesión'); ?>
+
+          </div>
+        </div>
+        <label class="sw">
+          <input type="checkbox" id="sec2faToggle" data-send-url="<?php echo e(route('configuracion.2fa.send')); ?>" data-confirm-url="<?php echo e(route('configuracion.2fa.confirm')); ?>" data-disable-url="<?php echo e(route('configuracion.2fa.disable')); ?>" <?php if($securitySettings['two_factor_email_enabled']): echo 'checked'; endif; ?>>
+          <span class="track"></span><span class="knob"></span>
+        </label>
+      </div>
+
+
+      <div class="sec-pw-overlay" id="sec2faModal" aria-hidden="true">
+        <div class="sec-pw-modal">
+          <div class="sec-pw-head">
+            <div>
+              <div class="sec-pw-title">Confirmar verificación</div>
+              <div class="sec-pw-sub">Te enviamos un código de 6 dígitos a tu correo. Ingrésalo para activar la verificación.</div>
+            </div>
+            <button type="button" class="sec-pw-close" id="sec2faClose">✕</button>
+          </div>
+          <div class="sec-pw-body">
+            <div class="sec-pw-field">
+              <label for="sec2faCode">Código de verificación</label>
+              <input class="sec-pw-input" id="sec2faCode" type="text" inputmode="numeric" maxlength="6" placeholder="000000">
+              <div class="sec-pw-error" id="sec2faError"></div>
+            </div>
+          </div>
+          <div class="sec-pw-footer">
+            <button type="button" class="sec-pw-action cancel" id="sec2faCancel">Cancelar</button>
+            <button type="button" class="sec-pw-action submit" id="sec2faConfirm">Activar</button>
+          </div>
+        </div>
       </div>
 
       <div class="sec-row">
@@ -413,6 +446,90 @@
   const confirmation = document.getElementById('secPasswordConfirmation');
   const strength = document.getElementById('secPasswordStrength');
   const csrf = form?.querySelector('input[name="_token"]')?.value;
+  const twoFactorToggle = document.getElementById('sec2faToggle');
+const twoFactorModal = document.getElementById('sec2faModal');
+const twoFactorCode = document.getElementById('sec2faCode');
+const twoFactorConfirm = document.getElementById('sec2faConfirm');
+const twoFactorError = document.getElementById('sec2faError');
+
+twoFactorToggle?.addEventListener('change', async () => {
+  twoFactorToggle.disabled = true;
+
+  if (twoFactorToggle.checked) {
+    // Activar: enviar código y mostrar modal
+    try {
+      const res = await fetch(twoFactorToggle.dataset.sendUrl, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': csrf,
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      });
+      if (!res.ok) throw new Error('No se pudo enviar el código');
+      twoFactorModal?.classList.add('open');
+    } catch (e) {
+      twoFactorToggle.checked = false;
+      toast(e.message, true);
+    }
+  } else {
+    // Desactivar
+    try {
+      const res = await fetch(twoFactorToggle.dataset.disableUrl, {
+        method: 'DELETE',
+        headers: {
+          'X-CSRF-TOKEN': csrf,
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      });
+      if (!res.ok) throw new Error('No se pudo desactivar');
+      document.getElementById('sec2faStatus').textContent = 'Recibirás un código por correo al iniciar sesión';
+      toast('Verificación desactivada');
+    } catch (e) {
+      twoFactorToggle.checked = true;
+      toast(e.message, true);
+    }
+  }
+  twoFactorToggle.disabled = false;
+});
+
+twoFactorConfirm?.addEventListener('click', async () => {
+  twoFactorConfirm.disabled = true;
+  twoFactorError.textContent = '';
+  twoFactorError.classList.remove('show');
+
+  try {
+    const res = await fetch(twoFactorToggle.dataset.confirmUrl, {
+      method: 'POST',
+      headers: {
+        'X-CSRF-TOKEN': csrf,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify({ code: twoFactorCode.value }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.message || 'Código incorrecto');
+    document.getElementById('sec2faStatus').textContent = 'Activada';
+    twoFactorModal?.classList.remove('open');
+    toast('Verificación activada');
+  } catch (e) {
+    twoFactorError.textContent = e.message;
+    twoFactorError.classList.add('show');
+  } finally {
+    twoFactorConfirm.disabled = false;
+  }
+});
+
+document.getElementById('sec2faCancel')?.addEventListener('click', () => {
+  twoFactorModal?.classList.remove('open');
+  twoFactorToggle.checked = false;
+  twoFactorCode.value = '';
+  twoFactorError.textContent = '';
+  twoFactorError.classList.remove('show');
+});
 
   if (!modal || !form || !csrf) return;
 

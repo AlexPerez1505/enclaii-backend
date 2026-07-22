@@ -556,12 +556,7 @@ $catIsClinicOwner = auth()->user()->clinica_rol === 'propietario';
       activateTab(savedTab);
     }
     sessionStorage.removeItem('enclaii-catalog-active-tab');
-
-    const savedMessage = sessionStorage.getItem('enclaii-catalog-message');
-    if (savedMessage) {
-      sessionStorage.removeItem('enclaii-catalog-message');
-      setTimeout(() => alert(savedMessage), 100);
-    }
+    sessionStorage.removeItem('enclaii-catalog-message');
   } catch (e) {}
 })();
 </script>
