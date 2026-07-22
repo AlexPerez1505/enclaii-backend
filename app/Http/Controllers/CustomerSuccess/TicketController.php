@@ -199,7 +199,7 @@ class TicketController extends Controller
     public function reopen(Ticket $ticket): JsonResponse
     {
         $ticket->update([
-            'status' => 'abierto',
+            'status' => 'en_proceso',
             'resolution_type' => null,
             'resolution_summary' => null,
             'client_message' => null,
@@ -243,9 +243,9 @@ class TicketController extends Controller
                 'folio' => $ticket->operation_folio,
                 'subject' => $ticket->subject,
                 'category' => $ticket->category,
-                'user_name' => $ticket->user?->name.' '.($ticket->user?->apellido_paterno ?? ''),
+                'user_name' => trim(($ticket->user?->name ?? '').' '.($ticket->user?->apellido_paterno ?? '')),
                 'user_email' => $ticket->user?->email,
-            ]),
+            ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
             'read' => false,
             'created_at' => now(),
             'updated_at' => now(),

@@ -152,6 +152,7 @@
 
 {{-- ===== SCRIPTS: JS de inicialización central ===== --}}
 @push('scripts')
+@include('agenda._init')
 <script>
 (function(){
   const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
@@ -242,7 +243,7 @@
     else if (curView === 'dia')    buildDayAndSync(cur);
   };
 
-  setView('mes');
+  // La agenda se inicializa abajo mediante window.__initAgenda()
 
   setInterval(() => {
     if (curView === 'mes') buildCal(cur);
@@ -348,6 +349,7 @@
   };
 
   const cur_ref = { get y(){ return cur.getFullYear(); }, get m(){ return cur.getMonth(); } };
+  window.__initAgenda(@json($citasAgenda), @json($bloqueosData));
   window.__initPopup(window.__AGENDA_EVENTS, MESES, cur_ref, DIAS_ES);
   window.__initDayPicker(function(date) { buildDayAndSync(date); });
   window.__initBloqueos(window.__AGENDA_EVENTS, MESES, DIAS_ES, buildDayAndSync);

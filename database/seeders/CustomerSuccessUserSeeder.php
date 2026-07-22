@@ -31,6 +31,11 @@ class CustomerSuccessUserSeeder extends Seeder
             $user->assignRole('Customer Success');
         }
 
+        // Los usuarios CS no deben pertenecer a ninguna clínica.
+        if ($user->clinica_id || $user->clinica_rol) {
+            $user->forceFill(['clinica_id' => null, 'clinica_rol' => null])->saveQuietly();
+        }
+
         $this->command->info("Usuario CS listo: {$user->email}");
     }
 }

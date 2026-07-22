@@ -32,6 +32,7 @@ class Ticket extends Model
 
     protected $casts = [
         'resolved_at' => 'datetime',
+        'evidence_paths' => 'array',
     ];
 
     public function user(): BelongsTo
