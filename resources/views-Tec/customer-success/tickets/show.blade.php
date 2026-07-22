@@ -15,7 +15,7 @@
 
 @push('styles')
 <style>
-.tk-page{--tk-bg:#060b14;--tk-panel:#0f1629;--tk-panel-2:#131b32;--tk-border:#1e293b;--tk-border-soft:#253047;--tk-text:#e2e8f0;--tk-text-soft:#94a3b8;--tk-blue:#3b82f6;--tk-blue-soft:#1d4ed8;--tk-cyan:#06b6d4;--tk-amber:#f59e0b;--tk-green:#22c55e;--tk-red:#ef4444;--tk-radius:18px;--tk-shadow:0 10px 30px rgba(0,0,0,.25)}
+.tk-page,.tk-modal-overlay{--tk-bg:#060b14;--tk-panel:#0f1629;--tk-panel-2:#131b32;--tk-border:#1e293b;--tk-border-soft:#253047;--tk-text:#e2e8f0;--tk-text-soft:#94a3b8;--tk-blue:#3b82f6;--tk-blue-soft:#1d4ed8;--tk-cyan:#06b6d4;--tk-amber:#f59e0b;--tk-green:#22c55e;--tk-red:#ef4444;--tk-radius:18px;--tk-shadow:0 10px 30px rgba(0,0,0,.25)}
 .tk-page{display:grid;gap:22px;grid-template-columns:1fr;max-width:1200px;margin:0 auto}
 .tk-col{min-width:0}
 @media(min-width:900px){.tk-page{grid-template-columns:1.4fr .6fr}}
@@ -91,9 +91,31 @@
 .tk-reopen-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:12px;border:1px solid var(--tk-border);background:var(--tk-panel-2);color:var(--tk-text-soft);font-size:13px;font-weight:600;cursor:pointer;transition:all 150ms;margin-top:16px}
 .tk-reopen-btn:hover{border-color:var(--tk-amber);color:var(--tk-amber)}
 
+/* Modal de confirmación */
+.tk-modal-overlay{position:fixed;inset:0;background:#000;z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
+.tk-modal-overlay.active{display:flex}
+.tk-modal{position:relative;background:var(--tk-panel);border:1px solid var(--tk-border);border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.45);width:100%;max-width:400px;overflow:hidden;animation:tkModalIn .2s ease}
+.tk-modal.warning::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--tk-amber),#facc15)}
+@keyframes tkModalIn{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+.tk-modal-close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:8px;background:transparent;border:none;color:var(--tk-text-soft);cursor:pointer;display:grid;place-items:center;transition:all 150ms}
+.tk-modal-close:hover{background:var(--tk-panel-2);color:var(--tk-text)}
+.tk-modal-header{padding:30px 28px 0;display:flex;align-items:center;gap:16px}
+.tk-modal-icon{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;flex-shrink:0}
+.tk-modal.warning .tk-modal-icon{background:rgba(245,158,11,.12);color:var(--tk-amber);box-shadow:0 0 24px rgba(245,158,11,.25)}
+.tk-modal-icon svg{width:22px;height:22px}
+.tk-modal-title{font-size:18px;font-weight:800;color:var(--tk-text);margin:0}
+.tk-modal-body{padding:12px 28px 26px;font-size:14px;color:var(--tk-text-soft);line-height:1.55}
+.tk-modal-footer{padding:0 28px 28px;display:flex;gap:12px}
+.tk-modal-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all 150ms;border:1px solid transparent}
+.tk-modal-btn.cancel{background:var(--tk-panel-2);border-color:var(--tk-border);color:var(--tk-text-soft)}
+.tk-modal-btn.cancel:hover{border-color:var(--tk-blue);color:var(--tk-blue);background:rgba(59,130,246,.08)}
+.tk-modal.warning .tk-modal-btn.confirm{background:linear-gradient(135deg,var(--tk-amber),#d97706);color:#1c1917;border:none;box-shadow:0 4px 20px rgba(245,158,11,.35)}
+.tk-modal.warning .tk-modal-btn.confirm:hover{filter:brightness(1.1);transform:translateY(-1px);box-shadow:0 6px 24px rgba(245,158,11,.45)}
+.tk-modal-btn.confirm:disabled{opacity:.6;cursor:not-allowed;transform:none;filter:none;box-shadow:none}
+
 
 /* ===== TEMA CLARO ===== */
-html[data-theme="light"] .tk-page{--tk-bg:#f8fafc;--tk-panel:#ffffff;--tk-panel-2:#f1f5f9;--tk-border:#e2e8f0;--tk-border-soft:#e2e8f0;--tk-text:#0f172a;--tk-text-soft:#64748b;--tk-shadow:0 4px 16px rgba(15,23,42,.06)}
+html[data-theme="light"] .tk-page,html[data-theme="light"] .tk-modal-overlay{--tk-bg:#f8fafc;--tk-panel:#ffffff;--tk-panel-2:#f1f5f9;--tk-border:#e2e8f0;--tk-border-soft:#e2e8f0;--tk-text:#0f172a;--tk-text-soft:#64748b;--tk-shadow:0 4px 16px rgba(15,23,42,.06)}
 html[data-theme="light"] .tk-card-glow::before{background:linear-gradient(180deg,rgba(59,130,246,.3),transparent)}
 html[data-theme="light"] .tk-card-icon{background:rgba(59,130,246,.1)}
 html[data-theme="light"] .tk-card-icon.green{background:rgba(34,197,94,.1)}
@@ -114,6 +136,9 @@ html[data-theme="light"] .tk-icon-btn{background:#fff;border-color:#e2e8f0;color
 html[data-theme="light"] .tk-icon-btn:hover{border-color:#3b82f6;color:#3b82f6}
 html[data-theme="light"] .tk-reopen-btn{background:#f8fafc;border-color:#e2e8f0;color:#64748b}
 html[data-theme="light"] .tk-reopen-btn:hover{border-color:#f59e0b;color:#b45309}
+html[data-theme="light"] .tk-modal-overlay{background:#94a3b8}
+html[data-theme="light"] .tk-modal-btn.cancel{background:#f1f5f9;border-color:#e2e8f0;color:#64748b}
+html[data-theme="light"] .tk-modal-btn.cancel:hover{border-color:#94a3b8;color:#0f172a}
 
 @media(max-width:900px){
   .tk-actions-grid{grid-template-columns:1fr}
@@ -121,6 +146,15 @@ html[data-theme="light"] .tk-reopen-btn:hover{border-color:#f59e0b;color:#b45309
   .tk-info-row > div:last-child{text-align:left}
   .tk-resolution-row{flex-direction:column;gap:6px}
   .tk-resolution-value{text-align:left}
+}
+@media(max-width:640px){
+  .tk-card-header{padding:18px}
+  .tk-card-body{padding:18px}
+  .tk-actions-grid{gap:12px;margin-top:18px}
+  .tk-action-btn{gap:12px;padding:16px}
+  .tk-action-icon{width:42px;height:42px}
+  .tk-action-text strong{font-size:14px}
+  .tk-action-text span{font-size:11px}
 }
 </style>
 @endpush
@@ -133,8 +167,14 @@ html[data-theme="light"] .tk-reopen-btn:hover{border-color:#f59e0b;color:#b45309
     <div class="tk-card tk-card-glow">
       @if(in_array($ticket->status, ['resuelto', 'cerrado']) && $ticket->resolved_at)
       <div class="tk-resolved-banner">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-        <strong>Ticket resuelto</strong>
+        <div style="display:flex;align-items:center;gap:14px;flex:1">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <strong>Ticket resuelto</strong>
+        </div>
+        <a href="{{ route('customer-success.tickets') }}" class="tk-reopen-btn" style="margin-top:0;flex-shrink:0">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l-6-6 6-6"/><path d="M3 12h18"/></svg>
+          Salir a Tickets
+        </a>
       </div>
       @endif
 
@@ -382,6 +422,28 @@ html[data-theme="light"] .tk-reopen-btn:hover{border-color:#f59e0b;color:#b45309
 
 </div>
 
+{{-- Modal reabrir ticket --}}
+<div class="tk-modal-overlay" id="reopenModal">
+  <div class="tk-modal warning">
+    <button type="button" class="tk-modal-close" id="reopenClose" aria-label="Cerrar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+    </button>
+    <div class="tk-modal-header">
+      <div class="tk-modal-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+      </div>
+      <h3 class="tk-modal-title">Reabrir ticket</h3>
+    </div>
+    <div class="tk-modal-body">
+El ticket actual se reabrirá y volverá a estar en proceso. Los datos de su resolución anterior se conservarán para que puedas editarlos o agregar información. ¿Deseas continuar?
+    </div>
+    <div class="tk-modal-footer">
+      <button type="button" class="tk-modal-btn cancel" id="reopenCancel">Cancelar</button>
+      <button type="button" class="tk-modal-btn confirm" id="reopenConfirm">Reabrir</button>
+    </div>
+  </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -425,11 +487,30 @@ html[data-theme="light"] .tk-reopen-btn:hover{border-color:#f59e0b;color:#b45309
 
   // ---- Reopen ----
   var btnReopen = document.getElementById('btnReopen');
+  var reopenModal = document.getElementById('reopenModal');
+  var reopenClose = document.getElementById('reopenClose');
+  var reopenCancel = document.getElementById('reopenCancel');
+  var reopenConfirm = document.getElementById('reopenConfirm');
+
+  function openReopenModal(){ if(reopenModal) reopenModal.classList.add('active'); }
+  function closeReopenModal(){ if(reopenModal) reopenModal.classList.remove('active'); }
+
   if(btnReopen){
-    btnReopen.addEventListener('click', function(){
-      if(!confirm('¿Reabrir este ticket?')) return;
-      btnReopen.disabled = true;
-      btnReopen.textContent = 'Reabriendo...';
+    btnReopen.addEventListener('click', openReopenModal);
+  }
+  if(reopenClose){
+    reopenClose.addEventListener('click', closeReopenModal);
+  }
+  if(reopenCancel){
+    reopenCancel.addEventListener('click', closeReopenModal);
+  }
+  if(reopenModal){
+    reopenModal.addEventListener('click', function(e){ if(e.target === reopenModal) closeReopenModal(); });
+  }
+  if(reopenConfirm){
+    reopenConfirm.addEventListener('click', function(){
+      reopenConfirm.disabled = true;
+      reopenConfirm.textContent = 'Reabriendo...';
       fetch(reopenUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
@@ -437,10 +518,23 @@ html[data-theme="light"] .tk-reopen-btn:hover{border-color:#f59e0b;color:#b45309
       })
       .then(function(r){ return r.json(); })
       .then(function(data){
-        if(data.ok) window.location.reload();
-        else { alert('Error al reabrir.'); btnReopen.disabled = false; btnReopen.textContent = 'Reabrir ticket'; }
+        if(data.ok && data.redirect_url){
+          window.location.href = data.redirect_url;
+        } else if(data.ok){
+          window.location.reload();
+        } else {
+          reopenConfirm.disabled = false;
+          reopenConfirm.textContent = 'Reabrir';
+          closeReopenModal();
+          alert('Error al reabrir.');
+        }
       })
-      .catch(function(){ alert('Error de conexión.'); btnReopen.disabled = false; btnReopen.textContent = 'Reabrir ticket'; });
+      .catch(function(){
+        reopenConfirm.disabled = false;
+        reopenConfirm.textContent = 'Reabrir';
+        closeReopenModal();
+        alert('Error de conexión.');
+      });
     });
   }
 })();

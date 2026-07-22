@@ -32,31 +32,6 @@ class AgendaController extends Controller
             ->orderBy('fecha')
             ->orderBy('hora');
 
-        if ($request->expectsJson()) {
-            $year = (int) $request->query('year', $now->year);
-            $month = (int) $request->query('month', $now->month);
-            $inicioMes = Carbon::create($year, $month, 1)->startOfMonth();
-            $finMes = $inicioMes->copy()->endOfMonth();
-
-            $citas = $citasQuery
-                ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
-                ->get();
-
-            return response()->json([
-                'ok' => true,
-                'citas' => $citas->map(fn (Cita $cita) => $this->citaParaAgenda($cita))->values(),
-            ]);
-        }
-
-        $citas = $citasQuery->get();
-
-        $citasAgenda = $citas->map(fn (Cita $cita) => $this->citaParaAgenda($cita))->values();
-
-        $citasHoy = Cita::query()
-            ->whereDate('fecha', today())
-            ->whereIn('estado', ['en_espera', 'proximo'])
-            ->count();
-
         $bloqueos = Bloqueo::query()->orderBy('fecha')->orderBy('hora')->get();
 
         $bloqueosData = $bloqueos->map(function ($b) {
@@ -80,6 +55,32 @@ class AgendaController extends Controller
             ];
         })->values();
 
+        if ($request->expectsJson()) {
+            $year = (int) $request->query('year', $now->year);
+            $month = (int) $request->query('month', $now->month);
+            $inicioMes = Carbon::create($year, $month, 1)->startOfMonth();
+            $finMes = $inicioMes->copy()->endOfMonth();
+
+            $citas = $citasQuery
+                ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
+                ->get();
+
+            return response()->json([
+                'ok' => true,
+                'citas' => $citas->map(fn (Cita $cita) => $this->citaParaAgenda($cita))->values(),
+                'bloqueos' => $bloqueosData,
+            ]);
+        }
+
+        $citas = $citasQuery->get();
+
+        $citasAgenda = $citas->map(fn (Cita $cita) => $this->citaParaAgenda($cita))->values();
+
+        $citasHoy = Cita::query()
+            ->whereDate('fecha', today())
+            ->whereIn('estado', ['en_espera', 'proximo'])
+            ->count();
+
         return view('agenda.index', compact('citasAgenda', 'citasHoy', 'bloqueosData'));
     }
 
@@ -88,7 +89,12 @@ class AgendaController extends Controller
         $pacientes = Paciente::query()
             ->orderBy('nombre_completo')
             ->get();
-
+    
+        $salas = \App\Models\Sala::query()
+            ->where('clinica_id', $request->user()->clinica_id)
+            ->where('activa', true)
+            ->get();
+        
         $citas = Cita::query()
             ->with('paciente')
             ->orderBy('fecha')
@@ -121,7 +127,7 @@ class AgendaController extends Controller
 
         $bloqueos = Bloqueo::query()->orderBy('fecha')->orderBy('hora')->get();
         $bloqueosData = $bloqueos->map(function ($b) {
-            $hI = (int) explode(':', $b->hora)[0];
+            $hI = (int) explode(':', $b->hora)[0];  
             $mI = (int) (explode(':', $b->hora)[1] ?? 0);
             $duracion = 60;
             if ($b->hora_fin) {
@@ -141,7 +147,7 @@ class AgendaController extends Controller
             ];
         })->values();
 
-        return view('agenda.agendar.index', compact('pacientes', 'citasAgenda', 'citasHoy', 'citaEditar', 'pacienteSeleccionado', 'bloqueosData'));
+        return view('agenda.agendar.index', compact('pacientes', 'salas','citasAgenda', 'citasHoy', 'citaEditar', 'pacienteSeleccionado', 'bloqueosData'));
     }
 
     public function store(Request $request)
@@ -307,6 +313,21 @@ class AgendaController extends Controller
             ?? $citaActual?->estado
             ?? 'proximo';
 
+        if (!empty($validated['sala'])) {
+            if (is_numeric($validated['sala'])) {
+                $validated['sala_id'] = (int) $validated['sala'];
+            } else {
+                $sala = \App\Models\Sala::query()
+                    ->where('nombre', $validated['sala'])
+                    ->where('clinica_id', auth()->user()->clinica_id)
+                    ->first();
+                if ($sala) {
+                    $validated['sala_id'] = $sala->id;
+                }
+            }
+            unset($validated['sala']);
+        }
+
         return $validated;
     }
 
@@ -325,7 +346,8 @@ class AgendaController extends Controller
             'hora_formato' => Carbon::createFromFormat('H:i', $hora)->format('g:i A'),
             'duracion_minutos' => $cita->duracion_minutos ?? 60,
             'estado' => $cita->estado,
-            'sala' => $cita->sala ?? 'Sala 3',
+            'sala_id' => $cita->sala_id, // Usamos el ID del modelo
+        'salas' => \App\Models\Sala::where('activa', true)->get(), // Enviamos las salas al array
             'notas' => $cita->notas ?? '',
             'update_url' => route('agenda.citas.update', $cita),
         ];
@@ -349,7 +371,8 @@ class AgendaController extends Controller
             'estado' => $cita->estado,
             'estado_texto' => $cita->estado_texto,
             'cls' => $cita->estado_clase,
-            'sala' => $cita->sala ?? 'Sala 3',
+            'sala_id' => $cita->sala_id,
+            'sala' => $cita->salaRelacion ? $cita->salaRelacion->nombre : ($cita->sala ?? 'Sala 3'),
             'notas' => $cita->notas,
             'delete_url' => route('agenda.citas.destroy', $cita),
             'update_url' => route('agenda.citas.update', $cita),

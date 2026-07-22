@@ -41,6 +41,11 @@ class PacientesDemoSeeder extends Seeder
         'Dra. Beatriz León', 'Dr. Rodrigo Núñez',
     ];
 
+    private const ANESTESIOLOGOS = [
+        'Dra. Laura Chávez', 'Dr. Miguel Romero', 'Dra. Ana Pérez',
+        'Dr. José González', 'Dra. Sofía Martínez',
+    ];
+
     public function run(): void
     {
         $owner = User::query()->where('email', self::OWNER_EMAIL)->first();
@@ -51,6 +56,8 @@ class PacientesDemoSeeder extends Seeder
             $this->command?->error('No se encontró un usuario con email '.self::OWNER_EMAIL.'. No se generaron pacientes.');
             return;
         }
+
+        Paciente::withoutGlobalScopes()->where('clinica_id', $clinicaId)->delete();
 
         $folioGenerator = new PatientFolioGenerator();
 
@@ -82,6 +89,7 @@ class PacientesDemoSeeder extends Seeder
                 'email' => $email,
                 'medico' => self::MEDICOS[array_rand(self::MEDICOS)],
                 'procedimiento' => self::PROCEDIMIENTOS[array_rand(self::PROCEDIMIENTOS)],
+                'anestesiologo' => self::ANESTESIOLOGOS[array_rand(self::ANESTESIOLOGOS)],
                 'enfermedad' => null,
                 'alergias' => null,
                 'enfermedades' => null,

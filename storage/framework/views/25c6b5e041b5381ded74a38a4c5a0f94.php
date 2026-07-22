@@ -40,6 +40,7 @@
       hora: cita.hora,
       estado: cita.estado,
       estado_texto: cita.estado_texto,
+      sala_id: cita.sala_id || null,
       sala: cita.sala || 'Sala 3',
       notas: cita.notas || '',
       delete_url: cita.delete_url,

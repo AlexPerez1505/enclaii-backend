@@ -12,7 +12,7 @@
     <a class="min-btn" href="<?php echo e(route('mensajes')); ?>">
       WhatsApp
     </a>
-    <a class="min-btn" href="<?php echo e(route('pacientes.index')); ?>">
+    <a class="min-btn" href="<?php echo e(route('pacientes.index', ['focus' => 'search'])); ?>">
       Buscar paciente
     </a>
     <span class="widget-resize-handle"></span>

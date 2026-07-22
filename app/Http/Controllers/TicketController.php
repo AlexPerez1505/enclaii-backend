@@ -13,11 +13,40 @@ class TicketController extends Controller
 {
     public function tickets(): View
     {
-        $tickets = Ticket::where('user_id', auth()->id())
-            ->orderBy('updated_at', 'desc')
-            ->get();
+        $search = trim(request('search'));
+        $category = request('category');
+        $status = request('status');
+        $query = Ticket::where('user_id', auth()->id());
 
-        return view('soporte.tickets', compact('tickets'));
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('subject', 'like', '%' . $search . '%')
+                  ->orWhere('operation_folio', 'like', '%' . $search . '%');
+            });
+        }
+
+        if ($category) {
+            $query->where('category', $category);
+        }
+
+        if ($status === 'resuelto') {
+            $query->whereIn('status', ['respondido', 'resuelto', 'cerrado']);
+        } elseif ($status) {
+            $query->where('status', $status);
+        }
+
+        $tickets = $query->orderByDesc('updated_at')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('soporte.tickets', compact('tickets', 'search', 'category', 'status'));
+    }
+
+    public function show(Ticket $ticket): View
+    {
+        abort_unless($ticket->user_id === auth()->id(), 403);
+
+        return view('soporte.ticket-show', compact('ticket'));
     }
 
     public function store(Request $request): JsonResponse
@@ -46,6 +75,40 @@ class TicketController extends Controller
             $user->razon_social,
             $user->rfc,
         ]));
+
+        // Reabrir ticket reciente resuelto si el usuario envía el mismo asunto/categoría en menos de 24h
+        $latestResolved = Ticket::where('user_id', $user->id)
+            ->whereIn('status', ['resuelto', 'cerrado'])
+            ->where('resolved_at', '>=', now()->subHours(24))
+            ->latest('resolved_at')
+            ->first();
+
+        if (
+            $latestResolved &&
+            $latestResolved->category === $validated['category'] &&
+            mb_strtolower(trim($latestResolved->subject)) === mb_strtolower(trim($validated['subject']))
+        ) {
+            $latestResolved->update([
+                'status' => 'abierto',
+                'description' => $latestResolved->description . "\n\n--- Reapertura ---\n" . $validated['description'],
+                'payment_method' => $validated['payment_method'] ?? $latestResolved->payment_method,
+                'attachment_path' => $attachmentPath ?: $latestResolved->attachment_path,
+                'resolved_by' => null,
+                'resolved_at' => null,
+                'resolution_type' => null,
+                'resolution_summary' => null,
+                'client_message' => null,
+                'evidence_paths' => null,
+            ]);
+
+            $this->notifyCustomerSuccess($latestResolved);
+
+            return response()->json([
+                'ok' => true,
+                'ticket' => $latestResolved->fresh(),
+                'reopened' => true,
+            ], 200);
+        }
 
         $ticket = Ticket::create([
             'user_id' => $user->id,
@@ -97,9 +160,9 @@ class TicketController extends Controller
                 'folio' => $ticket->operation_folio,
                 'subject' => $ticket->subject,
                 'category' => $ticket->category,
-                'user_name' => $ticket->user?->name.' '.($ticket->user?->apellido_paterno ?? ''),
+                'user_name' => trim(($ticket->user?->name ?? '').' '.($ticket->user?->apellido_paterno ?? '')),
                 'user_email' => $ticket->user?->email,
-            ]),
+            ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
             'read' => false,
             'created_at' => now(),
             'updated_at' => now(),

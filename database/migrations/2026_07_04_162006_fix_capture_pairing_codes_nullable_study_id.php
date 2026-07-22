@@ -19,7 +19,7 @@ return new class extends Migration
             }
         });
 
-        if (Schema::hasColumn('capture_pairing_codes', 'study_id')) {
+        if (DB::getDriverName() !== 'sqlite' && Schema::hasColumn('capture_pairing_codes', 'study_id')) {
             DB::statement('ALTER TABLE capture_pairing_codes MODIFY study_id BIGINT UNSIGNED NULL');
         }
     }
@@ -36,7 +36,7 @@ return new class extends Migration
             }
         });
 
-        if (Schema::hasColumn('capture_pairing_codes', 'study_id')) {
+        if (DB::getDriverName() !== 'sqlite' && Schema::hasColumn('capture_pairing_codes', 'study_id')) {
             DB::statement('ALTER TABLE capture_pairing_codes MODIFY study_id BIGINT UNSIGNED NOT NULL');
         }
     }

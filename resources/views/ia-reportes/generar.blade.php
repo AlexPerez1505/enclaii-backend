@@ -211,7 +211,7 @@
         <div class="gen-thumbs" id="genThumbs">
           @forelse ($evidencias as $i => $ev)
             <div class="gen-thumb {{ $i === 0 ? 'sel' : '' }}">
-              <img src="{{ asset($ev) }}" alt="Evidencia {{ $i + 1 }}" loading="lazy">
+              <img src="{{ $ev }}" alt="Evidencia {{ $i + 1 }}" loading="lazy">
             </div>
           @empty
             <p style="grid-column:1/-1;color:var(--txt-soft);font-size:12.5px;margin:0">No hay imágenes asociadas a este estudio.</p>
@@ -277,7 +277,7 @@
   if (!btn) return;
   const label = btn.querySelector('.btn-label');
   const url = "{{ route('ia-reportes.generar.post') }}";
-  const editarUrl = "{{ route('ia-reportes.editar', ['generating' => 1]) }}";
+  const redactarUrl = "{{ route('ia-reportes.redactar') }}";
   const csrf = "{{ csrf_token() }}";
   const ESTUDIO_ID = @json($datos['estudio_id'] ?? null);
 
@@ -380,11 +380,14 @@
           tipo_estudio: payload.tipo_estudio,
           fecha: payload.fecha,
         },
-        imagenes: @json($evidencias->map(fn ($e) => asset($e))->values()),
+        imagenes: @json($evidencias->values()),
       }));
       label.textContent = 'Abriendo editor...';
       // Pausa breve para que el profesional vea la propuesta de la IA antes de editar.
-      setTimeout(() => { window.location.href = editarUrl; }, 1400);
+      const nextUrl = new URL(redactarUrl, window.location.origin);
+      nextUrl.searchParams.set('reporte', data.reporte_id);
+      nextUrl.searchParams.set('estudio', ESTUDIO_ID);
+      setTimeout(() => { window.location.href = nextUrl.toString(); }, 1400);
     } catch (e) {
       alert('Error: ' + e.message);
       btn.disabled = false;

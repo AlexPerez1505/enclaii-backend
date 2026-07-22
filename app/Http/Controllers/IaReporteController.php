@@ -7,6 +7,7 @@ use App\Models\EstudioHallazgo;
 use App\Models\Hallazgo;
 use App\Models\Plantilla;
 use App\Models\Reporte;
+use App\Services\MediaPathService;
 use App\Services\OpenAiReportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -499,6 +500,15 @@ class IaReporteController extends Controller
             $reporte = Reporte::create($data);
         }
 
+        try {
+            $reportePath = $this->guardarReporteEnStorage($reporte);
+        } catch (Throwable $e) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'El reporte se guardo en la base de datos, pero no se pudo guardar en S3: '.$e->getMessage(),
+            ], 422);
+        }
+
         if (! empty($validated['hallazgos'])) {
             $this->persistirHallazgosDoctor($validated['estudio_id'], $validated['hallazgos']);
         }
@@ -506,8 +516,163 @@ class IaReporteController extends Controller
         return response()->json([
             'ok' => true,
             'reporte_id' => $reporte->id,
-            'message' => 'Reporte guardado correctamente.',
+            'reporte_path' => $reportePath,
+            'download_url' => route('ia-reportes.ver', ['reporte' => $reporte->id, 'download' => 1]),
+            'message' => 'Reporte guardado en S3 correctamente.',
         ]);
+    }
+
+    /**
+     * Guarda una copia HTML del reporte en la carpeta reports del estudio.
+     */
+    private function guardarReporteEnStorage(Reporte $reporte): string
+    {
+        $reporte->loadMissing(['estudio.paciente', 'usuario', 'plantilla']);
+        $estudio = $reporte->estudio;
+
+        if (! $estudio) {
+            throw new \RuntimeException('El reporte no tiene un estudio asociado.');
+        }
+
+        $folder = app(MediaPathService::class)->studyReports($estudio);
+        $disk = Storage::disk(media_disk());
+
+        $this->ensureStorageDirectory($disk, $folder);
+
+        $path = $folder.'/reporte-'.$reporte->id.'.html';
+        $stored = $disk->put($path, $this->reporteHtmlParaStorage($reporte), [
+            'visibility' => 'private',
+            'ContentType' => 'text/html; charset=UTF-8',
+        ]);
+
+        if (! $stored) {
+            throw new \RuntimeException('El disco de almacenamiento rechazo la escritura del archivo.');
+        }
+
+        $estudio->forceFill(['reporte_path' => $path])->save();
+
+        return $path;
+    }
+
+    private function ensureStorageDirectory(object $disk, string $folder): void
+    {
+        try {
+            if (method_exists($disk, 'directoryExists') && $disk->directoryExists($folder)) {
+                return;
+            }
+
+            if (method_exists($disk, 'makeDirectory')) {
+                $disk->makeDirectory($folder);
+            }
+        } catch (Throwable) {
+            // En S3 las carpetas son prefijos virtuales; la escritura del archivo es la verificacion real.
+        }
+    }
+
+    private function reporteHtmlParaStorage(Reporte $reporte): string
+    {
+        $estudio = $reporte->estudio;
+        $paciente = $estudio?->paciente;
+        $nombrePaciente = $paciente?->nombre_completo ?? $estudio?->paciente_nombre ?? 'Paciente no registrado';
+        $tipoEstudio = $estudio?->tipo ?? 'Estudio endoscopico';
+        $medico = $reporte->usuario?->name ?? $estudio?->medico ?? 'Medico no especificado';
+        $fechaEstudio = format_user_date($estudio?->fecha ?? $reporte->created_at) ?: '';
+        $contenido = $reporte->contenido_html ?: nl2br(e($reporte->contenido_texto ?? ''));
+        $imagenes = $this->imagenesReporteParaStorage($estudio);
+
+        $imagenesHtml = collect($imagenes)->map(fn (array $img) => '
+            <figure>
+                <img src="'.$img['src'].'" alt="'.e($img['titulo']).'">
+                <figcaption>'.e($img['titulo']).'</figcaption>
+            </figure>
+        ')->implode('');
+
+        return '<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Reporte '.e($nombrePaciente).'</title>
+  <style>
+    body{font-family:Arial,sans-serif;color:#111827;margin:32px;line-height:1.55}
+    h1{font-size:22px;margin:0 0 4px;text-align:center}
+    .subtitle{text-align:center;color:#4b5563;margin:0 0 24px;text-transform:uppercase;font-size:12px;letter-spacing:.08em}
+    .meta{display:grid;grid-template-columns:160px 1fr;gap:5px 16px;font-size:13px;margin-bottom:22px}
+    .meta .k{color:#6b7280}
+    .images{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:18px 0 24px}
+    figure{margin:0;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden}
+    figure img{display:block;width:100%;height:120px;object-fit:cover}
+    figcaption{font-size:11px;color:#4b5563;padding:6px 8px}
+    h4{font-size:13px;margin:18px 0 6px;color:#0f66d0;text-transform:uppercase}
+    p,li{font-size:13px}
+  </style>
+</head>
+<body>
+  <h1>INFORME DE '.e(mb_strtoupper($tipoEstudio)).'</h1>
+  <p class="subtitle">ENCLAII</p>
+  <div class="meta">
+    <span class="k">Paciente:</span><span>'.e($nombrePaciente).'</span>
+    <span class="k">Fecha de nacimiento:</span><span>'.e(format_user_date($paciente?->fecha_nacimiento) ?: '').'</span>
+    <span class="k">Edad:</span><span>'.e($paciente?->edad ? $paciente->edad.' anos' : '').'</span>
+    <span class="k">Medico:</span><span>'.e($medico).'</span>
+    <span class="k">Fecha del estudio:</span><span>'.e($fechaEstudio).'</span>
+    <span class="k">Tipo de estudio:</span><span>'.e($tipoEstudio).'</span>
+  </div>
+  '.($imagenesHtml ? '<section class="images">'.$imagenesHtml.'</section>' : '').'
+  <section>'.$contenido.'</section>
+</body>
+</html>';
+    }
+
+    /**
+     * @return array<int, array{src: string, titulo: string}>
+     */
+    private function imagenesReporteParaStorage($estudio): array
+    {
+        if (! $estudio) {
+            return [];
+        }
+
+        $disk = Storage::disk(media_disk());
+
+        return EstudioArchivo::where('estudio_id', $estudio->id)
+            ->where('tipo', 'imagen')
+            ->orderByDesc('capturado_en')
+            ->orderByDesc('id')
+            ->take(8)
+            ->get()
+            ->map(function (EstudioArchivo $archivo) use ($disk) {
+                try {
+                    if (! $archivo->path) {
+                        return null;
+                    }
+
+                    $sourceDisk = $disk;
+                    if (! $sourceDisk->exists($archivo->path) && Storage::disk('public')->exists($archivo->path)) {
+                        $sourceDisk = Storage::disk('public');
+                    }
+
+                    if (! $sourceDisk->exists($archivo->path)) {
+                        return null;
+                    }
+
+                    $size = method_exists($sourceDisk, 'size') ? (int) $sourceDisk->size($archivo->path) : 0;
+                    if ($size > 8 * 1024 * 1024) {
+                        return null;
+                    }
+
+                    $mime = $archivo->mime_type ?: ($sourceDisk->mimeType($archivo->path) ?: 'image/jpeg');
+
+                    return [
+                        'src' => 'data:'.$mime.';base64,'.base64_encode($sourceDisk->get($archivo->path)),
+                        'titulo' => $archivo->nombre_original ?: basename($archivo->path),
+                    ];
+                } catch (Throwable) {
+                    return null;
+                }
+            })
+            ->filter()
+            ->values()
+            ->all();
     }
 
     /**

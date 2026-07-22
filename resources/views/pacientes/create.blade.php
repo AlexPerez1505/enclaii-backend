@@ -1103,7 +1103,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
 
       <div class="form-group">
         <label>Teléfono</label>
-        <input type="tel" name="telefono" value="{{ old('telefono') }}" placeholder="722 162 0815">
+        <input type="tel" name="telefono" value="{{ old('telefono') }}" placeholder="7221620815" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/\D/g,'').slice(0,10)">
       </div>
       <div class="form-group span-3">
         <label>e-mail</label>
@@ -1123,45 +1123,50 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
         <div class="form-group" style="margin-bottom:18px;">
           <label>Médico</label>
           <div class="select-with-add">
-            <input type="text" id="medicoSelectMed" name="medico" data-campo="medico" placeholder="Ej. Dr. Victor" style="flex:1;">
+            <select id="medicoSelectMed" name="medico" data-campo="medico" style="flex:1;">
+              <option value="">Seleccione un médico...</option>
+              @foreach($listaMedicos as $m)
+                <option value="{{ $m->nombre_completo }}">
+                  {{ $m->nombre_completo }}
+                </option>
+              @endforeach
+            </select>
             <button type="button" class="btn-add-procedimiento" onclick="addMedicoMed()" title="Agregar médico">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
           </div>
         </div>
         <div class="form-group" style="margin-bottom:18px;">
-          <label>Procedimiento</label>
-          <div class="select-with-add">
-          <input type="text" id="procedimientoSelect" name="procedimiento" data-campo="procedimiento" placeholder="Ej. Colonoscopia" style="flex:1;">
-            <button type="button" class="btn-add-procedimiento" onclick="addNuevoProcedimiento()" title="Agregar procedimiento">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </button>
-          </div>
-          <div id="procedimientosAgregados" class="procedimientos-tags"></div>
-        </div>
+    <label>Procedimiento</label>
+    <div class="select-with-add">
+        <select id="procedimientoSelect" name="procedimiento" data-campo="procedimiento" style="flex:1;">
+            <option value="">Seleccione un procedimiento...</option>
+            @foreach($listaProcedimientos as $p)
+                <option value="{{ $p->nombre }}">
+                    {{ $p->nombre }}
+                </option>
+            @endforeach
+        </select>
+        
+        {{-- Botón para añadir uno nuevo manualmente --}}
+        <button type="button" class="btn-add-procedimiento" onclick="addNuevoProcedimiento()" title="Agregar procedimiento">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+    </div>
+    <div id="procedimientosAgregados" class="procedimientos-tags"></div>
+</div>
         <div class="form-group" style="margin-bottom:18px;">
           <label>Anestesiólogo</label>
           <div class="select-with-add">
-            <input type="text" id="anestesiologoSelect" name="anestesiologo" data-campo="anestesiologo" placeholder="Ej. Dr. Ricardo" style="flex:1;">
+            <select id="anestesiologoSelect" name="anestesiologo" data-campo="anestesiologo" style="flex:1;">
+              <option value="">Seleccione un anestesiólogo...</option>
+              @foreach($listaAnestesiologos as $a)
+                <option value="{{ $a->nombre_completo }}">
+                  {{ $a->nombre_completo }}
+                </option>
+              @endforeach
+            </select>
             <button type="button" class="btn-add-procedimiento" onclick="addAnestesiologo()" title="Agregar anestesiólogo">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </button>
-          </div>
-        </div>
-        <div class="form-group" style="margin-bottom:18px;">
-          <label>Referido por</label>
-          <div class="select-with-add">
-            <input type="text" id="referidoSelectMed" name="referido_por" data-campo="referido_por" placeholder="Ej. Externo" style="flex:1;">
-            <button type="button" class="btn-add-procedimiento" onclick="addReferidoMed()" title="Agregar referido">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </button>
-          </div>
-        </div>
-        <div class="form-group" style="margin-bottom:18px;">
-          <label>Equipo utilizado</label>
-          <div class="select-with-add">
-            <input type="text" id="equipoSelect" name="equipo_utilizado" data-campo="equipo_utilizado" placeholder="Ej. Endoscopio Olympus" style="flex:1;">
-            <button type="button" class="btn-add-procedimiento" onclick="addEquipo()" title="Agregar equipo">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
           </div>
@@ -1439,7 +1444,63 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
       var s = document.getElementById(_selId);
       var campo = s?.dataset.campo;
       var pacienteId = document.querySelector('input[name="paciente_id"]')?.value;
-      
+
+      // Si es anestesiologo, crear registro real en la base de datos
+      if (_selId === 'anestesiologoSelect') {
+        fetch('{{ route("anestesiologos.store") }}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: JSON.stringify({ nombres: n, activo: 1 })
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          if (data.success && data.anestesiologo) {
+            var nombre = data.anestesiologo.nombre_completo;
+            agregarOpcionSelect(s, nombre);
+            window.cerrarMiniModal();
+          } else {
+            alert('No se pudo guardar el anestesiólogo.');
+          }
+        })
+        .catch(function(err){
+          console.error('Error:', err);
+          alert('Error al crear anestesiólogo: ' + err.message);
+        });
+        return;
+      }
+
+      // Si es medico, crear registro real en la base de datos
+      if (_selId === 'medicoSelectMed') {
+        fetch('{{ route("medicos.store") }}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: JSON.stringify({ nombres: n, activo: 1 })
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          if (data.success && data.medico) {
+            var nombre = data.medico.nombre_completo;
+            agregarOpcionSelect(s, nombre);
+            window.cerrarMiniModal();
+          } else {
+            alert('No se pudo guardar el médico.');
+          }
+        })
+        .catch(function(err){
+          console.error('Error:', err);
+          alert('Error al crear médico: ' + err.message);
+        });
+        return;
+      }
+
       // Si el select tiene data-campo y estamos editando (hay paciente_id), guardar en base de datos
       if (campo && pacienteId) {
         fetch('{{ route("pacientes.update-campo", ":paciente_id") }}'.replace(':paciente_id', pacienteId), {

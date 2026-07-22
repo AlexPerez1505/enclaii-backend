@@ -1,9 +1,6 @@
 <?php $__env->startSection('title', 'Agenda'); ?>
 <?php $__env->startSection('active', 'agenda'); ?>
 <?php $__env->startSection('header-title', 'Buenos días, '.(auth()->user()?->name ?? 'Doctor')); ?>
-<?php $__env->startSection('header-sub'); ?>
-  Tiene <b><?php echo e($citasHoy ?? 0); ?></b> pacientes el día de hoy
-<?php $__env->stopSection(); ?>
 
 
 

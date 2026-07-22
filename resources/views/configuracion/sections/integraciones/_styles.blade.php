@@ -16,9 +16,10 @@
 @media (hover:hover){.int-act .ia-btn:hover{background:rgba(56,199,244,.1)}}
 
 /* Centro de copias */
-.int-backup-center{padding:20px}
-.int-backup-head{display:flex;align-items:flex-start;gap:13px}
-.int-backup-head .ia-top{margin:0;flex:1}
+.int-backup-center{width:100%;min-width:0;padding:20px;box-sizing:border-box}
+.int-actions:has(> .int-backup-wide:only-child){grid-template-columns:1fr}
+.int-backup-head{display:flex;align-items:flex-start;gap:13px;flex-wrap:wrap}
+.int-backup-head .ia-top{margin:0;flex:1;min-width:min(100%,280px)}
 .int-backup-create{
   display:inline-flex;align-items:center;justify-content:center;gap:7px;flex:none;
   min-height:38px;padding:0 16px;border-radius:var(--r-md);
@@ -62,9 +63,11 @@
 @media (hover:hover){.int-backup-action:hover{background:rgba(46,123,246,.1);color:var(--txt)}}
 .int-backup-empty{padding:17px;text-align:center;border:1px dashed var(--stroke);border-radius:10px;color:var(--txt-soft);font-size:11.5px}
 @media (max-width:620px){
-  .int-backup-head{flex-wrap:wrap}
-  .int-backup-create{width:100%}
-  .int-backup-summary{align-items:flex-start}
+  .int-backup-center{padding:16px}
+  .int-backup-head{flex-direction:column;align-items:stretch}
+  .int-backup-head .ia-top{min-width:0}
+  .int-backup-create{width:100%;margin-top:10px}
+  .int-backup-summary{flex-direction:column;align-items:flex-start;gap:8px}
   .int-backup-row{grid-template-columns:1fr}
   .int-backup-actions{justify-content:flex-end}
 }
@@ -226,5 +229,58 @@
 .int-dev-btns{display:flex;gap:8px;margin-top:13px}
 .int-dev-btn{flex:1;text-align:center;padding:8px;border-radius:9px;border:1px solid var(--stroke-strong);font-size:11.5px;font-weight:700;color:var(--cyan);transition:background-color .15s}
 @media (hover:hover){.int-dev-btn:hover{background:rgba(56,199,244,.1)}}
+
+/* ===== Catálogo de hospital ===== */
+.cat-hospital-card{background:var(--card);border:1px solid var(--stroke);border-radius:var(--r-lg);padding:20px;box-shadow:0 16px 40px rgba(0,0,0,.25)}
+.cat-hospital-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.cat-hospital-head h2{font-family:'Sora',sans-serif;font-size:17px;font-weight:700;color:var(--txt)}
+.cat-hospital-head p{font-size:12px;color:var(--txt-soft);margin-top:3px}
+.cat-add-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border-radius:var(--r-md);border:1px solid var(--stroke-strong);font-size:12px;font-weight:700;color:var(--cyan);background:transparent;transition:background .15s,color .15s;white-space:nowrap}
+.cat-add-btn svg{width:15px;height:15px}
+@media (hover:hover){.cat-add-btn:hover{background:rgba(56,199,244,.1);color:var(--txt)}}
+
+.cat-tabs-bar{border-bottom:1px solid var(--stroke)}
+.cat-tabs{display:flex;flex-wrap:wrap;gap:22px}
+.cat-tab{display:flex;align-items:center;gap:7px;padding:0 2px 11px;font:inherit;font-size:13px;font-weight:600;color:var(--txt-soft);background:none;border:0;border-bottom:2px solid transparent;cursor:pointer;transition:color .15s,border-color .15s}
+.cat-tab svg{width:18px;height:18px}
+.cat-tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+@media (hover:hover){.cat-tab:hover{color:var(--txt)}}
+
+.cat-panels{margin-top:16px}
+.cat-panel.hidden{display:none}
+.cat-empty{min-height:180px;display:flex;align-items:center;justify-content:center;border:1px dashed var(--stroke);border-radius:var(--r-md);color:var(--txt-soft);font-size:12.5px}
+
+.cat-table-wrap{overflow-x:auto}
+.cat-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.cat-table thead th{padding:0 0 11px;font-weight:700;color:var(--txt);border-bottom:1px solid var(--stroke-strong);text-align:center;white-space:nowrap}
+.cat-table tbody tr{border-bottom:1px solid var(--stroke);transition:background .12s}
+.cat-table tbody tr:last-child{border-bottom:0}
+@media (hover:hover){.cat-table tbody tr:hover{background:rgba(110,160,255,.06)}}
+.cat-table td{padding:13px 0;vertical-align:middle;text-align:center}
+.cat-name{font-weight:700;color:var(--txt)}
+.cat-soft{color:var(--txt-soft)}
+.cat-role{font-weight:600;color:var(--txt)}
+.cat-actions{text-align:center;white-space:nowrap}
+.cat-no-action{color:var(--txt-soft);font-size:12px}
+.cat-you{display:inline-block;margin-left:6px;padding:1px 6px;font-size:9px;font-weight:700;color:var(--cyan);background:rgba(56,199,244,.1);border:1px solid rgba(56,199,244,.25);border-radius:4px;vertical-align:middle}
+.cat-pending-name{font-weight:500;color:var(--txt-soft)}
+.cat-empty-cell{padding:40px 0;text-align:center;color:var(--txt-soft);font-size:12.5px}
+.cat-badge{display:inline-flex;align-items:center;padding:3px 11px;font-size:10.5px;font-weight:700;border-radius:99px;border:1px solid}
+.cat-badge-on{color:var(--green);background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.3)}
+.cat-badge-off{color:var(--orange);background:rgba(245,158,45,.1);border-color:rgba(245,158,45,.3)}
+.cat-actions{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.cat-edit-btn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;color:var(--cyan);border:1px solid rgba(56,199,244,.25);background:rgba(56,199,244,.07);transition:background .15s,border-color .15s}
+.cat-edit-btn svg{width:15px;height:15px}
+@media (hover:hover){.cat-edit-btn:hover{background:rgba(56,199,244,.15);border-color:rgba(56,199,244,.45)}}
+.cat-del-btn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;color:var(--red);border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.07);transition:background .15s,border-color .15s}
+.cat-del-btn svg{width:15px;height:15px}
+@media (hover:hover){.cat-del-btn:hover{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4)}}
+
+@media (max-width:620px){
+  .cat-hospital-head{flex-direction:column;align-items:flex-start}
+  .cat-add-btn{width:100%;justify-content:center}
+  .cat-tabs{gap:14px}
+  .cat-tab{font-size:12px}
+}
 </style>
 @endpush

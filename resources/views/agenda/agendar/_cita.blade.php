@@ -18,11 +18,11 @@ html[data-theme="light"] .cita-icon-wrap svg{color:#5B6A99}
   </div>
 
   <div class="ag-field">
-    <label class="ag-label">Especialista</label>
+    <label class="ag-label">Doctor</label>
     <div class="ag-input-icon">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <select class="ag-input ag-select" id="citaEspecialista">
-        <option value="" disabled selected>Seleccione especialista</option>
+        <option value="" disabled selected>Seleccione a un Doctor</option>
       </select>
     </div>
   </div>
@@ -52,20 +52,82 @@ html[data-theme="light"] .cita-icon-wrap svg{color:#5B6A99}
     </div>
   </div>
 
-  <div class="ag-field">
-    <label class="ag-label">Sala</label>
-    <select class="ag-input ag-select" id="citaSala">
-      <option>Sala 1</option>
-      <option>Sala 2</option>
-      <option selected>Sala 3</option>
-      <option>Sala 4</option>
-    </select>
-  </div>
+  <select class="ag-input ag-select" name="sala_id" id="citaSala">
+    <option value="">Seleccione una sala</option>
+    @foreach($salas as $sala)
+        <option value="{{ $sala->id }}" {{ ($citaData['sala_id'] ?? null) == $sala->id ? 'selected' : '' }}>
+            {{ $sala->nombre }}
+        </option>
+    @endforeach
+</select>
 
-  <div class="ag-field">
-    <label class="ag-label">Recursos</label>
-    <select class="ag-input ag-select" id="citaRecurso">
-      <option value="" disabled selected>Seleccione recurso</option>
-    </select>
-  </div>
+  
 </div>
+
+@push('scripts')
+<script>
+(function(){
+  function fechaDdMmYyyyToKey(fecha) {
+    const match = String(fecha || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (!match) return '';
+    const y = parseInt(match[3], 10);
+    const m = parseInt(match[2], 10);
+    const d = parseInt(match[1], 10);
+    return `${y}-${m}-${d}`;
+  }
+
+  function hora12ToMinutes(hora) {
+    const value = String(hora || '').trim();
+    const match = value.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+    if (!match) return null;
+    let h = parseInt(match[1], 10);
+    const min = parseInt(match[2], 10);
+    const ampm = match[3] ? match[3].toUpperCase() : '';
+    if (ampm === 'PM' && h < 12) h += 12;
+    if (ampm === 'AM' && h === 12) h = 0;
+    return h * 60 + min;
+  }
+
+  function overlaps(start, end, events, salaId) {
+    return events.some(ev => {
+      if (!ev || String(ev.sala_id) !== String(salaId)) return false;
+      if (window.__CITA_EDITAR_ID && String(ev.id || '') === String(window.__CITA_EDITAR_ID)) return false;
+      const [h, m] = String(ev.hora || '00:00').split(':').map(Number);
+      const evStart = (h || 0) * 60 + (m || 0);
+      const evEnd = evStart + (parseInt(ev.duracion || ev.duration || 60, 10));
+      return start < evEnd && end > evStart;
+    });
+  }
+
+  window.__updateSalasDisponibles = function() {
+    const select = document.getElementById('citaSala');
+    const fechaInput = document.getElementById('citaFecha');
+    const horaInput = document.getElementById('citaHora');
+    const duracionInput = document.getElementById('citaDuracion');
+    if (!select || !fechaInput || !horaInput) return;
+
+    const key = fechaDdMmYyyyToKey(fechaInput.value);
+    const start = hora12ToMinutes(horaInput.value);
+    if (!key || start === null) return;
+
+    const duracion = parseInt(duracionInput?.value, 10) || 60;
+    const end = start + duracion;
+    const events = (window.__AGENDA_EVENTS && window.__AGENDA_EVENTS[key]) || [];
+
+    Array.from(select.options).forEach(opt => {
+      if (!opt.value) return;
+      const ocupada = overlaps(start, end, events, opt.value);
+      if (ocupada) {
+        opt.disabled = true;
+        if (select.value === opt.value) select.value = '';
+      } else {
+        opt.disabled = false;
+      }
+    });
+  };
+
+  document.getElementById('citaSala')?.addEventListener('change', window.__updateSalasDisponibles);
+  window.__updateSalasDisponibles();
+})();
+</script>
+@endpush

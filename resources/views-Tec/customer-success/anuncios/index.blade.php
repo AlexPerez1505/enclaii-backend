@@ -23,8 +23,7 @@
 <div class="cs-shell rise d1">
 
   <div class="cs-edit-banner" id="csEditBanner">
-    <span class="cs-edit-banner-icon">✏️</span>
-    <div class="cs-edit-banner-text">
+       <div class="cs-edit-banner-text">
       Estás editando: <strong id="csEditBannerTitle">—</strong>
       <br><span style="font-size:12px;color:var(--txt-soft)">El tipo de anuncio no puede modificarse. Los cambios se guardarán sin reenviar notificaciones.</span>
     </div>

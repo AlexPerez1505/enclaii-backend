@@ -28,6 +28,8 @@ Route::prefix('tauri')->middleware('auth:sanctum')->controller(TauriFrontendCont
 
     Route::get('/qr', 'qr');
     Route::post('/qr/enlaces', 'createQr');
+    Route::delete('/qr/enlaces/{link}', 'revokeQrLink');
+    Route::delete('/qr/enlaces/{link}/archivar', 'archiveQrLink');
     Route::post('/qr/preregistros/{preregistration}/{action}', 'reviewPreregistration')
         ->whereIn('action', ['aceptar', 'rechazar']);
 

@@ -356,6 +356,7 @@ html[data-theme="light"] .reprogram-info{
     updateTimelineSelection();
     renderTimeline(agY, agM, agSelected ? agSelected.d : new Date().getDate());
     validateTime();
+    if (window.__updateSalasDisponibles) window.__updateSalasDisponibles();
   }
 
   function overlaps(start, end, ranges) {
@@ -617,6 +618,7 @@ html[data-theme="light"] .reprogram-info{
   function syncTimeToForm() {
     const label = formatTime12(selectedTime);
     if (window.__agOnSlotSelect) window.__agOnSlotSelect(label);
+    if (window.__updateSalasDisponibles) window.__updateSalasDisponibles();
   }
 
   function clampTimeInputs() {
@@ -659,6 +661,7 @@ html[data-theme="light"] .reprogram-info{
       updateTimelineSelection();
       renderTimeline(agY, agM, agSelected ? agSelected.d : new Date().getDate());
       validateTime();
+      if (window.__updateSalasDisponibles) window.__updateSalasDisponibles();
     }
   });
   document.getElementById('citaDuracion')?.addEventListener('input', () => {
@@ -666,6 +669,7 @@ html[data-theme="light"] .reprogram-info{
     updateTimelineSelection();
     renderTimeline(agY, agM, agSelected ? agSelected.d : new Date().getDate());
     validateTime();
+    if (window.__updateSalasDisponibles) window.__updateSalasDisponibles();
   });
   document.getElementById('durMinus')?.addEventListener('click', () => changeDuration(-5));
   document.getElementById('durPlus')?.addEventListener('click', () => changeDuration(5));

@@ -8,14 +8,17 @@ use App\Models\Estudio;
 use App\Models\EstudioArchivo;
 use App\Models\Paciente;
 use App\Services\ActivityLogger;
+use App\Services\MediaPathService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class NuevoEstudioController extends Controller
 {
     public function __construct(
         private readonly ActivityLogger $activity,
+        private readonly MediaPathService $mediaPaths,
     ) {}
 
     public function index()
@@ -179,48 +182,78 @@ class NuevoEstudioController extends Controller
 
     public function importar(Request $request)
     {
-        $estudio = $this->resolverEstudio($request);
+        $pacienteId = $request->integer('paciente_id');
 
-        return view('estudios.importar', compact('estudio'));
+        if (!$pacienteId) {
+            return redirect()
+                ->route('nuevo-estudio')
+                ->with('error', 'Selecciona un paciente antes de crear el estudio con imágenes.');
+        }
+
+        $paciente = Paciente::query()->findOrFail($pacienteId);
+
+        return view('estudios.importar.index', compact('paciente'));
     }
 
     public function importarStore(Request $request)
     {
         $validated = $request->validate([
-            'estudio_id' => [
-                'nullable',
-                Rule::exists('estudios', 'id')->where('clinica_id', $request->user()->clinica_id),
+            'paciente_id' => [
+                'required',
+                Rule::exists('pacientes', 'id')->where('clinica_id', $request->user()->clinica_id),
             ],
-            'files' => ['required', 'array'],
-            'files.*' => ['file', 'mimes:jpg,jpeg,png,webp,mp4,mov,avi,mkv,webm,pdf', 'max:51200'],
-            'categoria' => ['nullable', 'string', 'max:255'],
+            'files' => ['required', 'array', 'min:1'],
+            'files.*' => ['file', 'mimes:jpg,jpeg,png,webp,mp4,mov,avi,mkv,webm', 'max:51200'],
         ]);
 
-        $estudio = $this->resolverEstudio($request, true);
+        $paciente = Paciente::query()->findOrFail($validated['paciente_id']);
 
-        $guardados = [];
-
-        foreach ($request->file('files', []) as $file) {
-            $guardados[] = $this->guardarArchivoEstudio(
-                estudio: $estudio,
-                file: $file,
-                categoria: $validated['categoria'] ?? 'importado',
-                descripcion: null
-            );
-        }
-
-        if ($request->expectsJson() || $request->ajax()) {
-            return response()->json([
-                'ok' => true,
-                'message' => 'Archivos importados correctamente.',
-                'archivos' => collect($guardados)->map(fn ($archivo) => $this->archivoPayload($archivo))->values(),
-                'redirect' => route('nuevo-estudio.capturas', ['estudio_id' => $estudio->id]),
+        [$estudio, $guardados] = DB::transaction(function () use ($paciente, $request) {
+            $estudio = Estudio::create([
+                'paciente_id' => $paciente->id,
+                'paciente_nombre' => $paciente->nombre_completo,
+                'folio' => $this->generarFolioEstudio(),
+                'tipo' => $paciente->procedimiento ?: 'Estudio con imágenes',
+                'fecha' => today(),
+                'estado' => 'en_proceso',
+                'hora_inicio' => now()->format('H:i:s'),
             ]);
-        }
 
-        return redirect()
-            ->route('nuevo-estudio.capturas', ['estudio_id' => $estudio->id])
-            ->with('success', 'Archivos importados correctamente.');
+            $guardados = [];
+
+            foreach ($request->file('files', []) as $file) {
+                $guardados[] = $this->guardarArchivoEstudio(
+                    estudio: $estudio,
+                    file: $file,
+                    categoria: 'importado',
+                    descripcion: null
+                );
+            }
+
+            $estudio->update([
+                'estado' => 'completado',
+                'hora_fin' => now()->format('H:i:s'),
+            ]);
+
+            return [$estudio, $guardados];
+        });
+        $this->activity->record(
+            'study_completed',
+            'studies',
+            'Finalizó el estudio '.$estudio->folio,
+            $estudio,
+            request: $request,
+        );
+        broadcast(new EstudioCompletado($estudio->fresh()));
+        session(['ultimo_estudio_completado_id' => $estudio->id]);
+        session()->forget('estudio_activo_id');
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Estudio finalizado con las imágenes cargadas.',
+            'archivos' => collect($guardados)->map(fn ($archivo) => $this->archivoPayload($archivo))->values(),
+            'redirect' => route('nuevo-estudio', ['paciente' => $paciente->id]),
+        ]);
     }
 
     public function configuracion(Request $request)
@@ -324,7 +357,7 @@ class NuevoEstudioController extends Controller
         if ($request->hasFile('video')) {
             $videoPath = media_store(
                 $request->file('video'),
-                "clinicas/{$request->user()->clinica_id}/estudios/{$estudio->id}/videos"
+                $this->mediaPaths->studyVideos($estudio)
             );
 
             $this->guardarArchivoEstudio(
@@ -451,11 +484,6 @@ class NuevoEstudioController extends Controller
 
     private function guardarArchivoEstudio(Estudio $estudio, $file, ?string $categoria = null, ?string $descripcion = null): EstudioArchivo
     {
-        $path = media_store($file, "clinicas/{$estudio->clinica_id}/estudios/{$estudio->id}/archivos");
-        $path = $file->store(
-            "clinicas/{$estudio->clinica_id}/estudios/{$estudio->id}/archivos",
-            'public',
-        );
         $mime = $file->getMimeType();
 
         $tipo = match (true) {
@@ -464,6 +492,13 @@ class NuevoEstudioController extends Controller
             $mime === 'application/pdf' => 'documento',
             default => 'otro',
         };
+        $folder = match ($tipo) {
+            'imagen' => $this->mediaPaths->studyImages($estudio),
+            'video' => $this->mediaPaths->studyVideos($estudio),
+            'documento' => $this->mediaPaths->studyReports($estudio),
+            default => $this->mediaPaths->studyReports($estudio),
+        };
+        $path = media_store($file, $folder);
 
         return EstudioArchivo::create([
             'estudio_id' => $estudio->id,

@@ -43,14 +43,30 @@
         files.splice(idx, 1);
         updateUI();
       });
+      item.style.cursor = 'pointer';
+      item.addEventListener('click', function(e){
+        if (e.target === remove || e.target.closest && e.target.closest('.ip-preview-remove')) return;
+        openLightbox(file, url);
+      });
       item.appendChild(remove);
       grid.appendChild(item);
     });
   }
 
+  function fileKey(file){
+    return file.name + '|' + file.size + '|' + (file.lastModified || 0);
+  }
+
   function addFiles(newFiles){
+    var existing = new Set(files.map(fileKey));
     Array.from(newFiles).forEach(function(file){
-      if (file.type.startsWith('image/') || file.type.startsWith('video/')) files.push(file);
+      if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
+        var key = fileKey(file);
+        if (!existing.has(key)) {
+          files.push(file);
+          existing.add(key);
+        }
+      }
     });
     updateUI();
   }
@@ -58,26 +74,79 @@
   dropzone.addEventListener('click', function(){ input.click(); });
   input.addEventListener('change', function(){ addFiles(this.files); this.value = ''; });
 
-  ['dragenter','dragover','dragleave','drop'].forEach(function(evt){
-    dropzone.addEventListener(evt, function(e){ e.preventDefault(); e.stopPropagation(); });
-  });
-  ['dragenter','dragover'].forEach(function(evt){
-    dropzone.addEventListener(evt, function(){ dropzone.classList.add('dragover'); });
-  });
-  ['dragleave','drop'].forEach(function(evt){
-    dropzone.addEventListener(evt, function(){ dropzone.classList.remove('dragover'); });
-  });
-  dropzone.addEventListener('drop', function(e){ addFiles(e.dataTransfer.files); });
-
   clearBtn?.addEventListener('click', function(){
     files = [];
     updateUI();
   });
 
-  importBtn?.addEventListener('click', function(){
-    if (files.length === 0) return;
-    alert('Importando ' + files.length + ' archivo(s)...');
+  importBtn?.addEventListener('click', async function(){
+    if (files.length === 0 || importBtn.disabled) return;
+
+    const originalContent = importBtn.innerHTML;
+    importBtn.disabled = true;
+    importBtn.textContent = 'Finalizando estudio...';
+
+    const formData = new FormData();
+    formData.append('paciente_id', '{{ $paciente->id }}');
+    files.forEach(function(file){ formData.append('files[]', file); });
+
+    try {
+      const response = await fetch('{{ route('nuevo-estudio.importar.store') }}', {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': '{{ csrf_token() }}',
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        },
+        body: formData
+      });
+      const data = await response.json().catch(function(){ return {}; });
+
+      if (!response.ok || !data.ok) {
+        const validationMessage = data.errors ? Object.values(data.errors).flat().join('\n') : '';
+        throw new Error(validationMessage || data.message || 'No se pudo finalizar el estudio.');
+      }
+
+      window.location.href = data.redirect;
+    } catch (error) {
+      alert(error.message || 'No se pudo finalizar el estudio.');
+      importBtn.disabled = false;
+      importBtn.innerHTML = originalContent;
+    }
   });
+
+  function openLightbox(file, url){
+    const existing = document.getElementById('ipLightbox');
+    if (existing) existing.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'ipLightbox';
+    overlay.className = 'ip-lightbox';
+    overlay.innerHTML = '<button class="ip-lightbox-close" type="button" aria-label="Cerrar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button><div class="ip-lightbox-inner"></div>';
+    const inner = overlay.querySelector('.ip-lightbox-inner');
+    let media;
+    if (file.type.startsWith('image/')) {
+      media = document.createElement('img');
+      media.src = url;
+      media.alt = file.name;
+    } else if (file.type.startsWith('video/')) {
+      media = document.createElement('video');
+      media.src = url;
+      media.controls = true;
+    } else {
+      media = document.createElement('div');
+      media.textContent = file.name;
+    }
+    inner.appendChild(media);
+    document.body.appendChild(overlay);
+    overlay.querySelector('.ip-lightbox-close').addEventListener('click', closeLightbox);
+    overlay.addEventListener('click', function(e){ if (e.target === overlay) closeLightbox(); });
+    document.addEventListener('keydown', function keydown(e){ if (e.key === 'Escape') { closeLightbox(); document.removeEventListener('keydown', keydown); } });
+  }
+
+  function closeLightbox(){
+    const overlay = document.getElementById('ipLightbox');
+    if (overlay) overlay.remove();
+  }
 
   updateUI();
 })();
