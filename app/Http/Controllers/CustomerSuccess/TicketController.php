@@ -200,6 +200,12 @@ class TicketController extends Controller
     {
         $ticket->update([
             'status' => 'en_proceso',
+            'resolution_type' => null,
+            'resolution_summary' => null,
+            'client_message' => null,
+            'evidence_path' => null,
+            'resolved_by' => null,
+            'resolved_at' => null,
         ]);
 
         return response()->json([

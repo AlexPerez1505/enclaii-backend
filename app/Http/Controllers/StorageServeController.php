@@ -12,6 +12,10 @@ class StorageServeController extends Controller
     public function show(string $path): RedirectResponse|StreamedResponse
     {
         if (media_disk() !== 'public') {
+            if (! media_exists($path) && Storage::disk('public')->exists($path)) {
+                return $this->streamPublicFile($path);
+            }
+
             abort_unless(media_exists($path), 404);
 
             return redirect()->away(media_url($path));
@@ -34,6 +38,13 @@ class StorageServeController extends Controller
             Log::error('storage.fallback.404', ['reason' => 'file_not_found', 'path' => $path]);
             abort(404);
         }
+
+        return $this->streamPublicFile($path);
+    }
+
+    private function streamPublicFile(string $path): StreamedResponse
+    {
+        $disk = Storage::disk('public');
 
         return new StreamedResponse(function () use ($disk, $path) {
             fpassthru($disk->readStream($path));

@@ -74,15 +74,6 @@
 .tk-estado.resuelto{background:rgba(34,197,94,.15);color:#4ade80}
 .tk-select{width:100%;background:var(--tk-panel-2);border:1px solid var(--tk-border);border-radius:12px;padding:10px 12px;color:var(--tk-text);font-size:13px;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
 .tk-select:focus{border-color:var(--tk-blue)}
-.tk-priority-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.tk-priority-option{display:flex;align-items:center;gap:9px;padding:11px 12px;background:var(--tk-panel-2);border:1px solid var(--tk-border);border-radius:11px;color:var(--tk-text-soft);font-size:13px;font-weight:700;cursor:pointer;transition:all 150ms;text-align:left}
-.tk-priority-option::before{content:'';width:9px;height:9px;border-radius:50%;background:currentColor;flex-shrink:0}
-.tk-priority-option:hover{border-color:currentColor;transform:translateY(-1px)}
-.tk-priority-option.active{background:color-mix(in srgb,currentColor 12%,var(--tk-panel-2));border-color:currentColor;box-shadow:0 0 0 2px color-mix(in srgb,currentColor 15%,transparent)}
-.tk-priority-option.baja{color:#60a5fa}
-.tk-priority-option.media{color:#fbbf24}
-.tk-priority-option.alta{color:#fb923c}
-.tk-priority-option.urgente{color:#f87171}
 .tk-hint{font-size:12px;color:var(--tk-text-soft);margin-top:10px;min-height:18px}
 .tk-hint.success{color:var(--tk-green)}
 .tk-hint.error{color:var(--tk-red)}
@@ -164,8 +155,6 @@ html[data-theme="light"] .tk-modal-btn.cancel:hover{border-color:#94a3b8;color:#
   .tk-action-icon{width:42px;height:42px}
   .tk-action-text strong{font-size:14px}
   .tk-action-text span{font-size:11px}
-  .tk-priority-list{grid-template-columns:1fr}
-  .tk-priority-option{min-height:44px}
 }
 </style>
 @endpush
@@ -259,6 +248,9 @@ html[data-theme="light"] .tk-modal-btn.cancel:hover{border-color:#94a3b8;color:#
               <strong>Regresar</strong>
               <span>Volver al listado de tickets</span>
             </div>
+            <div class="tk-action-arrow">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </div>
           </a>
 
           <a href="{{ route('customer-success.tickets.resolve.form', $ticket) }}" class="tk-action-btn resolve">
@@ -278,6 +270,61 @@ html[data-theme="light"] .tk-modal-btn.cancel:hover{border-color:#94a3b8;color:#
       </div>
     </div>
 
+    {{-- RESOLVED DETAIL (only visible after resolution) --}}
+    @if(in_array($ticket->status, ['resuelto', 'cerrado']) && $ticket->resolved_at)
+    <div class="tk-card" id="resolvedCard">
+      <div class="tk-card-header">
+        <div class="tk-card-icon green">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+        <h2 class="tk-card-title">Resolución</h2>
+      </div>
+      <div class="tk-card-body">
+        <div class="tk-resolution-detail">
+          <div class="tk-resolution-row">
+            <div class="tk-resolution-label">Estado</div>
+            <div class="tk-resolution-value"><span class="tk-estado {{ $ticket->status }}">{{ ucfirst(str_replace('_', ' ', $ticket->status)) }}</span></div>
+          </div>
+          <div class="tk-resolution-row">
+            <div class="tk-resolution-label">Resuelto por</div>
+            <div class="tk-resolution-value">{{ $ticket->resolver?->name }} {{ $ticket->resolver?->apellido_paterno }}</div>
+          </div>
+          <div class="tk-resolution-row">
+            <div class="tk-resolution-label">Fecha</div>
+            <div class="tk-resolution-value">{{ $ticket->resolved_at->format('d M Y') }}<br><span style="color:var(--tk-text-soft);font-size:12px">{{ $ticket->resolved_at->format('h:i A') }}</span></div>
+          </div>
+          @if($ticket->resolution_type)
+          <div class="tk-resolution-row">
+            <div class="tk-resolution-label">Tipo de solución</div>
+            <div class="tk-resolution-value">{{ str_replace('_', ' ', ucfirst($ticket->resolution_type)) }}</div>
+          </div>
+          @endif
+          @if($ticket->resolution_summary)
+          <div class="tk-resolution-row">
+            <div class="tk-resolution-label">Solución aplicada</div>
+            <div class="tk-resolution-value">{{ $ticket->resolution_summary }}</div>
+          </div>
+          @endif
+          @if($ticket->client_message)
+          <div class="tk-resolution-row">
+            <div class="tk-resolution-label">Mensaje al cliente</div>
+            <div class="tk-resolution-value">
+              <span class="tk-sent-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                Enviado
+              </span>
+            </div>
+          </div>
+          @endif
+        </div>
+
+        <button type="button" class="tk-reopen-btn" id="btnReopen">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+          Reabrir ticket
+        </button>
+      </div>
+    </div>
+    @endif
   </div>
 
   <div class="tk-col">
@@ -351,71 +398,23 @@ html[data-theme="light"] .tk-modal-btn.cancel:hover{border-color:#94a3b8;color:#
       </div>
       <div class="tk-card-body">
         <div class="tk-field">
+          <div class="tk-field-label">Cambiar estado</div>
+          <select id="statusSelect" class="tk-select" data-ticket-id="{{ $ticket->id }}">
+            <option value="abierto" {{ $ticket->status === 'abierto' ? 'selected' : '' }}>Abierto</option>
+            <option value="en_proceso" {{ $ticket->status === 'en_proceso' ? 'selected' : '' }}>En proceso</option>
+            <option value="respondido" {{ $ticket->status === 'respondido' ? 'selected' : '' }}>Respondido</option>
+          </select>
+        </div>
+        <div class="tk-field">
           <div class="tk-field-label">Cambiar prioridad</div>
-          <div class="tk-priority-list" role="group" aria-label="Prioridad del ticket">
-            <button type="button" class="tk-priority-option baja {{ $ticket->priority === 'baja' ? 'active' : '' }}" data-priority="baja">Baja</button>
-            <button type="button" class="tk-priority-option media {{ $ticket->priority === 'media' ? 'active' : '' }}" data-priority="media">Media</button>
-            <button type="button" class="tk-priority-option alta {{ $ticket->priority === 'alta' ? 'active' : '' }}" data-priority="alta">Alta</button>
-            <button type="button" class="tk-priority-option urgente {{ $ticket->priority === 'urgente' ? 'active' : '' }}" data-priority="urgente">Urgente</button>
-          </div>
+          <select id="prioritySelect" class="tk-select" data-ticket-id="{{ $ticket->id }}">
+            <option value="baja" {{ $ticket->priority === 'baja' ? 'selected' : '' }}>Baja</option>
+            <option value="media" {{ $ticket->priority === 'media' ? 'selected' : '' }}>Media</option>
+            <option value="alta" {{ $ticket->priority === 'alta' ? 'selected' : '' }}>Alta</option>
+            <option value="urgente" {{ $ticket->priority === 'urgente' ? 'selected' : '' }}>Urgente</option>
+          </select>
         </div>
         <div id="ticketUpdateMessage" class="tk-hint"></div>
-      </div>
-    </div>
-    @endif
-
-    {{-- RESOLVED DETAIL (only visible after resolution) --}}
-    @if(in_array($ticket->status, ['resuelto', 'cerrado']) && $ticket->resolved_at)
-    <div class="tk-card" id="resolvedCard">
-      <div class="tk-card-header">
-        <div class="tk-card-icon green">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-        </div>
-        <h2 class="tk-card-title">Resolución</h2>
-      </div>
-      <div class="tk-card-body">
-        <div class="tk-resolution-detail">
-          <div class="tk-resolution-row">
-            <div class="tk-resolution-label">Estado</div>
-            <div class="tk-resolution-value"><span class="tk-estado {{ $ticket->status }}">{{ ucfirst(str_replace('_', ' ', $ticket->status)) }}</span></div>
-          </div>
-          <div class="tk-resolution-row">
-            <div class="tk-resolution-label">Resuelto por</div>
-            <div class="tk-resolution-value">{{ $ticket->resolver?->name }} {{ $ticket->resolver?->apellido_paterno }}</div>
-          </div>
-          <div class="tk-resolution-row">
-            <div class="tk-resolution-label">Fecha</div>
-            <div class="tk-resolution-value">{{ $ticket->resolved_at->format('d M Y') }}<br><span style="color:var(--tk-text-soft);font-size:12px">{{ $ticket->resolved_at->format('h:i A') }}</span></div>
-          </div>
-          @if($ticket->resolution_type)
-          <div class="tk-resolution-row">
-            <div class="tk-resolution-label">Tipo de solución</div>
-            <div class="tk-resolution-value">{{ str_replace('_', ' ', ucfirst($ticket->resolution_type)) }}</div>
-          </div>
-          @endif
-          @if($ticket->resolution_summary)
-          <div class="tk-resolution-row">
-            <div class="tk-resolution-label">Solución aplicada</div>
-            <div class="tk-resolution-value">{{ $ticket->resolution_summary }}</div>
-          </div>
-          @endif
-          @if($ticket->client_message)
-          <div class="tk-resolution-row">
-            <div class="tk-resolution-label">Mensaje al cliente</div>
-            <div class="tk-resolution-value">
-              <span class="tk-sent-badge">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-                Enviado
-              </span>
-            </div>
-          </div>
-          @endif
-        </div>
-
-        <button type="button" class="tk-reopen-btn" id="btnReopen">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
-          Reabrir ticket
-        </button>
       </div>
     </div>
     @endif
@@ -455,7 +454,7 @@ El ticket actual se reabrirá y volverá a estar en proceso. Los datos de su res
   var reopenUrl = "{{ route('customer-success.tickets.reopen', $ticket) }}";
 
   var statusSelect = document.getElementById('statusSelect');
-  var priorityOptions = document.querySelectorAll('.tk-priority-option');
+  var prioritySelect = document.getElementById('prioritySelect');
   var statusBadge = document.getElementById('ticketStatusBadge');
   var messageEl = document.getElementById('ticketUpdateMessage');
 
@@ -484,14 +483,7 @@ El ticket actual se reabrirá y volverá a estar en proceso. Los datos de su res
   }
 
   if(statusSelect) statusSelect.addEventListener('change', function(){ updateTicket('status', this.value); });
-  priorityOptions.forEach(function(option){
-    option.addEventListener('click', function(){
-      if(option.classList.contains('active')) return;
-      priorityOptions.forEach(function(item){ item.classList.remove('active'); });
-      option.classList.add('active');
-      updateTicket('priority', option.getAttribute('data-priority'));
-    });
-  });
+  if(prioritySelect) prioritySelect.addEventListener('change', function(){ updateTicket('priority', this.value); });
 
   // ---- Reopen ----
   var btnReopen = document.getElementById('btnReopen');

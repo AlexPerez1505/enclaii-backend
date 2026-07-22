@@ -45,12 +45,12 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   -moz-appearance: textfield !important;
 }
 
-.ed-body{display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:stretch}
+.ed-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,320px);gap:28px;align-items:start}
 @media (max-width:1100px){.ed-body{grid-template-columns:1fr}}
 .ed-main{display:flex;flex-direction:column;gap:16px;min-width:0}
 
 /* Documento editable */
-.ed-doc{padding:30px 34px;line-height:1.55;flex:1;min-height:calc(100vh - 300px);display:flex;flex-direction:column}
+.ed-doc{padding:30px 34px;line-height:1.55;flex:1;min-width:0;min-height:calc(100vh - 300px);display:flex;flex-direction:column;overflow:hidden}
 .ed-doc #docSections{flex:1}
 .ed-doc .doc-h{text-align:center;margin-bottom:22px}
 .ed-doc .doc-h h2{font-family:'Sora',sans-serif;font-size:21px;font-weight:800;letter-spacing:.01em}
@@ -78,10 +78,21 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 .ed-doc li[contenteditable]{margin-left:0}
 
 /* Panel lateral */
-.ed-side{display:flex;flex-direction:column;gap:16px}
+.ed-side{display:flex;flex-direction:column;gap:16px;min-width:0}
 .ed-panel{padding:15px 16px}
 .ed-panel h3{font-size:14px;font-weight:700;margin-bottom:3px}
 .ed-panel .ph-sub{font-size:11.5px;color:var(--txt-soft);margin-bottom:12px}
+.cap-panel{padding:15px 16px}
+.cap-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.cap-head h3{font-size:14px;font-weight:700;margin:0}
+.cap-count{font-size:11.5px;color:var(--txt-soft)}
+.cap-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.cap-thumb{display:block;aspect-ratio:4/3;border-radius:8px;border:1px solid var(--stroke);overflow:hidden;background:var(--panel-2);transition:border-color .15s,transform .15s}
+.cap-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.cap-thumb:active{transform:scale(.98)}
+@media(hover:hover){.cap-thumb:hover{border-color:rgba(56,199,244,.55)}}
+.cap-thumb.img-missing,.rep-imgs .cell.img-missing{background:linear-gradient(160deg,#1c2435,#10151f)}
+.cap-empty{font-size:12.5px;color:var(--txt-soft);margin:0}
 
 /* Chat IA */
 .ed-chat{display:flex;flex-direction:column;padding:0;overflow:hidden}
@@ -179,7 +190,8 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 
 /* Rejilla de imágenes del estudio */
 .rep-imgs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:14px 0 20px}
-.rep-imgs .cell{aspect-ratio:4/3;background:linear-gradient(160deg,#1c2435,#10151f);border:1px solid var(--stroke);border-radius:4px}
+.rep-imgs .cell{display:block;min-width:0;aspect-ratio:4/3;background:linear-gradient(160deg,#1c2435,#10151f);border:1px solid var(--stroke);border-radius:4px;overflow:hidden}
+.rep-imgs .cell img{width:100%;height:100%;object-fit:cover;display:block}
 
 /* Firma */
 .rep-sign{margin-top:38px;display:flex}
@@ -456,6 +468,24 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 
     {{-- Panel lateral --}}
     <aside class="ed-side">
+
+      <article class="card cap-panel rise d3">
+        <div class="cap-head">
+          <h3>Capturas del estudio</h3>
+          <span class="cap-count">{{ ($estudioImagenes ?? collect())->count() }}</span>
+        </div>
+        @if(($estudioImagenes ?? collect())->count())
+          <div class="cap-grid">
+            @foreach(($estudioImagenes ?? collect()) as $img)
+              <a class="cap-thumb" href="{{ $img['show_url'] ?? $img['url'] }}" target="_blank" rel="noopener" title="{{ $img['titulo'] ?? 'Captura' }}">
+                <img src="{{ $img['url'] }}" alt="" loading="lazy" onerror="this.parentElement.classList.add('img-missing');this.remove()">
+              </a>
+            @endforeach
+          </div>
+        @else
+          <p class="cap-empty">Sin capturas asociadas.</p>
+        @endif
+      </article>
 
       <article class="card ed-chat rise d3">
         <div class="chat-head">
@@ -755,18 +785,24 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   };
 
   // Celda del grid: imagen real del estudio o recuadro vacío
+  const escAttr = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const imgCell = (img) => img
+
+    ? '<span class="cell" style="background:none"><img src="' + escAttr(img.url) + '" alt="" title="' + escAttr(img.titulo || 'Captura') + '" loading="lazy" onerror="this.parentElement.classList.add(&quot;img-missing&quot;);this.remove()"></span>'
+
     ? '<span class="cell" style="background:none;overflow:hidden"><img src="' + img.url + '" alt="' + (img.titulo || '') + '" style="width:100%;height:100%;object-fit:cover;display:block"></span>'
+>>>>>>> parent of ed2a10c (si)
     : '<span class="cell"></span>';
 
   // Rellena el grid de imágenes según la plantilla (columnas + nº de celdas)
   // Solo muestra celdas con imágenes reales del estudio; no muestra celdas vacías
   const fillImgs = (cols, count) => {
     if (!repImgs) return;
-    const total = Math.min(count || STUDY_IMAGES.length || 0, STUDY_IMAGES.length);
-    if (!cols || !total) { repImgs.style.display = 'none'; repImgs.innerHTML = ''; return; }
+    const safeCols = Math.max(1, parseInt(cols || 4, 10) || 4);
+    const requested = parseInt(count || 0, 10) || 0;
+    const total = Math.max(requested, STUDY_IMAGES.length, safeCols);
     repImgs.style.display = 'grid';
-    repImgs.style.gridTemplateColumns = 'repeat(' + Math.min(cols, total) + ',1fr)';
+    repImgs.style.gridTemplateColumns = 'repeat(' + safeCols + ',1fr)';
     repImgs.innerHTML = Array.from({ length: total }, (_, i) => imgCell(STUDY_IMAGES[i])).join('');
   };
 
@@ -923,7 +959,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     } else {
       // Plantilla de informe: rejilla de 4 columnas con las imágenes reales del estudio
       // (si no hay imágenes, conserva la cuadrícula vacía por defecto)
-      fillImgs(4, STUDY_IMAGES.length || 8);
+      fillImgs(4, 8);
       // Si viene de un reporte guardado, conservar el contenido editado
       if (!preserveContent) {
         const ocultas = (tpl.cfg.secciones_ocultas || []);
@@ -1302,6 +1338,70 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   // Comandos que tienen estado on/off (se pueden iluminar)
   const stateCmds = ['bold','italic','underline','strikeThrough','justifyLeft','justifyCenter','justifyRight','justifyFull','insertUnorderedList','insertOrderedList'];
   const docEl = document.querySelector('.ed-doc');
+  const fontSizeInput = document.getElementById('fontSizeInput');
+  let savedDocRange = null;
+
+  const elementFromNode = (node) => {
+    if (!node) return null;
+    return node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
+  };
+
+  const rangeInsideDoc = (range) => {
+    return !!(range && docEl && docEl.contains(range.commonAncestorContainer));
+  };
+
+  const selectionInsideDoc = () => {
+    const sel = document.getSelection();
+    return !!(sel && sel.rangeCount && rangeInsideDoc(sel.getRangeAt(0)));
+  };
+
+  const saveDocSelection = () => {
+    const sel = document.getSelection();
+    if (!sel || !sel.rangeCount || !selectionInsideDoc()) return;
+    savedDocRange = sel.getRangeAt(0).cloneRange();
+  };
+
+  const restoreDocSelection = () => {
+    if (!savedDocRange || !rangeInsideDoc(savedDocRange)) return false;
+    const sel = document.getSelection();
+    if (!sel) return false;
+    sel.removeAllRanges();
+    sel.addRange(savedDocRange);
+    const editable = elementFromNode(savedDocRange.startContainer)?.closest('[contenteditable="true"]');
+    if (editable) editable.focus({ preventScroll: true });
+    return true;
+  };
+
+  const currentEditableTarget = () => {
+    const sel = document.getSelection();
+    let node = null;
+    if (sel && sel.rangeCount && selectionInsideDoc()) {
+      node = sel.getRangeAt(0).startContainer;
+    } else if (savedDocRange && rangeInsideDoc(savedDocRange)) {
+      node = savedDocRange.startContainer;
+    }
+    const el = elementFromNode(node);
+    if (!el || !docEl || !docEl.contains(el)) return null;
+    return el.closest('[contenteditable="true"], p, li, h4, h2, .doc-meta span') || el;
+  };
+
+  const syncFontSizeInput = () => {
+    if (!fontSizeInput || document.activeElement === fontSizeInput) return;
+    const target = currentEditableTarget();
+    if (!target) return;
+    const size = Math.round(parseFloat(getComputedStyle(target).fontSize));
+    if (size) fontSizeInput.value = String(size);
+  };
+
+  const runDocCommand = (cmd, value = null) => {
+    restoreDocSelection();
+    if (!selectionInsideDoc()) return false;
+    document.execCommand(cmd, false, value);
+    saveDocSelection();
+    refreshToolbar();
+    if (docEl) docEl.dispatchEvent(new Event('input', { bubbles: true }));
+    return true;
+  };
 
   const refreshToolbar = () => {
     fmtButtons.forEach(btn => {
@@ -1311,32 +1411,30 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
       try { on = document.queryCommandState(cmd); } catch (e) {}
       btn.classList.toggle('active', on);
     });
+    syncFontSizeInput();
   };
 
   fmtButtons.forEach(btn => {
     btn.addEventListener('mousedown', (e) => {
       e.preventDefault();
-      document.execCommand(btn.dataset.cmd, false, null);
-      refreshToolbar();
+      runDocCommand(btn.dataset.cmd);
     });
   });
 
   // Mantener iluminados los botones según dónde esté el cursor/selección
-  const selectionInsideDoc = () => {
-    const sel = document.getSelection();
-    return sel && sel.anchorNode && docEl && docEl.contains(sel.anchorNode);
-  };
   document.addEventListener('selectionchange', () => {
-    if (selectionInsideDoc()) refreshToolbar();
+    if (selectionInsideDoc()) {
+      saveDocSelection();
+      refreshToolbar();
+    }
   });
   if (docEl) {
-    docEl.addEventListener('keyup', refreshToolbar);
-    docEl.addEventListener('mouseup', refreshToolbar);
+    docEl.addEventListener('keyup', () => { saveDocSelection(); refreshToolbar(); });
+    docEl.addEventListener('mouseup', () => { saveDocSelection(); refreshToolbar(); });
     docEl.addEventListener('focusout', () => fmtButtons.forEach(b => b.classList.remove('active')));
   }
 
   // Selector de tamaño de letra (en píxeles)
-  const fontSizeInput = document.getElementById('fontSizeInput');
   if (fontSizeInput) {
     let savedRange = null;
     let savedMark = null;
@@ -1453,6 +1551,10 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     // Solo permitir números
     fontSizeInput.addEventListener('input', (e) => {
       e.target.value = e.target.value.replace(/[^0-9]/g, '');
+      const size = parseInt(e.target.value, 10);
+      if (!isNaN(size) && size >= 8 && size <= 72) {
+        fontSizeInput.dispatchEvent(new Event('change'));
+      }
     });
 
     // Guardar y marcar la selección antes de que el input robe el foco
@@ -1466,15 +1568,46 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
         const target = findEditableTarget(savedRange) || docEl.querySelector('[contenteditable="true"]');
         if (target) target.focus();
       }
+      // Aplicar tamaño usando execCommand con hack
+      restoreDocSelection();
+      const target = currentEditableTarget();
+      const sel = document.getSelection();
+      if (!sel || !sel.rangeCount || sel.isCollapsed || !selectionInsideDoc()) {
+        if (target) {
+          target.style.fontSize = size + 'px';
+          refreshToolbar();
+          if (docEl) docEl.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        return;
+      }
+      document.execCommand('styleWithCSS', false, false);
+      document.execCommand('fontSize', false, '7');
+      // Buscar elementos font[size="7"] y aplicar el tamaño en píxeles
+      setTimeout(() => {
+        const fontElements = (docEl || document).querySelectorAll('font[size="7"]');
+        fontElements.forEach(el => {
+          el.removeAttribute('size');
+          el.style.fontSize = size + 'px';
+        });
+        saveDocSelection();
+        refreshToolbar();
+        if (docEl) docEl.dispatchEvent(new Event('input', { bubbles: true }));
+      }, 10);
     });
   }
 
   // Highlight (fondo amarillo)
   const underlineColorBtn = document.getElementById('underlineColorBtn');
   if (underlineColorBtn) {
-    underlineColorBtn.addEventListener('click', () => {
+    underlineColorBtn.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      restoreDocSelection();
+      if (!selectionInsideDoc()) return;
       document.execCommand('styleWithCSS', false, true);
       document.execCommand('hiliteColor', false, '#ffff00');
+      saveDocSelection();
+      refreshToolbar();
+      if (docEl) docEl.dispatchEvent(new Event('input', { bubbles: true }));
     });
   }
 })();
@@ -1944,28 +2077,23 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
   window.addEventListener('beforeprint', fitToOnePage);
   window.addEventListener('afterprint', restore);
 
-  // Indicador en tiempo real de si cabe en una hoja + escalamiento automático
+  // Indicador en tiempo real de si cabe en una hoja.
+  // El ajuste de escala queda solo para vista previa/impresion, no para el editor.
   const checkPageFit = () => {
     if (!doc) return;
     const targetHeight = 10.2 * 96; // 10.2in a 96dpi
+    doc.style.transform = '';
+    doc.style.transformOrigin = '';
+    doc.style.width = '';
     const actualHeight = doc.scrollHeight;
     const indicator = document.getElementById('pageFitIndicator');
     if (indicator) {
       if (actualHeight > targetHeight) {
-        indicator.textContent = 'Excede 1 hoja (ajustando...)';
+        indicator.textContent = 'Excede 1 hoja';
         indicator.style.color = '#ef4444';
-        // Aplicar escalamiento automático
-        const scale = targetHeight / actualHeight;
-        doc.style.transform = 'scale(' + scale + ')';
-        doc.style.transformOrigin = 'top left';
-        doc.style.width = (7.7 / scale) + 'in';
       } else {
         indicator.textContent = 'Cabe en 1 hoja';
         indicator.style.color = '#16a34a';
-        // Restaurar tamaño normal
-        doc.style.transform = '';
-        doc.style.transformOrigin = '';
-        doc.style.width = '';
       }
     }
   };
@@ -2051,7 +2179,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
             statusEl.classList.remove('borrador');
             statusEl.classList.add('guardado');
           }
-          showToast('Reporte guardado');
+          showToast(d.message || 'Reporte guardado');
         } else {
           showToast((d && d.message) || 'No se pudo guardar el reporte', true);
         }
