@@ -1,5 +1,5 @@
 @php
-  $desktopAppVersion = '0.1.6';
+  $desktopAppVersion = '0.1.7';
   $desktopAppArchitecture = '64 bits';
 @endphp
 

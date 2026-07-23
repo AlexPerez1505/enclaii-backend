@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\Storage;
 
 class DesktopAppDownloadController extends Controller
 {
-    private const INSTALLER_PATH = 'windows/releases/0.1.6/ENCLAII_0.1.6_x64_en-US.msi';
-    private const DOWNLOAD_NAME = 'ENCLAII_0.1.6_x64_en-US.msi';
+    private const INSTALLER_PATH = 'windows/releases/0.1.7/ENCLAII_0.1.7_x64_es-ES.msi';
+    private const DOWNLOAD_NAME = 'ENCLAII_0.1.7_x64_es-ES.msi';
 
     public function __invoke(Request $request): RedirectResponse
     {
