@@ -1132,31 +1132,23 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
                 </option>
               <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </select>
-            <button type="button" class="btn-add-procedimiento" onclick="addMedicoMed()" title="Agregar médico">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </button>
           </div>
         </div>
         <div class="form-group" style="margin-bottom:18px;">
-    <label>Procedimiento</label>
-    <div class="select-with-add">
-        <select id="procedimientoSelect" name="procedimiento" data-campo="procedimiento" style="flex:1;">
-            <option value="">Seleccione un procedimiento...</option>
-            <?php $__currentLoopData = $listaProcedimientos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $p): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+          <label>Procedimiento</label>
+          <div class="select-with-add">
+            <select id="procedimientoSelect" name="procedimiento" data-campo="procedimiento" style="flex:1;">
+              <option value="">Seleccione un procedimiento...</option>
+              <?php $__currentLoopData = $listaProcedimientos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $p): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <option value="<?php echo e($p->nombre); ?>">
-                    <?php echo e($p->nombre); ?>
+                  <?php echo e($p->nombre); ?>
 
                 </option>
-            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-        </select>
-        
-        
-        <button type="button" class="btn-add-procedimiento" onclick="addNuevoProcedimiento()" title="Agregar procedimiento">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </button>
-    </div>
-    <div id="procedimientosAgregados" class="procedimientos-tags"></div>
-</div>
+              <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            </select>
+          </div>
+          <div id="procedimientosAgregados" class="procedimientos-tags"></div>
+        </div>
         <div class="form-group" style="margin-bottom:18px;">
           <label>Anestesiólogo</label>
           <div class="select-with-add">
@@ -1169,9 +1161,6 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
                 </option>
               <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </select>
-            <button type="button" class="btn-add-procedimiento" onclick="addAnestesiologo()" title="Agregar anestesiólogo">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </button>
           </div>
         </div>
       </div>
