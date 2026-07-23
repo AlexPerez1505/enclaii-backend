@@ -1,5 +1,5 @@
 @php
-  $desktopAppVersion = '0.1.5';
+  $desktopAppVersion = '0.1.6';
   $desktopAppArchitecture = '64 bits';
 @endphp
 
@@ -68,7 +68,7 @@
       <ul class="desktop-app-requirements">
         <li>Windows 10 u 11 de 64 bits</li>
         <li>8 GB de RAM</li>
-        <li>3 MB libres para descargar el instalador</li>
+        <li>20 MB libres para descargar el instalador</li>
         <li>Puerto USB disponible</li>
         <li>Conexión a internet para sincronización</li>
       </ul>
