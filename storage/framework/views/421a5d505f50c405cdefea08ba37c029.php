@@ -1,13 +1,13 @@
-﻿@extends('layouts.app')
+﻿
 
-@section('title', 'Nuevo Estudio')
-@section('active', 'nuevo-estudio')
-@section('header-title', 'Nuevo Estudio')
-@section('header-sub')
+<?php $__env->startSection('title', 'Nuevo Estudio'); ?>
+<?php $__env->startSection('active', 'nuevo-estudio'); ?>
+<?php $__env->startSection('header-title', 'Nuevo Estudio'); ?>
+<?php $__env->startSection('header-sub'); ?>
   Datos nuevos
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
 /* ============ NUEVO PACIENTE ============ */
 
@@ -884,10 +884,10 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
 }
 
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
-@php
+<?php $__env->startSection('content'); ?>
+<?php
   $paciente = $paciente ?? null;
   $galImagenes = $galImagenes ?? collect();
   $galVideos = $galVideos ?? collect();
@@ -904,11 +904,11 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   $galEdad = $paciente ? ($paciente->edad ? $paciente->edad.' años' : '—') : '38 años';
   $galCodigo = $paciente ? ($paciente->folio ?? $paciente->identificacion ?? '—') : '00012345';
   $reportes = $reportes ?? collect();
-@endphp
+?>
 
-@if($paciente)
+<?php if($paciente): ?>
 <div class="np-patient-toolbar rise d1">
-  <a class="np-back-btn" id="npBackToPatientsTop" href="{{ route('pacientes.index') }}">
+  <a class="np-back-btn" id="npBackToPatientsTop" href="<?php echo e(route('pacientes.index')); ?>">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <line x1="19" y1="12" x2="5" y2="12"/>
       <polyline points="12 19 5 12 12 5"/>
@@ -916,21 +916,21 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
     Volver a pacientes
   </a>
 </div>
-@endif
+<?php endif; ?>
 
-{{-- Pestañas --}}
+
 <div class="np-tabs rise d1">
   <button class="np-tab active" data-tab="pacientes">Pacientes</button>
   <button class="np-tab hidden np-tab-extra" data-tab="galeria">Galeria</button>
   <button class="np-tab hidden np-tab-extra" data-tab="reportes">Reportes</button>
 </div>
 
-{{-- Panel Pacientes --}}
+
 <div class="np-tab-panel active" id="tab-pacientes">
 
-@unless($paciente)
-{{-- Buscador de pacientes: solo cuando se abre desde el boton del dashboard --}}
-@php
+<?php if (! ($paciente)): ?>
+
+<?php
   $npPacientes = ($pacientes ?? collect())->values()->map(function ($p) {
     $nombre = trim($p->nombre_completo ?? 'Paciente sin nombre');
     $partes = preg_split('/\s+/', $nombre);
@@ -949,8 +949,8 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
       'iniciales' => $iniciales,
     ];
   });
-@endphp
-<script>window.__NP_PACIENTES = @json($npPacientes);</script>
+?>
+<script>window.__NP_PACIENTES = <?php echo json_encode($npPacientes, 15, 512) ?>;</script>
 
 <div class="np-searchbar rise d1" id="npSearchBar">
   <div class="np-search-wrap">
@@ -966,28 +966,28 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   </div>
   <div class="np-res-list" id="npResList"></div>
 </div>
-@endunless
+<?php endif; ?>
 
-{{-- Formulario / informacion del paciente --}}
+
 <div class="np-layout" id="npFormLayout" style="display:none">
 
   <form method="POST" action="#" id="formNuevoPaciente">
-    @csrf
+    <?php echo csrf_field(); ?>
 
-    {{-- Card unificada de información del paciente --}}
+    
     <div class="np-card rise d2">
       <div class="np-sec-header">Información del paciente</div>
 
       <div class="np-personal-layout">
 
-        {{-- Foto --}}
+        
         <div class="np-foto-col">
-          @php
+          <?php
             $pacFoto = $paciente && $paciente->foto ? media_url($paciente->foto) : '';
-          @endphp
+          ?>
           <div class="np-foto-box" id="npFotoBox">
-            <img id="npFotoPreview" src="{{ $pacFoto }}" alt="{{ $paciente?->nombre_completo }}" @if($pacFoto) style="display:block;" @endif>
-            <div class="np-foto-ph" id="npFotoPh" @if($pacFoto) style="display:none;" @endif>
+            <img id="npFotoPreview" src="<?php echo e($pacFoto); ?>" alt="<?php echo e($paciente?->nombre_completo); ?>" <?php if($pacFoto): ?> style="display:block;" <?php endif; ?>>
+            <div class="np-foto-ph" id="npFotoPh" <?php if($pacFoto): ?> style="display:none;" <?php endif; ?>>
               <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
           </div>
@@ -995,62 +995,62 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
           <input type="file" id="npFotoCamera" accept="image/*" capture="environment" style="display:none">
         </div>
 
-        {{-- Datos del paciente en recuadros hacia la derecha --}}
+        
         <div class="np-info-grid">
           <div class="np-info-box">
             <label>Nombre completo</label>
-            <div class="np-field-value" id="nombre">{{ $paciente?->nombre_completo ?? '—' }}</div>
+            <div class="np-field-value" id="nombre"><?php echo e($paciente?->nombre_completo ?? '—'); ?></div>
           </div>
           
                     
           <div class="np-info-box">
             <label>Edad</label>
-            <div class="np-field-value" id="edad">{{ $paciente && $paciente->edad ? $paciente->edad.' años' : '—' }}</div>
+            <div class="np-field-value" id="edad"><?php echo e($paciente && $paciente->edad ? $paciente->edad.' años' : '—'); ?></div>
           </div>
           
           <div class="np-info-box">
             <label>Sexo</label>
-            <div class="np-field-value" id="sexo">{{ $paciente && $paciente->sexo ? ucfirst($paciente->sexo) : '—' }}</div>
+            <div class="np-field-value" id="sexo"><?php echo e($paciente && $paciente->sexo ? ucfirst($paciente->sexo) : '—'); ?></div>
           </div>
           
           <div class="np-info-box">
             <label>Fecha nacimiento</label>
-            <div class="np-field-value" id="fecha_nac">{{ format_user_date($paciente?->fecha_nacimiento) ?: '—' }}</div>
+            <div class="np-field-value" id="fecha_nac"><?php echo e(format_user_date($paciente?->fecha_nacimiento) ?: '—'); ?></div>
           </div>
           
           <div class="np-info-box">
             <label>Peso</label>
-            <div class="np-field-value" id="peso">{{ $paciente && $paciente->peso ? $paciente->peso.' kg' : '—' }}</div>
+            <div class="np-field-value" id="peso"><?php echo e($paciente && $paciente->peso ? $paciente->peso.' kg' : '—'); ?></div>
           </div>
           
           <div class="np-info-box">
             <label>Altura</label>
-            <div class="np-field-value" id="altura">{{ $paciente && $paciente->altura ? $paciente->altura.' m' : '—' }}</div>
+            <div class="np-field-value" id="altura"><?php echo e($paciente && $paciente->altura ? $paciente->altura.' m' : '—'); ?></div>
           </div>
           
           <div class="np-info-box">
             <label>Número de Seguro Social</label>
-            <div class="np-field-value" id="nss">{{ $paciente?->identificacion ?? '—' }}</div>
+            <div class="np-field-value" id="nss"><?php echo e($paciente?->identificacion ?? '—'); ?></div>
           </div>
           
           <div class="np-info-box">
             <label>Teléfono</label>
-            <div class="np-field-value" id="telefono">{{ $paciente?->telefono ?? '—' }}</div>
+            <div class="np-field-value" id="telefono"><?php echo e($paciente?->telefono ?? '—'); ?></div>
           </div>
           
           <div class="np-info-box">
             <label>Correo electrónico</label>
-            <div class="np-field-value" id="email">{{ $paciente?->email ?? '—' }}</div>
+            <div class="np-field-value" id="email"><?php echo e($paciente?->email ?? '—'); ?></div>
           </div>
           
           <div class="np-info-box">
             <label>Procedimiento</label>
-            <div class="np-field-value">{{ $paciente?->procedimiento ?? '—' }}</div>
+            <div class="np-field-value"><?php echo e($paciente?->procedimiento ?? '—'); ?></div>
           </div>
           
           <div class="np-info-box">
             <label>Fecha de registro</label>
-            <div class="np-field-value" id="fecha_registro">{{ format_user_date($paciente?->created_at) ?: '—' }}</div>
+            <div class="np-field-value" id="fecha_registro"><?php echo e(format_user_date($paciente?->created_at) ?: '—'); ?></div>
           </div>
           
           <div class="np-info-box np-wide">
@@ -1064,7 +1064,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
 
   </form>
 
-  {{-- Sidebar acciones --}}
+  
   <div class="np-side rise d4">
     <div class="np-action-btns">
       <button class="np-action-btn" type="button" id="btnIniciarGrabacion" onclick="window.openDispositivoModal()">
@@ -1073,14 +1073,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
         </span>
         Iniciar estudio
       </button>
-      {{--
-      <a class="np-action-btn" href="{{ route('nuevo-estudio.configuracion') }}">
-        <span class="np-ab-icon">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87 1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
-        </span>
-        Configuracion de Grabacion
-      </a> 
-      --}}
+      
     </div>
   </div>
 
@@ -1088,7 +1081,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
 
 </div>
 
-{{-- Panel Galeria --}}
+
 <div class="np-tab-panel" id="tab-galeria">
 
   <div class="pa-topbar rise d2">
@@ -1101,15 +1094,15 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   <div class="pa-shell rise d3">
     <div>
       <section class="pa-hero">
-        <div class="pa-avatar" id="npGalAvatar">{{ $galIni }}</div>
+        <div class="pa-avatar" id="npGalAvatar"><?php echo e($galIni); ?></div>
         <div>
-          <div class="pa-title" id="npGalName">{{ $galNombre }}</div>
-          <div class="pa-sub" id="npGalMeta">ID: {{ $galCodigo }} · {{ $galSexo }} · {{ $galEdad }} · Último estudio: {{ $galUltimo }}</div>
+          <div class="pa-title" id="npGalName"><?php echo e($galNombre); ?></div>
+          <div class="pa-sub" id="npGalMeta">ID: <?php echo e($galCodigo); ?> · <?php echo e($galSexo); ?> · <?php echo e($galEdad); ?> · Último estudio: <?php echo e($galUltimo); ?></div>
         </div>
         <div class="pa-stats">
-          <div class="pa-stat"><strong id="npGalEstudios">{{ $galEstudios }}</strong><span>Estudios</span></div>
-          <div class="pa-stat"><strong id="npGalFotos">{{ $paciente ? $galImagenes->count() : 126 }}</strong><span>Fotos</span></div>
-          <div class="pa-stat"><strong id="npGalVideos">{{ $paciente ? $galVideos->count() : 12 }}</strong><span>Videos</span></div>
+          <div class="pa-stat"><strong id="npGalEstudios"><?php echo e($galEstudios); ?></strong><span>Estudios</span></div>
+          <div class="pa-stat"><strong id="npGalFotos"><?php echo e($paciente ? $galImagenes->count() : 126); ?></strong><span>Fotos</span></div>
+          <div class="pa-stat"><strong id="npGalVideos"><?php echo e($paciente ? $galVideos->count() : 12); ?></strong><span>Videos</span></div>
         </div>
       </section>
 
@@ -1118,29 +1111,29 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
       <section class="pa-section">
         <div class="pa-section-head">
           <h2 class="pa-section-title">Videos</h2>
-          <span class="pa-section-count">{{ $paciente ? $galVideos->count().' archivos' : '2 archivos' }}</span>
+          <span class="pa-section-count"><?php echo e($paciente ? $galVideos->count().' archivos' : '2 archivos'); ?></span>
         </div>
         <div class="pa-grid">
-          @if($paciente)
-          @forelse($galVideos as $v)
-          <article class="pa-card" data-kind="video" data-title="{{ strtolower($v->nombre_original ?? 'video') }}">
+          <?php if($paciente): ?>
+          <?php $__empty_1 = true; $__currentLoopData = $galVideos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $v): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+          <article class="pa-card" data-kind="video" data-title="<?php echo e(strtolower($v->nombre_original ?? 'video')); ?>">
             <div class="pa-thumb">
-              <video src="{{ media_url($v->path) }}" preload="metadata" muted style="width:100%;height:100%;object-fit:cover"></video>
+              <video src="<?php echo e(media_url($v->path)); ?>" preload="metadata" muted style="width:100%;height:100%;object-fit:cover"></video>
               <span class="pa-badge video">VIDEO</span>
               <div class="pa-play"><span><svg width="17" height="17" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg></span></div>
             </div>
             <div class="pa-body">
-              <div class="pa-name">{{ $v->nombre_original ?? 'Video del estudio' }}</div>
-              <div class="pa-meta">Estudio {{ $v->estudio?->folio }}<br>{{ format_user_date($v->capturado_en) }}</div>
+              <div class="pa-name"><?php echo e($v->nombre_original ?? 'Video del estudio'); ?></div>
+              <div class="pa-meta">Estudio <?php echo e($v->estudio?->folio); ?><br><?php echo e(format_user_date($v->capturado_en)); ?></div>
               <div class="pa-actions">
-                <a class="pa-btn primary" href="{{ media_url($v->path) }}" target="_blank">Ver</a>
+                <a class="pa-btn primary" href="<?php echo e(media_url($v->path)); ?>" target="_blank">Ver</a>
               </div>
             </div>
           </article>
-          @empty
+          <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
           <p style="color:var(--txt-soft);font-size:13px">No hay videos para este paciente.</p>
-          @endforelse
-          @else
+          <?php endif; ?>
+          <?php else: ?>
           <article class="pa-card" data-kind="video" data-title="video edd-2025-001245 endoscopia digestiva alta">
             <div class="pa-thumb">
               <span class="pa-badge video">VIDEO</span>
@@ -1151,44 +1144,44 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
               <div class="pa-name">Video EDD-2025-001245</div>
               <div class="pa-meta">Endoscopia Digestiva Alta<br>15/07/2025</div>
               <div class="pa-actions">
-                <a class="pa-btn primary" href="{{ route('galeria.video', 1) }}">Ver</a>
-                <a class="pa-btn" href="{{ route('galeria.video.editar', 1) }}">Editar</a>
+                <a class="pa-btn primary" href="<?php echo e(route('galeria.video', 1)); ?>">Ver</a>
+                <a class="pa-btn" href="<?php echo e(route('galeria.video.editar', 1)); ?>">Editar</a>
               </div>
             </div>
           </article>
-          @endif
+          <?php endif; ?>
         </div>
       </section>
 
       <section class="pa-section">
         <div class="pa-section-head">
           <h2 class="pa-section-title">Imagenes</h2>
-          <span class="pa-section-count">{{ $paciente ? $galImagenes->count().' archivos' : '4 archivos' }}</span>
+          <span class="pa-section-count"><?php echo e($paciente ? $galImagenes->count().' archivos' : '4 archivos'); ?></span>
         </div>
         <div class="pa-grid">
-          @if($paciente)
-          @forelse($galImagenes as $img)
-          <article class="pa-card" data-kind="imagen" data-title="{{ strtolower($img->nombre_original ?? 'imagen') }}">
+          <?php if($paciente): ?>
+          <?php $__empty_1 = true; $__currentLoopData = $galImagenes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $img): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+          <article class="pa-card" data-kind="imagen" data-title="<?php echo e(strtolower($img->nombre_original ?? 'imagen')); ?>">
             <div class="pa-thumb">
-              <img src="{{ media_url($img->path) }}" alt="{{ $img->nombre_original ?? 'Captura' }}">
+              <img src="<?php echo e(media_url($img->path)); ?>" alt="<?php echo e($img->nombre_original ?? 'Captura'); ?>">
               <span class="pa-badge image">IMG</span>
-              <span class="pa-duration">{{ format_user_time($img->capturado_en) }}</span>
+              <span class="pa-duration"><?php echo e(format_user_time($img->capturado_en)); ?></span>
             </div>
             <div class="pa-body">
-              <div class="pa-name">{{ $img->nombre_original ?? 'Captura' }}</div>
-              <div class="pa-meta">Captura del estudio {{ $img->estudio?->folio }}<br>{{ format_user_date($img->capturado_en) }}</div>
+              <div class="pa-name"><?php echo e($img->nombre_original ?? 'Captura'); ?></div>
+              <div class="pa-meta">Captura del estudio <?php echo e($img->estudio?->folio); ?><br><?php echo e(format_user_date($img->capturado_en)); ?></div>
               <div class="pa-actions">
-                <a class="pa-btn primary" href="{{ route('galeria.imagen', $img->id) }}">Ver imagen</a>
+                <a class="pa-btn primary" href="<?php echo e(route('galeria.imagen', $img->id)); ?>">Ver imagen</a>
               </div>
             </div>
           </article>
-          @empty
+          <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
           <p style="color:var(--txt-soft);font-size:13px">No hay imágenes capturadas para este paciente.</p>
-          @endforelse
-          @else
+          <?php endif; ?>
+          <?php else: ?>
           <article class="pa-card" data-kind="imagen" data-title="imagen 1 fotograma 0:01:25">
             <div class="pa-thumb">
-              <img src="{{ asset('images/colonoscopia.jpg') }}" alt="Imagen 1">
+              <img src="<?php echo e(asset('images/colonoscopia.jpg')); ?>" alt="Imagen 1">
               <span class="pa-badge image">IMG</span>
               <span class="pa-duration">0:01:25</span>
             </div>
@@ -1196,11 +1189,11 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
               <div class="pa-name">Imagen 1 - Fotograma 0:01:25</div>
               <div class="pa-meta">Captura del estudio<br>15/07/2025</div>
               <div class="pa-actions">
-                <a class="pa-btn primary" href="{{ route('galeria.imagen', 1) }}">Ver imagen</a>
+                <a class="pa-btn primary" href="<?php echo e(route('galeria.imagen', 1)); ?>">Ver imagen</a>
               </div>
             </div>
           </article>
-          @endif
+          <?php endif; ?>
         </div>
       </section>
     </div>
@@ -1208,30 +1201,30 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   </div>
 </div>
 
-{{-- Panel Reportes --}}
+
 <div class="np-tab-panel" id="tab-reportes">
 
-  @php
+  <?php
     $rptList = $reportes ?? collect();
     $rpt = $rptList->first();
     $rptNombre = $paciente?->nombre_completo ?? $rpt?->estudio?->paciente_nombre ?? '—';
     $rptIni = collect(explode(' ', $rptNombre))->filter()->take(2)->map(fn($x) => mb_strtoupper(mb_substr($x, 0, 1)))->implode('') ?: 'NA';
     $rptIdent = $paciente?->identificacion ?? $paciente?->folio ?? '—';
     $rptCritico = $rpt ? (bool) $rpt->contiene_hallazgos_criticos : false;
-  @endphp
+  ?>
 
-  @if($rpt)
-  {{-- Barra de acciones del reporte --}}
+  <?php if($rpt): ?>
+  
   <div class="rpt-toolbar rise d1">
     <div class="rpt-toolbar-left">
       <div class="rpt-pat-chip">
-        <div class="rpt-pat-av" id="rptPatAv">{{ $rptIni }}</div>
+        <div class="rpt-pat-av" id="rptPatAv"><?php echo e($rptIni); ?></div>
         <div>
-          <div class="rpt-pat-name" id="rptPatName">{{ $rptNombre }}</div>
-          <div class="rpt-pat-id" id="rptPatId">ID: {{ $rptIdent }}</div>
+          <div class="rpt-pat-name" id="rptPatName"><?php echo e($rptNombre); ?></div>
+          <div class="rpt-pat-id" id="rptPatId">ID: <?php echo e($rptIdent); ?></div>
         </div>
       </div>
-      <span class="rpt-badge" id="rptBadge">{{ $rptCritico ? 'Crítico' : 'Normal' }}</span>
+      <span class="rpt-badge" id="rptBadge"><?php echo e($rptCritico ? 'Crítico' : 'Normal'); ?></span>
     </div>
     <div class="rpt-toolbar-right">
       <button class="rpt-act-btn" onclick="window.print()">
@@ -1242,24 +1235,24 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Descargar PDF
       </button>
-      <a class="rpt-act-btn accent" href="{{ url('/ia-reportes') }}">
+      <a class="rpt-act-btn accent" href="<?php echo e(url('/ia-reportes')); ?>">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>
         Editar con IA
       </a>
     </div>
   </div>
 
-  {{-- Documento del reporte (mismo formato que el editor / reporte real) --}}
-  @php
+  
+  <?php
     $rptImgs = ($galImagenes ?? collect())->where('estudio_id', $rpt->estudio_id)->take(8)->values();
     $rptFirma = $rpt->usuario?->name ?? $rpt->estudio?->medico ?? $paciente?->medico ?? 'Dr. Nombre del médico';
     $rptFechaEstudio = format_user_date($rpt->estudio?->fecha ?? $rpt->created_at) ?: '';
     $rptNac = format_user_date($paciente?->fecha_nacimiento) ?: '';
-  @endphp
+  ?>
   <div class="rpt-doc-wrap rise d2">
     <div class="rptd-doc" id="rptDoc">
 
-      {{-- Encabezado: logo + clínica + ilustración (igual que el editor) --}}
+      
       <div class="rptd-header">
         <div class="rptd-logo">Logo de<br>la clínica</div>
         <div class="rptd-clinic">Nombre de la clínica</div>
@@ -1268,38 +1261,38 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
         </div>
       </div>
 
-      {{-- Datos del paciente / estudio --}}
+      
       <div class="rptd-meta">
-        <span class="k">Paciente:</span><span>{{ $rptNombre }}</span>
-        <span class="k">Edad:</span><span>{{ $paciente && $paciente->edad ? $paciente->edad.' años' : '—' }}</span>
-        <span class="k">Sexo:</span><span>{{ $paciente && $paciente->sexo ? ucfirst($paciente->sexo) : '—' }}</span>
-        <span class="k">Fecha de Nac.:</span><span>{{ $rptNac ?: '—' }}</span>
-        <span class="k">Fecha del Estudio:</span><span>{{ $rptFechaEstudio ?: '—' }}</span>
-        <span class="k">Procedimiento:</span><span>{{ $rpt->estudio?->tipo ?? $paciente?->procedimiento ?? '—' }}</span>
+        <span class="k">Paciente:</span><span><?php echo e($rptNombre); ?></span>
+        <span class="k">Edad:</span><span><?php echo e($paciente && $paciente->edad ? $paciente->edad.' años' : '—'); ?></span>
+        <span class="k">Sexo:</span><span><?php echo e($paciente && $paciente->sexo ? ucfirst($paciente->sexo) : '—'); ?></span>
+        <span class="k">Fecha de Nac.:</span><span><?php echo e($rptNac ?: '—'); ?></span>
+        <span class="k">Fecha del Estudio:</span><span><?php echo e($rptFechaEstudio ?: '—'); ?></span>
+        <span class="k">Procedimiento:</span><span><?php echo e($rpt->estudio?->tipo ?? $paciente?->procedimiento ?? '—'); ?></span>
       </div>
 
-      {{-- Imágenes reales del estudio --}}
-      @if($rptImgs->count())
+      
+      <?php if($rptImgs->count()): ?>
       <div class="rptd-imgs">
-        @foreach($rptImgs as $img)
-          <span class="cell"><img src="{{ media_url($img->path) }}" alt="Imagen del estudio"></span>
-        @endforeach
+        <?php $__currentLoopData = $rptImgs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $img): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+          <span class="cell"><img src="<?php echo e(media_url($img->path)); ?>" alt="Imagen del estudio"></span>
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
       </div>
-      @endif
+      <?php endif; ?>
 
-      {{-- Contenido del reporte (texto guardado, conservando su formato) --}}
+      
       <div class="rptd-h4">Contenido del Reporte</div>
-      <div class="rptd-body" id="rptHallazgos">{{ $rpt->contenido_texto ?: 'Sin contenido registrado.' }}</div>
+      <div class="rptd-body" id="rptHallazgos"><?php echo e($rpt->contenido_texto ?: 'Sin contenido registrado.'); ?></div>
 
-      {{-- Firma --}}
+      
       <div class="rptd-sign" data-pos="center">
-        <div class="sign-box" id="rptFirmaNombre">{{ $rptFirma }}</div>
+        <div class="sign-box" id="rptFirmaNombre"><?php echo e($rptFirma); ?></div>
       </div>
 
     </div>
   </div>
-  @else
-  {{-- Estado vacío: el paciente no tiene reportes --}}
+  <?php else: ?>
+  
   <div class="rpt-empty rise d2" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:60px 24px;border:1px dashed var(--stroke);border-radius:var(--r-lg);background:var(--panel)">
     <div style="width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:rgba(46,123,246,.1);border:1px solid var(--stroke-strong);color:var(--blue)">
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
@@ -1308,16 +1301,16 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
       <div style="font-size:16px;font-weight:700;color:var(--txt);margin-bottom:4px">Este paciente no tiene reportes</div>
       <div style="font-size:13.5px;color:var(--txt-soft)">Genera un reporte clínico para este paciente.</div>
     </div>
-    <a class="rpt-act-btn primary" href="{{ route('ia-reportes.redactar', ['paciente' => $paciente?->id]) }}" style="text-decoration:none">
+    <a class="rpt-act-btn primary" href="<?php echo e(route('ia-reportes.redactar', ['paciente' => $paciente?->id])); ?>" style="text-decoration:none">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Agregar reporte
     </a>
   </div>
-  @endif
+  <?php endif; ?>
 
 </div>
 
-{{-- Modal Nuevo Estudio --}}
+
 <div class="ns-modal-backdrop" id="nsModalBackdrop">
   <div class="ns-modal" id="nsModal">
     <div class="ns-modal-header">
@@ -1330,7 +1323,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
       </button>
     </div>
     <div class="ns-modal-body">
-      <a class="ns-option" href="{{ route('nuevo-estudio.importar', ['paciente_id' => $paciente?->id]) }}">
+      <a class="ns-option" href="<?php echo e(route('nuevo-estudio.importar', ['paciente_id' => $paciente?->id])); ?>">
         <div class="ns-option-icon purple">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </div>
@@ -1344,7 +1337,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   </div>
 </div>
 
-{{-- Modal de conexión con Tauri --}}
+
 <div class="ns-modal-backdrop" id="dispositivoModalBackdrop">
   <div class="ns-modal tauri-modal">
     <div class="ns-modal-header">
@@ -1399,7 +1392,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
         type="button"
         class="np-new-study-btn tauri-generate-btn"
         id="btnGenerarCodigoTauri"
-        @unless($paciente) disabled @endunless
+        <?php if (! ($paciente)): ?> disabled <?php endif; ?>
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 5v14"/>
@@ -1408,18 +1401,18 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
         Generar código para Tauri
       </button>
 
-      @unless($paciente)
+      <?php if (! ($paciente)): ?>
         <div class="tauri-warning-box">
           Primero selecciona un paciente para poder generar el código de conexión.
         </div>
-      @endunless
+      <?php endif; ?>
 
     </div>
   </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 (function () {
 
@@ -1500,7 +1493,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
           + '<div class="np-res-info"><div class="np-res-name">' + p.nombre + '</div>'
           + '<div class="np-res-meta">' + (meta || 'Sin información adicional') + '</div></div>';
         el.addEventListener('click', function(){
-          window.location.href = '{{ route('nuevo-estudio') }}?paciente=' + encodeURIComponent(p.id);
+          window.location.href = '<?php echo e(route('nuevo-estudio')); ?>?paciente=' + encodeURIComponent(p.id);
         });
         list.appendChild(el);
       });
@@ -1571,11 +1564,11 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
 
   /* Si hay paciente (abierto desde la seccion del paciente) se cargan sus datos.
      Si no (abierto desde el boton del dashboard) se muestra el buscador. */
-  @if($paciente)
+  <?php if($paciente): ?>
   showForm();
-  @else
+  <?php else: ?>
   setupPacienteSearch();
-  @endif
+  <?php endif; ?>
 
   /* Modal Nuevo Estudio */
   const nsBackdrop = document.getElementById('nsModalBackdrop');
@@ -1612,10 +1605,10 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   });
 
   /* Precarga datos del paciente (viene de Pacientes > Iniciar estudio) */
-  @if($paciente)
+  <?php if($paciente): ?>
   (function(){
     var elSearch = document.getElementById('npSearch');
-    if (elSearch) elSearch.value = @json($paciente->nombre_completo);
+    if (elSearch) elSearch.value = <?php echo json_encode($paciente->nombre_completo, 15, 512) ?>;
 
     var emptyState = document.getElementById('npEmptyState');
     var formLayout = document.getElementById('npFormLayout');
@@ -1629,7 +1622,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
     if (topBack) topBack.classList.add('visible');
     if (topNew)  topNew.classList.add('visible');
   })();
-  @endif
+  <?php endif; ?>
 
   /* Pestañas */
   document.querySelectorAll('.np-tab[data-tab]').forEach(function(tab){
@@ -1702,15 +1695,15 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
 
       setTauriGenerateButtonLoading(true);
 
-      const response = await fetch("{{ route('capture.pairing-code.store') }}", {
+      const response = await fetch("<?php echo e(route('capture.pairing-code.store')); ?>", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'X-CSRF-TOKEN': "{{ csrf_token() }}"
+          'X-CSRF-TOKEN': "<?php echo e(csrf_token()); ?>"
         },
         body: JSON.stringify({
-          paciente_id: "{{ $paciente?->id }}",
+          paciente_id: "<?php echo e($paciente?->id); ?>",
           estudio_id: null
         })
       });
@@ -1764,4 +1757,6 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
 
 })();
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\HP\enclaii-backend\resources\views/estudios/crear.blade.php ENDPATH**/ ?>
