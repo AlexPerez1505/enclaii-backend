@@ -2181,18 +2181,6 @@
       <div class="reportes-section">
         <h4>Reportes IA</h4>
 
-        <div class="ia-summary-card">
-          <div class="ia-patient-header">
-            <div class="ia-patient-avatar" id="reportPanelAvatar">PX</div>
-            <div class="ia-patient-info">
-              <div class="ia-patient-label">paciente</div>
-              <div class="ia-patient-name" id="reportPanelName">—</div>
-              <div class="ia-study-meta" id="reportPanelFolio">Folio: —</div>
-              <div class="ia-study-meta" id="reportPanelMeta">—</div>
-            </div>
-          </div>
-        </div>
-
         
         <div class="ia-stats-grid" id="reportesStatsGrid">
           <div class="ia-stat-card">
@@ -2986,6 +2974,9 @@ function openPanel(index) {
           <div class="historial-info">
             <div class="historial-title">${est.tipo || 'Estudio'}</div>
             <div class="historial-doctor">ID: ${est.id || ''}</div>
+          </div>
+          <div class="historial-right">
+            <div class="historial-date">${est.fecha || 'Sin fecha'}</div>
           </div>
         `;
         historialList.appendChild(item);
