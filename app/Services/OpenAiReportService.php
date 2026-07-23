@@ -22,7 +22,7 @@ class OpenAiReportService
         }
 
         $model = config('services.openai.model', 'gpt-4o-mini');
-        $baseUrl = rtrim(config('services.openai.base_url', 'https://api.openai.com/v1'), '/');
+        $endpoint = $this->chatCompletionsUrl();
 
         $opciones = collect($data['opciones'] ?? [])->filter()->keys()->implode(', ');
 
@@ -88,7 +88,7 @@ class OpenAiReportService
         $response = Http::withToken($apiKey)
             ->timeout(120)
             ->acceptJson()
-            ->post("{$baseUrl}/chat/completions", [
+            ->post($endpoint, [
                 'model' => $model,
                 'temperature' => 0.3,
                 'response_format' => ['type' => 'json_object'],
@@ -135,7 +135,7 @@ class OpenAiReportService
         }
 
         $model = config('services.openai.model', 'gpt-4o-mini');
-        $baseUrl = rtrim(config('services.openai.base_url', 'https://api.openai.com/v1'), '/');
+        $endpoint = $this->chatCompletionsUrl();
 
         $messages = [[
             'role' => 'system',
@@ -167,7 +167,7 @@ class OpenAiReportService
         $response = Http::withToken($apiKey)
             ->timeout(60)
             ->acceptJson()
-            ->post("{$baseUrl}/chat/completions", [
+            ->post($endpoint, [
                 'model' => $model,
                 'temperature' => 0.4,
                 'response_format' => ['type' => 'json_object'],
@@ -202,6 +202,21 @@ class OpenAiReportService
             'respuesta' => (string) ($parsed['respuesta'] ?? ''),
             'acciones' => $acciones,
         ];
+    }
+
+    private function chatCompletionsUrl(): string
+    {
+        $baseUrl = rtrim((string) config('services.openai.base_url', 'https://api.openai.com'), '/');
+
+        if (str_ends_with($baseUrl, '/chat/completions')) {
+            return $baseUrl;
+        }
+
+        if (str_ends_with($baseUrl, '/v1')) {
+            return $baseUrl.'/chat/completions';
+        }
+
+        return $baseUrl.'/v1/chat/completions';
     }
 
     private function normalizar(array $r): array

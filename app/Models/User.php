@@ -114,7 +114,17 @@ class User extends Authenticatable
      */
     public function subscribed(): bool
     {
-        return in_array($this->billingUser()->subscription_status, ['active', 'trialing'], true);
+        $billingUser = $this->billingUser();
+
+        if ($billingUser->subscription_status === 'active') {
+            return true;
+        }
+
+        if ($billingUser->subscription_status === 'trialing') {
+            return $billingUser->subscription_renews_at?->isFuture() ?? false;
+        }
+
+        return false;
     }
 
     public function billingUser(): self

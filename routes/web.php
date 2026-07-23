@@ -15,6 +15,7 @@ use App\Http\Controllers\CustomerSuccess\TicketController as CsTicketController;
 use App\Http\Controllers\CustomerSuccessController;
 use App\Http\Controllers\DesktopAppDownloadController;
 use App\Http\Controllers\IaReporteController;
+use App\Http\Controllers\LaunchPromoRegistrationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NuevoEstudioController;
 use App\Http\Controllers\PacienteController;
@@ -74,6 +75,21 @@ Route::post('/registro-paciente/{token}', [PublicPatientPreregistrationControlle
     ->middleware('throttle:5,1')
     ->name('qr.public.store');
 
+Route::get('/registro-promocion/{token}', [LaunchPromoRegistrationController::class, 'show'])
+    ->where('token', '[A-Za-z0-9]{64}')
+    ->name('promo.register.show');
+Route::get('/registro-promocion/{token}/qr', [LaunchPromoRegistrationController::class, 'image'])
+    ->where('token', '[A-Za-z0-9]{64}')
+    ->name('promo.register.qr');
+Route::post('/registro-promocion/{token}', [LaunchPromoRegistrationController::class, 'register'])
+    ->where('token', '[A-Za-z0-9]{64}')
+    ->middleware(['guest', 'throttle:5,1'])
+    ->name('promo.register.store');
+Route::post('/registro-promocion/{token}/checkout', [LaunchPromoRegistrationController::class, 'checkout'])
+    ->where('token', '[A-Za-z0-9]{64}')
+    ->middleware(['auth', 'throttle:6,1'])
+    ->name('promo.register.checkout');
+
 Route::middleware('guest')->group(function () {
     Route::get('/login', [EndoCareAuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [EndoCareAuthController::class, 'login'])->name('login.post');
@@ -86,8 +102,17 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
 
     // Ruta de configuracion: si no tiene plan, muestra vista plan-only
     Route::get('/configuracion', function () {
+        $pendingPromoCode = \App\Models\LaunchPromoCode::query()
+            ->where('reserved_by', auth()->id())
+            ->where('status', \App\Models\LaunchPromoCode::STATUS_RESERVED)
+            ->whereNotNull('stripe_promotion_code_id')
+            ->latest()
+            ->first();
+
         if (!auth()->user()->subscribed()) {
-            return view('configuracion.plan-only');
+            return view('configuracion.plan-only', [
+                'pendingPromoCode' => $pendingPromoCode,
+            ]);
         }
 
         $userAgent = request()->userAgent() ?? '';
@@ -155,7 +180,16 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
 
     // Ruta dedicada para seleccionar plan (sin sidebar ni header)
     Route::get('/seleccionar-plan', function () {
-        return view('configuracion.plan-only');
+        $pendingPromoCode = \App\Models\LaunchPromoCode::query()
+            ->where('reserved_by', auth()->id())
+            ->where('status', \App\Models\LaunchPromoCode::STATUS_RESERVED)
+            ->whereNotNull('stripe_promotion_code_id')
+            ->latest()
+            ->first();
+
+        return view('configuracion.plan-only', [
+            'pendingPromoCode' => $pendingPromoCode,
+        ]);
     })->name('plan.only');
 
     Route::get('/descargas/enclaii-desktop/windows', DesktopAppDownloadController::class)
@@ -232,6 +266,8 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
         ->name('stripe.checkout.embedded');
     Route::post('/stripe/subscribe', [StripeController::class, 'createSubscriptionElement'])
         ->name('stripe.subscribe');
+    Route::post('/stripe/promo-subscribe', [StripeController::class, 'promoSubscribe'])
+        ->name('stripe.promo.subscribe');
     Route::post('/stripe/change-plan', [StripeController::class, 'changePlan'])
         ->name('stripe.change.plan');
     Route::post('/stripe/member-addon/checkout', [StripeController::class, 'memberAddonCheckout'])
@@ -306,6 +342,8 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
 
 
     Route::get('/ia-reportes', [IaReporteController::class, 'index'])->name('ia-reportes');
+    Route::get('/ia-reportes/evidencia/{archivo}', [IaReporteController::class, 'evidencia'])
+        ->name('ia-reportes.evidencia');
 
     Route::get('/ia-reportes/generar', function () {
         $estudioId = request()->query('estudio');
@@ -345,11 +383,15 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
                         return null;
                     }
 
-                    $version = '?v='.($a->updated_at?->timestamp ?? $a->id);
-
-                    return $existsOnPublicDisk
-                        ? url('storage/'.$a->path).$version
-                        : media_url($a->path).$version;
+                    return [
+                        'id' => $a->id,
+                        'url' => route('ia-reportes.evidencia', [
+                            'archivo' => $a->id,
+                            'v' => $a->updated_at?->timestamp ?? $a->id,
+                        ]),
+                        'titulo' => $a->nombre_original ?: basename((string) $a->path),
+                        'path' => $a->path,
+                    ];
                 })
                 ->filter()
                 ->values();
@@ -462,6 +504,7 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
                         'id' => $a->id,
                         'url' => $url,
                         'titulo' => $a->nombre_original,
+                        'path' => $a->path,
                         'show_url' => route('galeria.imagen', ['id' => $a->id, 'paciente' => $a->paciente_id]),
                     ];
                 })
@@ -594,7 +637,12 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
                             $url = url('storage/'.$a->path);
                         }
 
-                        return ['url' => $url, 'titulo' => $a->nombre_original];
+                        return [
+                            'id' => $a->id,
+                            'url' => $url,
+                            'titulo' => $a->nombre_original,
+                            'path' => $a->path,
+                        ];
                     });
             }
             // Si el reporte no tiene plantilla asignada, cargar la que corresponda al tipo de estudio

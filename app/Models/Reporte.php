@@ -20,10 +20,12 @@ class Reporte extends Model
         'plantilla_id',
         'contenido_texto',
         'contenido_html',
+        'imagenes_config',
         'contiene_hallazgos_criticos',
     ];
 
     protected $casts = [
+        'imagenes_config' => 'array',
         'contiene_hallazgos_criticos' => 'boolean',
     ];
 

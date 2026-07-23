@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
 class IaReporteController extends Controller
@@ -87,14 +88,18 @@ class IaReporteController extends Controller
             'fecha' => ['nullable', 'string', 'max:50'],
             'observaciones' => ['required', 'string', 'max:5000'],
             'opciones' => ['nullable', 'array'],
+            'imagen_ids' => ['nullable', 'array', 'max:8'],
+            'imagen_ids.*' => ['integer'],
             'imagenes' => ['nullable', 'array', 'max:8'],
-            'imagenes.*' => ['string', 'max:255'],
+            'imagenes.*' => ['string', 'max:2048'],
         ]);
 
         $validated['paciente'] = $validated['paciente'] ?? 'No especificado';
         $validated['tipo_estudio'] = $validated['tipo_estudio'] ?? 'Estudio endoscópico';
         $validated['fecha'] = $validated['fecha'] ?? now()->toDateString();
-        $validated['imagenes'] = $this->resolverImagenes($validated['imagenes'] ?? []);
+        $validated['imagenes'] = ! empty($validated['imagen_ids'])
+            ? $this->resolverImagenesPorIds($validated['estudio_id'], $validated['imagen_ids'])
+            : $this->resolverImagenes($validated['imagenes'] ?? []);
 
         try {
             $reporte = $service->generarReporte($validated);
@@ -126,6 +131,44 @@ class IaReporteController extends Controller
             'reporte' => $reporte,
             'reporte_id' => $nuevo->id,
         ]);
+    }
+
+    public function evidencia(EstudioArchivo $archivo): StreamedResponse
+    {
+        abort_unless($archivo->tipo === 'imagen' && filled($archivo->path), 404);
+
+        $disk = $this->diskForPath($archivo->path);
+        abort_unless($disk && $disk->exists($archivo->path), 404);
+
+        $mime = 'image/jpeg';
+        try {
+            $mime = $archivo->mime_type ?: ($disk->mimeType($archivo->path) ?: $mime);
+        } catch (Throwable) {
+            $mime = $archivo->mime_type ?: $mime;
+        }
+
+        $headers = [
+            'Content-Type' => $mime,
+            'Cache-Control' => 'private, max-age=300',
+        ];
+
+        try {
+            $size = $archivo->size_bytes ?: $disk->size($archivo->path);
+            if ($size) {
+                $headers['Content-Length'] = (string) $size;
+            }
+        } catch (Throwable) {
+            // Algunos discos remotos no siempre exponen el tamano antes del stream.
+        }
+
+        return new StreamedResponse(function () use ($disk, $archivo): void {
+            $stream = $disk->readStream($archivo->path);
+
+            if (is_resource($stream)) {
+                fpassthru($stream);
+                fclose($stream);
+            }
+        }, 200, $headers);
     }
 
     /**
@@ -315,6 +358,7 @@ class IaReporteController extends Controller
                     'plantilla_id' => $reporte->plantilla_id,
                     'contenido_html' => $reporte->contenido_html,
                     'contenido_texto' => $reporte->contenido_texto,
+                    'imagenes_config' => $reporte->imagenes_config,
                     'contiene_hallazgos_criticos' => (bool) $reporte->contiene_hallazgos_criticos,
                 ] : null,
             ],
@@ -478,6 +522,13 @@ class IaReporteController extends Controller
             ],
             'contenido_texto' => ['nullable', 'string'],
             'contenido_html' => ['nullable', 'string'],
+            'imagenes_config' => ['nullable', 'array'],
+            'imagenes_config.version' => ['nullable', 'integer'],
+            'imagenes_config.enabled' => ['nullable', 'boolean'],
+            'imagenes_config.cols' => ['nullable', 'integer', 'min:0', 'max:8'],
+            'imagenes_config.items' => ['nullable', 'array'],
+            'imagenes_config.items.*.visible' => ['nullable', 'boolean'],
+            'imagenes_config.items.*.size' => ['nullable', 'integer', 'min:1', 'max:8'],
             'contiene_hallazgos_criticos' => ['nullable', 'boolean'],
             'plantilla_id' => ['nullable', 'exists:plantillas,id'],
             'hallazgos' => ['nullable', 'array'],
@@ -490,6 +541,7 @@ class IaReporteController extends Controller
             'plantilla_id' => $validated['plantilla_id'] ?? null,
             'contenido_texto' => $validated['contenido_texto'] ?? null,
             'contenido_html' => $validated['contenido_html'] ?? null,
+            'imagenes_config' => $this->normalizarImagenesConfig($validated['imagenes_config'] ?? null),
             'contiene_hallazgos_criticos' => $validated['contiene_hallazgos_criticos'] ?? false,
         ];
 
@@ -520,6 +572,35 @@ class IaReporteController extends Controller
             'download_url' => route('ia-reportes.ver', ['reporte' => $reporte->id, 'download' => 1]),
             'message' => 'Reporte guardado en S3 correctamente.',
         ]);
+    }
+
+    private function normalizarImagenesConfig(?array $config): ?array
+    {
+        if (! is_array($config)) {
+            return null;
+        }
+
+        $enabled = ($config['enabled'] ?? true) !== false;
+        $cols = $enabled ? max(0, min(8, (int) ($config['cols'] ?? 4))) : 0;
+        $maxSize = max(1, $cols ?: 8);
+        $items = [];
+        foreach ($config['items'] ?? [] as $key => $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $items[(string) $key] = [
+                'visible' => (bool) ($item['visible'] ?? true),
+                'size' => max(1, min($maxSize, (int) ($item['size'] ?? 1))),
+            ];
+        }
+
+        return [
+            'version' => 1,
+            'enabled' => $enabled,
+            'cols' => $cols,
+            'items' => $items,
+        ];
     }
 
     /**
@@ -578,10 +659,15 @@ class IaReporteController extends Controller
         $medico = $reporte->usuario?->name ?? $estudio?->medico ?? 'Medico no especificado';
         $fechaEstudio = format_user_date($estudio?->fecha ?? $reporte->created_at) ?: '';
         $contenido = $reporte->contenido_html ?: nl2br(e($reporte->contenido_texto ?? ''));
-        $imagenes = $this->imagenesReporteParaStorage($estudio);
+        $imagenesConfig = $reporte->imagenes_config ?? [];
+        $imagenesEnabled = ($imagenesConfig['enabled'] ?? true) !== false;
+        $cols = $imagenesEnabled
+            ? max(1, min(8, (int) ($imagenesConfig['cols'] ?? $reporte->plantilla?->columnas ?? 4)))
+            : 1;
+        $imagenes = $this->imagenesReporteParaStorage($estudio, $imagenesConfig);
 
         $imagenesHtml = collect($imagenes)->map(fn (array $img) => '
-            <figure>
+            <figure style="grid-column:span '.$img['size'].'">
                 <img src="'.$img['src'].'" alt="'.e($img['titulo']).'">
                 <figcaption>'.e($img['titulo']).'</figcaption>
             </figure>
@@ -598,9 +684,9 @@ class IaReporteController extends Controller
     .subtitle{text-align:center;color:#4b5563;margin:0 0 24px;text-transform:uppercase;font-size:12px;letter-spacing:.08em}
     .meta{display:grid;grid-template-columns:160px 1fr;gap:5px 16px;font-size:13px;margin-bottom:22px}
     .meta .k{color:#6b7280}
-    .images{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:18px 0 24px}
-    figure{margin:0;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden}
-    figure img{display:block;width:100%;height:120px;object-fit:cover}
+    .images{display:grid;grid-template-columns:repeat('.$cols.',1fr);gap:10px;margin:18px 0 24px}
+    figure{margin:0;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;background:#020714}
+    figure img{display:block;width:100%;aspect-ratio:4/3;object-fit:contain;object-position:center;background:#020714}
     figcaption{font-size:11px;color:#4b5563;padding:6px 8px}
     h4{font-size:13px;margin:18px 0 6px;color:#0f66d0;text-transform:uppercase}
     p,li{font-size:13px}
@@ -624,25 +710,36 @@ class IaReporteController extends Controller
     }
 
     /**
-     * @return array<int, array{src: string, titulo: string}>
+     * @return array<int, array{src: string, titulo: string, size: int}>
      */
-    private function imagenesReporteParaStorage($estudio): array
+    private function imagenesReporteParaStorage($estudio, array $config = []): array
     {
         if (! $estudio) {
             return [];
         }
 
+        if (($config['enabled'] ?? true) === false) {
+            return [];
+        }
+
         $disk = Storage::disk(media_disk());
+        $items = is_array($config['items'] ?? null) ? $config['items'] : [];
+        $cols = max(1, min(8, (int) ($config['cols'] ?? 4)));
 
         return EstudioArchivo::where('estudio_id', $estudio->id)
             ->where('tipo', 'imagen')
             ->orderByDesc('capturado_en')
             ->orderByDesc('id')
-            ->take(8)
+            ->take(24)
             ->get()
-            ->map(function (EstudioArchivo $archivo) use ($disk) {
+            ->map(function (EstudioArchivo $archivo) use ($disk, $items, $cols) {
                 try {
                     if (! $archivo->path) {
+                        return null;
+                    }
+
+                    $state = $items[(string) $archivo->id] ?? [];
+                    if (($state['visible'] ?? true) === false) {
                         return null;
                     }
 
@@ -665,6 +762,7 @@ class IaReporteController extends Controller
                     return [
                         'src' => 'data:'.$mime.';base64,'.base64_encode($sourceDisk->get($archivo->path)),
                         'titulo' => $archivo->nombre_original ?: basename($archivo->path),
+                        'size' => max(1, min($cols, (int) ($state['size'] ?? 1))),
                     ];
                 } catch (Throwable) {
                     return null;
@@ -790,6 +888,75 @@ class IaReporteController extends Controller
      * @param  array<int, string>  $imagenes
      * @return array<int, string>
      */
+    private function resolverImagenesPorIds(int $estudioId, array $ids): array
+    {
+        $ids = collect($ids)
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->unique()
+            ->take(8)
+            ->values();
+
+        if ($ids->isEmpty()) {
+            return [];
+        }
+
+        $archivos = EstudioArchivo::query()
+            ->where('estudio_id', $estudioId)
+            ->where('tipo', 'imagen')
+            ->whereIn('id', $ids)
+            ->get()
+            ->keyBy('id');
+
+        return $ids
+            ->map(fn (int $id) => $archivos->get($id))
+            ->filter()
+            ->map(fn (EstudioArchivo $archivo) => $this->archivoImagenToDataUrl($archivo))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    private function archivoImagenToDataUrl(EstudioArchivo $archivo): ?string
+    {
+        if (! $archivo->path) {
+            return null;
+        }
+
+        $disk = $this->diskForPath($archivo->path);
+        if (! $disk || ! $disk->exists($archivo->path)) {
+            return null;
+        }
+
+        try {
+            $size = method_exists($disk, 'size') ? (int) $disk->size($archivo->path) : 0;
+            if ($size > 8 * 1024 * 1024) {
+                return null;
+            }
+
+            $mime = $archivo->mime_type ?: ($disk->mimeType($archivo->path) ?: 'image/jpeg');
+
+            return 'data:'.$mime.';base64,'.base64_encode($disk->get($archivo->path));
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    private function diskForPath(string $path): ?object
+    {
+        $mediaDisk = Storage::disk(media_disk());
+        if ($mediaDisk->exists($path)) {
+            return $mediaDisk;
+        }
+
+        $publicDisk = Storage::disk('public');
+        if ($publicDisk->exists($path)) {
+            return $publicDisk;
+        }
+
+        return null;
+    }
+
     private function resolverImagenes(array $imagenes): array
     {
         $mimes = [
@@ -802,8 +969,13 @@ class IaReporteController extends Controller
 
         return collect($imagenes)
             ->map(function (string $rel) use ($mimes) {
-                // Evita rutas peligrosas (traversal) y normaliza separadores.
+                // Evita rutas peligrosas (traversal) y normaliza URLs/rutas.
                 $rel = strtok(str_replace('\\', '/', $rel), '?') ?: '';
+                $pathFromUrl = parse_url($rel, PHP_URL_PATH);
+                if (is_string($pathFromUrl) && $pathFromUrl !== '') {
+                    $rel = $pathFromUrl;
+                }
+
                 if (str_contains($rel, '..')) {
                     return null;
                 }

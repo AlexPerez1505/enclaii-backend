@@ -1,13 +1,11 @@
-@extends('layouts.app')
-
-@section('title', 'Genera reporte AI')
-@section('active', 'ia-reportes')
-@section('header-title', 'Genera reporte AI')
-@section('header-sub')
+<?php $__env->startSection('title', 'Genera reporte AI'); ?>
+<?php $__env->startSection('active', 'ia-reportes'); ?>
+<?php $__env->startSection('header-title', 'Genera reporte AI'); ?>
+<?php $__env->startSection('header-sub'); ?>
   La AI analizará la información clínica y generará un reporte preliminar
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
 /* ============ GENERAR REPORTE IA ============ */
 .gen-top{display:flex;justify-content:flex-end;margin-bottom:16px}
@@ -112,12 +110,12 @@
   .prev-2col{grid-template-columns:1fr}
 }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 
   <div class="gen-top">
-    <a class="gen-back" href="{{ route('ia-reportes') }}">
+    <a class="gen-back" href="<?php echo e(route('ia-reportes')); ?>">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
       Volver
     </a>
@@ -125,10 +123,10 @@
 
   <div class="gen-body">
 
-    {{-- Columna izquierda: entrada --}}
+    
     <div class="gen-col-left">
 
-      {{-- Paso 1: Selección del estudio --}}
+      
       <div class="step rise d2">
         <div class="step-head">
           <span class="step-num">1</span>
@@ -138,29 +136,29 @@
         <div class="gen-field">
           <label>Estudio</label>
           <select class="gen-select" id="genEstudioSel"
-                  onchange="if(this.value){ window.location.href='{{ route('ia-reportes.generar') }}?estudio='+this.value }">
+                  onchange="if(this.value){ window.location.href='<?php echo e(route('ia-reportes.generar')); ?>?estudio='+this.value }">
             <option value="">Selecciona un estudio…</option>
-            @foreach ($estudiosLista as $e)
-              <option value="{{ $e['id'] }}" @selected(($datos['estudio_id'] ?? null) == $e['id'])>{{ $e['label'] }}</option>
-            @endforeach
+            <?php $__currentLoopData = $estudiosLista; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $e): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+              <option value="<?php echo e($e['id']); ?>" <?php if(($datos['estudio_id'] ?? null) == $e['id']): echo 'selected'; endif; ?>><?php echo e($e['label']); ?></option>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
           </select>
         </div>
         <div class="gen-pat">
-          <span class="av" id="genAv">{{ $datos['iniciales'] ?? 'NA' }}</span>
+          <span class="av" id="genAv"><?php echo e($datos['iniciales'] ?? 'NA'); ?></span>
           <div>
-            <div class="nm" id="genPat">{{ $datos['paciente'] ?: 'Sin paciente' }}</div>
-            <div class="mt" id="genMeta">{{ trim(($datos['sexo'] ?? '').' · '.($datos['edad'] ?? ''), ' ·') ?: '—' }}</div>
+            <div class="nm" id="genPat"><?php echo e($datos['paciente'] ?: 'Sin paciente'); ?></div>
+            <div class="mt" id="genMeta"><?php echo e(trim(($datos['sexo'] ?? '').' · '.($datos['edad'] ?? ''), ' ·') ?: '—'); ?></div>
           </div>
         </div>
         <div class="gen-pat-grid">
-          <div><div class="k">Expediente</div><div class="v" id="genExp">{{ $datos['folio'] ?: '—' }}</div></div>
-          <div><div class="k">Identificación</div><div class="v" id="genNss">{{ $datos['identificacion'] ?: '—' }}</div></div>
-          <div><div class="k">Médico responsable</div><div class="v" id="genMedico">{{ $datos['medico'] ?: '—' }}</div></div>
-          <div><div class="k">Fecha de nacimiento</div><div class="v" id="genDob">{{ $datos['nacimiento'] ?: '—' }}</div></div>
+          <div><div class="k">Expediente</div><div class="v" id="genExp"><?php echo e($datos['folio'] ?: '—'); ?></div></div>
+          <div><div class="k">Identificación</div><div class="v" id="genNss"><?php echo e($datos['identificacion'] ?: '—'); ?></div></div>
+          <div><div class="k">Médico responsable</div><div class="v" id="genMedico"><?php echo e($datos['medico'] ?: '—'); ?></div></div>
+          <div><div class="k">Fecha de nacimiento</div><div class="v" id="genDob"><?php echo e($datos['nacimiento'] ?: '—'); ?></div></div>
         </div>
       </div>
 
-      {{-- Paso 2: Información del estudio --}}
+      
       <div class="step rise d3">
         <div class="step-head">
           <span class="step-num">2</span>
@@ -171,29 +169,29 @@
           <div class="gen-field">
             <label>Tipo de estudio</label>
             <select class="gen-select" id="genTipo">
-              @foreach (['Colonoscopia','Gastroscopia','Duodenoscopia','Broncoscopia'] as $opt)
-                <option @selected(strtolower($datos['tipo'] ?? '') === strtolower($opt))>{{ $opt }}</option>
-              @endforeach
+              <?php $__currentLoopData = ['Colonoscopia','Gastroscopia','Duodenoscopia','Broncoscopia']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $opt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <option <?php if(strtolower($datos['tipo'] ?? '') === strtolower($opt)): echo 'selected'; endif; ?>><?php echo e($opt); ?></option>
+              <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </select>
           </div>
           <div class="gen-field">
             <label>Fecha del estudio</label>
-            <input class="gen-input" type="date" id="genFecha" value="{{ $datos['fecha'] ?? now()->format('Y-m-d') }}">
+            <input class="gen-input" type="date" id="genFecha" value="<?php echo e($datos['fecha'] ?? now()->format('Y-m-d')); ?>">
           </div>
         </div>
       </div>
 
-      {{-- Paso 3: Observaciones clínicas --}}
+      
       <div class="step rise d4">
         <div class="step-head">
           <span class="step-num">3</span>
           <h4>Observaciones clínicas</h4>
           <svg class="step-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11.5 14.5 16 9.5"/></svg>
         </div>
-        <textarea class="gen-textarea" id="genObs" placeholder="Diagnóstico preliminar registrado al dar de alta al paciente...">{{ $datos['observaciones'] ?? '' }}</textarea>
+        <textarea class="gen-textarea" id="genObs" placeholder="Diagnóstico preliminar registrado al dar de alta al paciente..."><?php echo e($datos['observaciones'] ?? ''); ?></textarea>
       </div>
 
-      {{-- Paso 4: Cargar evidencia (fotos reales del estudio) --}}
+      
       <div class="step rise d5">
         <div class="step-head">
           <span class="step-num">4</span>
@@ -201,7 +199,7 @@
             <div class="gen-ev-head">
               <div>
                 <h4 style="margin-bottom:2px">Cargar evidencia</h4>
-                <div class="cnt">{{ $evidencias->count() }} imágenes asociadas al estudio</div>
+                <div class="cnt"><?php echo e($evidencias->count()); ?> imágenes asociadas al estudio</div>
               </div>
               <div class="gen-ev-tools">
                 <button type="button" aria-label="Ver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
@@ -211,23 +209,23 @@
           </div>
         </div>
         <div class="gen-thumbs" id="genThumbs">
-          @forelse ($evidencias as $i => $ev)
-            <div class="gen-thumb {{ $i === 0 ? 'sel' : '' }}">
+          <?php $__empty_1 = true; $__currentLoopData = $evidencias; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $ev): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+            <div class="gen-thumb <?php echo e($i === 0 ? 'sel' : ''); ?>">
               <img
-                src="{{ $ev['url'] }}"
-                alt="{{ $ev['titulo'] ?? 'Evidencia '.($i + 1) }}"
-                title="{{ $ev['titulo'] ?? 'Evidencia '.($i + 1) }}"
+                src="<?php echo e($ev['url']); ?>"
+                alt="<?php echo e($ev['titulo'] ?? 'Evidencia '.($i + 1)); ?>"
+                title="<?php echo e($ev['titulo'] ?? 'Evidencia '.($i + 1)); ?>"
                 loading="lazy"
                 onerror="this.closest('.gen-thumb')?.classList.add('missing');this.remove()"
               >
             </div>
-          @empty
+          <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
             <p style="grid-column:1/-1;color:var(--txt-soft);font-size:12.5px;margin:0">No hay imágenes asociadas a este estudio.</p>
-          @endforelse
+          <?php endif; ?>
         </div>
       </div>
 
-      {{-- Paso 5: Configuración AI --}}
+      
       <div class="step rise d6">
         <div class="step-head">
           <span class="step-num">5</span>
@@ -235,18 +233,18 @@
           <svg class="step-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11.5 14.5 16 9.5"/></svg>
         </div>
         <div class="gen-checks" id="genOpts">
-          <label class="gen-check"><input type="checkbox" data-opt="Analizar imágenes" @checked($userSettings['ai_analyze_photos'] ?? true)> Analizar imágenes</label>
-          <label class="gen-check"><input type="checkbox" data-opt="Generar recomendaciones" @checked($userSettings['ai_recommend_procedures'] ?? true)> Generar recomendaciones</label>
+          <label class="gen-check"><input type="checkbox" data-opt="Analizar imágenes" checked> Analizar imágenes</label>
+          <label class="gen-check"><input type="checkbox" data-opt="Generar recomendaciones" checked> Generar recomendaciones</label>
           <label class="gen-check"><input type="checkbox" data-opt="Comparar estudios previos" checked> Comparar estudios previos</label>
           <label class="gen-check"><input type="checkbox" data-opt="Sugerir biopsias" checked> Sugerir biopsias</label>
-          <label class="gen-check"><input type="checkbox" data-opt="Detectar patologías" @checked($userSettings['ai_suggest_diagnoses'] ?? true)> Detectar patologías</label>
+          <label class="gen-check"><input type="checkbox" data-opt="Detectar patologías" checked> Detectar patologías</label>
           <label class="gen-check"><input type="checkbox" data-opt="Análisis de riesgo" checked> Análisis de riesgo</label>
         </div>
       </div>
 
     </div>
 
-    {{-- Columna derecha: vista previa --}}
+    
     <div class="gen-col-right">
 
       <div class="prev-card rise d4">
@@ -276,18 +274,18 @@
     </div>
   </div>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 (function(){
   const btn = document.getElementById('btnGenerar');
   if (!btn) return;
   const label = btn.querySelector('.btn-label');
-  const url = "{{ route('ia-reportes.generar.post') }}";
-  const redactarUrl = "{{ route('ia-reportes.redactar') }}";
-  const csrf = "{{ csrf_token() }}";
-  const ESTUDIO_ID = @json($datos['estudio_id'] ?? null);
+  const url = "<?php echo e(route('ia-reportes.generar.post')); ?>";
+  const redactarUrl = "<?php echo e(route('ia-reportes.redactar')); ?>";
+  const csrf = "<?php echo e(csrf_token()); ?>";
+  const ESTUDIO_ID = <?php echo json_encode($datos['estudio_id'] ?? null, 15, 512) ?>;
 
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -345,7 +343,7 @@
       fecha: document.getElementById('genFecha')?.value || '',
       observaciones: (document.getElementById('genObs')?.value || '').trim(),
       opciones,
-      imagen_ids: @json($evidencias->pluck('id')->values()),
+      imagen_ids: <?php echo json_encode($evidencias->pluck('id')->values(), 15, 512) ?>,
     };
 
     if (!ESTUDIO_ID) {
@@ -388,7 +386,7 @@
           tipo_estudio: payload.tipo_estudio,
           fecha: payload.fecha,
         },
-        imagenes: @json($evidencias->values()),
+        imagenes: <?php echo json_encode($evidencias->values(), 15, 512) ?>,
       }));
       label.textContent = 'Abriendo editor...';
       // Pausa breve para que el profesional vea la propuesta de la IA antes de editar.
@@ -405,4 +403,6 @@
   });
 })();
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\gmedi\enclaii-backend\resources\views/ia-reportes/generar.blade.php ENDPATH**/ ?>

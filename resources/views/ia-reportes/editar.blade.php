@@ -80,7 +80,7 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
 .ed-annex .ph:nth-child(3){background:radial-gradient(circle at 50% 50%,#2a2f45,#0b0e1a)}
 .ed-annex.has-imgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
 .annex-item{border:1px solid var(--stroke);border-radius:12px;overflow:hidden;background:var(--panel);display:flex;flex-direction:column}
-.annex-item img{width:100%;height:128px;object-fit:cover;display:block;background:var(--off)}
+.annex-item img{width:100%;height:128px;object-fit:contain;object-position:center;display:block;background:#020714}
 .annex-item .annex-cap{padding:9px 11px;font-size:12px;line-height:1.45;color:var(--txt)}
 .annex-item .annex-num{display:block;font-size:10.5px;font-weight:700;letter-spacing:.05em;color:var(--txt-soft);margin-bottom:3px;text-transform:uppercase}
 

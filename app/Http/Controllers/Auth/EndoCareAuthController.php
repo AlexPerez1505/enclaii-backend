@@ -5,12 +5,15 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Clinica;
 use App\Models\ClinicaInvitation;
+use App\Models\LaunchPromoCode;
 use App\Models\User;
 use App\Services\ActivityLogger;
 use App\Services\SessionLimitService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class EndoCareAuthController extends Controller
 {
@@ -93,6 +96,7 @@ class EndoCareAuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', 'min:8'],
+            'promo_code' => ['nullable', 'string', 'max:60'],
         ], [
             'name.required' => 'El nombre completo es obligatorio.',
             'email.required' => 'El correo electrónico es obligatorio.',
@@ -101,9 +105,21 @@ class EndoCareAuthController extends Controller
             'password.required' => 'La contraseña es obligatoria.',
             'password.confirmed' => 'Las contraseñas no coinciden.',
             'password.min' => 'La contraseña debe tener mínimo 8 caracteres.',
+            'promo_code.max' => 'El cupon promocional no es valido.',
         ]);
 
+        $data['promo_code'] = LaunchPromoCode::normalizeCode($data['promo_code'] ?? null);
         $invitation = ClinicaInvitation::pendingForEmail($data['email']);
+
+        if ($invitation && $data['promo_code'] !== '') {
+            throw ValidationException::withMessages([
+                'promo_code' => 'Este cupon solo aplica para cuentas nuevas sin invitacion de clinica.',
+            ]);
+        }
+
+        if ($data['promo_code'] !== '') {
+            return $this->registerWithStripePromo($request, $data);
+        }
 
         $user = DB::transaction(function () use ($data, $invitation): User {
             if ($invitation) {
@@ -159,6 +175,68 @@ class EndoCareAuthController extends Controller
 
         return redirect()->route('plan.only')
             ->with('success', 'Cuenta creada correctamente. Selecciona un plan para acceder al sistema.');
+    }
+
+    private function registerWithStripePromo(Request $request, array $data): RedirectResponse
+    {
+        [$user, $promoCode] = DB::transaction(function () use ($data): array {
+            $promoCode = LaunchPromoCode::query()
+                ->where('code', $data['promo_code'])
+                ->lockForUpdate()
+                ->first();
+
+            if (! $promoCode || ! $promoCode->isAvailable()) {
+                throw ValidationException::withMessages([
+                    'promo_code' => 'Este cupon no existe, expiro o ya fue usado.',
+                ]);
+            }
+
+            if (! $promoCode->hasStripePromotionCode()) {
+                throw ValidationException::withMessages([
+                    'promo_code' => 'Este cupon aun no esta conectado con Stripe.',
+                ]);
+            }
+
+            $clinica = Clinica::shared();
+
+            $user = User::create([
+                'clinica_id' => $clinica->id,
+                'clinica_rol' => 'usuario',
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'password' => $data['password'],
+            ]);
+
+            $promoCode->reserveFor($user);
+
+            return [$user, $promoCode->fresh()];
+        });
+
+        Auth::login($user);
+        $request->session()->regenerate();
+        $this->sessionLimits->syncCurrentDatabaseSession($request, $user);
+        $this->sessionLimits->enforceDatabaseSessions($user, $request->session()->getId());
+
+        $this->activity->record(
+            'promo_account_created',
+            'authentication',
+            'Creo su cuenta con cupon promocional',
+            $promoCode,
+            ['promo_code' => $promoCode->code],
+            user: $user,
+            request: $request,
+        );
+
+        return redirect()
+            ->route('plan.only')
+            ->with('promo_checkout', [
+                'promo_code_id' => $promoCode->id,
+                'promo_code' => $promoCode->code,
+                'plan' => $promoCode->plan,
+                'interval' => $promoCode->interval,
+                'discount_months' => $promoCode->trial_months,
+            ])
+            ->with('success', 'Cuenta creada. Ingresa tu tarjeta para activar los 6 meses gratis.');
     }
 
     /**

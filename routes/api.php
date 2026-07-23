@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\TauriCaptureController;
 use App\Http\Controllers\Api\TauriConfigurationController;
 use App\Http\Controllers\Api\TauriPatientController;
 use App\Http\Controllers\ConfigurationBackupController;
+use App\Http\Controllers\IaReporteController;
 use App\Http\Controllers\TauriFrontendController;
 use Illuminate\Support\Facades\Route;
 
@@ -107,6 +108,49 @@ Route::middleware('auth:sanctum')
             '/reportes',
             [TauriFrontendController::class, 'reports']
         );
+
+        Route::prefix('reportes')
+            ->group(function () {
+                Route::get(
+                    '/editor',
+                    [IaReporteController::class, 'apiPreload']
+                );
+
+                Route::get(
+                    '/plantillas',
+                    [IaReporteController::class, 'apiPlantillas']
+                );
+
+                Route::get(
+                    '/estudios-sin-reporte',
+                    [IaReporteController::class, 'apiEstudiosSinReporte']
+                );
+
+                Route::get(
+                    '/todos',
+                    [IaReporteController::class, 'apiReportesTodos']
+                );
+
+                Route::post(
+                    '/generar',
+                    [IaReporteController::class, 'generar']
+                );
+
+                Route::post(
+                    '/chat',
+                    [IaReporteController::class, 'chat']
+                );
+
+                Route::post(
+                    '/guardar',
+                    [IaReporteController::class, 'guardar']
+                );
+
+                Route::get(
+                    '/{reporte}',
+                    [IaReporteController::class, 'apiVer']
+                );
+            });
 
         Route::get(
             '/galeria',
