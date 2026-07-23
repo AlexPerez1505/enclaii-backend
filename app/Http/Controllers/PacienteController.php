@@ -517,6 +517,33 @@ class PacienteController extends Controller
         ]);
     }
 
+    public function suggestions()
+    {
+        return response()->json([
+            'data' => [
+                'medicos' => Paciente::whereNotNull('medico')
+                    ->where('medico', '!=', '')
+                    ->distinct()
+                    ->orderBy('medico')
+                    ->pluck('medico'),
+
+                'procedimientos' => Paciente::whereNotNull('procedimiento')
+                    ->where('procedimiento', '!=', '')
+                    ->distinct()
+                    ->orderBy('procedimiento')
+                    ->pluck('procedimiento'),
+
+                'anestesiologos' => \App\Models\Anestesiologo::query()
+                    ->where('clinica_id', request()->user()->clinica_id)
+                    ->where('activo', true)
+                    ->orderBy('apellido_paterno')
+                    ->orderBy('nombres')
+                    ->get()
+                    ->map(fn ($a) => $a->nombre_completo),
+            ],
+        ]);
+    }
+
     public function destroy(Paciente $paciente)
     {
         try {

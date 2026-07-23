@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\TauriConfigurationController;
 use App\Http\Controllers\Api\TauriPatientController;
 use App\Http\Controllers\ConfigurationBackupController;
 use App\Http\Controllers\IaReporteController;
+use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\TauriFrontendController;
 use Illuminate\Support\Facades\Route;
 
@@ -169,6 +170,11 @@ Route::middleware('auth:sanctum')
 
         Route::prefix('pacientes')
             ->group(function () {
+                Route::get(
+                    '/suggestions',
+                    [PacienteController::class, 'suggestions']
+                );
+
                 Route::get(
                     '/',
                     [TauriPatientController::class, 'index']
