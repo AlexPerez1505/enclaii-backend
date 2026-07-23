@@ -918,8 +918,22 @@
   flex-direction:column;
   gap:12px;
   margin-bottom:20px;
-  max-height:250px;
+  max-height:340px;
   overflow-y:auto;
+  padding-right:4px;
+}
+.historial-list::-webkit-scrollbar{
+  width:6px;
+}
+.historial-list::-webkit-scrollbar-track{
+  background:transparent;
+}
+.historial-list::-webkit-scrollbar-thumb{
+  background:var(--stroke);
+  border-radius:3px;
+}
+.historial-list::-webkit-scrollbar-thumb:hover{
+  background:var(--blue);
 }
 .historial-item{
   display:flex;
@@ -1599,7 +1613,7 @@
 /* Stats grid para Reportes IA */
 .ia-stats-grid{
   display:grid;
-  grid-template-columns:repeat(3,1fr);
+  grid-template-columns:repeat(2,1fr);
   gap:10px;
   margin-bottom:16px;
 }
@@ -1609,6 +1623,17 @@
   border-radius:var(--r-md);
   padding:14px 10px;
   text-align:center;
+  cursor:pointer;
+  width:100%;
+  color:inherit;
+  font-family:inherit;
+  box-sizing:border-box;
+  transition:border-color .15s ease, background .15s ease, box-shadow .15s ease;
+}
+.ia-stat-card:hover,
+.ia-stat-card.active{
+  border-color:var(--blue);
+  background:rgba(56,199,244,.08);
 }
 .ia-stat-value{
   font-size:22px;
@@ -1622,6 +1647,20 @@
   color:var(--txt-soft);
   text-transform:uppercase;
   letter-spacing:.4px;
+}
+.ia-clear-filter{
+  font-size:11px;
+  padding:4px 10px;
+  border-radius:var(--r-md);
+  border:1px solid var(--stroke);
+  background:transparent;
+  color:var(--txt-soft);
+  cursor:pointer;
+  transition:all .15s ease;
+}
+.ia-clear-filter:hover{
+  color:var(--txt);
+  border-color:var(--blue);
 }
 
 /* Alerta de hallazgos críticos */
@@ -1645,12 +1684,28 @@
   flex-direction:column;
   gap:12px;
   margin-bottom:20px;
+  max-height:340px;
+  overflow-y:auto;
+  padding-right:4px;
+}
+.ia-reportes-list::-webkit-scrollbar{
+  width:6px;
+}
+.ia-reportes-list::-webkit-scrollbar-track{
+  background:transparent;
+}
+.ia-reportes-list::-webkit-scrollbar-thumb{
+  background:var(--stroke);
+  border-radius:3px;
+}
+.ia-reportes-list::-webkit-scrollbar-thumb:hover{
+  background:var(--blue);
 }
 .ia-estudio-card{
   background:var(--panel-2);
   border:1px solid var(--stroke);
   border-radius:var(--r-md);
-  padding:14px;
+  padding:10px;
 }
 .ia-estudio-pendiente{
   border-color:rgba(255,193,7,.25);
@@ -1660,7 +1715,7 @@
   display:flex;
   align-items:center;
   justify-content:space-between;
-  margin-bottom:6px;
+  margin-bottom:4px;
 }
 .ia-estudio-tipo{
   font-size:13px;
@@ -1691,9 +1746,9 @@
   display:flex;
   align-items:center;
   gap:10px;
-  font-size:11.5px;
+  font-size:11px;
   color:var(--txt-soft);
-  margin-bottom:8px;
+  margin-bottom:4px;
 }
 .ia-reporte-count{
   color:var(--cyan);
@@ -1703,10 +1758,10 @@
   display:inline-flex;
   align-items:center;
   gap:4px;
-  font-size:10.5px;
+  font-size:10px;
   font-weight:600;
   color:var(--red);
-  margin-bottom:8px;
+  margin-bottom:4px;
 }
 
 /* Items de reporte individual */
@@ -1714,11 +1769,11 @@
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:8px 10px;
+  padding:6px 8px;
   border-radius:var(--r-sm,8px);
   background:var(--card);
   border:1px solid var(--stroke);
-  margin-top:6px;
+  margin-top:4px;
 }
 .ia-reporte-info{
   display:flex;
@@ -1759,24 +1814,39 @@
   background:rgba(56,199,244,.08);
 }
 
-/* Botón generar reporte dentro de estudio pendiente */
+/* Botones generar reporte dentro de estudio pendiente */
+.ia-generar-actions{
+  display:flex;
+  gap:8px;
+  margin-top:8px;
+}
 .ia-generar-btn{
+  flex:1;
   display:inline-flex;
   align-items:center;
-  gap:6px;
-  margin-top:8px;
-  padding:8px 14px;
+  justify-content:center;
+  gap:4px;
+  padding:8px 10px;
   border-radius:var(--r-md);
   background:rgba(56,199,244,.1);
   border:1px solid rgba(56,199,244,.3);
   color:var(--cyan);
-  font-size:12px;
+  font-size:11px;
   font-weight:600;
   transition:all 150ms ease;
 }
 .ia-generar-btn:hover{
   background:rgba(56,199,244,.18);
   border-color:var(--cyan);
+}
+.ia-generar-btn.normal{
+  background:rgba(255,255,255,.06);
+  border-color:var(--stroke-strong);
+  color:var(--txt);
+}
+.ia-generar-btn.normal:hover{
+  background:var(--card);
+  border-color:var(--blue);
 }
 
 /* Empty state */
@@ -2093,7 +2163,7 @@
     <div class="panel-tabs">
       <button class="tab-btn active" onclick="showTab('resumen')">Resumen</button>
       <button class="tab-btn" onclick="showTab('historial')">Historial</button>
-      <button class="tab-btn" onclick="showTab('reportes')">Reportes IA</button>
+      <button class="tab-btn" onclick="showTab('reportes')">Reportes </button>
     </div>
 
     {{-- Contenido Tab Resumen --}}
@@ -2181,22 +2251,21 @@
     {{-- Contenido Tab Reportes IA --}}
     <div id="tab-reportes" class="tab-content">
       <div class="reportes-section">
-        <h4>Reportes IA</h4>
+        <h4>Reportes </h4>
 
-        {{-- Resumen de reportes IA --}}
+        {{-- Resumen de reportes  --}}
+        <div style="display:flex;justify-content:flex-end;margin-bottom:6px;">
+          <button type="button" class="ia-clear-filter" id="iaClearFilter" style="display:none;">Limpiar</button>
+        </div>
         <div class="ia-stats-grid" id="reportesStatsGrid">
-          <div class="ia-stat-card">
-            <div class="ia-stat-value" id="statTotalReportes">0</div>
-            <div class="ia-stat-label">Reportes IA</div>
-          </div>
-          <div class="ia-stat-card">
+          <button type="button" class="ia-stat-card" data-filter="con">
             <div class="ia-stat-value" id="statEstudiosConReporte">0</div>
-            <div class="ia-stat-label">Con reporte</div>
-          </div>
-          <div class="ia-stat-card">
+            <div class="ia-stat-label">Reportes completos</div>
+          </button>
+          <button type="button" class="ia-stat-card" data-filter="sin">
             <div class="ia-stat-value" id="statEstudiosSinReporte">0</div>
             <div class="ia-stat-label">Pendientes</div>
-          </div>
+          </button>
         </div>
 
         {{-- Alerta de hallazgos críticos --}}
@@ -2213,11 +2282,6 @@
           </div>
         </div>
 
-        {{-- Botón para generar nuevo reporte --}}
-        <a href="#" class="btn-view-all" id="reportPanelBtn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-          Generar nuevo reporte de IA
-        </a>
       </div>
     </div>
   </aside>
@@ -2447,6 +2511,7 @@ function rowHTML(patient, globalIndex) {
 let _deleteIndex = null;
 let _contactoIndex = null;
 let _currentPanelIndex = null;
+let reportesIaFiltro = 'todos';
 
 function deletePatient(index) {
   const patient = patientsData[index];
@@ -3080,6 +3145,7 @@ function updateReportesIATab(patient) {
         }
 
         const generarUrl = `${routes.iaReportes}?paciente=${encodeURIComponent(patient.name)}&folio=${encodeURIComponent(patient.folio || '')}&estudio=${encodeURIComponent(est.id)}`;
+        const redactarUrl = `${routes.iaReportesRedactar}?paciente=${encodeURIComponent(patient.id)}&estudio=${encodeURIComponent(est.id)}`;
 
         html += `
           <div class="ia-estudio-card ${tieneReporte ? '' : 'ia-estudio-pendiente'}">
@@ -3093,23 +3159,37 @@ function updateReportesIATab(patient) {
             </div>
             ${criticos ? '<div class="ia-estudio-critico-tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Hallazgos críticos</div>' : ''}
             ${reportesHtml}
-            ${!tieneReporte ? `<a href="${generarUrl}" class="ia-generar-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Generar reporte IA</a>` : ''}
+            ${!tieneReporte ? `<div class="ia-generar-actions">
+              <a href="${generarUrl}" class="ia-generar-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Generar IA</a>
+              <a href="${redactarUrl}" class="ia-generar-btn normal"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Normal</a>
+            </div>` : ''}
           </div>`;
       });
       listContainer.innerHTML = html;
     }
   }
 
-  // Botón para generar nuevo reporte (usa el primer estudio)
-  const reportPanelBtn = document.getElementById('reportPanelBtn');
-  if (reportPanelBtn) {
-    const estudio = (patient.estudios && patient.estudios.length > 0) ? patient.estudios[0] : null;
-    if (estudio) {
-      reportPanelBtn.href = `${routes.iaReportes}?paciente=${encodeURIComponent(patient.name)}&folio=${encodeURIComponent(patient.folio || '')}&estudio=${encodeURIComponent(estudio.id)}`;
-    } else {
-      reportPanelBtn.href = `${routes.iaReportes}?paciente=${encodeURIComponent(patient.name)}&folio=${encodeURIComponent(patient.folio || '')}`;
-    }
-  }
+  aplicarFiltroReportes();
+}
+
+function aplicarFiltroReportes() {
+  const listContainer = document.getElementById('reportesListContainer');
+  const cards = listContainer ? listContainer.querySelectorAll('.ia-estudio-card') : [];
+  cards.forEach(card => {
+    const isPendiente = card.classList.contains('ia-estudio-pendiente');
+    const hasReport = !isPendiente;
+    let visible = true;
+    if (reportesIaFiltro === 'con') visible = hasReport;
+    else if (reportesIaFiltro === 'sin') visible = !hasReport;
+    card.style.display = visible ? '' : 'none';
+  });
+
+  document.querySelectorAll('.ia-stat-card').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === reportesIaFiltro);
+  });
+
+  const clearBtn = document.getElementById('iaClearFilter');
+  if (clearBtn) clearBtn.style.display = reportesIaFiltro === 'todos' ? 'none' : '';
 }
 
 // Tabs interactivos
@@ -3458,5 +3538,26 @@ document.addEventListener('click', function(e) {
     }
   }
 })();
+
+// Listeners para filtros de reportes IA
+function setupFiltrosReportesIA() {
+  const grid = document.getElementById('reportesStatsGrid');
+  if (grid) {
+    grid.querySelectorAll('.ia-stat-card').forEach(btn => {
+      btn.onclick = function() {
+        reportesIaFiltro = this.dataset.filter || 'todos';
+        aplicarFiltroReportes();
+      };
+    });
+  }
+  const clearBtn = document.getElementById('iaClearFilter');
+  if (clearBtn) {
+    clearBtn.onclick = function() {
+      reportesIaFiltro = 'todos';
+      aplicarFiltroReportes();
+    };
+  }
+}
+setupFiltrosReportesIA();
 </script>
 @endpush
