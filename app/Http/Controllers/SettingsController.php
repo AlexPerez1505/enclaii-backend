@@ -79,6 +79,7 @@ class SettingsController extends Controller
             'ai_analyze_photos' => ['sometimes', 'boolean'],
             'ai_suggest_diagnoses' => ['sometimes', 'boolean'],
             'ai_recommend_procedures' => ['sometimes', 'boolean'],
+            'session_timeout' => ['sometimes', 'integer', 'min:0', 'max:1440'],
         ]);
 
         /** @var User $user */

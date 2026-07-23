@@ -351,6 +351,8 @@ class User extends Authenticatable
             'ai_suggest_diagnoses' => true,
             'ai_recommend_procedures' => true,
             'dashboard_layout' => [],
+            'session_timeout' => 30, // 15, 30, 60 o 0 = "Nunca"
+            
         ];
     }
 

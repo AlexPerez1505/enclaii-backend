@@ -4,10 +4,12 @@
 .sec-head h2{font-family:'Sora',sans-serif;font-size:18px;font-weight:700}
 .sec-head p{font-size:13px;color:var(--txt-soft);margin:3px 0 18px}
 
-.sec-top{display:grid;grid-template-columns:1fr 1.35fr;gap:18px;align-items:stretch;margin-bottom:18px}
+/* Ajustamos los tamaños de las columnas para los nuevos contenidos */
+.sec-top{display:grid;grid-template-columns:1.2fr 1.5fr;gap:18px;align-items:stretch;margin-bottom:18px}
 @media (max-width:1000px){.sec-top{grid-template-columns:1fr}}
 .sec-top > .card{display:flex;flex-direction:column}
-.sec-bottom{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:18px;align-items:stretch}
+
+.sec-bottom{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:18px;align-items:stretch}
 @media (max-width:1100px){.sec-bottom{grid-template-columns:1fr 1fr}}
 @media (max-width:760px){.sec-bottom{grid-template-columns:1fr}}
 .sec-bottom > .card{display:flex;flex-direction:column}
@@ -140,76 +142,14 @@
     <p>Protege el acceso a tu cuenta, pacientes e información médica</p>
   </div>
 
-  {{-- Fila superior --}}
+  {{-- ==================== FILA SUPERIOR ==================== --}}
   <div class="sec-top">
+    <!-- 1. Dispositivos conectados -->
     <article class="card rise d2">
-      <div class="cfg-card-head"><h2>Acceso y autenticación</h2></div>
-
-      <div class="sec-row">
-        <span class="sec-ico b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
-        <div class="sec-info">
-          <div class="t">Contraseña</div>
-          <div class="d" id="secPasswordUpdated">
-            Última actualización:
-            {{ format_user_date_time(auth()->user()->password_changed_at) ?: 'sin registro' }}
-          </div>
-        </div>
-        <button type="button" class="sec-btn" id="secPasswordOpen">Cambiar contraseña</button>
-      </div>
-
-      <div class="sec-row">
-        <span class="sec-ico g">...</svg></span>
-        <div class="sec-info">
-          <div class="t">Verificación en dos pasos</div>
-          <div class="d" id="sec2faStatus">
-            {{ $securitySettings['two_factor_email_enabled'] ? 'Activada' : 'Recibirás un código por correo al iniciar sesión' }}
-          </div>
-        </div>
-        <label class="sw">
-          <input type="checkbox" id="sec2faToggle" data-send-url="{{ route('configuracion.2fa.send') }}" data-confirm-url="{{ route('configuracion.2fa.confirm') }}" data-disable-url="{{ route('configuracion.2fa.disable') }}" @checked($securitySettings['two_factor_email_enabled'])>
-          <span class="track"></span><span class="knob"></span>
-        </label>
-      </div>
-
-
-      <div class="sec-pw-overlay" id="sec2faModal" aria-hidden="true">
-        <div class="sec-pw-modal">
-          <div class="sec-pw-head">
-            <div>
-              <div class="sec-pw-title">Confirmar verificación</div>
-              <div class="sec-pw-sub">Te enviamos un código de 6 dígitos a tu correo. Ingrésalo para activar la verificación.</div>
-            </div>
-            <button type="button" class="sec-pw-close" id="sec2faClose">✕</button>
-          </div>
-          <div class="sec-pw-body">
-            <div class="sec-pw-field">
-              <label for="sec2faCode">Código de verificación</label>
-              <input class="sec-pw-input" id="sec2faCode" type="text" inputmode="numeric" maxlength="6" placeholder="000000">
-              <div class="sec-pw-error" id="sec2faError"></div>
-            </div>
-          </div>
-          <div class="sec-pw-footer">
-            <button type="button" class="sec-pw-action cancel" id="sec2faCancel">Cancelar</button>
-            <button type="button" class="sec-pw-action submit" id="sec2faConfirm">Activar</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="sec-row">
-        <span class="sec-ico p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
-        <div class="sec-info"><div class="t">Tiempo de sesión</div><div class="d">Tiempo de inactividad antes de cerrar sesión</div></div>
-        <div class="cfg-select">
-          <select><option>30 minutos</option><option>15 minutos</option><option>1 hora</option><option>Nunca</option></select>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-        </div>
-      </div>
-    </article>
-
-    <article class="card rise d3">
       <div class="cfg-card-head">
         <h2>Dispositivos conectados</h2>
         <p>Revisa y cierra las sesiones activas de tu cuenta</p>
-        <p>Tu plan permite {{ $sessionLimit ?? 1 }} {{ ($sessionLimit ?? 1) === 1 ? 'sesiÃ³n activa' : 'sesiones activas' }} por cuenta. Al superar el lÃ­mite se cerrarÃ¡ la sesiÃ³n mÃ¡s antigua.</p>
+        <p>Tu plan permite {{ $sessionLimit ?? 1 }} {{ ($sessionLimit ?? 1) === 1 ? 'sesión activa' : 'sesiones activas' }} por cuenta. Al superar el límite se cerrará la sesión más antigua.</p>
       </div>
 
       <div class="sec-table-wrap">
@@ -261,10 +201,8 @@
         </button>
       </div>
     </article>
-  </div>
 
-  {{-- Fila inferior --}}
-  <div class="sec-bottom">
+    <!-- 2. Registro de actividad -->
     <article class="card rise d3">
       <div class="cfg-card-head">
         <h2>Registro de actividad</h2>
@@ -320,8 +258,87 @@
         </nav>
       @endif
     </article>
+  </div>
 
+
+  {{-- ==================== FILA INFERIOR ==================== --}}
+  <div class="sec-bottom">
+    <!-- 3. Acceso y autenticación -->
     <article class="card rise d4">
+      <div class="cfg-card-head"><h2>Acceso y autenticación</h2></div>
+
+      <div class="sec-row">
+        <span class="sec-ico b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+        <div class="sec-info">
+          <div class="t">Contraseña</div>
+          <div class="d" id="secPasswordUpdated">
+            Última actualización:
+            {{ format_user_date_time(auth()->user()->password_changed_at) ?: 'sin registro' }}
+          </div>
+        </div>
+        <button type="button" class="sec-btn" id="secPasswordOpen">Cambiar contraseña</button>
+      </div>
+
+      <div class="sec-row">
+        <span class="sec-ico g">...</svg></span>
+        <div class="sec-info">
+          <div class="t">Verificación en dos pasos</div>
+          <div class="d" id="sec2faStatus">
+            {{ $securitySettings['two_factor_email_enabled'] ? 'Activada' : 'Recibirás un código por correo al iniciar sesión' }}
+          </div>
+        </div>
+        <label class="sw">
+          <input type="checkbox" id="sec2faToggle" data-send-url="{{ route('configuracion.2fa.send') }}" data-confirm-url="{{ route('configuracion.2fa.confirm') }}" data-disable-url="{{ route('configuracion.2fa.disable') }}" @checked($securitySettings['two_factor_email_enabled'])>
+          <span class="track"></span><span class="knob"></span>
+        </label>
+      </div>
+
+      <div class="sec-pw-overlay" id="sec2faModal" aria-hidden="true">
+        <div class="sec-pw-modal">
+          <div class="sec-pw-head">
+            <div>
+              <div class="sec-pw-title">Confirmar verificación</div>
+              <div class="sec-pw-sub">Te enviamos un código de 6 dígitos a tu correo. Ingrésalo para activar la verificación.</div>
+            </div>
+            
+          </div>
+          <div class="sec-pw-body">
+            <div class="sec-pw-field">
+              <label for="sec2faCode">Código de verificación</label>
+              <input class="sec-pw-input" id="sec2faCode" type="text" inputmode="numeric" maxlength="6" placeholder="000000">
+              <div class="sec-pw-error" id="sec2faError"></div>
+            </div>
+          </div>
+          <div class="sec-pw-footer">
+            <button type="button" class="sec-pw-action cancel" id="sec2faCancel">Cancelar</button>
+            <button type="button" class="sec-pw-action submit" id="sec2faConfirm">Activar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec-row">
+        <span class="sec-ico p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+        <div class="sec-info">
+          <div class="t">Tiempo de sesión</div>
+          <div class="d">Tiempo de inactividad antes de cerrar sesión</div>
+        </div>
+        @php
+          $timeout = auth()->user()->resolvedSettings()['session_timeout'] ?? 30;
+        @endphp
+        <div class="cfg-select">
+          <select id="sessionTimeout" data-update-url="{{ route('configuracion.general.update') }}">
+            <option value="1" @selected($timeout == 1)>1 minuto</option>
+            <option value="30" @selected($timeout == 30)>30 minutos</option>
+            <option value="60" @selected($timeout == 60)>60 minutos</option>
+            <option value="0"  @selected($timeout == 0)>Nunca</option>
+          </select>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+    </article>
+
+    <!-- 4. Permisos críticos -->
+    <article class="card rise d5">
       <div class="cfg-card-head">
         <h2>Permisos críticos</h2>
         <p>Confirma solicitudes para acciones sensibles</p>
@@ -334,7 +351,8 @@
       </div>
     </article>
 
-    <article class="card rise d5">
+    <!-- 5. Respaldo y recuperación -->
+    <article class="card rise d6">
       <div class="cfg-card-head">
         <h2>Respaldo y recuperación</h2>
         <p>Administra los respaldos de tu información</p>
@@ -355,6 +373,7 @@
     </article>
   </div>
 
+  {{-- Modal para cambiar contraseña --}}
   <div class="sec-pw-overlay" id="secPasswordModal" aria-hidden="true">
     <form
       class="sec-pw-modal"
@@ -444,10 +463,10 @@
   const strength = document.getElementById('secPasswordStrength');
   const csrf = form?.querySelector('input[name="_token"]')?.value;
   const twoFactorToggle = document.getElementById('sec2faToggle');
-const twoFactorModal = document.getElementById('sec2faModal');
-const twoFactorCode = document.getElementById('sec2faCode');
-const twoFactorConfirm = document.getElementById('sec2faConfirm');
-const twoFactorError = document.getElementById('sec2faError');
+  const twoFactorModal = document.getElementById('sec2faModal');
+  const twoFactorCode = document.getElementById('sec2faCode');
+  const twoFactorConfirm = document.getElementById('sec2faConfirm');
+  const twoFactorError = document.getElementById('sec2faError');
 
 twoFactorToggle?.addEventListener('change', async () => {
   twoFactorToggle.disabled = true;
@@ -787,6 +806,59 @@ document.getElementById('sec2faCancel')?.addEventListener('click', () => {
       }
     });
   });
+  //Select session
+  let idleTimer;
+  const sessionSelect = document.getElementById('sessionTimeout');
+
+  sessionSelect?.addEventListener('change', async () => {
+    try {
+      const res = await fetch(sessionSelect.dataset.updateUrl, {
+        method: 'PATCH',
+        headers: {
+          'X-CSRF-TOKEN': csrf,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({ session_timeout: parseInt(sessionSelect.value, 10) }),
+      });
+      const data = await res.json().catch(() => ({}));
+      console.log('session_timeout save:', res.status, data);
+      if (!res.ok) {
+        throw new Error(data.message || data.errors?.session_timeout?.[0] || 'Error al guardar');
+      }
+      toast('Tiempo de sesión actualizado');
+      resetIdle();
+    } catch (e) {
+      toast(e.message, true);
+    }
+  });
+
+  function resetIdle() {
+    clearTimeout(idleTimer);
+    const minutes = parseInt(sessionSelect?.value ?? '30', 10);
+    if (minutes > 0) {
+      idleTimer = setTimeout(() => {
+        fetch('/logout', {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': csrf,
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+        }).finally(() => {
+          window.location.href = '/login';
+        });
+      }, minutes * 60 * 1000);
+    }
+  }
+
+  window.addEventListener('mousemove', resetIdle);
+  window.addEventListener('keypress', resetIdle);
+  window.addEventListener('click', resetIdle);
+  resetIdle();
 })();
 </script>
+
+
 @endpush
