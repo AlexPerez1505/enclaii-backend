@@ -1,7 +1,8 @@
 @php
-  $desktopAppVersion = '0.1.7';
-  $desktopAppArchitecture = '64 bits';
-  $desktopAppSize = '18.5 MB';
+  $desktopAppVersion = config('desktop_app.version', '0.1.8');
+  $desktopAppArchitecture = config('desktop_app.architecture', '64 bits');
+  $desktopAppSize = config('desktop_app.size', '18.5 MB');
+  $desktopAppManualUrl = asset('docs/manual-instalacion-enclaii-endoscopy.pdf');
 @endphp
 
 @push('styles')
@@ -82,10 +83,91 @@
 .desktop-release-list{margin:0;padding-left:16px;display:flex;flex-direction:column;gap:8px}
 .desktop-release-list li{font-size:11.8px;color:var(--txt-soft);line-height:1.35}
 .desktop-side-link{display:inline-flex;align-items:center;gap:8px;margin-top:14px;color:var(--cyan);font-size:12px;font-weight:800}
-.desktop-guide{display:grid;grid-template-columns:1fr 64px;gap:16px;align-items:center}
+.desktop-guide{display:grid;grid-template-columns:1fr 64px;gap:16px;align-items:center;color:inherit;text-decoration:none;cursor:pointer;transition:transform .15s,filter .15s,border-color .15s}
 .desktop-guide p{font-size:12px;color:var(--txt-soft);line-height:1.45;margin:4px 0 0}
 .desktop-guide-art{width:60px;height:72px;border-radius:14px;background:linear-gradient(135deg,#1a8cff,#36d5ff);display:grid;place-items:center;color:#fff;box-shadow:0 18px 32px rgba(45,120,255,.32)}
 .desktop-guide-art svg{width:34px;height:34px}
+.desktop-guide:focus-visible{outline:3px solid rgba(56,199,244,.35);outline-offset:3px}
+@media (hover:hover){.desktop-guide:hover{filter:brightness(1.06);border-color:rgba(56,199,244,.38);transform:translateY(-1px)}}
+html[data-theme="light"] .desktop-app-main{
+  background:
+    radial-gradient(circle at 76% 18%,rgba(14,165,233,.16),transparent 30%),
+    linear-gradient(145deg,#fff,#f4f9ff);
+  border-color:rgba(15,23,42,.08);
+  box-shadow:0 18px 45px rgba(15,23,42,.08);
+}
+html[data-theme="light"] .desktop-app-hero::before{
+  background:
+    linear-gradient(135deg,rgba(14,165,233,.12),transparent 45%),
+    repeating-linear-gradient(145deg,rgba(37,99,235,.07) 0 1px,transparent 1px 58px);
+  opacity:.75;
+}
+html[data-theme="light"] .desktop-app-head h2,
+html[data-theme="light"] .desktop-app-copy h3,
+html[data-theme="light"] .desktop-app-downloads h3,
+html[data-theme="light"] .desktop-side-title,
+html[data-theme="light"] .desktop-side-section h4,
+html[data-theme="light"] .desktop-security b,
+html[data-theme="light"] .desktop-download-title{
+  color:#0f172a;
+}
+html[data-theme="light"] .desktop-app-head p,
+html[data-theme="light"] .desktop-app-copy p,
+html[data-theme="light"] .desktop-app-downloads p,
+html[data-theme="light"] .desktop-download-meta,
+html[data-theme="light"] .desktop-download-size,
+html[data-theme="light"] .desktop-security p,
+html[data-theme="light"] .desktop-side-list li,
+html[data-theme="light"] .desktop-release-list li,
+html[data-theme="light"] .desktop-guide p{
+  color:#64748b;
+}
+html[data-theme="light"] .desktop-app-copy h3 span,
+html[data-theme="light"] .desktop-app-features svg,
+html[data-theme="light"] .desktop-app-head-ico,
+html[data-theme="light"] .desktop-side-title svg,
+html[data-theme="light"] .desktop-side-os,
+html[data-theme="light"] .desktop-security-icon,
+html[data-theme="light"] .desktop-security-cloud,
+html[data-theme="light"] .desktop-version-pill,
+html[data-theme="light"] .desktop-app-badge{
+  color:#0284c7;
+}
+html[data-theme="light"] .desktop-app-features li{
+  color:#1e293b;
+}
+html[data-theme="light"] .desktop-app-badge,
+html[data-theme="light"] .desktop-app-head-ico,
+html[data-theme="light"] .desktop-os-icon,
+html[data-theme="light"] .desktop-security-icon{
+  background:rgba(14,165,233,.1);
+  border-color:rgba(14,165,233,.24);
+}
+html[data-theme="light"] .desktop-download-card,
+html[data-theme="light"] .desktop-side-card,
+html[data-theme="light"] .desktop-security{
+  background:linear-gradient(180deg,#fff,#f8fbff);
+  border-color:rgba(15,23,42,.1);
+  box-shadow:0 14px 34px rgba(15,23,42,.07);
+}
+html[data-theme="light"] .desktop-side-section{
+  border-bottom-color:rgba(15,23,42,.1);
+}
+html[data-theme="light"] .desktop-version-pill{
+  background:rgba(14,165,233,.1);
+  border-color:rgba(14,165,233,.22);
+}
+html[data-theme="light"] .desktop-download-card.disabled{
+  opacity:.72;
+}
+html[data-theme="light"] .desktop-os-icon.apple{
+  color:#334155;
+  background:rgba(15,23,42,.06);
+}
+html[data-theme="light"] .desktop-security-cloud{
+  background:radial-gradient(circle at 65% 35%,rgba(14,165,233,.32),transparent 28%),linear-gradient(135deg,rgba(37,99,235,.12),rgba(14,165,233,.1));
+  border-color:rgba(14,165,233,.2);
+}
 @media (max-width:1180px){
   .desktop-app-shell{grid-template-columns:1fr}
   .desktop-app-side{grid-template-columns:repeat(3,minmax(0,1fr));display:grid}
@@ -276,10 +358,8 @@
             <h4>Windows</h4>
             <ul class="desktop-side-list">
               <li>Windows 10 u 11 de 64 bits</li>
-              <li>Procesador Intel Core i5 o superior</li>
               <li>8 GB de RAM recomendado</li>
               <li>20 MB libres para descargar el instalador</li>
-              <li>Puerto USB 3.0 o superior</li>
               <li>Conexión a internet para sincronización</li>
             </ul>
           </div>
@@ -321,7 +401,7 @@
         </ul>
       </article>
 
-      <article class="card desktop-side-card desktop-guide rise d5">
+      <a class="card desktop-side-card desktop-guide rise d5" href="{{ $desktopAppManualUrl }}" target="_blank" rel="noopener" aria-label="Abrir manual de instalación de ENCLAII Endoscopy">
         <div>
           <div class="desktop-side-title" style="margin-bottom:8px">
             <span>
@@ -342,7 +422,7 @@
             <path d="M9 17h4"/>
           </svg>
         </span>
-      </article>
+      </a>
     </aside>
   </div>
 </div>

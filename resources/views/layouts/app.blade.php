@@ -2578,6 +2578,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
     wrench:      '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
     doc:         '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
     rocket:      '<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>',
+    download:    '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>',
     ticket:      '<path d="M2 12h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H2V6h2a2 2 0 0 0 2-2V2"/><path d="M22 12h-2a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2V6h-2a2 2 0 0 1-2-2V2"/><path d="M7 2h10"/><path d="M7 22h10"/><rect x="7" y="6" width="10" height="12" rx="1"/>',
   };
 
@@ -2595,6 +2596,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
       recordatorio_1h:    { title: 'Recordatorio: cita en 1h',  type: 'amber',  icon: 'bell' },
       recordatorio_24h:   { title: 'Recordatorio: cita mañana', type: 'blue',   icon: 'bell' },
       anuncio:            { title: e.titulo || 'Nuevo anuncio',  type: 'blue',   icon: 'megaphone' },
+      desktop_app_update: { title: e.titulo || 'Nueva app de escritorio', type: 'blue', icon: 'download' },
       ticket_resuelto:    { title: e.subject || 'Ticket resuelto', type: 'green', icon: 'ticket' },
       ticket:             { title: e.titulo || 'Nuevo ticket',   type: 'amber',  icon: 'ticket' },
       notificacion:       { title: e.titulo || 'Notificación',   type: 'blue',   icon: 'bell' },
@@ -2622,6 +2624,11 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
     if (tipo === 'ticket_resuelto') {
       const parts = [item.resolution_summary, item.resolver_name].filter(Boolean);
       return parts.length ? parts.join(' — ') : 'Tu ticket ha sido resuelto';
+    }
+    if (tipo === 'desktop_app_update') {
+      const version = item.version ? `v${item.version}` : 'nueva version';
+      const meta = [version, item.platform, item.size].filter(Boolean).join(' — ');
+      return meta ? `${meta} — Descargar actualizacion` : (item.message || 'Descarga la nueva aplicacion de escritorio');
     }
     if (tipo === 'reprogramada') {
       const paciente = item.paciente || 'Paciente';
@@ -2665,6 +2672,7 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
     item.addEventListener('click', () => {
       if (isPreview) openPreview(id);
       else if (data && data.ticket_url) window.location.href = data.ticket_url + '#respuesta';
+      else if (data && data.download_url) window.location.href = data.download_url;
     });
 
     if (prepend) list.prepend(item);
