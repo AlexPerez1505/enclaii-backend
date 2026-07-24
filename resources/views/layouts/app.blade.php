@@ -120,6 +120,7 @@ html[data-theme="light"] .side-help .btn-ghost:hover{background:var(--hover-bg)}
 html[data-theme="light"] .page-title small{color:var(--txt-soft)}
 
 *{margin:0;padding:0;box-sizing:border-box}
+html{font-size:clamp(13px, 0.875rem + 0.2vw, 16px)}
 html,body{height:100%;width:100%;min-height:100%}
 body{
   font-family:'Hanken Grotesk',sans-serif;
@@ -1433,10 +1434,6 @@ html[data-theme="light"] .ai-history-logo{background:#F3F4F6}
     <a class="mobile-nav-item {{ $active === 'agenda' ? 'active' : '' }}" href="{{ route('agenda') }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       Agenda
-    </a>
-    <a class="mobile-nav-item {{ $active === 'finanzas' ? 'active' : '' }}" href="{{ url('/finanzas') }}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>
-      Finanzas
     </a>
     <a class="mobile-nav-item {{ $active === 'configuracion' ? 'active' : '' }}" href="{{ url('/configuracion') }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87 1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>

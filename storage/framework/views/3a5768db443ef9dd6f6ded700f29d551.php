@@ -22,7 +22,7 @@
   align-items:center;
   gap:10px;
   flex:1;
-  min-width:280px;
+  min-width:clamp(160px,50vw,280px);
   max-width:420px;
   padding:12px 16px;
   border-radius:var(--r-md);
@@ -1944,7 +1944,9 @@
   }
   .table-header span:nth-child(2),
   .patient-row .cell-estado{display:none}
-  .toolbar{flex-wrap:nowrap}
+  .toolbar{flex-wrap:wrap}
+  .search-box{min-width:100%;max-width:none;padding:10px 12px;font-size:13px}
+  .search-box svg{width:16px;height:16px}
   .btn-new span{font-size:12px}
   .patient-name{font-size:13px}
   .patient-initials{width:32px;height:32px;font-size:11px}
