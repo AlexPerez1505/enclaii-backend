@@ -1,7 +1,7 @@
 @php
-  $desktopAppVersion = '0.1.7';
-  $desktopAppArchitecture = '64 bits';
-  $desktopAppSize = '18.5 MB';
+  $desktopAppVersion = config('desktop_app.version', '0.1.7');
+  $desktopAppArchitecture = config('desktop_app.architecture', '64 bits');
+  $desktopAppSize = config('desktop_app.size', '18.5 MB');
 @endphp
 
 @push('styles')
