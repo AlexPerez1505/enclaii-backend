@@ -58,6 +58,8 @@ class PacienteController extends Controller
     public function store(Request $request)
     {
         try {
+            $this->prepareTelefono($request);
+
             $validated = $request->validate([
                 'folio' => [
                     'required',
@@ -74,7 +76,7 @@ class PacienteController extends Controller
                 'altura' => ['nullable', 'numeric', 'min:0', 'max:9.99'],
                 'sexo' => ['nullable', 'string', 'max:50'],
                 'direccion' => ['nullable', 'string', 'max:255'],
-                'telefono' => ['nullable', 'regex:/^\d{0,10}$/'],
+                'telefono' => ['nullable', 'string', 'max:50'],
                 'email' => ['nullable', 'email', 'max:255'],
                 'medico' => ['nullable', 'string', 'max:255'],
                 'procedimiento' => ['nullable', 'string', 'max:255'],
@@ -175,6 +177,8 @@ class PacienteController extends Controller
 
     public function update(Request $request, Paciente $paciente)
     {
+        $this->prepareTelefono($request);
+
         $validated = $request->validate([
             'folio' => [
                 'required',
@@ -192,7 +196,7 @@ class PacienteController extends Controller
             'altura' => ['nullable', 'numeric', 'min:0', 'max:9.99'],
             'sexo' => ['nullable', 'string', 'max:50'],
             'direccion' => ['nullable', 'string', 'max:255'],
-            'telefono' => ['nullable', 'regex:/^\d{0,10}$/'],
+            'telefono' => ['nullable', 'string', 'max:50'],
             'email' => ['nullable', 'email', 'max:255'],
             'medico' => ['nullable', 'string', 'max:255'],
             'procedimiento' => ['nullable', 'string', 'max:255'],
@@ -514,6 +518,31 @@ class PacienteController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Sala eliminada.',
+        ]);
+    }
+
+    private function prepareTelefono(Request $request): void
+    {
+        $lada = trim((string) $request->input('telefono_lada', ''));
+        $numero = trim((string) $request->input('telefono_numero', ''));
+
+        if ($lada !== '' || $numero !== '') {
+            $ladaDigits = substr(preg_replace('/\D+/', '', $lada) ?? '', 0, 4);
+            $numeroDigits = substr(preg_replace('/\D+/', '', $numero) ?? '', 0, 20);
+
+            $request->merge([
+                'telefono' => $numeroDigits !== ''
+                    ? trim(($ladaDigits !== '' ? '+'.$ladaDigits.' ' : '').$numeroDigits)
+                    : null,
+            ]);
+
+            return;
+        }
+
+        $telefono = trim((string) $request->input('telefono', ''));
+
+        $request->merge([
+            'telefono' => $telefono !== '' ? $telefono : null,
         ]);
     }
 
