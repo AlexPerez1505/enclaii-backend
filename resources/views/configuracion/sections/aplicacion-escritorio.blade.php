@@ -2,6 +2,7 @@
   $desktopAppVersion = config('desktop_app.version', '0.1.7');
   $desktopAppArchitecture = config('desktop_app.architecture', '64 bits');
   $desktopAppSize = config('desktop_app.size', '18.5 MB');
+  $desktopAppManualUrl = asset('docs/manual-instalacion-enclaii-endoscopy.pdf');
 @endphp
 
 @push('styles')
@@ -82,10 +83,12 @@
 .desktop-release-list{margin:0;padding-left:16px;display:flex;flex-direction:column;gap:8px}
 .desktop-release-list li{font-size:11.8px;color:var(--txt-soft);line-height:1.35}
 .desktop-side-link{display:inline-flex;align-items:center;gap:8px;margin-top:14px;color:var(--cyan);font-size:12px;font-weight:800}
-.desktop-guide{display:grid;grid-template-columns:1fr 64px;gap:16px;align-items:center}
+.desktop-guide{display:grid;grid-template-columns:1fr 64px;gap:16px;align-items:center;color:inherit;text-decoration:none;cursor:pointer;transition:transform .15s,filter .15s,border-color .15s}
 .desktop-guide p{font-size:12px;color:var(--txt-soft);line-height:1.45;margin:4px 0 0}
 .desktop-guide-art{width:60px;height:72px;border-radius:14px;background:linear-gradient(135deg,#1a8cff,#36d5ff);display:grid;place-items:center;color:#fff;box-shadow:0 18px 32px rgba(45,120,255,.32)}
 .desktop-guide-art svg{width:34px;height:34px}
+.desktop-guide:focus-visible{outline:3px solid rgba(56,199,244,.35);outline-offset:3px}
+@media (hover:hover){.desktop-guide:hover{filter:brightness(1.06);border-color:rgba(56,199,244,.38);transform:translateY(-1px)}}
 html[data-theme="light"] .desktop-app-main{
   background:
     radial-gradient(circle at 76% 18%,rgba(14,165,233,.16),transparent 30%),
@@ -355,10 +358,8 @@ html[data-theme="light"] .desktop-security-cloud{
             <h4>Windows</h4>
             <ul class="desktop-side-list">
               <li>Windows 10 u 11 de 64 bits</li>
-              <li>Procesador Intel Core i5 o superior</li>
               <li>8 GB de RAM recomendado</li>
               <li>20 MB libres para descargar el instalador</li>
-              <li>Puerto USB 3.0 o superior</li>
               <li>Conexión a internet para sincronización</li>
             </ul>
           </div>
@@ -400,7 +401,7 @@ html[data-theme="light"] .desktop-security-cloud{
         </ul>
       </article>
 
-      <article class="card desktop-side-card desktop-guide rise d5">
+      <a class="card desktop-side-card desktop-guide rise d5" href="{{ $desktopAppManualUrl }}" target="_blank" rel="noopener" aria-label="Abrir manual de instalación de ENCLAII Endoscopy">
         <div>
           <div class="desktop-side-title" style="margin-bottom:8px">
             <span>
@@ -421,7 +422,7 @@ html[data-theme="light"] .desktop-security-cloud{
             <path d="M9 17h4"/>
           </svg>
         </span>
-      </article>
+      </a>
     </aside>
   </div>
 </div>
