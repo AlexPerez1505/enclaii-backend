@@ -51,7 +51,7 @@
   margin-bottom:28px;
 }
 .form-grid.personal{
-  grid-template-columns:repeat(4, 1fr);
+  grid-template-columns:repeat(4, minmax(0, 1fr));
 }
 .form-grid.medical{
   grid-template-columns:repeat(2, 1fr);
@@ -62,6 +62,7 @@
   display:flex;
   flex-direction:column;
   gap:8px;
+  min-width:0;
 }
 .form-group label{
   font-size:12px;
@@ -73,6 +74,9 @@
 .form-group input,
 .form-group select,
 .form-group textarea{
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
   padding:12px 14px;
   border-radius:10px;
   border:1px solid var(--stroke-strong);
@@ -592,7 +596,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
 /* Responsive */
 @media (max-width:1200px){
   .hologram-container{display:none}
-  .form-grid.personal{grid-template-columns:repeat(2, 1fr)}
+  .form-grid.personal{grid-template-columns:repeat(2, minmax(0, 1fr))}
   .form-group.span-2,
   .form-group.span-3{grid-column:span 2}
 }
