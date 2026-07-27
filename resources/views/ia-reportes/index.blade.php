@@ -50,27 +50,26 @@ html[data-theme="light"] .stat::after{
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:8px;
+  gap:7px;
   width:100%;
   margin-top:auto;
-  padding:11px 18px;
-  border-radius:999px;
-  background:var(--hover-bg);
-  border:1px solid var(--stroke-strong);
-  color:var(--blue);
+  padding:8px 13px;
+  border:0;
+  border-radius:var(--r-md);
+  background:linear-gradient(135deg,var(--blue),var(--cyan));
+  color:#fff;
   font-size:13px;
-  font-weight:600;
+  font-weight:700;
   text-decoration:none;
-  transition:background .15s ease,border-color .15s ease,color .15s ease,transform .15s ease;
+  cursor:pointer;
+  box-shadow:0 8px 22px -8px rgba(46,123,246,.6);
+  transition:filter 150ms ease, transform 160ms var(--ease-out);
 }
-.tbl-link:hover{
-  background:var(--hover-bg-strong);
-  border-color:var(--blue);
-  color:var(--cyan);
-  transform:translateY(-1px);
+.tbl-link:active{transform:scale(.97)}
+.tbl-link svg{width:14px;height:14px}
+@media (hover:hover) and (pointer:fine){
+  .tbl-link:hover{filter:brightness(1.1)}
 }
-.tbl-link svg{width:14px;height:14px;transition:transform .15s ease}
-.tbl-link:hover svg{transform:translateX(3px)}
 
 /* Fila de KPIs */
 .stats{
