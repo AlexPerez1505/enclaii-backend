@@ -47,11 +47,9 @@ html[data-theme="light"] .stat::after{
 }
 .card h3{margin-bottom:10px}
 .tbl-link{
-  display:flex;
+  display:inline-flex;
   align-items:center;
-  justify-content:center;
   gap:7px;
-  width:100%;
   margin-top:auto;
   padding:8px 13px;
   border:0;
@@ -62,6 +60,7 @@ html[data-theme="light"] .stat::after{
   font-weight:700;
   text-decoration:none;
   cursor:pointer;
+  align-self:flex-start;
   box-shadow:0 8px 22px -8px rgba(46,123,246,.6);
   transition:filter 150ms ease, transform 160ms var(--ease-out);
 }
