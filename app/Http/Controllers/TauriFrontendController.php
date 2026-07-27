@@ -365,6 +365,28 @@ class TauriFrontendController extends Controller
             'critical' => $h['es_critico'],
         ])->values();
 
+        $estudiosSinReporte = Estudio::with('paciente')
+            ->whereDoesntHave('reportes')
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function (Estudio $e) {
+                $nombre = $e->paciente?->nombre_completo ?? $e->paciente_nombre ?? 'Sin paciente';
+                $ini = collect(explode(' ', $nombre))->filter()->take(2)->map(fn ($x) => mb_strtoupper(mb_substr($x, 0, 1)))->implode('') ?: 'NA';
+                $fechaBase = $e->fecha ?? $e->created_at;
+                $diasPendiente = max(0, $fechaBase->diffInDays(now()));
+
+                return [
+                    'id' => $e->id,
+                    'ini' => $ini,
+                    'paciente' => $nombre,
+                    'tipo' => $e->tipo ?? 'Estudio',
+                    'fecha' => optional($e->fecha)->format('d/m/Y') ?? $e->created_at?->format('d/m/Y') ?? '—',
+                    'pct' => min(100, max(15, $diasPendiente * 20)),
+                ];
+            })
+            ->values();
+
         return response()->json([
             'ok' => true,
             'reports' => $reports,
@@ -376,6 +398,8 @@ class TauriFrontendController extends Controller
                 'estudios' => ['valor' => Estudio::count()],
             ],
             'findings' => $findings,
+            'estudios_sin_reporte' => $estudiosSinReporte,
+            'estudiosSinReporte' => $estudiosSinReporte,
         ]);
     }
 
