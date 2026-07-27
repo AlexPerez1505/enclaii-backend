@@ -288,8 +288,8 @@ html[data-theme="light"] .gauge .stomach{background:var(--blue)}
   content:"";
   position:absolute;inset:0;border-radius:50%;
   background:conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,.25) 40deg, transparent 80deg);
-  -webkit-mask:radial-gradient(circle, transparent 45px, rgba(0,0,0,.85) 48px, rgba(0,0,0,.85) 56px, transparent 59px);
-          mask:radial-gradient(circle, transparent 45px, rgba(0,0,0,.85) 48px, rgba(0,0,0,.85) 56px, transparent 59px);
+  -webkit-mask:radial-gradient(circle, black 58px, transparent 60px);
+          mask:radial-gradient(circle, black 58px, transparent 60px);
   pointer-events:none;
   animation:scanner 2.4s linear infinite;
   z-index:0;
