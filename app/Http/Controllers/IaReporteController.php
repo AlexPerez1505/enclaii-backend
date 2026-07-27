@@ -81,6 +81,8 @@ class IaReporteController extends Controller
             ->map(function ($e) {
                 $nombre = $e->paciente?->nombre_completo ?? $e->paciente_nombre ?? 'Sin paciente';
                 $ini = collect(explode(' ', $nombre))->filter()->take(2)->map(fn ($x) => mb_strtoupper(mb_substr($x, 0, 1)))->implode('') ?: 'NA';
+                $fechaBase = $e->fecha ?? $e->created_at;
+                $diasPendiente = max(0, $fechaBase->diffInDays(now()));
 
                 return [
                     'id' => $e->id,
@@ -88,13 +90,12 @@ class IaReporteController extends Controller
                     'paciente' => $nombre,
                     'tipo' => $e->tipo ?? 'Estudio',
                     'fecha' => optional($e->fecha)->format('d/m/Y') ?? format_user_date($e->created_at),
+                    'pct' => min(100, max(15, $diasPendiente * 20)),
                 ];
             })
             ->values();
 
-        $pctSinReporte = min(100, $kpis['sin_reporte']['valor'] * 10);
-
-        return view('ia-reportes.index', compact('kpis', 'reportes', 'hallazgos', 'estudiosSinReporte', 'pctSinReporte'));
+        return view('ia-reportes.index', compact('kpis', 'reportes', 'hallazgos', 'estudiosSinReporte'));
     }
 
     public function generar(Request $request, OpenAiReportService $service): JsonResponse

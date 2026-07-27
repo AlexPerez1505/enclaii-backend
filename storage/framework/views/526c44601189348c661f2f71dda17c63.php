@@ -227,7 +227,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
 .card-pred{
   border-color:rgba(56,199,244,.4);
   display:grid;
-  grid-template-columns:1.7fr 1fr;
+  grid-template-columns:1.05fr 1.5fr 1fr;
   gap:0;
   align-items:center;
 }
@@ -235,22 +235,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
 .card-pred > *:first-child{padding-left:0}
 .card-pred > *:last-child{padding-right:0}
 .card-pred > * + *{border-left:1px solid var(--stroke)}
-.pred-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px}
-.pred-head .orb{
-  width:44px;height:44px;flex:none;
-  border-radius:12px;
-  border:1px solid var(--stroke-strong);
-  display:grid;place-items:center;
-  color:var(--cyan);
-  background:rgba(56,199,244,.08);
-}
-.pred-head h3{margin-bottom:2px;font-size:16px}
-.pred-head p{font-size:12.5px;color:var(--txt-soft);line-height:1.4}
-.pred-list{display:flex;flex-direction:column;gap:14px}
-.pred-item{display:flex;align-items:center;justify-content:space-between;gap:14px}
-.pred-item + .pred-item{padding-top:14px;border-top:1px solid var(--stroke)}
-.pred-item .btn-line{flex:none;white-space:nowrap}
-.pred-pat{display:flex;align-items:center;gap:10px;font-size:13.5px}
+.pred-pat{display:flex;align-items:center;gap:10px;font-size:13.5px;margin-bottom:6px}
 .pred-pat .mini{
   width:30px;height:30px;border-radius:50%;
   background:rgba(46,123,246,.2);
@@ -260,7 +245,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
   flex:none;
 }
 .pred-meta{font-size:12.5px;color:var(--txt-soft);line-height:1.6}
-.prob{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.prob{display:flex;align-items:center;justify-content:center;gap:20px}
 .prob-info{min-width:0}
 .prob-info h4{margin-bottom:0}
 .prob-num{
@@ -294,6 +279,14 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
 .gauge-center{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
 .gauge-center .pct{font-family:'Sora',sans-serif;font-size:26px;font-weight:800;line-height:1}
 .gauge-center .lbl{font-size:11px;color:var(--txt-soft);margin-top:2px}
+.risk{text-align:center}
+.risk .lvl{
+  font-family:'Sora',sans-serif;
+  font-size:22px;font-weight:800;
+  color:var(--cyan);
+}
+.risk .sub{font-size:12.5px;color:var(--txt-soft);margin:6px 0 16px}
+.pred-fade{transition:opacity .35s ease}
 #waterLevel{transition:transform 1.2s var(--ease-out)}
 
 /* Aviso legal */
@@ -458,33 +451,23 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
     </article>
 
     
+    <?php $primerEstudio = $estudiosSinReporte->first(); ?>
     <article class="card card-pred rise d7">
 
-      <div class="pred-list">
-        <?php $__empty_1 = true; $__currentLoopData = $estudiosSinReporte; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $e): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-          <div class="pred-item">
-            <div class="pred-pat">
-              <span class="mini"><?php echo e($e['ini']); ?></span>
-              <div>
-                <b><?php echo e($e['paciente']); ?></b>
-                <div class="pred-meta"><?php echo e($e['tipo']); ?> · <?php echo e($e['fecha']); ?></div>
-              </div>
-            </div>
-            <a class="btn-line" href="<?php echo e(route('ia-reportes.redactar', ['estudio' => $e['id']])); ?>">
-              Acceder a su estudio
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-            </a>
-          </div>
-        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-          <p style="color:var(--txt-soft);font-size:13px">No hay estudios pendientes de reporte.</p>
-        <?php endif; ?>
+      <div>
+        <div class="pred-pat pred-fade"><span class="mini" id="predMini"><?php echo e($primerEstudio['ini'] ?? ''); ?></span><b id="predName"><?php echo e($primerEstudio['paciente'] ?? 'Sin estudios pendientes'); ?></b></div>
+        <div class="pred-meta pred-fade" id="predMeta">
+          Estudio: <?php echo e($primerEstudio['tipo'] ?? '—'); ?><br>
+          Fecha: <?php echo e($primerEstudio['fecha'] ?? '—'); ?>
+
+        </div>
       </div>
 
       <div class="prob">
         <div class="gauge">
           <svg viewBox="0 0 120 120">
             <circle class="track" cx="60" cy="60" r="50"/>
-            <circle class="val" id="predGauge" cx="60" cy="60" r="50" stroke-dasharray="314.16" stroke-dashoffset="314.16" data-pct="<?php echo e($pctSinReporte); ?>"/>
+            <circle class="val" id="predGauge" cx="60" cy="60" r="50" stroke-dasharray="314.16" stroke-dashoffset="314.16" data-pct="<?php echo e($primerEstudio['pct'] ?? 0); ?>"/>
           </svg>
           <div class="gauge-center">
             <div class="stomach">
@@ -539,7 +522,15 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
             </div>
           </div>
         </div>
-        <p class="prob-sub" style="text-align:center;margin-top:10px">Estudios pendientes de reporte</p>
+      </div>
+
+      <div class="risk">
+        <div class="lvl pred-fade" id="predRisk" style="<?php echo e(($primerEstudio ?? null) ? '' : 'display:none'); ?>">Sin reporte</div>
+        <div class="sub pred-fade" id="predRiskSub">Requiere elaborar el reporte clínico</div>
+        <a class="btn-line pred-fade" id="predLink" href="<?php echo e(route('ia-reportes.redactar', ['estudio' => $primerEstudio['id'] ?? null])); ?>" <?php if(! $primerEstudio): ?> style="pointer-events:none;opacity:.5" <?php endif; ?>>
+          Acceder a su estudio
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
       </div>
 
     </article>
@@ -649,15 +640,49 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
 
   setTimeout(drawAll, 400);
 
-  /* ============ Estudios sin reporte: nivel del estómago ============ */
+  /* ============ Estudios sin reporte: rotación de pacientes ============ */
+  const PRED = <?php echo json_encode($estudiosSinReporte, 15, 512) ?>;
+
+  const elMini  = document.getElementById('predMini');
+  const elName  = document.getElementById('predName');
+  const elMeta  = document.getElementById('predMeta');
   const elGauge = document.getElementById('predGauge');
   const elWater = document.getElementById('waterLevel');
+  const elLink  = document.getElementById('predLink');
+  const fades   = document.querySelectorAll('.pred-fade');
+  const redactarBase = <?php echo json_encode(route('ia-reportes.redactar'), 15, 512) ?>;
+  const setLink = (id) => { if (elLink) elLink.href = redactarBase + '?estudio=' + id; };
 
-  if (elGauge && elWater) {
-    const pct = parseFloat(elGauge.dataset.pct) || 0;
-    const dy = (62 * (1 - pct / 100)) - 27;
+  if (!elGauge || !PRED.length) return;
+
+  const applyPred = (p) => {
+    // Gauge (anillo)
+    elGauge.dataset.pct = p.pct;
+    drawRing(elGauge, 314.16);
+    // Nivel de agua: sube/baja según el nivel de urgencia del estudio
+    const dy = (62 * (1 - p.pct / 100)) - 27;
     elWater.style.transform = 'translateY(' + dy + 'px)';
-  }
+  };
+
+  let idx = 0;
+  applyPred(PRED[0]); // sincroniza nivel inicial
+  setLink(PRED[0].id);
+
+  const cycle = () => {
+    idx = (idx + 1) % PRED.length;
+    const p = PRED[idx];
+    fades.forEach(f => f.style.opacity = '0');
+    setTimeout(() => {
+      elMini.textContent = p.ini;
+      elName.textContent = p.paciente;
+      elMeta.innerHTML   = 'Estudio: ' + p.tipo + '<br>Fecha: ' + p.fecha;
+      applyPred(p);
+      setLink(p.id);
+      fades.forEach(f => f.style.opacity = '1');
+    }, 350);
+  };
+
+  if (PRED.length > 1) setInterval(cycle, 9000);
 })();
 </script>
 <?php $__env->stopPush(); ?>
