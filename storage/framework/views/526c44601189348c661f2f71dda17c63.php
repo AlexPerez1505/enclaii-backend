@@ -10,7 +10,7 @@
 /* ============ ESTILOS SOLO DE IA REPORTES ============ */
 
 /* Compactar tarjetas en esta pantalla para que todo entre de primera */
-.main{padding-top:20px;padding-bottom:22px}
+.main{padding-top:20px;padding-bottom:22px;display:flex;flex-direction:column}
 .head{margin-bottom:16px}
 .card{padding:16px 18px}
 .stat::after{
@@ -99,14 +99,16 @@ html[data-theme="light"] .stat::after{
 .rep-grid{
   display:grid;
   grid-template-columns:2.4fr 1fr;
+  grid-template-rows:1fr auto;
   gap:14px;
-  margin-bottom:14px;
+  flex:1 1 auto;
+  min-height:0;
   align-items:stretch;
 }
-.rep-tbl{grid-column:1;grid-row:1;min-width:0}
-.card-pred{grid-column:1;grid-row:2;min-width:0}
-.rep-hall{grid-column:2;grid-row:1}
-.rep-grid .recs{grid-column:2;grid-row:2}
+.rep-tbl{grid-column:1;grid-row:1;min-width:0;min-height:0;display:flex;flex-direction:column}
+.card-pred{grid-column:1;grid-row:2;min-width:0;min-height:0}
+.rep-hall{grid-column:2;grid-row:1;min-height:0;display:flex;flex-direction:column;overflow:auto}
+.rep-grid .recs{grid-column:2;grid-row:2;min-height:0;display:flex;flex-direction:column;overflow:auto}
 
 /* Cabecera de la tarjeta de reportes */
 .card-head{
@@ -145,7 +147,7 @@ html[data-theme="light"] .stat::after{
 }
 
 /* Tabla de reportes */
-.tbl-wrap{overflow-x:visible}
+.tbl-wrap{flex:1 1 auto;min-height:0;overflow:auto}
 table.tbl{width:100%;border-collapse:collapse;font-size:14px}
 .tbl th{
   text-align:left;
@@ -329,14 +331,15 @@ html[data-theme="light"] .gauge::before{
 /* Responsive */
 @media (max-width:1380px){
   .stats{grid-template-columns:1fr 1fr}
-  .rep-grid{grid-template-columns:1fr}
-  .rep-tbl,.card-pred,.rep-hall,.rep-grid .recs{grid-column:1;grid-row:auto}
+  .rep-grid{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto auto auto}
+  .rep-tbl,.card-pred,.rep-hall,.rep-grid .recs{grid-column:1;grid-row:auto;min-height:0}
   .card-pred{grid-template-columns:1fr;gap:14px}
   .card-pred > *{padding:0}
   .card-pred > * + *{border-left:0;border-top:1px solid var(--stroke);padding-top:14px}
 }
 @media (max-width:720px){
   .stats{grid-template-columns:1fr}
+  .main{padding:14px 16px 22px}
 }
 @media (prefers-reduced-motion: reduce){
   .bar i,.conf .ring .val,.gauge .val{transition:none}
