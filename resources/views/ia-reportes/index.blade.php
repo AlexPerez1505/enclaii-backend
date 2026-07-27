@@ -23,9 +23,9 @@
   pointer-events:none;
   animation:cardShine 5.6s ease-in-out infinite;
 }
-/* En tema claro el brillo blanco no se aprecia: usar un brillo gris */
+/* En tema claro el brillo blanco no se aprecia: usar un brillo azul clarito */
 html[data-theme="light"] .stat::after{
-  background:linear-gradient(100deg,transparent 0%,rgba(110,120,140,.18) 50%,transparent 100%);
+  background:linear-gradient(100deg,transparent 0%,rgba(56,199,244,.22) 50%,transparent 100%);
 }
 /* El barrido ocurre solo en el primer 25% del ciclo; el resto queda fuera.
    Con los retardos escalonados, una tarjeta termina de brillar y empieza la siguiente. */
