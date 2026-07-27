@@ -51,7 +51,7 @@
   margin-bottom:28px;
 }
 .form-grid.personal{
-  grid-template-columns:repeat(4, 1fr);
+  grid-template-columns:repeat(4, minmax(0, 1fr));
 }
 .form-grid.medical{
   grid-template-columns:repeat(2, 1fr);
@@ -62,6 +62,7 @@
   display:flex;
   flex-direction:column;
   gap:8px;
+  min-width:0;
 }
 .form-group label{
   font-size:12px;
@@ -73,6 +74,9 @@
 .form-group input,
 .form-group select,
 .form-group textarea{
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
   padding:12px 14px;
   border-radius:10px;
   border:1px solid var(--stroke-strong);
@@ -90,6 +94,33 @@
   box-shadow:0 0 0 3px rgba(56,199,244,.15);
 }
 .form-group input::placeholder{color:var(--off)}
+
+.phone-composite{
+  display:grid;
+  grid-template-columns:76px minmax(0, 1fr);
+  width:100%;
+}
+.phone-composite input{height:100%}
+.phone-composite .phone-lada{
+  border-top-right-radius:0;
+  border-bottom-right-radius:0;
+  text-align:center;
+  font-weight:700;
+  color:var(--cyan);
+  padding-left:10px;
+  padding-right:10px;
+}
+.phone-composite .phone-number{
+  border-top-left-radius:0;
+  border-bottom-left-radius:0;
+  border-left:0;
+}
+.phone-composite input:focus{box-shadow:none}
+.phone-composite:focus-within{
+  border-radius:10px;
+  box-shadow:0 0 0 3px rgba(56,199,244,.15);
+}
+.phone-composite:focus-within input{border-color:var(--cyan)}
 
 /* Forzar color oscuro en los inputs en modo oscuro */
 html[data-theme="dark"] .form-group input,
@@ -592,7 +623,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
 /* Responsive */
 @media (max-width:1200px){
   .hologram-container{display:none}
-  .form-grid.personal{grid-template-columns:repeat(2, 1fr)}
+  .form-grid.personal{grid-template-columns:repeat(2, minmax(0, 1fr))}
   .form-group.span-2,
   .form-group.span-3{grid-column:span 2}
 }
@@ -974,6 +1005,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
   .btn-photo{padding:8px 12px;font-size:12px}
   .form-group label{font-size:12px}
   .form-group input,.form-group select,.form-group textarea{font-size:13px;padding:10px 12px}
+  .phone-composite{grid-template-columns:68px minmax(0, 1fr)}
   .btn-save-fixed{font-size:13px;padding:12px 20px}
   .back-link{font-size:13px}
   .modal-photo{padding:16px}
@@ -1101,9 +1133,29 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
         <input type="text" name="direccion" value="{{ old('direccion') }}" placeholder="CALLE, CP">
       </div>
 
+      @php
+        $telefonoCompleto = trim((string) old('telefono', ''));
+        $telefonoLadaOld = old('telefono_lada');
+        $telefonoNumeroOld = old('telefono_numero');
+        $telefonoLada = $telefonoLadaOld !== null ? $telefonoLadaOld : '+52';
+        $telefonoNumero = $telefonoNumeroOld !== null ? $telefonoNumeroOld : '';
+
+        if ($telefonoLadaOld === null && $telefonoNumeroOld === null && $telefonoCompleto !== '') {
+            if (preg_match('/^\s*(\+\d{1,4})[\s\-.]*(.*)$/', $telefonoCompleto, $telefonoPartes)) {
+                $telefonoLada = $telefonoPartes[1];
+                $telefonoNumero = $telefonoPartes[2] ?? '';
+            } else {
+                $telefonoNumero = $telefonoCompleto;
+            }
+        }
+      @endphp
       <div class="form-group">
         <label>Teléfono</label>
-        <input type="tel" name="telefono" value="{{ old('telefono') }}" placeholder="7221620815" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/\D/g,'').slice(0,10)">
+        <input type="hidden" name="telefono" id="telefonoCompleto" value="{{ $telefonoCompleto }}">
+        <div class="phone-composite">
+          <input class="phone-lada" type="text" name="telefono_lada" id="telefonoLada" value="{{ $telefonoLada }}" placeholder="+52" maxlength="5" inputmode="tel" autocomplete="tel-country-code" aria-label="Lada del telefono">
+          <input class="phone-number" type="tel" name="telefono_numero" id="telefonoNumero" value="{{ $telefonoNumero }}" placeholder="722 162 0815" maxlength="20" inputmode="tel" autocomplete="tel-national" aria-label="Numero de telefono">
+        </div>
       </div>
       <div class="form-group span-3">
         <label>e-mail</label>
@@ -1131,30 +1183,22 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
                 </option>
               @endforeach
             </select>
-            <button type="button" class="btn-add-procedimiento" onclick="addMedicoMed()" title="Agregar médico">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </button>
           </div>
         </div>
         <div class="form-group" style="margin-bottom:18px;">
-    <label>Procedimiento</label>
-    <div class="select-with-add">
-        <select id="procedimientoSelect" name="procedimiento" data-campo="procedimiento" style="flex:1;">
-            <option value="">Seleccione un procedimiento...</option>
-            @foreach($listaProcedimientos as $p)
+          <label>Procedimiento</label>
+          <div class="select-with-add">
+            <select id="procedimientoSelect" name="procedimiento" data-campo="procedimiento" style="flex:1;">
+              <option value="">Seleccione un procedimiento...</option>
+              @foreach($listaProcedimientos as $p)
                 <option value="{{ $p->nombre }}">
-                    {{ $p->nombre }}
+                  {{ $p->nombre }}
                 </option>
-            @endforeach
-        </select>
-        
-        {{-- Botón para añadir uno nuevo manualmente --}}
-        <button type="button" class="btn-add-procedimiento" onclick="addNuevoProcedimiento()" title="Agregar procedimiento">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </button>
-    </div>
-    <div id="procedimientosAgregados" class="procedimientos-tags"></div>
-</div>
+              @endforeach
+            </select>
+          </div>
+          <div id="procedimientosAgregados" class="procedimientos-tags"></div>
+        </div>
         <div class="form-group" style="margin-bottom:18px;">
           <label>Anestesiólogo</label>
           <div class="select-with-add">
@@ -1166,9 +1210,6 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
                 </option>
               @endforeach
             </select>
-            <button type="button" class="btn-add-procedimiento" onclick="addAnestesiologo()" title="Agregar anestesiólogo">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </button>
           </div>
         </div>
       </div>
@@ -2099,6 +2140,45 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
 
 
 
+  // ===== TELEFONO CON LADA =====
+  const telefonoCompleto = document.getElementById('telefonoCompleto');
+  const telefonoLada = document.getElementById('telefonoLada');
+  const telefonoNumero = document.getElementById('telefonoNumero');
+
+  function normalizarTelefonoLada() {
+    if (!telefonoLada) return '';
+
+    const digits = telefonoLada.value.replace(/\D/g, '').slice(0, 4);
+    telefonoLada.value = digits ? '+' + digits : '';
+
+    return telefonoLada.value;
+  }
+
+  function normalizarTelefonoNumero() {
+    if (!telefonoNumero) return '';
+
+    telefonoNumero.value = telefonoNumero.value
+      .replace(/[^\d\s().-]/g, '')
+      .slice(0, 20);
+
+    return telefonoNumero.value.trim();
+  }
+
+  function syncTelefonoCompleto() {
+    if (!telefonoCompleto || !telefonoLada || !telefonoNumero) return;
+
+    const lada = normalizarTelefonoLada();
+    const numero = normalizarTelefonoNumero();
+
+    telefonoCompleto.value = numero ? [lada, numero].filter(Boolean).join(' ') : '';
+  }
+
+  if (telefonoLada && telefonoNumero) {
+    telefonoLada.addEventListener('input', syncTelefonoCompleto);
+    telefonoNumero.addEventListener('input', syncTelefonoCompleto);
+    syncTelefonoCompleto();
+  }
+
   // ===== FOTO DEL PACIENTE: GALERÍA Y CÁMARA REAL =====
   const btnAgregarFotoAuto = document.getElementById('btnAgregarFoto');
   const modalFotoAuto = document.getElementById('modalFoto');
@@ -2323,6 +2403,8 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
 
   if (pacienteForm && btnGuardar) {
     pacienteForm.addEventListener('submit', function(e) {
+      syncTelefonoCompleto();
+
       if (!pacienteForm.checkValidity()) {
         pacienteForm.reportValidity();
         e.preventDefault();

@@ -8,24 +8,23 @@ use Illuminate\Support\Facades\Storage;
 
 class DesktopAppDownloadController extends Controller
 {
-    private const INSTALLER_PATH = 'windows/stable/ENCLAII-Setup.msi';
-    private const DOWNLOAD_NAME = 'ENCLAII_0.1.1_x64.msi';
-
     public function __invoke(Request $request): RedirectResponse
     {
         abort_unless($request->user()?->subscribed(), 403);
 
         $disk = Storage::disk('downloads');
+        $installerPath = (string) config('desktop_app.installer_path');
+        $downloadName = (string) config('desktop_app.download_name');
 
-        abort_unless($disk->exists(self::INSTALLER_PATH), 404, 'El instalador no está disponible.');
+        abort_unless($installerPath !== '' && $disk->exists($installerPath), 404, 'El instalador no está disponible.');
 
         $ttl = max(1, (int) config('filesystems.downloads_url_ttl', 10));
 
         $url = $disk->temporaryUrl(
-            self::INSTALLER_PATH,
+            $installerPath,
             now()->addMinutes($ttl),
             [
-                'ResponseContentDisposition' => 'attachment; filename="'.self::DOWNLOAD_NAME.'"; filename*=UTF-8\'\''.rawurlencode(self::DOWNLOAD_NAME),
+                'ResponseContentDisposition' => 'attachment; filename="'.$downloadName.'"; filename*=UTF-8\'\''.rawurlencode($downloadName),
             ],
         );
 

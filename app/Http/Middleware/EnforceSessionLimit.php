@@ -18,6 +18,12 @@ class EnforceSessionLimit
         $user = $request->user();
 
         if ($user) {
+            $response = $this->sessionLimits->checkInactivity($request, $user);
+
+            if ($response !== null) {
+                return $response;
+            }
+
             $this->sessionLimits->syncCurrentDatabaseSession($request, $user);
             $closed = $this->sessionLimits->enforceDatabaseSessions(
                 $user,

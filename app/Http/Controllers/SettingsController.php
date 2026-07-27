@@ -76,6 +76,10 @@ class SettingsController extends Controller
             'capture_auto_capture' => ['sometimes', 'boolean'],
             'capture_auto_save' => ['sometimes', 'boolean'],
             'capture_auto_interval' => ['sometimes', 'integer', 'min:5', 'max:300'],
+            'ai_analyze_photos' => ['sometimes', 'boolean'],
+            'ai_suggest_diagnoses' => ['sometimes', 'boolean'],
+            'ai_recommend_procedures' => ['sometimes', 'boolean'],
+            'session_timeout' => ['sometimes', 'integer', 'min:0', 'max:1440'],
         ]);
 
         /** @var User $user */

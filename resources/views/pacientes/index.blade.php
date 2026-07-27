@@ -24,7 +24,7 @@
   align-items:center;
   gap:10px;
   flex:1;
-  min-width:280px;
+  min-width:clamp(160px,50vw,280px);
   max-width:420px;
   padding:12px 16px;
   border-radius:var(--r-md);
@@ -918,6 +918,22 @@
   flex-direction:column;
   gap:12px;
   margin-bottom:20px;
+  max-height:340px;
+  overflow-y:auto;
+  padding-right:4px;
+}
+.historial-list::-webkit-scrollbar{
+  width:6px;
+}
+.historial-list::-webkit-scrollbar-track{
+  background:transparent;
+}
+.historial-list::-webkit-scrollbar-thumb{
+  background:var(--stroke);
+  border-radius:3px;
+}
+.historial-list::-webkit-scrollbar-thumb:hover{
+  background:var(--blue);
 }
 .historial-item{
   display:flex;
@@ -1594,6 +1610,263 @@
   color:var(--green);
 }
 
+/* Stats grid para Reportes IA */
+.ia-stats-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+  margin-bottom:16px;
+}
+.ia-stat-card{
+  background:var(--panel-2);
+  border:1px solid var(--stroke);
+  border-radius:var(--r-md);
+  padding:14px 10px;
+  text-align:center;
+  cursor:pointer;
+  width:100%;
+  color:inherit;
+  font-family:inherit;
+  box-sizing:border-box;
+  transition:border-color .15s ease, background .15s ease, box-shadow .15s ease;
+}
+.ia-stat-card:hover,
+.ia-stat-card.active{
+  border-color:var(--blue);
+  background:rgba(56,199,244,.08);
+}
+.ia-stat-value{
+  font-size:22px;
+  font-weight:800;
+  color:var(--blue);
+  line-height:1;
+  margin-bottom:4px;
+}
+.ia-stat-label{
+  font-size:10.5px;
+  color:var(--txt-soft);
+  text-transform:uppercase;
+  letter-spacing:.4px;
+}
+.ia-clear-filter{
+  font-size:11px;
+  padding:4px 10px;
+  border-radius:var(--r-md);
+  border:1px solid var(--stroke);
+  background:transparent;
+  color:var(--txt-soft);
+  cursor:pointer;
+  transition:all .15s ease;
+}
+.ia-clear-filter:hover{
+  color:var(--txt);
+  border-color:var(--blue);
+}
+
+/* Alerta de hallazgos críticos */
+.ia-critical-alert{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 14px;
+  border-radius:var(--r-md);
+  background:rgba(255,90,110,.1);
+  border:1px solid rgba(255,90,110,.3);
+  color:var(--red);
+  font-size:12.5px;
+  font-weight:600;
+  margin-bottom:16px;
+}
+
+/* Lista de estudios con reportes */
+.ia-reportes-list{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  margin-bottom:20px;
+  max-height:340px;
+  overflow-y:auto;
+  padding-right:4px;
+}
+.ia-reportes-list::-webkit-scrollbar{
+  width:6px;
+}
+.ia-reportes-list::-webkit-scrollbar-track{
+  background:transparent;
+}
+.ia-reportes-list::-webkit-scrollbar-thumb{
+  background:var(--stroke);
+  border-radius:3px;
+}
+.ia-reportes-list::-webkit-scrollbar-thumb:hover{
+  background:var(--blue);
+}
+.ia-estudio-card{
+  background:var(--panel-2);
+  border:1px solid var(--stroke);
+  border-radius:var(--r-md);
+  padding:10px;
+}
+.ia-estudio-pendiente{
+  border-color:rgba(255,193,7,.25);
+  background:rgba(255,193,7,.04);
+}
+.ia-estudio-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:4px;
+}
+.ia-estudio-tipo{
+  font-size:13px;
+  font-weight:700;
+  color:var(--txt);
+}
+.ia-estudio-estado{
+  font-size:10px;
+  font-weight:600;
+  padding:3px 8px;
+  border-radius:20px;
+  text-transform:uppercase;
+  letter-spacing:.3px;
+}
+.ia-estado-completado,.ia-estado-archivado{
+  background:rgba(61,220,151,.12);
+  color:var(--green);
+}
+.ia-estado-en_proceso{
+  background:rgba(255,193,7,.12);
+  color:#ffc107;
+}
+.ia-estado-cancelado{
+  background:rgba(255,90,110,.12);
+  color:var(--red);
+}
+.ia-estudio-meta{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:11px;
+  color:var(--txt-soft);
+  margin-bottom:4px;
+}
+.ia-reporte-count{
+  color:var(--cyan);
+  font-weight:600;
+}
+.ia-estudio-critico-tag{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  font-size:10px;
+  font-weight:600;
+  color:var(--red);
+  margin-bottom:4px;
+}
+
+/* Items de reporte individual */
+.ia-reporte-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:6px 8px;
+  border-radius:var(--r-sm,8px);
+  background:var(--card);
+  border:1px solid var(--stroke);
+  margin-top:4px;
+}
+.ia-reporte-info{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.ia-reporte-fecha{
+  font-size:11.5px;
+  color:var(--txt-soft);
+}
+.ia-badge-critico{
+  font-size:9.5px;
+  font-weight:700;
+  padding:2px 6px;
+  border-radius:20px;
+  background:rgba(255,90,110,.15);
+  color:var(--red);
+  text-transform:uppercase;
+}
+.ia-reporte-actions{
+  display:flex;
+  gap:6px;
+}
+.ia-reporte-btn{
+  display:grid;
+  place-items:center;
+  width:28px;
+  height:28px;
+  border-radius:6px;
+  background:var(--panel-2);
+  border:1px solid var(--stroke);
+  color:var(--txt-soft);
+  transition:all 150ms ease;
+}
+.ia-reporte-btn:hover{
+  border-color:var(--cyan);
+  color:var(--cyan);
+  background:rgba(56,199,244,.08);
+}
+
+/* Botones generar reporte dentro de estudio pendiente */
+.ia-generar-actions{
+  display:flex;
+  gap:8px;
+  margin-top:8px;
+}
+.ia-generar-btn{
+  flex:1;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  padding:8px 10px;
+  border-radius:var(--r-md);
+  background:rgba(56,199,244,.1);
+  border:1px solid rgba(56,199,244,.3);
+  color:var(--cyan);
+  font-size:11px;
+  font-weight:600;
+  transition:all 150ms ease;
+}
+.ia-generar-btn:hover{
+  background:rgba(56,199,244,.18);
+  border-color:var(--cyan);
+}
+.ia-generar-btn.normal{
+  background:rgba(255,255,255,.06);
+  border-color:var(--stroke-strong);
+  color:var(--txt);
+}
+.ia-generar-btn.normal:hover{
+  background:var(--card);
+  border-color:var(--blue);
+}
+
+/* Empty state */
+.ia-empty-state{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:12px;
+  padding:32px 16px;
+  color:var(--txt-soft);
+  text-align:center;
+}
+.ia-empty-state svg{
+  opacity:.4;
+}
+.ia-empty-state p{
+  font-size:13px;
+  margin:0;
+}
+
 @media (max-width:1200px){
   .content-with-panel.panel-open{
     grid-template-columns:1fr;
@@ -1673,7 +1946,9 @@
   }
   .table-header span:nth-child(2),
   .patient-row .cell-estado{display:none}
-  .toolbar{flex-wrap:nowrap}
+  .toolbar{flex-wrap:wrap}
+  .search-box{min-width:100%;max-width:none;padding:10px 12px;font-size:13px}
+  .search-box svg{width:16px;height:16px}
   .btn-new span{font-size:12px}
   .patient-name{font-size:13px}
   .patient-initials{width:32px;height:32px;font-size:11px}
@@ -1890,7 +2165,7 @@
     <div class="panel-tabs">
       <button class="tab-btn active" onclick="showTab('resumen')">Resumen</button>
       <button class="tab-btn" onclick="showTab('historial')">Historial</button>
-      <button class="tab-btn" onclick="showTab('reportes')">Reportes IA</button>
+      <button class="tab-btn" onclick="showTab('reportes')">Reportes </button>
     </div>
 
     {{-- Contenido Tab Resumen --}}
@@ -1972,34 +2247,43 @@
         <div class="historial-empty" id="historialEmpty" style="display:none;">
           <p style="color:var(--txt-soft);font-size:13px;text-align:center;padding:24px 0;">Este paciente aún no tiene estudios registrados.</p>
         </div>
-        <a href="#" id="btnVerTodoHistorial" class="btn-view-all">
-          Ver todo el historial de estudios
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-        </a>
       </div>
     </div>
 
     {{-- Contenido Tab Reportes IA --}}
     <div id="tab-reportes" class="tab-content">
       <div class="reportes-section">
-        <h4>Reportes IA</h4>
+        <h4>Reportes </h4>
 
-        <div class="ia-summary-card">
-          <div class="ia-patient-header">
-            <div class="ia-patient-avatar" id="reportPanelAvatar">PX</div>
-            <div class="ia-patient-info">
-              <div class="ia-patient-label">paciente</div>
-              <div class="ia-patient-name" id="reportPanelName">—</div>
-              <div class="ia-study-meta" id="reportPanelFolio">Folio: —</div>
-              <div class="ia-study-meta" id="reportPanelMeta">—</div>
-            </div>
+        {{-- Resumen de reportes  --}}
+        <div style="display:flex;justify-content:flex-end;margin-bottom:6px;">
+          <button type="button" class="ia-clear-filter" id="iaClearFilter" style="display:none;">Limpiar</button>
+        </div>
+        <div class="ia-stats-grid" id="reportesStatsGrid">
+          <button type="button" class="ia-stat-card" data-filter="con">
+            <div class="ia-stat-value" id="statEstudiosConReporte">0</div>
+            <div class="ia-stat-label">Reportes completos</div>
+          </button>
+          <button type="button" class="ia-stat-card" data-filter="sin">
+            <div class="ia-stat-value" id="statEstudiosSinReporte">0</div>
+            <div class="ia-stat-label">Pendientes</div>
+          </button>
+        </div>
+
+        {{-- Alerta de hallazgos críticos --}}
+        <div class="ia-critical-alert" id="reportesCriticalAlert" style="display:none;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span>Hallazgos críticos detectados</span>
+        </div>
+
+        {{-- Lista de estudios y sus reportes --}}
+        <div class="ia-reportes-list" id="reportesListContainer">
+          <div class="ia-empty-state" id="reportesEmptyState">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <p>Este paciente no tiene estudios ni reportes de IA.</p>
           </div>
         </div>
 
-        <a href="#" class="btn-view-all" id="reportPanelBtn">
-          Ver reporte de IA
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-        </a>
       </div>
     </div>
   </aside>
@@ -2071,14 +2355,29 @@
           ->first();
 
       $estudiosLista = $estudios->map(function($est) {
+          $reportesEst = $est->reportes()->orderByDesc('created_at')->get();
           return [
               'id' => $est->id,
               'tipo' => $est->tipo ?? 'Sin tipo',
               'fecha' => $est->fecha ? format_user_date($est->fecha) : 'Sin fecha',
+              'estado' => $est->estado ?? 'completado',
               'reporte_path' => $est->reporte_path,
               'video_path' => $est->video_path,
+              'tiene_reporte' => $reportesEst->count() > 0,
+              'total_reportes' => $reportesEst->count(),
+              'hay_criticos' => $reportesEst->contains(fn($r) => $r->contiene_hallazgos_criticos),
+              'reportes_lista' => $reportesEst->map(fn($r) => [
+                  'id' => $r->id,
+                  'fecha' => $r->created_at ? format_user_date($r->created_at) : 'Sin fecha',
+                  'criticos' => (bool) $r->contiene_hallazgos_criticos,
+              ])->toArray(),
           ];
       })->toArray();
+
+      $totalReportes = collect($estudiosLista)->sum('total_reportes');
+      $estudiosConReporte = collect($estudiosLista)->filter(fn($e) => $e['tiene_reporte'])->count();
+      $estudiosSinReporte = count($estudiosLista) - $estudiosConReporte;
+      $hayCriticos = collect($estudiosLista)->contains(fn($e) => $e['hay_criticos']);
 
       $edad = $paciente->edad;
       if (!$edad && $paciente->fecha_nacimiento) {
@@ -2115,6 +2414,12 @@
                   })($proximaCita->hora)
                   : '',
           ] : null,
+          'reportes_resumen' => [
+              'total_reportes' => $totalReportes,
+              'estudios_con_reporte' => $estudiosConReporte,
+              'estudios_sin_reporte' => $estudiosSinReporte,
+              'hay_criticos' => $hayCriticos,
+          ],
       ];
   });
 @endphp
@@ -2129,7 +2434,8 @@ const routes = {
   mensajes: "{{ route('mensajes') }}",
   iaReportes: "{{ route('ia-reportes.generar') }}",
   iaReportesTodos: "{{ route('ia-reportes.todos') }}",
-  iaReportesRedactar: "{{ route('ia-reportes.redactar') }}"
+  iaReportesRedactar: "{{ route('ia-reportes.redactar') }}",
+  iaReportesVer: "{{ route('ia-reportes.ver') }}"
 };
 
 const patientsData = @json($pacientesJs);
@@ -2207,6 +2513,7 @@ function rowHTML(patient, globalIndex) {
 let _deleteIndex = null;
 let _contactoIndex = null;
 let _currentPanelIndex = null;
+let reportesIaFiltro = 'todos';
 
 function deletePatient(index) {
   const patient = patientsData[index];
@@ -2716,7 +3023,6 @@ function openPanel(index) {
 
   const historialList = document.getElementById('historialList');
   const historialEmpty = document.getElementById('historialEmpty');
-  const btnVerTodoHistorial = document.getElementById('btnVerTodoHistorial');
   if (historialList && historialEmpty) {
     historialList.innerHTML = '';
     const estudios = patient.estudios || [];
@@ -2727,7 +3033,7 @@ function openPanel(index) {
         const db = b.fecha ? b.fecha.split('/').reverse().join('-') : '';
         return db.localeCompare(da);
       });
-      sorted.slice(0, 5).forEach(est => {
+      sorted.forEach(est => {
         const item = document.createElement('div');
         item.className = 'historial-item';
         item.innerHTML = `
@@ -2736,7 +3042,7 @@ function openPanel(index) {
           </div>
           <div class="historial-info">
             <div class="historial-title">${est.tipo || 'Estudio'}</div>
-            <div class="historial-doctor">${patient.medico || 'Sin médico'}</div>
+            <div class="historial-doctor">ID: ${est.id || ''}</div>
           </div>
           <div class="historial-right">
             <div class="historial-date">${est.fecha || 'Sin fecha'}</div>
@@ -2748,10 +3054,6 @@ function openPanel(index) {
       historialEmpty.style.display = 'block';
     }
   }
-  if (btnVerTodoHistorial) {
-    btnVerTodoHistorial.href = `${routes.nuevoEstudio}?paciente=${encodeURIComponent(patient.id)}`;
-  }
-
   updateReportesIATab(patient);
 
   document.getElementById('contentWrapper').classList.add('panel-open');
@@ -2786,15 +3088,110 @@ function updateReportesIATab(patient) {
     const metaParts = [patient.age, patient.gender, patient.dob].filter(Boolean);
     reportPanelMeta.textContent = metaParts.join(' · ') || 'Sin datos adicionales';
   }
-  const reportPanelBtn = document.getElementById('reportPanelBtn');
-  if (reportPanelBtn) {
-    const estudio = (patient.estudios && patient.estudios.length > 0) ? patient.estudios[0] : null;
-    if (estudio) {
-      reportPanelBtn.href = `${routes.iaReportes}?paciente=${encodeURIComponent(patient.name)}&folio=${encodeURIComponent(patient.folio || '')}&estudio=${encodeURIComponent(estudio.id)}`;
+
+  // Actualizar estadísticas
+  const resumen = patient.reportes_resumen || { total_reportes: 0, estudios_con_reporte: 0, estudios_sin_reporte: 0, hay_criticos: false };
+  const elTotal = document.getElementById('statTotalReportes');
+  const elConReporte = document.getElementById('statEstudiosConReporte');
+  const elSinReporte = document.getElementById('statEstudiosSinReporte');
+  if (elTotal) elTotal.textContent = resumen.total_reportes;
+  if (elConReporte) elConReporte.textContent = resumen.estudios_con_reporte;
+  if (elSinReporte) elSinReporte.textContent = resumen.estudios_sin_reporte;
+
+  // Alerta de hallazgos críticos
+  const criticalAlert = document.getElementById('reportesCriticalAlert');
+  if (criticalAlert) {
+    criticalAlert.style.display = resumen.hay_criticos ? 'flex' : 'none';
+  }
+
+  // Renderizar lista de estudios con sus reportes
+  const listContainer = document.getElementById('reportesListContainer');
+  const emptyState = document.getElementById('reportesEmptyState');
+  if (listContainer) {
+    const estudios = patient.estudios || [];
+    if (estudios.length === 0) {
+      emptyState.style.display = 'flex';
+      listContainer.innerHTML = '';
+      listContainer.appendChild(emptyState);
     } else {
-      reportPanelBtn.href = `${routes.iaReportes}?paciente=${encodeURIComponent(patient.name)}&folio=${encodeURIComponent(patient.folio || '')}`;
+      emptyState.style.display = 'none';
+      let html = '';
+      estudios.forEach(est => {
+        const tieneReporte = est.tiene_reporte;
+        const totalRep = est.total_reportes || 0;
+        const criticos = est.hay_criticos;
+        const estadoEst = est.estado || 'completado';
+        const estadoTexto = { en_proceso: 'En proceso', completado: 'Completado', cancelado: 'Cancelado', archivado: 'Archivado' }[estadoEst] || 'Completado';
+
+        let reportesHtml = '';
+        if (tieneReporte && est.reportes_lista) {
+          est.reportes_lista.forEach(rep => {
+            const verUrl = `${routes.iaReportesVer}?reporte=${rep.id}`;
+            const redactarUrl = `${routes.iaReportesRedactar}?estudio=${est.id}&reporte=${rep.id}`;
+            reportesHtml += `
+              <div class="ia-reporte-item">
+                <div class="ia-reporte-info">
+                  <span class="ia-reporte-fecha">${rep.fecha}</span>
+                  ${rep.criticos ? '<span class="ia-badge-critico">Crítico</span>' : ''}
+                </div>
+                <div class="ia-reporte-actions">
+                  <a href="${verUrl}" class="ia-reporte-btn" title="Ver reporte">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </a>
+                  <a href="${redactarUrl}" class="ia-reporte-btn" title="Editar reporte">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </a>
+                </div>
+              </div>`;
+          });
+        }
+
+        const generarUrl = `${routes.iaReportes}?paciente=${encodeURIComponent(patient.name)}&folio=${encodeURIComponent(patient.folio || '')}&estudio=${encodeURIComponent(est.id)}`;
+        const redactarUrl = `${routes.iaReportesRedactar}?paciente=${encodeURIComponent(patient.id)}&estudio=${encodeURIComponent(est.id)}`;
+
+        html += `
+          <div class="ia-estudio-card ${tieneReporte ? '' : 'ia-estudio-pendiente'}">
+            <div class="ia-estudio-header">
+              <div class="ia-estudio-tipo">${est.tipo}</div>
+              <span class="ia-estudio-estado ia-estado-${estadoEst}">${estadoTexto}</span>
+            </div>
+            <div class="ia-estudio-meta">
+              <span>${est.fecha}</span>
+              ${totalRep > 0 ? `<span class="ia-reporte-count">${totalRep} reporte${totalRep > 1 ? 's' : ''}</span>` : ''}
+            </div>
+            ${criticos ? '<div class="ia-estudio-critico-tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Hallazgos críticos</div>' : ''}
+            ${reportesHtml}
+            ${!tieneReporte ? `<div class="ia-generar-actions">
+              <a href="${generarUrl}" class="ia-generar-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Generar IA</a>
+              <a href="${redactarUrl}" class="ia-generar-btn normal"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Normal</a>
+            </div>` : ''}
+          </div>`;
+      });
+      listContainer.innerHTML = html;
     }
   }
+
+  aplicarFiltroReportes();
+}
+
+function aplicarFiltroReportes() {
+  const listContainer = document.getElementById('reportesListContainer');
+  const cards = listContainer ? listContainer.querySelectorAll('.ia-estudio-card') : [];
+  cards.forEach(card => {
+    const isPendiente = card.classList.contains('ia-estudio-pendiente');
+    const hasReport = !isPendiente;
+    let visible = true;
+    if (reportesIaFiltro === 'con') visible = hasReport;
+    else if (reportesIaFiltro === 'sin') visible = !hasReport;
+    card.style.display = visible ? '' : 'none';
+  });
+
+  document.querySelectorAll('.ia-stat-card').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === reportesIaFiltro);
+  });
+
+  const clearBtn = document.getElementById('iaClearFilter');
+  if (clearBtn) clearBtn.style.display = reportesIaFiltro === 'todos' ? 'none' : '';
 }
 
 // Tabs interactivos
@@ -3143,5 +3540,26 @@ document.addEventListener('click', function(e) {
     }
   }
 })();
+
+// Listeners para filtros de reportes IA
+function setupFiltrosReportesIA() {
+  const grid = document.getElementById('reportesStatsGrid');
+  if (grid) {
+    grid.querySelectorAll('.ia-stat-card').forEach(btn => {
+      btn.onclick = function() {
+        reportesIaFiltro = this.dataset.filter || 'todos';
+        aplicarFiltroReportes();
+      };
+    });
+  }
+  const clearBtn = document.getElementById('iaClearFilter');
+  if (clearBtn) {
+    clearBtn.onclick = function() {
+      reportesIaFiltro = 'todos';
+      aplicarFiltroReportes();
+    };
+  }
+}
+setupFiltrosReportesIA();
 </script>
 @endpush

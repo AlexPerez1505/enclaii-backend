@@ -274,7 +274,18 @@ html[data-theme="light"] .reprogram-info{
   const MESES_AG = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
                     'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   const DIAS_AG  = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
-  const DIAS_FULL = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const DATE_FORMAT = @json(auth()->user()?->settings['date_format'] ?? 'DD/MM/YYYY');
+
+  function formatDateForUser(date) {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = String(date.getFullYear());
+
+    if (DATE_FORMAT === 'MM/DD/YYYY') return `${month}/${day}/${year}`;
+    if (DATE_FORMAT === 'YYYY-MM-DD') return `${year}-${month}-${day}`;
+
+    return `${day}/${month}/${year}`;
+  }
 
   // Horario operativo del recurso
   const DAY_START = 8;    // 8:00 AM
@@ -567,7 +578,7 @@ html[data-theme="light"] .reprogram-info{
 
   function renderTimeSection(day) {
     const title = document.getElementById('timeSectionTitle');
-    if (title) title.textContent = `Horarios disponibles — ${DIAS_FULL[new Date(agY,agM,day).getDay()]} ${day} de ${MESES_AG[agM]}`;
+    if (title) title.textContent = `Horarios disponibles — ${formatDateForUser(new Date(agY, agM, day))}`;
 
     renderTimeline(agY, agM, day);
 

@@ -42,25 +42,36 @@ class EndoCareAuthController extends Controller
             $request->session()->regenerate();
 
             $user = Auth::user();
+
+            // Si tiene 2FA activado, se redirige al challenge
+            if ($user->twoFactorEmailEnabled()) {
+                Auth::logout(); // No completamos login aún
+                $request->session()->put('2fa.pending_user_id', $user->id);
+                $request->session()->put('2fa.remember', $request->boolean('remember'));
+                return redirect()->route('2fa.challenge');
+            }
+
             $this->sessionLimits->syncCurrentDatabaseSession($request, $user);
             $closedSessions = $this->sessionLimits->enforceDatabaseSessions($user, $request->session()->getId());
+
             $this->activity->record(
                 'login',
                 'authentication',
                 'Inició sesión',
                 metadata: [
-                    'session_limit' => $this->sessionLimits->limitFor($user),
-                    'closed_sessions_by_limit' => $closedSessions,
+                    'ip' => $request->ip(),
+                    'closed_sessions' => $closedSessions,
                 ],
                 user: $user,
                 request: $request,
+                force: true,
             );
 
             if ($user->hasRole('Customer Success')) {
                 return redirect()->route('customer-success.dashboard');
             }
 
-            if (!$user->subscribed()) {
+            if (! $user->subscribed()) {
                 return redirect()->route('plan.only');
             }
 

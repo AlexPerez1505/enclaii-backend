@@ -63,3 +63,43 @@
     </div>
   </form>
 </div>
+
+<div class="int-bk-overlay" id="intRestoreModal" aria-hidden="true">
+  <div class="int-bk-modal">
+    <div class="int-bk-hdr">
+      <div>
+        <div class="int-bk-title">Restaurar copia</div>
+        <div class="int-bk-sub" id="intRestoreMessage"></div>
+      </div>
+    </div>
+    <div class="int-bk-body">
+      <div class="int-bk-safe">
+        Antes de aplicar los cambios se creará una copia automática del estado actual.
+      </div>
+    </div>
+    <div class="int-bk-footer">
+      <button type="button" class="int-bk-btn cancel" id="intRestoreCancel">Cancelar</button>
+      <button type="button" class="int-bk-btn submit" id="intRestoreConfirm">Restaurar</button>
+    </div>
+  </div>
+</div>
+
+<div class="int-bk-overlay" id="intDeleteModal" aria-hidden="true">
+  <div class="int-bk-modal">
+    <div class="int-bk-hdr">
+      <div>
+        <div class="int-bk-title">Eliminar copia</div>
+        <div class="int-bk-sub" id="intDeleteMessage"></div>
+      </div>
+    </div>
+    <div class="int-bk-body">
+      <div class="int-bk-safe" style="background:rgba(255,90,110,.07);color:var(--txt)">
+        Esta acción no se puede deshacer. La copia se eliminará permanentemente.
+      </div>
+    </div>
+    <div class="int-bk-footer">
+      <button type="button" class="int-bk-btn cancel" id="intDeleteCancel">Cancelar</button>
+      <button type="button" class="int-bk-btn submit danger" id="intDeleteConfirm">Eliminar</button>
+    </div>
+  </div>
+</div>

@@ -508,7 +508,7 @@ html[data-theme="light"] .ns-modal-backdrop {
 }
 
 /* Interfaz de galeria paciente (dentro de Nuevo Estudio) */
-.pa-shell{display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start}
+.pa-shell{display:grid;grid-template-columns:1fr;gap:18px;align-items:start}
 .pa-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
 .pa-back{
   height:40px;display:inline-flex;align-items:center;gap:8px;padding:0 16px;
@@ -1205,28 +1205,6 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
       </section>
     </div>
 
-    <aside class="pa-side">
-      <section class="pa-panel">
-        <h3 class="pa-panel-title">Informacion del paciente</h3>
-        <div class="pa-info">
-          <div class="pa-info-row"><span>ID</span><strong id="npGalSideId">{{ $galCodigo }}</strong></div>
-          <div class="pa-info-row"><span>Sexo</span><strong id="npGalSideSexo">{{ $galSexo }}</strong></div>
-          <div class="pa-info-row"><span>Edad</span><strong id="npGalSideEdad">{{ $galEdad }}</strong></div>
-          <div class="pa-info-row"><span>Estado</span><strong id="npGalSideEstado" style="color:var(--green)">Activo</strong></div>
-          <div class="pa-info-row"><span>Ultimo estudio</span><strong id="npGalSideUltimo">{{ $galUltimo }}</strong></div>
-        </div>
-      </section>
-
-      <section class="pa-panel">
-        <h3 class="pa-panel-title">Etiquetas frecuentes</h3>
-        <div class="pa-tag-list">
-          <span class="pa-tag">Estomago</span>
-          <span class="pa-tag">Antro</span>
-          <span class="pa-tag">Gastritis</span>
-          <span class="pa-tag">Duodeno</span>
-        </div>
-      </section>
-    </aside>
   </div>
 </div>
 
