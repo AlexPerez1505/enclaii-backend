@@ -264,7 +264,15 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
 }
 /* En tema claro se rellena la silueta del estómago de azul fuerte */
 html[data-theme="light"] .gauge .stomach{background:var(--blue)}
-.gauge .stomach .water{position:absolute;inset:0;width:100%;height:100%}
+/* Destello de luz que recorre la silueta */
+.gauge .stomach::before{
+  content:"";
+  position:absolute;top:0;bottom:0;left:-75%;width:55%;
+  background:linear-gradient(100deg,transparent 0%,rgba(255,255,255,.35) 50%,transparent 100%);
+  pointer-events:none;
+  animation:cardShine 4s ease-in-out infinite;
+}
+.gauge .stomach .water{position:absolute;inset:0;width:100%;height:100%;z-index:1}
 .prob h4{
   font-family:'Sora',sans-serif;
   font-size:13.5px;font-weight:600;
