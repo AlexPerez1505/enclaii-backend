@@ -46,7 +46,31 @@ html[data-theme="light"] .stat::after{
   .stat::after{display:none}
 }
 .card h3{margin-bottom:10px}
-.tbl-link{margin-top:6px}
+.tbl-link{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  width:100%;
+  margin-top:auto;
+  padding:11px 18px;
+  border-radius:999px;
+  background:var(--hover-bg);
+  border:1px solid var(--stroke-strong);
+  color:var(--blue);
+  font-size:13px;
+  font-weight:600;
+  text-decoration:none;
+  transition:background .15s ease,border-color .15s ease,color .15s ease,transform .15s ease;
+}
+.tbl-link:hover{
+  background:var(--hover-bg-strong);
+  border-color:var(--blue);
+  color:var(--cyan);
+  transform:translateY(-1px);
+}
+.tbl-link svg{width:14px;height:14px;transition:transform .15s ease}
+.tbl-link:hover svg{transform:translateX(3px)}
 
 /* Fila de KPIs */
 .stats{
