@@ -59,6 +59,12 @@ class TauriPatientController extends Controller
             'ok' => true,
             'success' => true,
 
+            // Hora del servidor en el momento de la respuesta. El cliente
+            // debe guardar este valor (no su propio reloj) para usarlo como
+            // 'updated_since' en el siguiente sync incremental, evitando
+            // huecos o duplicados por diferencias de reloj/zona horaria.
+            'server_time' => now()->toIso8601String(),
+
             'pacientes' => collect($pacientes->items())
                 ->map(
                     fn (Paciente $paciente) =>
@@ -1474,6 +1480,32 @@ class TauriPatientController extends Controller
                     'fecha_nacimiento'
                 )
             );
+        }
+
+        // Sync incremental: el cliente manda el 'server_time' que recibió
+        // en su ultima respuesta y aqui solo se devuelven los pacientes
+        // creados o modificados despues de ese momento. Evita que el
+        // polling periodico tenga que descargar el listado completo cada
+        // vez si nada cambio.
+        if (
+            $request->filled(
+                'updated_since'
+            )
+        ) {
+            try {
+                $updatedSince = \Illuminate\Support\Carbon::parse(
+                    $request->input('updated_since')
+                );
+
+                $query->where(
+                    'updated_at',
+                    '>',
+                    $updatedSince
+                );
+            } catch (\Throwable $exception) {
+                // Timestamp invalido: se ignora el filtro
+                // en vez de romper la peticion.
+            }
         }
 
         $sort = $request
