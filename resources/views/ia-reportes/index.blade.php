@@ -34,6 +34,10 @@ html[data-theme="light"] .stat::after{
   25%{left:150%}
   100%{left:150%}
 }
+@keyframes scanner{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
 .stat.d2::after{animation-delay:0s}
 .stat.d3::after{animation-delay:1.4s}
 .stat.d4::after{animation-delay:2.8s}
@@ -282,11 +286,24 @@ html[data-theme="light"] .gauge .stomach{background:var(--blue)}
   margin-bottom:14px;
 }
 .gauge{position:relative;width:122px;height:122px;margin:0 auto}
-.gauge svg{width:100%;height:100%;transform:rotate(-90deg)}
+.gauge::before{
+  content:"";
+  position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,.25) 40deg, transparent 80deg);
+  -webkit-mask:radial-gradient(circle, transparent 45px, rgba(0,0,0,.85) 48px, rgba(0,0,0,.85) 56px, transparent 59px);
+          mask:radial-gradient(circle, transparent 45px, rgba(0,0,0,.85) 48px, rgba(0,0,0,.85) 56px, transparent 59px);
+  pointer-events:none;
+  animation:scanner 2.4s linear infinite;
+  z-index:0;
+}
+html[data-theme="light"] .gauge::before{
+  background:conic-gradient(from 0deg, transparent 0deg, rgba(56,199,244,.30) 40deg, transparent 80deg);
+}
+.gauge svg{position:relative;z-index:1;width:100%;height:100%;transform:rotate(-90deg)}
 .gauge circle{fill:none;stroke-width:11;stroke-linecap:round}
 .gauge .track{stroke:rgba(110,160,255,.12)}
 .gauge .val{stroke:var(--cyan);transition:stroke-dashoffset 1.2s var(--ease-out)}
-.gauge-center{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.gauge-center{position:absolute;inset:0;display:grid;place-items:center;text-align:center;z-index:2}
 .gauge-center .pct{font-family:'Sora',sans-serif;font-size:26px;font-weight:800;line-height:1}
 .gauge-center .lbl{font-size:11px;color:var(--txt-soft);margin-top:2px}
 .risk{text-align:center}
