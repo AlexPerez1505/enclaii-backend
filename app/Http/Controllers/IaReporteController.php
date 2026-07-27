@@ -73,7 +73,28 @@ class IaReporteController extends Controller
 
         $hallazgos = $this->hallazgosData()['hallazgos'];
 
-        return view('ia-reportes.index', compact('kpis', 'reportes', 'hallazgos'));
+        $estudiosSinReporte = \App\Models\Estudio::with('paciente')
+            ->whereDoesntHave('reportes')
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function ($e) {
+                $nombre = $e->paciente?->nombre_completo ?? $e->paciente_nombre ?? 'Sin paciente';
+                $ini = collect(explode(' ', $nombre))->filter()->take(2)->map(fn ($x) => mb_strtoupper(mb_substr($x, 0, 1)))->implode('') ?: 'NA';
+
+                return [
+                    'id' => $e->id,
+                    'ini' => $ini,
+                    'paciente' => $nombre,
+                    'tipo' => $e->tipo ?? 'Estudio',
+                    'fecha' => optional($e->fecha)->format('d/m/Y') ?? format_user_date($e->created_at),
+                ];
+            })
+            ->values();
+
+        $pctSinReporte = min(100, $kpis['sin_reporte']['valor'] * 10);
+
+        return view('ia-reportes.index', compact('kpis', 'reportes', 'hallazgos', 'estudiosSinReporte', 'pctSinReporte'));
     }
 
     public function generar(Request $request, OpenAiReportService $service): JsonResponse

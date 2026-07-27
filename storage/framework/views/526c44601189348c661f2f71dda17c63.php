@@ -1,13 +1,11 @@
-@extends('layouts.app')
-
-@section('title', 'Reportes')
-@section('active', 'ia-reportes')
-@section('header-title', 'Reportes')
-@section('header-sub')
+<?php $__env->startSection('title', 'Reportes'); ?>
+<?php $__env->startSection('active', 'ia-reportes'); ?>
+<?php $__env->startSection('header-title', 'Reportes'); ?>
+<?php $__env->startSection('header-sub'); ?>
   Genera, analiza y revisa reportes inteligentes impulsados por IA
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
 /* ============ ESTILOS SOLO DE IA REPORTES ============ */
 
@@ -326,16 +324,16 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
   .bar i,.conf .ring .val,.gauge .val{transition:none}
 }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 
-  {{-- ============ KPIs ============ --}}
-  @php
+  
+  <?php
     $t = $kpis['reportes']['trend'];
     $te = $kpis['evidencias']['trend'];
     $tes = $kpis['estudios']['trend'];
-  @endphp
+  ?>
   <section class="stats">
 
     <article class="card stat blue rise d2">
@@ -344,11 +342,11 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
       </div>
       <div class="stat-body">
         <h3>Reportes generados</h3>
-        <div class="num" id="kpiReportes" data-target="{{ $kpis['reportes']['valor'] }}">0</div>
+        <div class="num" id="kpiReportes" data-target="<?php echo e($kpis['reportes']['valor']); ?>">0</div>
         <div class="tag">Este mes</div>
-        <div class="trend up" @if($t < 0) style="color:var(--red)" @endif>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">@if($t < 0)<polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/>@else<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>@endif</svg>
-          {{ abs($t) }}% <span class="vs">vs mes anterior</span>
+        <div class="trend up" <?php if($t < 0): ?> style="color:var(--red)" <?php endif; ?>>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><?php if($t < 0): ?><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/><?php else: ?><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/><?php endif; ?></svg>
+          <?php echo e(abs($t)); ?>% <span class="vs">vs mes anterior</span>
         </div>
       </div>
     </article>
@@ -359,7 +357,7 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
       </div>
       <div class="stat-body">
         <h3>Estudios sin reporte</h3>
-        <div class="num" id="kpiPendientes" data-target="{{ $kpis['sin_reporte']['valor'] }}">0</div>
+        <div class="num" id="kpiPendientes" data-target="<?php echo e($kpis['sin_reporte']['valor']); ?>">0</div>
         <div class="tag">Pendientes</div>
         <div class="trend up">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -374,11 +372,11 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
       </div>
       <div class="stat-body">
         <h3>Evidencias capturadas</h3>
-        <div class="num" id="kpiCriticos" data-target="{{ $kpis['evidencias']['valor'] }}">0</div>
+        <div class="num" id="kpiCriticos" data-target="<?php echo e($kpis['evidencias']['valor']); ?>">0</div>
         <div class="tag">Este mes</div>
-        <div class="trend up" @if($te < 0) style="color:var(--red)" @endif>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">@if($te < 0)<polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/>@else<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>@endif</svg>
-          {{ abs($te) }}% <span class="vs">vs mes anterior</span>
+        <div class="trend up" <?php if($te < 0): ?> style="color:var(--red)" <?php endif; ?>>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><?php if($te < 0): ?><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/><?php else: ?><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/><?php endif; ?></svg>
+          <?php echo e(abs($te)); ?>% <span class="vs">vs mes anterior</span>
         </div>
       </div>
     </article>
@@ -389,30 +387,30 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
       </div>
       <div class="stat-body">
         <h3>Estudios realizados</h3>
-        <div class="num" id="kpiPrecision" data-target="{{ $kpis['estudios']['valor'] }}">0</div>
+        <div class="num" id="kpiPrecision" data-target="<?php echo e($kpis['estudios']['valor']); ?>">0</div>
         <div class="tag">Este mes</div>
-        <div class="trend up" @if($tes < 0) style="color:var(--red)" @endif>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">@if($tes < 0)<polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/>@else<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>@endif</svg>
-          {{ abs($tes) }}% <span class="vs">vs mes anterior</span>
+        <div class="trend up" <?php if($tes < 0): ?> style="color:var(--red)" <?php endif; ?>>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><?php if($tes < 0): ?><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/><?php else: ?><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/><?php endif; ?></svg>
+          <?php echo e(abs($tes)); ?>% <span class="vs">vs mes anterior</span>
         </div>
       </div>
     </article>
 
   </section>
 
-  {{-- ============ Tabla + panel lateral ============ --}}
+  
   <section class="rep-grid">
 
-    {{-- Tabla de reportes --}}
+    
     <article class="card rep-tbl rise d5">
       <div class="card-head">
         <h3>Reportes generados</h3>
         <div class="card-head-actions">
-          <a class="btn-gen secondary" href="{{ url('/ia-reportes/redactar') }}">
+          <a class="btn-gen secondary" href="<?php echo e(url('/ia-reportes/redactar')); ?>">
             <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
             Generar reporte
           </a>
-          <a class="btn-gen" href="{{ route('ia-reportes.generar') }}">
+          <a class="btn-gen" href="<?php echo e(route('ia-reportes.generar')); ?>">
             <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/><path d="M15 2v6h6"/></svg>
             Generar reporte IA
           </a>
@@ -427,66 +425,66 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
             </tr>
           </thead>
           <tbody>
-            @forelse($reportes as $r)
-              @php
+            <?php $__empty_1 = true; $__currentLoopData = $reportes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $r): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+              <?php
                 $pacNombre = $r->estudio?->paciente?->nombre_completo ?? $r->estudio?->paciente_nombre ?? 'Sin paciente';
                 $pacIni = collect(explode(' ', $pacNombre))->filter()->take(2)->map(fn($x)=>mb_strtoupper(mb_substr($x,0,1)))->implode('') ?: 'NA';
                 $critico = (bool) $r->contiene_hallazgos_criticos;
-              @endphp
+              ?>
               <tr>
-                <td><span class="pat"><span class="mini">{{ $pacIni }}</span>{{ $pacNombre }}</span></td>
-                <td>{{ $r->estudio?->tipo ?? '—' }}</td>
-                <td class="date">{{ format_user_date($r->created_at) }} <small>{{ format_user_time($r->created_at) }}</small></td>
-                <td><span class="chip {{ $critico ? 'urgent' : 'done' }}">{{ $critico ? 'Crítico' : 'Normal' }}</span></td>
+                <td><span class="pat"><span class="mini"><?php echo e($pacIni); ?></span><?php echo e($pacNombre); ?></span></td>
+                <td><?php echo e($r->estudio?->tipo ?? '—'); ?></td>
+                <td class="date"><?php echo e(format_user_date($r->created_at)); ?> <small><?php echo e(format_user_time($r->created_at)); ?></small></td>
+                <td><span class="chip <?php echo e($critico ? 'urgent' : 'done'); ?>"><?php echo e($critico ? 'Crítico' : 'Normal'); ?></span></td>
                 <td>
                   <div class="row-actions">
-                    <a href="{{ route('ia-reportes.ver', ['reporte' => $r->id]) }}" aria-label="Ver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a>
-                    <a href="{{ route('ia-reportes.ver', ['reporte' => $r->id, 'download' => 1]) }}" target="_blank" aria-label="Descargar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a>
-                    <a href="{{ route('ia-reportes.editar', ['reporte' => $r->id]) }}" aria-label="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0-2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></a>
+                    <a href="<?php echo e(route('ia-reportes.ver', ['reporte' => $r->id])); ?>" aria-label="Ver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a>
+                    <a href="<?php echo e(route('ia-reportes.ver', ['reporte' => $r->id, 'download' => 1])); ?>" target="_blank" aria-label="Descargar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a>
+                    <a href="<?php echo e(route('ia-reportes.editar', ['reporte' => $r->id])); ?>" aria-label="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0-2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></a>
                   </div>
                 </td>
               </tr>
-            @empty
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
               <tr><td colspan="5" style="text-align:center;color:var(--txt-soft);padding:24px 12px">No hay reportes en la base de datos.</td></tr>
-            @endforelse
+            <?php endif; ?>
           </tbody>
         </table>
       </div>
 
-      <a class="tbl-link" href="{{ route('ia-reportes.todos') }}">
+      <a class="tbl-link" href="<?php echo e(route('ia-reportes.todos')); ?>">
         Ver todos los reportes
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </a>
     </article>
 
-    {{-- ============ Estudios sin reporte ============ --}}
+    
     <article class="card card-pred rise d7">
 
       <div class="pred-list">
-        @forelse($estudiosSinReporte as $e)
+        <?php $__empty_1 = true; $__currentLoopData = $estudiosSinReporte; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $e): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
           <div class="pred-item">
             <div class="pred-pat">
-              <span class="mini">{{ $e['ini'] }}</span>
+              <span class="mini"><?php echo e($e['ini']); ?></span>
               <div>
-                <b>{{ $e['paciente'] }}</b>
-                <div class="pred-meta">{{ $e['tipo'] }} · {{ $e['fecha'] }}</div>
+                <b><?php echo e($e['paciente']); ?></b>
+                <div class="pred-meta"><?php echo e($e['tipo']); ?> · <?php echo e($e['fecha']); ?></div>
               </div>
             </div>
-            <a class="btn-line" href="{{ route('ia-reportes.redactar', ['estudio' => $e['id']]) }}">
+            <a class="btn-line" href="<?php echo e(route('ia-reportes.redactar', ['estudio' => $e['id']])); ?>">
               Acceder a su estudio
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </a>
           </div>
-        @empty
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
           <p style="color:var(--txt-soft);font-size:13px">No hay estudios pendientes de reporte.</p>
-        @endforelse
+        <?php endif; ?>
       </div>
 
       <div class="prob">
         <div class="gauge">
           <svg viewBox="0 0 120 120">
             <circle class="track" cx="60" cy="60" r="50"/>
-            <circle class="val" id="predGauge" cx="60" cy="60" r="50" stroke-dasharray="314.16" stroke-dashoffset="314.16" data-pct="{{ $pctSinReporte }}"/>
+            <circle class="val" id="predGauge" cx="60" cy="60" r="50" stroke-dasharray="314.16" stroke-dashoffset="314.16" data-pct="<?php echo e($pctSinReporte); ?>"/>
           </svg>
           <div class="gauge-center">
             <div class="stomach">
@@ -546,23 +544,23 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
 
     </article>
 
-    {{-- Hallazgos detectados --}}
+    
       <article class="card rep-hall rise d6">
         <h3>HALLAZGOS</h3>
 
-        @forelse($hallazgos as $i => $h)
-          @php $colorClass = 'c' . (($i % 5) + 1); @endphp
+        <?php $__empty_1 = true; $__currentLoopData = $hallazgos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $h): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+          <?php $colorClass = 'c' . (($i % 5) + 1); ?>
           <div class="find">
-            <div class="top"><span>{{ $h['nombre'] }}</span><b>{{ $h['cantidad'] }}</b></div>
-            <div class="bar {{ $colorClass }}"><i data-w="{{ $h['porcentaje'] }}"></i></div>
+            <div class="top"><span><?php echo e($h['nombre']); ?></span><b><?php echo e($h['cantidad']); ?></b></div>
+            <div class="bar <?php echo e($colorClass); ?>"><i data-w="<?php echo e($h['porcentaje']); ?>"></i></div>
           </div>
-        @empty
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
           <div class="find">
             <div class="top"><span>Sin hallazgos registrados</span></div>
           </div>
-        @endforelse
+        <?php endif; ?>
 
-        <a class="tbl-link" href="{{ route('ia-reportes.hallazgos') }}">
+        <a class="tbl-link" href="<?php echo e(route('ia-reportes.hallazgos')); ?>">
           Ver todos los hallazgos
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </a>
@@ -597,9 +595,9 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
     Los análisis generados por IA son una herramienta de apoyo. La decisión final siempre debe ser del profesional de la salud.
   </div>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 (function(){
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -662,4 +660,6 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
   }
 })();
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\gmedi\enclaii-backend\resources\views/ia-reportes/index.blade.php ENDPATH**/ ?>
