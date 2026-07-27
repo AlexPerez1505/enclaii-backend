@@ -264,8 +264,8 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
   -webkit-mask:url('/images/Vector.png') no-repeat center/contain;
           mask:url('/images/Vector.png') no-repeat center/contain;
 }
-/* En tema claro se borra el fondo azul oscuro del estómago */
-html[data-theme="light"] .gauge .stomach{background:transparent}
+/* En tema claro se rellena la silueta del estómago de azul fuerte */
+html[data-theme="light"] .gauge .stomach{background:var(--blue)}
 .gauge .stomach .water{position:absolute;inset:0;width:100%;height:100%}
 .prob h4{
   font-family:'Sora',sans-serif;
