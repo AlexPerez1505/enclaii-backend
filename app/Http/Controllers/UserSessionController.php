@@ -45,16 +45,22 @@ class UserSessionController extends Controller
 
     public function destroyOthers(Request $request): JsonResponse
     {
-        $closed = UserSession::query()
+        $closedSessions = UserSession::query()
             ->where('user_id', $request->user()->id)
             ->where('id', '!=', $request->session()->getId())
             ->delete();
+
+        $closedTokens = $request->user()->tokens()
+            ->where('name', 'tauri-app')
+            ->delete();
+
+        $closed = $closedSessions + $closedTokens;
 
         $this->activity->record(
             'other_sessions_revoked',
             'security',
             'Cerró las demás sesiones de su cuenta',
-            metadata: ['closed_sessions' => $closed],
+            metadata: ['closed_sessions' => $closedSessions, 'closed_devices' => $closedTokens],
             user: $request->user(),
             request: $request,
         );
@@ -65,6 +71,29 @@ class UserSessionController extends Controller
                 ? 'Se cerró 1 sesión.'
                 : "Se cerraron {$closed} sesiones.",
             'closed_sessions' => $closed,
+        ]);
+    }
+
+    public function destroyDevice(Request $request, string $token): JsonResponse
+    {
+        $accessToken = $request->user()->tokens()
+            ->where('name', 'tauri-app')
+            ->whereKey($token)
+            ->firstOrFail();
+
+        $accessToken->delete();
+
+        $this->activity->record(
+            'session_revoked',
+            'security',
+            'Cerró sesión en la aplicación de escritorio',
+            user: $request->user(),
+            request: $request,
+        );
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Sesión cerrada correctamente.',
         ]);
     }
 }

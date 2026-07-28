@@ -159,28 +159,29 @@
           </thead>
           <tbody id="secSessionsBody">
             @forelse($connectedSessions as $connectedSession)
-              @php
-                $isCurrentSession = hash_equals($currentSessionId, $connectedSession->id);
-              @endphp
-              <tr data-session-row="{{ $connectedSession->id }}" data-current-session="{{ $isCurrentSession ? '1' : '0' }}">
+              <tr data-session-row="{{ $connectedSession['type'] }}-{{ $connectedSession['id'] }}" data-current-session="{{ $connectedSession['is_current'] ? '1' : '0' }}">
                 <td>
                   <span class="sec-dev">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5 10 4.5v7H3zM11 4.3 21 3v8.5H11zM3 12.5h7v7L3 18.5zM11 12.5h10V21l-10-1.3z"/></svg>
-                    <span><b>{{ $connectedSession->deviceLabel() }}</b><span>{{ $connectedSession->ip_address ?? 'IP no disponible' }}</span></span>
+                    @if($connectedSession['type'] === 'desktop')
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                    @else
+                      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5 10 4.5v7H3zM11 4.3 21 3v8.5H11zM3 12.5h7v7L3 18.5zM11 12.5h10V21l-10-1.3z"/></svg>
+                    @endif
+                    <span><b>{{ $connectedSession['device_label'] }}</b><span>{{ $connectedSession['meta'] }}</span></span>
                   </span>
                 </td>
-                <td>{{ $connectedSession->locationLabel() }}</td>
-                <td>{{ format_user_date_time($connectedSession->lastActivityAt()) }}</td>
-                <td><span class="sec-on {{ $isCurrentSession ? 'current' : '' }}">{{ $isCurrentSession ? 'Este dispositivo' : 'Activo' }}</span></td>
+                <td>{{ $connectedSession['location'] }}</td>
+                <td>{{ format_user_date_time($connectedSession['last_activity']) }}</td>
+                <td><span class="sec-on {{ $connectedSession['is_current'] ? 'current' : '' }}">{{ $connectedSession['is_current'] ? 'Este dispositivo' : 'Activo' }}</span></td>
                 <td>
                   <button
                     type="button"
                     class="sec-link"
-                    data-session-close="{{ $connectedSession->id }}"
-                    data-session-url="{{ route('configuracion.sessions.destroy', $connectedSession->id) }}"
-                    @disabled($isCurrentSession)
+                    data-session-close="{{ $connectedSession['id'] }}"
+                    data-session-url="{{ $connectedSession['close_url'] }}"
+                    @disabled($connectedSession['is_current'])
                   >
-                    {{ $isCurrentSession ? 'Sesión actual' : 'Cerrar sesión' }}
+                    {{ $connectedSession['is_current'] ? 'Sesión actual' : 'Cerrar sesión' }}
                   </button>
                 </td>
               </tr>
@@ -195,7 +196,7 @@
           type="button"
           id="secCloseOtherSessions"
           data-url="{{ route('configuracion.sessions.destroy-others') }}"
-          @disabled($connectedSessions->where('id', '!=', $currentSessionId)->isEmpty())
+          @disabled($connectedSessions->where('is_current', false)->isEmpty())
         >
           Cerrar todas las sesiones excepto la actual
         </button>

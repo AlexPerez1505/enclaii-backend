@@ -156,11 +156,48 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
                 ->latest()
                 ->paginate(8, ['*'], 'activity_page')
                 ->withQueryString(),
-            'connectedSessions' => request()->user()
-                ->connectedSessions()
-                ->where('last_activity', '>=', now()->subMinutes(config('session.lifetime'))->timestamp)
-                ->orderByDesc('last_activity')
-                ->get(),
+            'connectedSessions' => (function () {
+                $currentSessionId = request()->session()->getId();
+
+                $webSessions = request()->user()
+                    ->connectedSessions()
+                    ->where('last_activity', '>=', now()->subMinutes(config('session.lifetime'))->timestamp)
+                    ->orderByDesc('last_activity')
+                    ->get()
+                    ->map(function ($session) use ($currentSessionId) {
+                        return [
+                            'id' => $session->id,
+                            'type' => 'web',
+                            'device_label' => $session->deviceLabel(),
+                            'meta' => $session->ip_address ?? 'IP no disponible',
+                            'location' => $session->locationLabel(),
+                            'last_activity' => $session->lastActivityAt(),
+                            'is_current' => hash_equals($currentSessionId, (string) $session->id),
+                            'close_url' => route('configuracion.sessions.destroy', $session->id),
+                        ];
+                    });
+
+                $desktopTokens = request()->user()->tokens()
+                    ->where('name', 'tauri-app')
+                    ->orderByDesc('last_used_at')
+                    ->get()
+                    ->map(function ($token) {
+                        return [
+                            'id' => $token->id,
+                            'type' => 'desktop',
+                            'device_label' => 'Aplicación de escritorio',
+                            'meta' => 'Token: tauri-app',
+                            'location' => 'Dispositivo vinculado',
+                            'last_activity' => $token->last_used_at ?? $token->created_at,
+                            'is_current' => false,
+                            'close_url' => route('configuracion.devices.destroy', $token->id),
+                        ];
+                    });
+
+                return $webSessions->concat($desktopTokens)
+                    ->sortByDesc(fn ($row) => optional($row['last_activity'])->timestamp ?? 0)
+                    ->values();
+            })(),
             'currentSessionId' => request()->session()->getId(),
             'procedimientos' => \App\Models\Procedimiento::orderBy('nombre')->get(),
             'anestesiologos' => \App\Models\Anestesiologo::query()
@@ -258,6 +295,8 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
         ->name('configuracion.sessions.destroy-others');
     Route::delete('/configuracion/seguridad/sesiones/{session}', [UserSessionController::class, 'destroy'])
         ->name('configuracion.sessions.destroy');
+    Route::delete('/configuracion/seguridad/dispositivos/{token}', [UserSessionController::class, 'destroyDevice'])
+        ->name('configuracion.devices.destroy');
 
     // ===== Stripe (pagos y suscripciones) =====
     Route::post('/stripe/checkout', [StripeController::class, 'checkout'])
