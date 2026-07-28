@@ -30,17 +30,17 @@
 
 /* tablas */
 .sec-table-wrap{overflow-x:auto}
-.sec-table{width:100%;border-collapse:collapse}
-.sec-table th{text-align:left;font-size:11.5px;font-weight:600;color:var(--txt-soft);padding:11px 10px;border-bottom:1px solid var(--stroke)}
+.sec-table{width:100%;min-width:600px;border-collapse:collapse}
+.sec-table th{text-align:left;font-size:11.5px;font-weight:600;color:var(--txt-soft);padding:11px 10px;border-bottom:1px solid var(--stroke);white-space:nowrap}
 .sec-table td{font-size:12.5px;padding:13px 10px;border-bottom:1px solid rgba(110,160,255,.08)}
 .sec-table tr:last-child td{border-bottom:0}
 .sec-dev{display:flex;align-items:center;gap:10px}
 .sec-dev svg{width:22px;height:22px;flex:none;color:#0078d4}
 .sec-dev b{font-size:12.5px;font-weight:600;display:block}
 .sec-dev span{font-size:10.5px;color:var(--txt-soft)}
-.sec-on{font-size:10.5px;font-weight:700;color:var(--green);background:rgba(61,220,151,.12);border:1px solid rgba(61,220,151,.3);padding:3px 11px;border-radius:7px}
+.sec-on{display:inline-block;font-size:10.5px;font-weight:700;color:var(--green);background:rgba(61,220,151,.12);border:1px solid rgba(61,220,151,.3);padding:3px 11px;border-radius:7px;white-space:nowrap}
 .sec-on.current{color:var(--cyan);background:rgba(56,199,244,.1);border-color:rgba(56,199,244,.32)}
-.sec-link{font-size:12px;font-weight:700;color:var(--cyan)}
+.sec-link{font-size:12px;font-weight:700;color:var(--cyan);white-space:nowrap}
 .sec-link:disabled{color:var(--txt-soft);opacity:.6;cursor:not-allowed}
 .sec-foot{text-align:center;padding-top:14px}
 .sec-foot button{font-size:12.5px;font-weight:700;color:var(--cyan)}
