@@ -148,6 +148,32 @@
 .btn-star{width:26px;height:26px;border-radius:50%;border:none;background:transparent;color:var(--txt-soft);cursor:pointer;display:grid;place-items:center;transition:color 150ms;}
 .btn-star:hover,.btn-star.starred{color:#f59e0b;}
 .email-text-body{font-size:14px;line-height:2;color:var(--txt);white-space:pre-line;margin-bottom:20px;}
+.email-compose{display:grid;gap:13px;}
+.email-compose-card{padding:15px;border:1px solid var(--stroke);border-radius:12px;background:var(--panel);}
+.email-field{display:grid;gap:6px;}
+.email-field label{font-size:11px;font-weight:800;color:var(--txt-soft);text-transform:uppercase;letter-spacing:.08em;}
+.email-field input,.email-field textarea{
+  width:100%;border:1.5px solid var(--stroke);border-radius:10px;background:var(--panel-2);
+  color:var(--txt);font:inherit;font-size:13px;outline:none;padding:10px 12px;
+}
+.email-field textarea{min-height:150px;resize:vertical;line-height:1.55;}
+.email-field input:focus,.email-field textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(46,123,246,.1);}
+.email-from{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--txt);}
+.email-from strong{color:var(--txt-soft);font-size:11px;text-transform:uppercase;letter-spacing:.08em;}
+.email-help{font-size:11.5px;color:var(--txt-soft);line-height:1.5;}
+.email-share-att{display:flex;align-items:center;gap:11px;padding:12px;border:1px solid var(--stroke);border-radius:11px;background:var(--panel-2);}
+.email-share-att svg{color:var(--blue);flex:none;}
+.email-share-att-name{font-size:13px;font-weight:800;color:var(--txt);}
+.email-share-att-sub{font-size:11.5px;color:var(--txt-soft);margin-top:2px;}
+.email-compose-actions{display:flex;align-items:center;gap:10px;justify-content:flex-end;}
+.email-status{margin-right:auto;font-size:12px;color:var(--txt-soft);}
+.email-status.ok{color:var(--green);}
+.email-status.err{color:var(--red);}
+.email-send-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;border:0;border-radius:10px;
+  background:var(--blue);color:#fff;font:inherit;font-size:13px;font-weight:800;padding:10px 16px;cursor:pointer;
+}
+.email-send-btn:disabled{opacity:.6;cursor:wait;}
 .att-title{font-size:11px;font-weight:800;color:var(--txt-soft);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;}
 .att-list{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px;}
 .att-card{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;border:1px solid var(--stroke);background:var(--panel);min-width:165px;max-width:220px;flex:none;cursor:pointer;transition:border-color 150ms,box-shadow 150ms;}
@@ -405,29 +431,74 @@
 
       {{-- Cuerpo email --}}
       <div class="email-body-wrap" id="emailBody" style="display:none;">
-        <div class="email-sender-card">
-          <div class="esc-av blue" id="escAv">MG</div>
-          <div class="esc-info">
-            <div class="esc-name" id="escName">Ana Sanchez</div>
-            <div class="esc-addr" id="escAddr">Para Dr. Victor &lt;anas@gmail.com&gt;</div>
+        <form class="email-compose" id="emailComposer" style="display:none;">
+          <input type="hidden" id="emailVideoId">
+          <div class="email-compose-card">
+            <div class="email-field">
+              <label>De</label>
+              <div class="email-from">
+                <strong>Correo registrado</strong>
+                <span id="emailFrom">{{ auth()->user()?->email ?? 'Sin correo registrado' }}</span>
+              </div>
+              <div class="email-help">Tus contactos podran responder a este correo. El video se envia como enlace seguro para evitar limites de adjuntos.</div>
+            </div>
           </div>
-          <div class="esc-meta">
-            <span class="esc-time" id="escTime">Ayer</span>
-            <button class="btn-star" id="btnStar" onclick="toggleStar(this)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <div class="email-compose-card">
+            <div class="email-field">
+              <label for="emailRecipients">Para</label>
+              <input type="text" id="emailRecipients" placeholder="contacto@correo.com, otro@correo.com" autocomplete="off">
+              <div class="email-help">Puedes escribir hasta 10 correos separados por coma, punto y coma o espacio.</div>
+            </div>
+          </div>
+          <div class="email-field">
+            <label for="emailSubjectInput">Asunto</label>
+            <input type="text" id="emailSubjectInput" maxlength="180">
+          </div>
+          <div class="email-field">
+            <label for="emailMessageInput">Mensaje</label>
+            <textarea id="emailMessageInput" maxlength="5000"></textarea>
+          </div>
+          <div class="email-share-att">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+            <div>
+              <div class="email-share-att-name" id="emailAttachmentName">Video del estudio</div>
+              <div class="email-share-att-sub">Se enviara un enlace de visualizacion/descarga.</div>
+            </div>
+          </div>
+          <div class="email-compose-actions">
+            <span class="email-status" id="emailSendStatus"></span>
+            <button class="email-send-btn" id="emailSendButton" type="submit">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Enviar correo
             </button>
           </div>
-        </div>
-        <div class="email-subject" id="emailSubject">Resultados de estudios</div>
-        <div class="email-text-body" id="emailText">Selecciona un correo para leerlo.</div>
-        <div id="attSection" style="display:none;">
-          <div class="att-title" id="attTitle">Archivos adjuntos</div>
-          <div class="att-list" id="attList"></div>
+        </form>
+
+        <div id="emailReadPane">
+          <div class="email-sender-card">
+            <div class="esc-av blue" id="escAv">MG</div>
+            <div class="esc-info">
+              <div class="esc-name" id="escName">Ana Sanchez</div>
+              <div class="esc-addr" id="escAddr">Para Dr. Victor &lt;anas@gmail.com&gt;</div>
+            </div>
+            <div class="esc-meta">
+              <span class="esc-time" id="escTime">Ayer</span>
+              <button class="btn-star" id="btnStar" onclick="toggleStar(this)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="email-subject" id="emailSubject">Resultados de estudios</div>
+          <div class="email-text-body" id="emailText">Selecciona un correo para leerlo.</div>
+          <div id="attSection" style="display:none;">
+            <div class="att-title" id="attTitle">Archivos adjuntos</div>
+            <div class="att-list" id="attList"></div>
+          </div>
         </div>
       </div>
 
       {{-- Input bar --}}
-      <div class="msg-input-bar">
+      <div class="msg-input-bar" id="msgInputBar">
         <div class="msg-input-wrap">
           <button class="reply-ico" title="Emoji">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
@@ -614,6 +685,7 @@
   const launchContext = @json($whatsappLaunchContext);
   const csrfToken = @json(csrf_token());
   const whatsappSendUrl = @json(route('mensajes.whatsapp.send'));
+  const emailVideoSendUrl = @json(route('mensajes.correo.video.send'));
   const whatsappConfigured = @json($whatsappConfigured);
 
   window.toggleChPanel = function() {
@@ -694,9 +766,12 @@
       mchHeader.className = 'mch mode-wa';
       audioBtn.style.display = '';
       msgInput.placeholder = 'Escribe un mensaje...';
+      document.getElementById('msgInputBar').style.display = 'flex';
       document.getElementById('chatMessages').style.display = 'flex';
       document.getElementById('emailBody').style.display = 'none';
       document.getElementById('emailToolbar').style.display = 'none';
+      document.getElementById('emailComposer').style.display = 'none';
+      document.getElementById('emailReadPane').style.display = '';
       document.querySelectorAll('.bubble-mini-av').forEach(av => {
         av.textContent = initials;
         av.className = 'bubble-mini-av ' + color;
@@ -715,9 +790,12 @@
       mchHeader.className = 'mch mode-email';
       audioBtn.style.display = 'none';
       msgInput.placeholder = 'Escribe tu respuesta al correo...';
+      document.getElementById('msgInputBar').style.display = 'flex';
       document.getElementById('chatMessages').style.display = 'none';
       document.getElementById('emailBody').style.display = 'block';
       document.getElementById('emailToolbar').style.display = 'flex';
+      document.getElementById('emailComposer').style.display = 'none';
+      document.getElementById('emailReadPane').style.display = '';
 
       document.getElementById('escAv').textContent = initials;
       document.getElementById('escAv').className = 'esc-av ' + color;
@@ -973,6 +1051,9 @@
   window.closeMsg = function() {
     document.getElementById('msgContent').style.display = 'none';
     document.getElementById('msgEmpty').style.display = 'flex';
+    document.getElementById('emailComposer').style.display = 'none';
+    document.getElementById('emailReadPane').style.display = '';
+    document.getElementById('msgInputBar').style.display = 'flex';
     document.querySelectorAll('.conv-item').forEach(i => i.classList.remove('active'));
   };
 
@@ -1066,6 +1147,135 @@
     return `Hola ${patient}, te comparto ${mediaLabel} de ${study}${media}${date}.${frame}${diagnosis}`;
   }
 
+  function initialsFromName(name) {
+    const parts = String(name || '')
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(part => part.charAt(0).toUpperCase());
+
+    return parts.join('') || 'PX';
+  }
+
+  function buildEmailSubject(data) {
+    const study = data.study || 'estudio';
+    const video = data.video ? ` - ${data.video}` : '';
+
+    return `Video de ${study}${video}`;
+  }
+
+  function buildEmailMessage(data) {
+    const patient = data.patient || 'paciente';
+    const study = data.study || 'estudio';
+    const video = data.video ? ` (${data.video})` : '';
+    const date = data.date ? `\nFecha del estudio: ${data.date}` : '';
+    const diagnosis = data.diagnosis ? `\nDiagnostico: ${data.diagnosis}` : '';
+
+    return `Hola,\n\nTe comparto el video del estudio de ${patient}: ${study}${video}.${date}${diagnosis}\n\nSaludos.`;
+  }
+
+  function setEmailStatus(message, type = '') {
+    const status = document.getElementById('emailSendStatus');
+    if (!status) return;
+
+    status.textContent = message || '';
+    status.className = 'email-status' + (type ? ' ' + type : '');
+  }
+
+  function openEmailLaunch(data) {
+    activeType = 'email';
+    activePatientId = Number(data.patient_id || 0) || null;
+    activePatientElement = null;
+    loadedMessageIds.clear();
+
+    document.querySelectorAll('.conv-item').forEach(i => i.classList.remove('active'));
+    document.getElementById('msgEmpty').style.display = 'none';
+    document.getElementById('msgContent').style.display = 'flex';
+
+    const patientName = data.patient || 'Paciente';
+    const initials = initialsFromName(patientName);
+    const av = document.getElementById('mchAv');
+    av.textContent = initials;
+    av.className = 'mch-av blue';
+
+    document.getElementById('mchName').textContent = patientName;
+    document.getElementById('mchSub').innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:var(--blue);display:inline-block;"></span><span>Correo</span>';
+
+    const badge = document.getElementById('mchBadge');
+    badge.className = 'mch-channel-badge email';
+    badge.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Correo';
+
+    document.querySelector('.msg-main').className = 'msg-main mode-email';
+    document.querySelector('.mch').className = 'mch mode-email';
+    document.getElementById('btnAudio').style.display = 'none';
+    document.getElementById('chatMessages').style.display = 'none';
+    document.getElementById('emailBody').style.display = 'block';
+    document.getElementById('emailToolbar').style.display = 'flex';
+    document.getElementById('msgInputBar').style.display = 'none';
+    document.getElementById('emailComposer').style.display = 'grid';
+    document.getElementById('emailReadPane').style.display = 'none';
+
+    document.getElementById('emailVideoId').value = data.video_id || '';
+    document.getElementById('emailRecipients').value = '';
+    document.getElementById('emailSubjectInput').value = buildEmailSubject(data);
+    document.getElementById('emailMessageInput').value = buildEmailMessage(data);
+    document.getElementById('emailAttachmentName').textContent = data.video
+      ? `Video ${data.video}`
+      : 'Video del estudio';
+    setEmailStatus('');
+
+    setTimeout(() => document.getElementById('emailRecipients')?.focus(), 80);
+  }
+
+  document.getElementById('emailComposer')?.addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    const sendButton = document.getElementById('emailSendButton');
+    const payload = {
+      video_id: document.getElementById('emailVideoId').value,
+      recipients: document.getElementById('emailRecipients').value.trim(),
+      subject: document.getElementById('emailSubjectInput').value.trim(),
+      message: document.getElementById('emailMessageInput').value.trim()
+    };
+
+    if (!payload.video_id) {
+      setEmailStatus('No se encontro el video para enviar.', 'err');
+      return;
+    }
+    if (!payload.recipients) {
+      setEmailStatus('Agrega al menos un correo de destino.', 'err');
+      document.getElementById('emailRecipients').focus();
+      return;
+    }
+
+    sendButton.disabled = true;
+    setEmailStatus('Enviando correo...');
+
+    try {
+      const response = await fetch(emailVideoSendUrl, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify(payload)
+      });
+      const body = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(body.message || 'No se pudo enviar el correo.');
+      }
+
+      setEmailStatus(body.message || 'Correo enviado correctamente.', 'ok');
+    } catch (error) {
+      setEmailStatus(error.message || 'No se pudo enviar el correo.', 'err');
+    } finally {
+      sendButton.disabled = false;
+    }
+  });
+
   function openWhatsAppLaunch(data) {
     const waConvs = Array.from(document.querySelectorAll('.conv-item[data-type="wa"]'));
     const patientId = Number(data.patient_id || 0);
@@ -1093,6 +1303,8 @@
   if (urlParams.get('chat') === 'soporte') {
     const soporteConv = document.querySelector('.conv-item[data-contact="soporte"]');
     if (soporteConv) soporteConv.click();
+  } else if (launchContext.channel === 'email') {
+    openEmailLaunch(launchContext);
   } else if (launchContext.channel === 'whatsapp') {
     openWhatsAppLaunch(launchContext);
   } else {

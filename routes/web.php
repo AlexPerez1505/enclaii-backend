@@ -713,6 +713,9 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
     Route::post('/mensajes/whatsapp/enviar', [WhatsAppController::class, 'send'])
         ->middleware('throttle:30,1')
         ->name('mensajes.whatsapp.send');
+    Route::post('/mensajes/correo/enviar-video', [WhatsAppController::class, 'sendVideoEmail'])
+        ->middleware('throttle:12,1')
+        ->name('mensajes.correo.video.send');
 
     Route::get('/nuevo-estudio', function (\Illuminate\Http\Request $request) {
         /* Limpiar sesión de estudio al volver al dashboard */
@@ -816,14 +819,45 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
 
         $imagenes = $archivos->where('tipo', 'imagen')->values();
         $videos = $archivos->where('tipo', 'video')->values();
+        $archivosPorEstudio = $archivos
+            ->groupBy(fn ($archivo) => $archivo->estudio_id ?: 'sin-estudio')
+            ->map(function ($archivosEstudio) {
+                return [
+                    'estudio' => $archivosEstudio->first()?->estudio,
+                    'imagenes' => $archivosEstudio->where('tipo', 'imagen')->values(),
+                    'videos' => $archivosEstudio->where('tipo', 'video')->values(),
+                    'total' => $archivosEstudio->count(),
+                ];
+            })
+            ->values();
 
         return view('galeria.paciente', [
             'id' => $id,
             'paciente' => $paciente,
             'imagenes' => $imagenes,
             'videos' => $videos,
+            'archivos' => $archivos,
+            'archivosPorEstudio' => $archivosPorEstudio,
         ]);
     })->name('galeria.paciente');
+
+    Route::get('/galeria/video/{id}/archivo', function ($id) {
+        $archivo = \App\Models\EstudioArchivo::where('tipo', 'video')->findOrFail($id);
+        abort_unless($archivo->path && media_exists($archivo->path), 404);
+
+        $disk = \Illuminate\Support\Facades\Storage::disk(media_disk());
+        $filename = $archivo->nombre_original ?: basename((string) $archivo->path);
+        $filename = preg_replace('/[\r\n"]+/', '', $filename) ?: 'video-'.$archivo->id;
+
+        return new \Symfony\Component\HttpFoundation\StreamedResponse(function () use ($disk, $archivo) {
+            fpassthru($disk->readStream($archivo->path));
+        }, 200, [
+            'Content-Type' => $archivo->mime_type ?: ($disk->mimeType($archivo->path) ?: 'application/octet-stream'),
+            'Content-Length' => (string) ($archivo->size_bytes ?: $disk->size($archivo->path)),
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"; filename*=UTF-8\'\''.rawurlencode($filename),
+            'Cache-Control' => 'private, max-age=300',
+        ]);
+    })->name('galeria.video.archivo');
 
     Route::get('/galeria/video/{id}', function ($id) {
         $archivo = \App\Models\EstudioArchivo::with(['estudio.paciente', 'estudio.hallazgos'])

@@ -2,12 +2,17 @@
 
 namespace Tests\Feature;
 
+use App\Mail\GalleryVideoShareMail;
+use App\Models\Estudio;
+use App\Models\EstudioArchivo;
 use App\Models\Paciente;
 use App\Models\User;
 use App\Models\WhatsAppMessage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class WhatsAppIntegrationTest extends TestCase
@@ -92,6 +97,71 @@ class WhatsAppIntegrationTest extends TestCase
                 && $request['messaging_product'] === 'whatsapp'
                 && $request['to'] === '525512345678'
                 && $request['text']['body'] === 'Mensaje de prueba';
+        });
+    }
+
+    public function test_authenticated_user_can_email_a_gallery_video_from_the_registered_email(): void
+    {
+        Mail::fake();
+
+        $disk = media_disk();
+        Storage::fake($disk);
+        Storage::disk($disk)->put('videos/video-correo.webm', 'contenido del video');
+
+        $user = User::create([
+            'name' => 'Dra. Correo',
+            'email' => 'doctora@example.com',
+            'password' => 'password',
+            'subscription_status' => 'active',
+        ]);
+        $patient = Paciente::create([
+            'folio' => 'P-WA-006',
+            'nombre_completo' => 'Paciente Correo',
+            'telefono' => '+52 55 1234 9999',
+            'email' => 'paciente@example.com',
+        ]);
+        $study = Estudio::create([
+            'paciente_id' => $patient->id,
+            'paciente_nombre' => $patient->nombre_completo,
+            'folio' => 'E-CORREO',
+            'tipo' => 'Endoscopia',
+            'fecha' => '2026-07-17',
+            'estado' => 'completado',
+        ]);
+        $video = EstudioArchivo::create([
+            'estudio_id' => $study->id,
+            'paciente_id' => $patient->id,
+            'tipo' => 'video',
+            'nombre_original' => 'video-correo.webm',
+            'nombre' => 'video-correo.webm',
+            'path' => 'videos/video-correo.webm',
+            'mime_type' => 'video/webm',
+            'size_bytes' => 128,
+            'capturado_en' => now(),
+        ]);
+
+        $this->actingAs($user)
+            ->postJson(route('mensajes.correo.video.send'), [
+                'video_id' => $video->id,
+                'recipients' => 'contacto@example.com, familiar@example.com',
+                'subject' => 'Video de Endoscopia',
+                'message' => 'Te comparto el video del estudio.',
+            ])
+            ->assertOk()
+            ->assertJsonPath('message', 'Correo enviado correctamente.')
+            ->assertJsonPath('sent_to.0', 'contacto@example.com')
+            ->assertJsonPath('sent_to.1', 'familiar@example.com');
+
+        Mail::assertSent(GalleryVideoShareMail::class, function (GalleryVideoShareMail $mail) use ($video): bool {
+            $mail->build();
+
+            return $mail->archivo->is($video)
+                && $mail->sender->email === 'doctora@example.com'
+                && $mail->subjectLine === 'Video de Endoscopia'
+                && $mail->hasFrom('doctora@example.com', 'Dra. Correo')
+                && $mail->hasReplyTo('doctora@example.com', 'Dra. Correo')
+                && $mail->hasTo('contacto@example.com')
+                && $mail->hasTo('familiar@example.com');
         });
     }
 

@@ -1,4 +1,4 @@
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
 /* ===== VER VIDEO ===== */
 .vv-wrap{display:grid;grid-template-columns:1fr 280px;gap:18px;align-items:start}
@@ -308,4 +308,5 @@
 .vv-dl-confirm:active{transform:scale(.97)}
 @media(hover:hover)and(pointer:fine){.vv-dl-confirm:hover{opacity:.88}}
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
+<?php /**PATH C:\Users\HP\enclaii-backend\resources\views/galeria/vervideo/_styles.blade.php ENDPATH**/ ?>
