@@ -158,10 +158,12 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
                 ->withQueryString(),
             'connectedSessions' => (function () {
                 $currentSessionId = request()->session()->getId();
+                $inactivityTimeout = (int) (request()->user()->resolvedSettings()['session_timeout'] ?? 0);
+                $inactivityTimeout = $inactivityTimeout > 0 ? $inactivityTimeout : (int) config('session.lifetime');
 
                 $webSessions = request()->user()
                     ->connectedSessions()
-                    ->where('last_activity', '>=', now()->subMinutes(config('session.lifetime'))->timestamp)
+                    ->where('last_activity', '>=', now()->subMinutes($inactivityTimeout)->timestamp)
                     ->orderByDesc('last_activity')
                     ->get()
                     ->map(function ($session) use ($currentSessionId) {
