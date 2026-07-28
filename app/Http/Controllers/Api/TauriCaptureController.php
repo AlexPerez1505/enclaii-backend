@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CaptureDevice;
 use App\Models\CapturePairingCode;
 use App\Models\CaptureSession;
+use App\Models\CaptureVideoUpload;
 use App\Models\Estudio;
 use App\Models\EstudioArchivo;
 use App\Models\Paciente;
@@ -14,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -338,6 +340,230 @@ class TauriCaptureController extends Controller
         ]);
     }
 
+    /*
+     |--------------------------------------------------------------------------
+     | Subida de video por partes (chunks)
+     |--------------------------------------------------------------------------
+     | Alternativa a storeVideo() para archivos pesados: en vez de mandar el
+     | video completo en un solo request (limitado por timeouts y memoria),
+     | el cliente lo corta en partes y las sube una por una. Solo al final
+     | (finalizeVideoUpload) se concatenan y se reutiliza la misma logica de
+     | guardado (media_store + createStudyArchive) que storeVideo().
+     */
+
+    public function initVideoUpload(Request $request)
+    {
+        $actor = $request->user();
+
+        $request->validate([
+            'session_id' => ['required', 'integer', 'exists:capture_sessions,id'],
+            'filename' => ['required', 'string', 'max:180'],
+            'mime_type' => ['nullable', 'string', 'max:120'],
+            'total_size' => ['required', 'integer', 'min:1', 'max:2147483648'],
+            'total_chunks' => ['required', 'integer', 'min:1', 'max:100000'],
+            'ended_at' => ['nullable', 'date'],
+        ]);
+
+        $session = $this->activeSessionFor($actor, (int) $request->session_id);
+
+        $this->ensureSameTenant($actor, $session);
+
+        $upload = CaptureVideoUpload::create([
+            'upload_id' => (string) Str::uuid(),
+            'session_id' => $session->id,
+            'filename' => $request->input('filename'),
+            'mime_type' => $request->input('mime_type') ?: 'video/webm',
+            'total_size' => $request->input('total_size'),
+            'total_chunks' => $request->input('total_chunks'),
+            'received_chunks' => [],
+            'ended_at' => $request->date('ended_at'),
+            'status' => 'pending',
+        ]);
+
+        $this->touchCaptureActor($actor, $request);
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Subida de video iniciada.',
+            'data' => [
+                'upload_id' => $upload->upload_id,
+                'total_chunks' => $upload->total_chunks,
+            ],
+        ]);
+    }
+
+    public function uploadVideoChunk(Request $request, string $uploadId, int $chunkIndex)
+    {
+        $actor = $request->user();
+        $upload = $this->videoUploadFor($actor, $uploadId);
+
+        if ($chunkIndex < 0 || $chunkIndex >= $upload->total_chunks) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Indice de parte invalido.',
+            ], 422);
+        }
+
+        $binary = $request->getContent();
+
+        if ($binary === '' || $binary === null) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'La parte llego vacia.',
+            ], 422);
+        }
+
+        Storage::disk('local')->put(
+            $this->videoChunkPath($uploadId, $chunkIndex),
+            $binary
+        );
+
+        $received = $upload->received_chunks ?? [];
+
+        if (! in_array($chunkIndex, $received, true)) {
+            $received[] = $chunkIndex;
+            sort($received);
+            $upload->update(['received_chunks' => $received]);
+        }
+
+        $this->touchCaptureActor($actor, $request);
+
+        return response()->json([
+            'ok' => true,
+            'data' => [
+                'received_chunks' => $received,
+                'total_chunks' => $upload->total_chunks,
+            ],
+        ]);
+    }
+
+    public function videoUploadStatus(Request $request, string $uploadId)
+    {
+        $actor = $request->user();
+        $upload = $this->videoUploadFor($actor, $uploadId);
+
+        return response()->json([
+            'ok' => true,
+            'data' => [
+                'upload_id' => $upload->upload_id,
+                'status' => $upload->status,
+                'received_chunks' => $upload->received_chunks ?? [],
+                'total_chunks' => $upload->total_chunks,
+            ],
+        ]);
+    }
+
+    public function finalizeVideoUpload(Request $request, string $uploadId)
+    {
+        $actor = $request->user();
+        $upload = $this->videoUploadFor($actor, $uploadId);
+
+        if ($upload->status === 'completed') {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Video guardado correctamente.',
+                'data' => [
+                    'session_id' => $upload->session_id,
+                    'path' => $upload->path,
+                    'url' => $upload->path ? media_url($upload->path) : null,
+                ],
+            ]);
+        }
+
+        $received = $upload->received_chunks ?? [];
+
+        if (count($received) < $upload->total_chunks) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Faltan partes por subir antes de poder finalizar el video.',
+                'data' => [
+                    'received_chunks' => $received,
+                    'total_chunks' => $upload->total_chunks,
+                ],
+            ], 409);
+        }
+
+        $session = $this->activeSessionFor($actor, $upload->session_id);
+
+        $this->ensureSameTenant($actor, $session);
+
+        $extension = pathinfo($upload->filename, PATHINFO_EXTENSION) ?: 'webm';
+        $safeName = Str::slug(pathinfo($upload->filename, PATHINFO_FILENAME)) ?: 'capture';
+        $tmpPath = sys_get_temp_dir().'/'.$safeName.'-'.Str::random(8).'.'.$extension;
+
+        $handle = fopen($tmpPath, 'wb');
+
+        try {
+            for ($index = 0; $index < $upload->total_chunks; $index++) {
+                $chunkPath = $this->videoChunkPath($uploadId, $index);
+
+                if (! Storage::disk('local')->exists($chunkPath)) {
+                    fclose($handle);
+                    @unlink($tmpPath);
+
+                    return response()->json([
+                        'ok' => false,
+                        'message' => "Falta la parte {$index}, no se puede finalizar el video.",
+                    ], 409);
+                }
+
+                fwrite($handle, Storage::disk('local')->get($chunkPath));
+            }
+        } finally {
+            fclose($handle);
+        }
+
+        $file = new UploadedFile(
+            $tmpPath,
+            $upload->filename,
+            $upload->mime_type ?: 'video/webm',
+            null,
+            true
+        );
+
+        $folder = $this->getSessionMediaFolder($session, 'videos');
+        $path = media_store($file, $folder);
+
+        $archivo = $this->createStudyArchive(
+            session: $session,
+            file: $file,
+            path: $path,
+            type: 'video',
+            category: 'tauri-recording',
+            capturedAt: $upload->ended_at ?? now(),
+            description: 'Video enviado desde la aplicacion Tauri (subida por partes)',
+        );
+
+        $studyId = $session->estudio_id ?? $session->study_id ?? null;
+
+        if ($studyId) {
+            Estudio::withoutGlobalScopes()
+                ->whereKey($studyId)
+                ->whereNull('video_path')
+                ->update(['video_path' => $path]);
+        }
+
+        $this->cleanupVideoChunks($uploadId, $upload->total_chunks);
+
+        $upload->update(['status' => 'completed', 'path' => $path]);
+
+        $this->touchCaptureActor($actor, $request);
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Video guardado correctamente.',
+            'data' => [
+                'session_id' => $session->id,
+                'paciente_id' => $session->paciente_id ?? null,
+                'estudio_id' => $session->estudio_id ?? null,
+                'study_id' => $session->study_id ?? null,
+                'path' => $path,
+                'url' => media_url($path),
+                'archivo_id' => $archivo?->id,
+            ],
+        ]);
+    }
+
     public function finishSession(Request $request)
     {
         $actor = $request->user();
@@ -581,5 +807,36 @@ class TauriCaptureController extends Controller
             'descripcion' => $description,
             'capturado_en' => $capturedAt,
         ]);
+    }
+
+    /**
+     * Carga un CaptureVideoUpload por su upload_id y valida, a traves de la
+     * sesion de captura a la que pertenece, que el actor autenticado (mismo
+     * dispositivo/usuario y mismo tenant) tiene permiso de seguir subiendo
+     * partes o finalizarlo. Evita que un dispositivo pueda escribir/leer
+     * una subida ajena solo por adivinar/reusar un upload_id.
+     */
+    private function videoUploadFor($actor, string $uploadId): CaptureVideoUpload
+    {
+        $upload = CaptureVideoUpload::where('upload_id', $uploadId)->firstOrFail();
+
+        $session = $this->activeSessionFor($actor, $upload->session_id);
+        $this->ensureSameTenant($actor, $session);
+
+        return $upload;
+    }
+
+    private function videoChunkPath(string $uploadId, int $chunkIndex): string
+    {
+        return 'tmp/video-uploads/'.$uploadId.'/chunk_'.str_pad((string) $chunkIndex, 6, '0', STR_PAD_LEFT);
+    }
+
+    private function cleanupVideoChunks(string $uploadId, int $totalChunks): void
+    {
+        for ($index = 0; $index < $totalChunks; $index++) {
+            Storage::disk('local')->delete($this->videoChunkPath($uploadId, $index));
+        }
+
+        Storage::disk('local')->deleteDirectory('tmp/video-uploads/'.$uploadId);
     }
 }

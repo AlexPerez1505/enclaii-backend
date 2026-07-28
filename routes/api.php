@@ -65,6 +65,26 @@ Route::middleware('auth:sanctum')
         );
 
         Route::post(
+            '/videos/init',
+            [TauriCaptureController::class, 'initVideoUpload']
+        );
+
+        Route::post(
+            '/videos/{uploadId}/chunk/{chunkIndex}',
+            [TauriCaptureController::class, 'uploadVideoChunk']
+        )->where('chunkIndex', '[0-9]+');
+
+        Route::get(
+            '/videos/{uploadId}/status',
+            [TauriCaptureController::class, 'videoUploadStatus']
+        );
+
+        Route::post(
+            '/videos/{uploadId}/finalize',
+            [TauriCaptureController::class, 'finalizeVideoUpload']
+        );
+
+        Route::post(
             '/finish-session',
             [TauriCaptureController::class, 'finishSession']
         );
