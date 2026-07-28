@@ -9,6 +9,7 @@ use App\Models\LaunchPromoCode;
 use App\Models\User;
 use App\Services\ActivityLogger;
 use App\Services\SessionLimitService;
+use App\Services\TwoFactorEmailService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,6 +21,7 @@ class EndoCareAuthController extends Controller
     public function __construct(
         private readonly ActivityLogger $activity,
         private readonly SessionLimitService $sessionLimits,
+        private readonly TwoFactorEmailService $twoFactor,
     ) {}
 
     public function showLogin()
@@ -48,6 +50,7 @@ class EndoCareAuthController extends Controller
                 Auth::logout(); // No completamos login aún
                 $request->session()->put('2fa.pending_user_id', $user->id);
                 $request->session()->put('2fa.remember', $request->boolean('remember'));
+                $this->twoFactor->generateAndSend($user);
                 return redirect()->route('2fa.challenge');
             }
 
