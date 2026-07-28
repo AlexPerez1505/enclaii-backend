@@ -4,7 +4,7 @@
   $galleryEmailMessage = "Hola,\n\nTe comparto el video del estudio {$folioEstudio} de {$nombrePaciente}.\n\nSaludos.";
 @endphp
 
-<div class="gv-mail-overlay" id="gvMailOverlay" data-send-url="{{ route('galeria.video.correo.send', $archivo->id) }}">
+<div class="gv-mail-overlay" id="gvMailOverlay" data-send-url="{{ route('galeria.video.correo.send', $archivo->id, false) }}">
   <div class="gv-mail-modal" role="dialog" aria-modal="true" aria-labelledby="gvMailTitle">
     <div class="gv-mail-head">
       <div>
@@ -20,6 +20,7 @@
     </div>
 
     <form class="gv-mail-form" id="gvMailForm">
+      @csrf
       <div class="gv-mail-field">
         <label for="gvMailRecipients">Destinatarios</label>
         <input id="gvMailRecipients" name="recipients" type="text" value="{{ $galleryEmailDefaultRecipient }}" placeholder="correo@ejemplo.com" autocomplete="email">
@@ -124,7 +125,9 @@
   const message = document.getElementById('gvMailMessage');
   const sendBtn = document.getElementById('gvMailSend');
   const statusEl = document.getElementById('gvMailStatus');
-  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+  const csrfToken = form?.querySelector('input[name="_token"]')?.value
+    || document.querySelector('meta[name="csrf-token"]')?.content
+    || @json(csrf_token());
   const sendUrl = overlay.dataset.sendUrl;
   let sending = false;
 
@@ -169,18 +172,21 @@
     try {
       const response = await fetch(sendUrl, {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken
         },
         body: JSON.stringify({
+          _token: csrfToken,
           recipients: recipients.value.trim(),
           subject: subject.value.trim(),
           message: message.value.trim()
         })
       });
       const data = await response.json().catch(() => ({}));
+      if(response.status === 419) throw new Error('Tu sesion expiro. Recarga la pagina e intenta enviar el correo otra vez.');
       if(!response.ok) throw new Error(data.message || 'No se pudo enviar el correo.');
 
       setStatus(data.message || 'Correo enviado correctamente.', 'ok');

@@ -211,7 +211,7 @@ class WhatsAppIntegrationTest extends TestCase
             ->assertOk()
             ->assertSee('data-gallery-email-open', false)
             ->assertSee('Enviar video por Gmail')
-            ->assertSee(route('galeria.video.correo.send', $video), false)
+            ->assertSee(route('galeria.video.correo.send', $video, false), false)
             ->assertDontSee('canal=email', false);
     }
 
