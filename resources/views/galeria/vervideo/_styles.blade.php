@@ -92,6 +92,7 @@
   font:inherit;font-size:12.5px;font-weight:600;
   background:var(--panel-2);border:1px solid var(--stroke);color:var(--txt);
   text-decoration:none;
+  cursor:pointer;
   transition:background-color 150ms ease,border-color 150ms ease,transform 160ms var(--ease-out);
   white-space:nowrap;
 }

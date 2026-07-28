@@ -43,6 +43,7 @@
 
 <?php echo $__env->make('galeria.vervideo._styles', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 <?php echo $__env->make('galeria.vervideo._modal-descarga', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<?php echo $__env->make('galeria._video_email_modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 <?php $__env->startSection('content'); ?>
   <div class="rise d2">

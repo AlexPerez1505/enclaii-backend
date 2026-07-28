@@ -14,6 +14,7 @@ use App\Http\Controllers\CustomerSuccess\RolesController;
 use App\Http\Controllers\CustomerSuccess\TicketController as CsTicketController;
 use App\Http\Controllers\CustomerSuccessController;
 use App\Http\Controllers\DesktopAppDownloadController;
+use App\Http\Controllers\GalleryVideoEmailController;
 use App\Http\Controllers\IaReporteController;
 use App\Http\Controllers\LaunchPromoRegistrationController;
 use App\Http\Controllers\NotificationController;
@@ -858,6 +859,10 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
             'Cache-Control' => 'private, max-age=300',
         ]);
     })->name('galeria.video.archivo');
+
+    Route::post('/galeria/video/{archivo}/correo', [GalleryVideoEmailController::class, 'store'])
+        ->middleware('throttle:12,1')
+        ->name('galeria.video.correo.send');
 
     Route::get('/galeria/video/{id}', function ($id) {
         $archivo = \App\Models\EstudioArchivo::with(['estudio.paciente', 'estudio.hallazgos'])

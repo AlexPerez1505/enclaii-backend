@@ -45,6 +45,7 @@
 
 @include('galeria.vervideo._styles')
 @include('galeria.vervideo._modal-descarga')
+@include('galeria._video_email_modal')
 
 @section('content')
   <div class="rise d2">

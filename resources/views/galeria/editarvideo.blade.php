@@ -70,7 +70,7 @@
 .ev-vol-fill{height:100%;background:rgba(255,255,255,.75);border-radius:4px;width:100%}
 .ev-speed{font-size:11.5px;font-weight:800;color:rgba(255,255,255,.86);padding:2px 7px;border-radius:6px;border:1px solid rgba(255,255,255,.22)}
 .ev-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--stroke);margin-bottom:12px}
-.ev-act-btn{height:34px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 12px;border-radius:var(--r-md);font:inherit;font-size:12px;font-weight:700;text-decoration:none;background:var(--panel-2);border:1px solid var(--stroke);color:var(--txt);white-space:nowrap}
+.ev-act-btn{height:34px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 12px;border-radius:var(--r-md);font:inherit;font-size:12px;font-weight:700;text-decoration:none;background:var(--panel-2);border:1px solid var(--stroke);color:var(--txt);white-space:nowrap;cursor:pointer}
 .ev-act-btn.email{color:var(--blue);border-color:rgba(46,123,246,.35);background:rgba(46,123,246,.08)}
 .ev-act-btn.ia{color:var(--cyan);border-color:rgba(56,199,244,.32);background:rgba(56,199,244,.07)}
 @media(hover:hover)and(pointer:fine){.ev-act-btn:hover{background:rgba(46,123,246,.1);border-color:rgba(46,123,246,.4);color:var(--blue)}}
@@ -168,7 +168,7 @@
         <button class="ev-act-btn" id="evCaptureFrame" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Capturar imagen</button>
         <a class="ev-act-btn" href="{{ $videoUrl }}" download="{{ $downloadName }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Exportar video</a>
         <button class="ev-act-btn" id="evPrint" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Imprimir informe</button>
-        <a class="ev-act-btn email" href="{{ route('mensajes', ['canal' => 'email', 'paciente' => $nombrePaciente, 'paciente_id' => $pacienteId, 'estudio' => $tipoEstudio, 'video_id' => $archivo->id, 'video' => $folioEstudio, 'fecha' => format_user_date_time($estudio?->fecha ?? $archivo->capturado_en), 'diagnostico' => $estudio?->diagnostico]) }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><polyline points="3 7 12 13 21 7"/></svg>Enviar por correo</a>
+        <button class="ev-act-btn email" type="button" data-gallery-email-open><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><polyline points="3 7 12 13 21 7"/></svg>Enviar por correo</button>
         <a class="ev-act-btn ia" href="{{ route('ia-reportes.generar', ['estudio' => $estudio?->id, 'paciente' => $pacienteId]) }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>IA Reportes</a>
       </div>
 
@@ -268,6 +268,7 @@
     </div>
   </div>
 </div>
+@include('galeria._video_email_modal')
 @endsection
 
 @push('scripts')

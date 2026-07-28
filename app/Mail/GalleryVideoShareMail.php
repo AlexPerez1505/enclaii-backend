@@ -24,7 +24,7 @@ class GalleryVideoShareMail extends Mailable
     public function build(): self
     {
         return $this
-            ->from($this->sender->email, $this->sender->name)
+            ->from(config('mail.from.address'), config('mail.from.name'))
             ->subject($this->subjectLine)
             ->replyTo($this->sender->email, $this->sender->name)
             ->view('emails.gallery-video-share');
