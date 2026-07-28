@@ -2,11 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Mail\GalleryImageShareMail;
 use App\Models\Estudio;
 use App\Models\EstudioArchivo;
 use App\Models\Paciente;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -169,6 +171,118 @@ class GaleriaImagenDeleteTest extends TestCase
 
         $this->assertDatabaseMissing('estudio_archivos', ['id' => $imagen->id]);
         Storage::disk('public')->assertMissing($path);
+    }
+
+    public function test_authenticated_user_can_email_a_gallery_image_from_gallery_using_the_configured_gmail_sender(): void
+    {
+        Mail::fake();
+        config([
+            'mail.from.address' => 'gmail-clinic@example.com',
+            'mail.from.name' => 'ENCLAII Gmail',
+        ]);
+
+        $disk = media_disk();
+        Storage::fake($disk);
+        Storage::disk($disk)->put('imagenes/captura-correo.jpg', 'contenido de imagen');
+
+        $user = User::create([
+            'name' => 'Dra. Imagen',
+            'email' => 'imagen@example.com',
+            'password' => 'password',
+            'subscription_status' => 'active',
+        ]);
+        $paciente = Paciente::create([
+            'folio' => 'P-IMG-MAIL',
+            'nombre_completo' => 'Paciente Imagen',
+            'email' => 'paciente.imagen@example.com',
+        ]);
+        $estudio = Estudio::create([
+            'paciente_id' => $paciente->id,
+            'paciente_nombre' => $paciente->nombre_completo,
+            'folio' => 'E-IMG-MAIL',
+            'tipo' => 'Endoscopia',
+            'fecha' => today(),
+        ]);
+        $imagen = EstudioArchivo::create([
+            'estudio_id' => $estudio->id,
+            'paciente_id' => $paciente->id,
+            'tipo' => 'imagen',
+            'nombre_original' => 'captura-correo.jpg',
+            'nombre' => 'captura-correo.jpg',
+            'path' => 'imagenes/captura-correo.jpg',
+            'mime_type' => 'image/jpeg',
+            'size_bytes' => 128,
+            'capturado_en' => now(),
+        ]);
+
+        $this->actingAs($user)
+            ->postJson(route('galeria.imagen.correo.send', $imagen), [
+                'recipients' => 'contacto@example.com, familiar@example.com',
+                'subject' => 'Imagen de Endoscopia',
+                'message' => 'Te comparto la imagen del estudio.',
+            ])
+            ->assertOk()
+            ->assertJsonPath('message', 'Correo enviado correctamente.')
+            ->assertJsonPath('sent_to.0', 'contacto@example.com')
+            ->assertJsonPath('sent_to.1', 'familiar@example.com');
+
+        Mail::assertSent(GalleryImageShareMail::class, function (GalleryImageShareMail $mail) use ($imagen): bool {
+            $mail->build();
+
+            return $mail->archivo->is($imagen)
+                && $mail->sender->email === 'imagen@example.com'
+                && $mail->subjectLine === 'Imagen de Endoscopia'
+                && $mail->hasFrom('gmail-clinic@example.com', 'ENCLAII Gmail')
+                && $mail->hasReplyTo('imagen@example.com', 'Dra. Imagen')
+                && $mail->hasTo('contacto@example.com')
+                && $mail->hasTo('familiar@example.com');
+        });
+    }
+
+    public function test_gallery_image_page_opens_the_gmail_email_modal_without_the_messages_dashboard(): void
+    {
+        $disk = media_disk();
+        Storage::fake($disk);
+        Storage::disk($disk)->put('imagenes/captura-galeria.jpg', 'contenido de imagen');
+
+        $user = User::create([
+            'name' => 'Dra. Galeria Imagen',
+            'email' => 'galeria-imagen@example.com',
+            'password' => 'password',
+            'subscription_status' => 'active',
+        ]);
+        $paciente = Paciente::create([
+            'folio' => 'P-IMG-GAL',
+            'nombre_completo' => 'Paciente Imagen Galeria',
+            'email' => 'paciente.galeria@example.com',
+        ]);
+        $estudio = Estudio::create([
+            'paciente_id' => $paciente->id,
+            'paciente_nombre' => $paciente->nombre_completo,
+            'folio' => 'E-IMG-GAL',
+            'tipo' => 'Endoscopia',
+            'fecha' => today(),
+        ]);
+        $imagen = EstudioArchivo::create([
+            'estudio_id' => $estudio->id,
+            'paciente_id' => $paciente->id,
+            'tipo' => 'imagen',
+            'nombre_original' => 'captura-galeria.jpg',
+            'nombre' => 'captura-galeria.jpg',
+            'path' => 'imagenes/captura-galeria.jpg',
+            'mime_type' => 'image/jpeg',
+            'size_bytes' => 128,
+            'capturado_en' => now(),
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('galeria.imagen', ['id' => $imagen->id, 'paciente' => $paciente->id]))
+            ->assertOk()
+            ->assertSee('data-gallery-image-email-open', false)
+            ->assertSee('Enviar imagen por Gmail')
+            ->assertSee(route('galeria.imagen.correo.send', $imagen, false), false)
+            ->assertDontSee('Enviar por WhatsApp')
+            ->assertDontSee('canal=whatsapp', false);
     }
 
     public function test_gallery_image_route_rejects_videos(): void
