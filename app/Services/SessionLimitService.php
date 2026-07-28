@@ -65,17 +65,34 @@ class SessionLimitService
             'last_activity' => now()->timestamp,
         ];
 
-        $updated = DB::table($table)
-            ->where('id', $sessionId)
-            ->update($attributes);
+        if (DB::table($table)->where('id', $sessionId)->exists()) {
+            DB::table($table)->where('id', $sessionId)->update($attributes);
 
-        if ($updated === 0) {
+            return;
+        }
+
+        try {
             DB::table($table)->insert([
                 'id' => $sessionId,
                 ...$attributes,
                 'payload' => '',
             ]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Condición de carrera: otra petición concurrente ya insertó la fila
+            // (p. ej. StartSession) entre nuestro exists() y el insert().
+            if ($this->isDuplicateKeyError($e)) {
+                DB::table($table)->where('id', $sessionId)->update($attributes);
+
+                return;
+            }
+
+            throw $e;
         }
+    }
+
+    private function isDuplicateKeyError(\Illuminate\Database\QueryException $e): bool
+    {
+        return (int) ($e->errorInfo[1] ?? 0) === 1062;
     }
 
     public function enforceDatabaseSessions(User $user, string $currentSessionId): int
