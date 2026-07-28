@@ -485,6 +485,8 @@ twoFactorToggle?.addEventListener('change', async () => {
       });
       if (!res.ok) throw new Error('No se pudo enviar el código');
       twoFactorModal?.classList.add('open');
+      twoFactorModal?.setAttribute('aria-hidden', 'false');
+      setTimeout(() => twoFactorCode?.focus(), 80);
     } catch (e) {
       twoFactorToggle.checked = false;
       toast(e.message, true);
@@ -531,6 +533,7 @@ twoFactorConfirm?.addEventListener('click', async () => {
     if (!res.ok) throw new Error(data.message || 'Código incorrecto');
     document.getElementById('sec2faStatus').textContent = 'Activada';
     twoFactorModal?.classList.remove('open');
+    twoFactorModal?.setAttribute('aria-hidden', 'true');
     toast('Verificación activada');
   } catch (e) {
     twoFactorError.textContent = e.message;
@@ -542,6 +545,7 @@ twoFactorConfirm?.addEventListener('click', async () => {
 
 document.getElementById('sec2faCancel')?.addEventListener('click', () => {
   twoFactorModal?.classList.remove('open');
+  twoFactorModal?.setAttribute('aria-hidden', 'true');
   twoFactorToggle.checked = false;
   twoFactorCode.value = '';
   twoFactorError.textContent = '';
