@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\GalleryVideoShareMail;
+use App\Models\EstudioArchivo;
 use App\Models\Paciente;
 use App\Models\WhatsAppMessage;
 use App\Services\WhatsAppCloudService;
@@ -9,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use RuntimeException;
 use Throwable;
@@ -65,12 +68,14 @@ class WhatsAppController extends Controller
                 'patient' => $request->query('paciente'),
                 'patient_id' => $request->integer('paciente_id') ?: null,
                 'study' => $request->query('estudio'),
+                'video_id' => $request->integer('video_id') ?: null,
                 'video' => $request->query('video'),
                 'image' => $request->query('imagen'),
                 'frame' => $request->query('fotograma'),
                 'type' => $request->query('tipo'),
                 'date' => $request->query('fecha'),
                 'diagnosis' => $request->query('diagnostico'),
+                'sender_email' => $request->user()?->email,
             ],
         ]);
     }
@@ -171,6 +176,82 @@ class WhatsAppController extends Controller
                 'time' => $message->sent_at?->format('H:i'),
             ],
         ], 201);
+    }
+
+    public function sendVideoEmail(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'video_id' => ['required', 'integer', 'exists:estudio_archivos,id'],
+            'recipients' => ['required', 'string', 'max:2000'],
+            'subject' => ['required', 'string', 'max:180'],
+            'message' => ['required', 'string', 'max:5000'],
+        ]);
+
+        $sender = $request->user();
+        if (! $sender || ! filter_var($sender->email, FILTER_VALIDATE_EMAIL)) {
+            return response()->json([
+                'message' => 'Tu cuenta no tiene un correo valido registrado.',
+            ], 422);
+        }
+
+        $recipients = collect(preg_split('/[;,\s]+/', $validated['recipients']) ?: [])
+            ->map(fn (string $email) => trim($email))
+            ->filter()
+            ->unique(fn (string $email) => Str::lower($email))
+            ->values();
+
+        $invalidRecipients = $recipients
+            ->reject(fn (string $email) => filter_var($email, FILTER_VALIDATE_EMAIL))
+            ->values();
+
+        if ($recipients->isEmpty()) {
+            return response()->json([
+                'message' => 'Agrega al menos un correo de destino.',
+            ], 422);
+        }
+
+        if ($invalidRecipients->isNotEmpty()) {
+            return response()->json([
+                'message' => 'Revisa estos correos: '.$invalidRecipients->implode(', '),
+            ], 422);
+        }
+
+        if ($recipients->count() > 10) {
+            return response()->json([
+                'message' => 'Puedes enviar el video a maximo 10 destinatarios por envio.',
+            ], 422);
+        }
+
+        $archivo = EstudioArchivo::with(['estudio.paciente'])
+            ->where('tipo', 'video')
+            ->findOrFail($validated['video_id']);
+
+        abort_unless($archivo->path && media_exists($archivo->path), 404);
+
+        $downloadName = $archivo->nombre_original ?: basename((string) $archivo->path);
+        $videoUrl = media_url($archivo->path, 60 * 24 * 7);
+
+        try {
+            Mail::to($recipients->all())->send(new GalleryVideoShareMail(
+                archivo: $archivo,
+                sender: $sender,
+                subjectLine: $validated['subject'],
+                messageBody: $validated['message'],
+                videoUrl: $videoUrl,
+                downloadName: $downloadName,
+            ));
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return response()->json([
+                'message' => 'No se pudo enviar el correo en este momento.',
+            ], 502);
+        }
+
+        return response()->json([
+            'message' => 'Correo enviado correctamente.',
+            'sent_to' => $recipients->all(),
+        ]);
     }
 
     public function verifyWebhook(Request $request): Response

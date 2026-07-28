@@ -32,12 +32,14 @@ $current = $current ?? 0;
 <?php echo $__env->make('galeria.verimagen._modal_comentarios', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 <?php echo $__env->make('galeria.verimagen._modal_compartir', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 <?php echo $__env->make('galeria.verimagen._modal_descarga', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<?php if($archivo): ?>
+  <?php echo $__env->make('galeria._image_email_modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<?php endif; ?>
 
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startPush('scripts'); ?>
 <?php echo $__env->make('galeria.verimagen._scripts', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 <?php $__env->stopPush(); ?>
-
 
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\HP\enclaii-backend\resources\views/galeria/verimagen.blade.php ENDPATH**/ ?>

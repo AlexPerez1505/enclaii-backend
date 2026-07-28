@@ -1,21 +1,21 @@
-{{-- ===== COLUMNA PRINCIPAL ===== --}}
+
 <div>
 
-  {{-- Player --}}
+  
   <div class="vv-player-box" id="vvPlayer">
     <div class="vv-player-bg"></div>
-    <video id="vvVideoEl" class="vv-video-el" src="{{ $videoUrl }}" preload="metadata" playsinline></video>
+    <video id="vvVideoEl" class="vv-video-el" src="<?php echo e($videoUrl); ?>" preload="metadata" playsinline></video>
 
-    {{-- Icono central --}}
+    
     <div class="vv-player-icon" id="vvCenter">
       <div class="vv-play-big" id="vvPlayBig">
         <svg class="play-icon" width="24" height="24" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         <svg class="pause-icon" width="24" height="24" viewBox="0 0 24 24" fill="white"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
       </div>
-      <span id="vvCenterLabel">{{ $tipoEstudio }} · {{ $folioEstudio }}</span>
+      <span id="vvCenterLabel"><?php echo e($tipoEstudio); ?> · <?php echo e($folioEstudio); ?></span>
     </div>
 
-    {{-- Controles --}}
+    
     <div class="vv-controls">
       <div class="vv-prog-wrap" id="vvProgWrap">
         <div class="vv-prog-fill" id="vvProgFill"></div>
@@ -48,7 +48,7 @@
     </div>
   </div>
 
-  {{-- Acciones --}}
+  
   <div class="vv-actions">
     <button class="vv-act-btn" id="vvExportBtn" type="button">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
@@ -58,31 +58,32 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><polyline points="3 7 12 13 21 7"/></svg>
       Enviar por correo
     </button>
-    <a class="vv-act-btn ia" href="{{ route('ia-reportes.generar', ['estudio' => $estudio?->id, 'paciente' => $pacienteId]) }}">
+    <a class="vv-act-btn ia" href="<?php echo e(route('ia-reportes.generar', ['estudio' => $estudio?->id, 'paciente' => $pacienteId])); ?>">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>
       IA Reportes
     </a>
   </div>
 
-  {{-- Miniaturas --}}
+  
   <div>
     <div class="vv-caps-title">Imágenes capturadas del estudio</div>
     <div class="vv-caps-strip" id="vvStrip">
-      @forelse($capturas as $i => $cap)
-        <a class="vv-cap-item {{ $i === 0 ? 'sel' : '' }}" href="{{ route('galeria.imagen', ['id' => $cap->id, 'paciente' => $pacienteId]) }}" data-ts="{{ format_user_time_with_seconds($cap->capturado_en) }}">
+      <?php $__empty_1 = true; $__currentLoopData = $capturas; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $cap): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+        <a class="vv-cap-item <?php echo e($i === 0 ? 'sel' : ''); ?>" href="<?php echo e(route('galeria.imagen', ['id' => $cap->id, 'paciente' => $pacienteId])); ?>" data-ts="<?php echo e(format_user_time_with_seconds($cap->capturado_en)); ?>">
           <div class="vv-cap-thumb">
-            <img src="{{ media_url($cap->path) }}" alt="{{ $cap->nombre_original ?? 'Captura' }}">
-            <span class="vv-cap-num">{{ $i + 1 }}</span>
+            <img src="<?php echo e(media_url($cap->path)); ?>" alt="<?php echo e($cap->nombre_original ?? 'Captura'); ?>">
+            <span class="vv-cap-num"><?php echo e($i + 1); ?></span>
             <span class="vv-cap-check">
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
             </span>
           </div>
-          <div class="vv-cap-ts">{{ format_user_time_with_seconds($cap->capturado_en) }}</div>
+          <div class="vv-cap-ts"><?php echo e(format_user_time_with_seconds($cap->capturado_en)); ?></div>
         </a>
-      @empty
+      <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
         <div class="vv-empty-caps">Sin imágenes capturadas para este video.</div>
-      @endforelse
+      <?php endif; ?>
     </div>
   </div>
 
 </div>
+<?php /**PATH C:\Users\HP\enclaii-backend\resources\views/galeria/vervideo/_player.blade.php ENDPATH**/ ?>

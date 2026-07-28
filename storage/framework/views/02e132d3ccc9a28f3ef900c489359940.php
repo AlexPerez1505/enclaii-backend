@@ -18,9 +18,9 @@
   const volFill = document.getElementById('vvVolFill');
   const speedBtn = document.getElementById('vvSpeed');
   const exportBtn = document.getElementById('vvExportBtn');
-  const savedConfig = @json($editorConfig);
-  const downloadUrl = @json($videoDownloadUrl);
-  const downloadName = @json($downloadName);
+  const savedConfig = <?php echo json_encode($editorConfig, 15, 512) ?>;
+  const downloadUrl = <?php echo json_encode($videoDownloadUrl, 15, 512) ?>;
+  const downloadName = <?php echo json_encode($downloadName, 15, 512) ?>;
   const speeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
   let speedIndex = 2;
   let draggingProgress = false;
@@ -170,3 +170,4 @@
   updateProgress();
 })();
 </script>
+<?php /**PATH C:\Users\HP\enclaii-backend\resources\views/galeria/vervideo/_scripts.blade.php ENDPATH**/ ?>
