@@ -77,6 +77,7 @@ class PatientStudyHistoryTest extends TestCase
         $study = $this->study($clinica, $paciente, 'E-004', 'Endoscopia', '2026-07-26');
 
         Storage::disk('public')->put('studies/e004/capture.jpg', 'image-bytes');
+        Storage::disk('public')->put('studies/e004/capture.png', 'png-bytes');
         Storage::disk('public')->put('studies/e004/video.webm', 'video-bytes');
 
         EstudioArchivo::create([
@@ -88,6 +89,17 @@ class PatientStudyHistoryTest extends TestCase
             'nombre' => 'capture.jpg',
             'path' => 'studies/e004/capture.jpg',
             'capturado_en' => '2026-07-26 10:00:00',
+        ]);
+
+        EstudioArchivo::create([
+            'clinica_id' => $clinica->id,
+            'estudio_id' => $study->id,
+            'paciente_id' => $paciente->id,
+            'tipo' => 'imagen',
+            'nombre_original' => 'capture.png',
+            'nombre' => 'capture.png',
+            'path' => 'studies/e004/capture.png',
+            'capturado_en' => '2026-07-26 10:01:00',
         ]);
 
         EstudioArchivo::create([
@@ -126,10 +138,12 @@ class PatientStudyHistoryTest extends TestCase
 
             return $mail->estudio->is($study)
                 && $mail->reportes->count() === 1
-                && $mail->imagenes->count() === 1
+                && $mail->imagenes->count() === 2
                 && $mail->videos->count() === 1
                 && str_ends_with($pdf['name'], '.pdf')
                 && str_starts_with($pdf['data'], '%PDF-')
+                && $mail->hasAttachedData('image-bytes', 'capture.jpg', ['mime' => 'image/jpeg'])
+                && $mail->hasAttachedData('png-bytes', 'capture.png', ['mime' => 'image/png'])
                 && $mail->hasAttachedData($pdf['data'], $pdf['name'], ['mime' => 'application/pdf']);
         });
     }

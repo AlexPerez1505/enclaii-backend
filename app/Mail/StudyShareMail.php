@@ -5,6 +5,7 @@ namespace App\Mail;
 use App\Models\Estudio;
 use App\Models\User;
 use App\Services\ReportPdfGenerator;
+use App\Services\StudyImageAttachmentBuilder;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
@@ -31,6 +32,19 @@ class StudyShareMail extends Mailable
             ->subject($this->subjectLine)
             ->replyTo($this->sender->email, $this->sender->name)
             ->view('emails.study-share');
+
+        $imageAttachmentBuilder = app(StudyImageAttachmentBuilder::class);
+        foreach ($this->imagenes as $imagen) {
+            $attachment = $imageAttachmentBuilder->make($imagen);
+
+            if (! $attachment) {
+                continue;
+            }
+
+            $mail->attachData($attachment['data'], $attachment['name'], [
+                'mime' => $attachment['mime'],
+            ]);
+        }
 
         $pdfGenerator = app(ReportPdfGenerator::class);
 

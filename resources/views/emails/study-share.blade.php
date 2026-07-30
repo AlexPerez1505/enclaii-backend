@@ -66,7 +66,7 @@
         @endif
 
         <p style="margin:24px 0 0;font-size:12px;line-height:1.6;color:#64748b">
-          Las capturas y videos pueden abrirse desde sus enlaces. Los reportes se incluyen como PDF adjunto.
+          Las capturas se incluyen como adjuntos JPG/PNG y tambien pueden abrirse desde sus enlaces. Los videos van como enlace y los reportes como PDF adjunto.
         </p>
 
         <p style="margin:18px 0 0;font-size:12px;line-height:1.6;color:#64748b">
