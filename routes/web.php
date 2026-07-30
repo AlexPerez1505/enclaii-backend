@@ -1244,6 +1244,8 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
 
 
 Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->group(function () {
+    Route::get('/pacientes/{paciente}/expediente-pdf', [PacienteController::class, 'expedientePdf'])
+        ->name('pacientes.expediente.pdf');
     Route::resource('pacientes', PacienteController::class)
         ->middlewareFor(['update', 'destroy'], 'critical.password:patients');
     Route::post('/pacientes/{paciente}/add-medico', [PacienteController::class, 'addMedico'])

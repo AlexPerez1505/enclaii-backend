@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Paciente;
 use App\Services\ActivityLogger;
 use App\Services\MediaPathService;
+use App\Services\PatientRecordPdfGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -148,6 +149,17 @@ class PacienteController extends Controller
     public function show(Paciente $paciente)
     {
         return redirect()->route('pacientes.edit', $paciente);
+    }
+
+    public function expedientePdf(Paciente $paciente, PatientRecordPdfGenerator $pdfGenerator)
+    {
+        $pdf = $pdfGenerator->make($paciente);
+
+        return response($pdf['data'], 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$pdf['name'].'"',
+            'Cache-Control' => 'private, no-store',
+        ]);
     }
 
     // AQUÍ AGREGAS TU NUEVO MÉTODO edit
