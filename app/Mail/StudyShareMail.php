@@ -4,6 +4,7 @@ namespace App\Mail;
 
 use App\Models\Estudio;
 use App\Models\User;
+use App\Services\ReportPdfGenerator;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
@@ -25,10 +26,21 @@ class StudyShareMail extends Mailable
 
     public function build(): self
     {
-        return $this
+        $mail = $this
             ->from(config('mail.from.address'), config('mail.from.name'))
             ->subject($this->subjectLine)
             ->replyTo($this->sender->email, $this->sender->name)
             ->view('emails.study-share');
+
+        $pdfGenerator = app(ReportPdfGenerator::class);
+
+        foreach ($this->reportes as $reporte) {
+            $pdf = $pdfGenerator->make($reporte);
+            $mail->attachData($pdf['data'], $pdf['name'], [
+                'mime' => 'application/pdf',
+            ]);
+        }
+
+        return $mail;
     }
 }

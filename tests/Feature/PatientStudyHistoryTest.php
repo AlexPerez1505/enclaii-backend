@@ -9,6 +9,7 @@ use App\Models\EstudioArchivo;
 use App\Models\Paciente;
 use App\Models\Reporte;
 use App\Models\User;
+use App\Services\ReportPdfGenerator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
@@ -100,7 +101,7 @@ class PatientStudyHistoryTest extends TestCase
             'capturado_en' => '2026-07-26 10:05:00',
         ]);
 
-        Reporte::create([
+        $reporte = Reporte::create([
             'clinica_id' => $clinica->id,
             'estudio_id' => $study->id,
             'usuario_id' => $user->id,
@@ -119,11 +120,17 @@ class PatientStudyHistoryTest extends TestCase
             ->assertJsonPath('message', 'Estudio enviado correctamente.')
             ->assertJsonPath('sent_to.0', 'paciente@example.com');
 
-        Mail::assertSent(StudyShareMail::class, function (StudyShareMail $mail) use ($study): bool {
+        Mail::assertSent(StudyShareMail::class, function (StudyShareMail $mail) use ($reporte, $study): bool {
+            $pdf = app(ReportPdfGenerator::class)->make($reporte);
+            $mail->build();
+
             return $mail->estudio->is($study)
                 && $mail->reportes->count() === 1
                 && $mail->imagenes->count() === 1
-                && $mail->videos->count() === 1;
+                && $mail->videos->count() === 1
+                && str_ends_with($pdf['name'], '.pdf')
+                && str_starts_with($pdf['data'], '%PDF-')
+                && $mail->hasAttachedData($pdf['data'], $pdf['name'], ['mime' => 'application/pdf']);
         });
     }
 
