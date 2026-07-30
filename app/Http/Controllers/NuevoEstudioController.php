@@ -12,7 +12,6 @@ use App\Services\MediaPathService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class NuevoEstudioController extends Controller
@@ -413,9 +412,7 @@ class NuevoEstudioController extends Controller
     {
         $estudio = $archivo->estudio;
 
-        if ($archivo->path && Storage::disk('public')->exists($archivo->path)) {
-            Storage::disk('public')->delete($archivo->path);
-        }
+        media_delete($archivo->path);
 
         $archivo->delete();
         $this->activity->record(

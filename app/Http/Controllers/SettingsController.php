@@ -4,12 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\LegalAcceptance;
 use App\Models\User;
+use App\Services\MediaPathService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class SettingsController extends Controller
 {
+    public function __construct(
+        private readonly MediaPathService $mediaPaths,
+    ) {}
+
     /**
      * Guarda la configuración general del usuario autenticado.
      */
@@ -146,7 +151,7 @@ class SettingsController extends Controller
 
         media_delete($user->foto_perfil);
 
-        $path = media_store($request->file('foto'), 'fotos_perfil');
+        $path = media_store($request->file('foto'), $this->mediaPaths->userProfile($user));
         $user->update(['foto_perfil' => $path]);
 
         return response()->json([
@@ -166,7 +171,7 @@ class SettingsController extends Controller
 
         media_delete($user->constancia_fiscal);
 
-        $path = media_store($request->file('constancia'), 'constancias_fiscales');
+        $path = media_store($request->file('constancia'), $this->mediaPaths->userTaxDocuments($user));
         $user->update(['constancia_fiscal' => $path]);
 
         $ext = strtolower($request->file('constancia')->getClientOriginalExtension());
