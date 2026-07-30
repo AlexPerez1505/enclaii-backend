@@ -17,10 +17,10 @@ class DesktopAppReleaseTest extends TestCase
 
     public function test_desktop_app_defaults_point_to_current_release(): void
     {
-        $this->assertSame('0.1.9', config('desktop_app.version'));
+        $this->assertSame('0.2.1', config('desktop_app.version'));
         $this->assertSame('18.7 MB', config('desktop_app.size'));
-        $this->assertSame('windows/releases/0.1.9/ENCLAII_0.1.9_x64_es-ES.msi', config('desktop_app.installer_path'));
-        $this->assertSame('ENCLAII_0.1.9_x64_es-ES.msi', config('desktop_app.download_name'));
+        $this->assertSame('windows/releases/0.2.1/ENCLAII_0.2.1_x64_es-ES.msi', config('desktop_app.installer_path'));
+        $this->assertSame('ENCLAII_0.2.1_x64_es-ES.msi', config('desktop_app.download_name'));
     }
 
     public function test_desktop_app_update_command_notifies_current_release_once(): void
@@ -50,10 +50,10 @@ class DesktopAppReleaseTest extends TestCase
             ->where('tipo', 'desktop_app_update')
             ->firstOrFail();
 
-        $this->assertSame('0.1.9', $notification->data['version']);
+        $this->assertSame('0.2.1', $notification->data['version']);
         $this->assertSame('Windows', $notification->data['platform']);
         $this->assertSame('18.7 MB', $notification->data['size']);
-        $this->assertSame('windows/releases/0.1.9/ENCLAII_0.1.9_x64_es-ES.msi', $notification->data['installer_path']);
+        $this->assertSame('windows/releases/0.2.1/ENCLAII_0.2.1_x64_es-ES.msi', $notification->data['installer_path']);
 
         $secondExitCode = Artisan::call('desktop-app:notificar-actualizacion', [
             '--skip-exists-check' => true,
@@ -87,9 +87,9 @@ class DesktopAppReleaseTest extends TestCase
         $response->assertOk()
             ->assertJsonFragment([
                 'tipo' => 'desktop_app_update',
-                'version' => '0.1.9',
+                'version' => '0.2.1',
                 'size' => '18.7 MB',
-                'installer_path' => 'windows/releases/0.1.9/ENCLAII_0.1.9_x64_es-ES.msi',
+                'installer_path' => 'windows/releases/0.2.1/ENCLAII_0.2.1_x64_es-ES.msi',
             ]);
 
         $this->assertSame(1, Notification::where('tipo', 'desktop_app_update')->count());
@@ -101,8 +101,8 @@ class DesktopAppReleaseTest extends TestCase
         Storage::disk('downloads')->put(config('desktop_app.installer_path'), 'installer');
 
         DB::table('desktop_app_release_notifications')->insert([
-            'version' => '0.1.9',
-            'installer_path' => 'windows/releases/0.1.9/ENCLAII_0.1.9_x64_es-ES.msi',
+            'version' => '0.2.1',
+            'installer_path' => 'windows/releases/0.2.1/ENCLAII_0.2.1_x64_es-ES.msi',
             'target_count' => 0,
             'notified_at' => now(),
             'created_at' => now(),
@@ -128,7 +128,7 @@ class DesktopAppReleaseTest extends TestCase
         $response->assertOk()
             ->assertJsonFragment([
                 'tipo' => 'desktop_app_update',
-                'version' => '0.1.9',
+                'version' => '0.2.1',
             ]);
 
         $this->assertSame(1, Notification::where('tipo', 'desktop_app_update')->count());
