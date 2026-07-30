@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\CitaEstadoChanged;
 use App\Models\AiAttachment;
 use App\Models\AiConversation;
 use App\Models\Cita;
@@ -563,6 +564,8 @@ class AiAssistantController extends Controller
         }
 
         $cita = Cita::create($datos);
+
+        broadcast(new CitaEstadoChanged($cita->fresh(), '', $cita->estado, 'nueva'));
 
         return [
             'ok' => true,
