@@ -331,8 +331,8 @@ textarea{
   flex:1;
 }
 .btn-add-procedimiento{
-  width:15px;
-  height:15px;
+  width:38px;
+  height:38px;
   border-radius:var(--r-sm);
   border:1px solid var(--stroke-strong);
   background:var(--panel-2);
@@ -342,10 +342,17 @@ textarea{
   cursor:pointer;
   transition:all 150ms ease;
   flex:none;
+  font-size:18px;
+  font-weight:700;
+  line-height:1;
 }
 .btn-add-procedimiento:hover{
   background:rgba(56,199,244,.15);
   border-color:var(--cyan);
+}
+.btn-add-procedimiento svg{
+  width:16px;
+  height:16px;
 }
 .procedimientos-tags{
   display:flex;
@@ -1183,6 +1190,9 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
                 </option>
               @endforeach
             </select>
+            <button type="button" class="btn-add-procedimiento" onclick="window.addMedicoMed()" title="Agregar médico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
           </div>
         </div>
         <div class="form-group" style="margin-bottom:18px;">
@@ -1196,6 +1206,9 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
                 </option>
               @endforeach
             </select>
+            <button type="button" class="btn-add-procedimiento" onclick="window.addNuevoProcedimiento()" title="Agregar procedimiento">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
           </div>
           <div id="procedimientosAgregados" class="procedimientos-tags"></div>
         </div>
@@ -1210,6 +1223,9 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
                 </option>
               @endforeach
             </select>
+            <button type="button" class="btn-add-procedimiento" onclick="window.addAnestesiologo()" title="Agregar anestesiólogo">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
           </div>
         </div>
       </div>
@@ -1486,6 +1502,33 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
       var campo = s?.dataset.campo;
       var pacienteId = document.querySelector('input[name="paciente_id"]')?.value;
 
+      // Si es procedimiento, crear registro real en la base de datos
+      if (_selId === 'procedimientoSelect') {
+        fetch('{{ route("procedimientos.store") }}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: JSON.stringify({ nombre: n })
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          if (data.success && data.procedimiento) {
+            agregarOpcionSelect(s, data.procedimiento.nombre);
+            window.cerrarMiniModal();
+          } else {
+            alert('No se pudo guardar el procedimiento.');
+          }
+        })
+        .catch(function(err){
+          console.error('Error:', err);
+          alert('Error al crear procedimiento: ' + err.message);
+        });
+        return;
+      }
+
       // Si es anestesiologo, crear registro real en la base de datos
       if (_selId === 'anestesiologoSelect') {
         fetch('{{ route("anestesiologos.store") }}', {
@@ -1560,7 +1603,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
             } else {
               s.innerHTML = '';
               var o = document.createElement('option');
-              o.value = data.valor.toLowerCase().replace(/\s+/g,'-');
+              o.value = data.valor;
               o.textContent = data.valor;
               o.selected = true;
               s.appendChild(o);
@@ -1591,7 +1634,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
 
     function agregarOpcionSelect(s, n) {
       var o = document.createElement('option');
-      o.value = n.toLowerCase().replace(/\s+/g,'-');
+      o.value = n;
       o.textContent = n;
       o.selected = true;
       s.insertBefore(o, s.lastElementChild);
