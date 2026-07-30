@@ -470,7 +470,7 @@ class AiAssistantController extends Controller
 
                 $result = match ($name) {
                     'crear_paciente' => $this->crearPaciente($args, $request),
-                    'crear_cita' => $this->crearCita($args),
+                    'crear_cita' => $this->crearCita($args, $request),
                     default => ['ok' => false, 'error' => 'Función desconocida'],
                 };
 
@@ -528,7 +528,7 @@ class AiAssistantController extends Controller
     /* ============================================================
      |  Función: crear cita real
      |============================================================ */
-    private function crearCita(array $args): array
+    private function crearCita(array $args, Request $request): array
     {
         $validator = validator($args, [
             'paciente_nombre' => 'required|string|max:255',
