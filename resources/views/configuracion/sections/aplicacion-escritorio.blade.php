@@ -1,7 +1,8 @@
 @php
-  $desktopAppVersion = config('desktop_app.version', '0.1.8');
-  $desktopAppArchitecture = config('desktop_app.architecture', '64 bits');
-  $desktopAppSize = config('desktop_app.size', '18.5 MB');
+  $desktopAppRelease = \App\Support\DesktopAppRelease::current();
+  $desktopAppVersion = $desktopAppRelease['version'];
+  $desktopAppArchitecture = $desktopAppRelease['architecture'];
+  $desktopAppSize = $desktopAppRelease['size'];
   $desktopAppManualUrl = asset('docs/manual-instalacion-enclaii-endoscopy.pdf');
 @endphp
 

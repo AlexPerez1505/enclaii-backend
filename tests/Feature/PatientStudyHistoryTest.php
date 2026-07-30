@@ -9,6 +9,7 @@ use App\Models\EstudioArchivo;
 use App\Models\Paciente;
 use App\Models\Reporte;
 use App\Models\User;
+use App\Services\ReportPdfGenerator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
@@ -76,6 +77,7 @@ class PatientStudyHistoryTest extends TestCase
         $study = $this->study($clinica, $paciente, 'E-004', 'Endoscopia', '2026-07-26');
 
         Storage::disk('public')->put('studies/e004/capture.jpg', 'image-bytes');
+        Storage::disk('public')->put('studies/e004/capture.png', 'png-bytes');
         Storage::disk('public')->put('studies/e004/video.webm', 'video-bytes');
 
         EstudioArchivo::create([
@@ -93,6 +95,17 @@ class PatientStudyHistoryTest extends TestCase
             'clinica_id' => $clinica->id,
             'estudio_id' => $study->id,
             'paciente_id' => $paciente->id,
+            'tipo' => 'imagen',
+            'nombre_original' => 'capture.png',
+            'nombre' => 'capture.png',
+            'path' => 'studies/e004/capture.png',
+            'capturado_en' => '2026-07-26 10:01:00',
+        ]);
+
+        EstudioArchivo::create([
+            'clinica_id' => $clinica->id,
+            'estudio_id' => $study->id,
+            'paciente_id' => $paciente->id,
             'tipo' => 'video',
             'nombre_original' => 'video.webm',
             'nombre' => 'video.webm',
@@ -100,7 +113,7 @@ class PatientStudyHistoryTest extends TestCase
             'capturado_en' => '2026-07-26 10:05:00',
         ]);
 
-        Reporte::create([
+        $reporte = Reporte::create([
             'clinica_id' => $clinica->id,
             'estudio_id' => $study->id,
             'usuario_id' => $user->id,
@@ -119,11 +132,19 @@ class PatientStudyHistoryTest extends TestCase
             ->assertJsonPath('message', 'Estudio enviado correctamente.')
             ->assertJsonPath('sent_to.0', 'paciente@example.com');
 
-        Mail::assertSent(StudyShareMail::class, function (StudyShareMail $mail) use ($study): bool {
+        Mail::assertSent(StudyShareMail::class, function (StudyShareMail $mail) use ($reporte, $study): bool {
+            $pdf = app(ReportPdfGenerator::class)->make($reporte);
+            $mail->build();
+
             return $mail->estudio->is($study)
                 && $mail->reportes->count() === 1
-                && $mail->imagenes->count() === 1
-                && $mail->videos->count() === 1;
+                && $mail->imagenes->count() === 2
+                && $mail->videos->count() === 1
+                && str_ends_with($pdf['name'], '.pdf')
+                && str_starts_with($pdf['data'], '%PDF-')
+                && $mail->hasAttachedData('image-bytes', 'capture.jpg', ['mime' => 'image/jpeg'])
+                && $mail->hasAttachedData('png-bytes', 'capture.png', ['mime' => 'image/png'])
+                && $mail->hasAttachedData($pdf['data'], $pdf['name'], ['mime' => 'application/pdf']);
         });
     }
 

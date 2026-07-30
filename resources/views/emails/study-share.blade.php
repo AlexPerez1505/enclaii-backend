@@ -36,14 +36,11 @@
         @if($reportes->isNotEmpty())
           <h2 style="margin:24px 0 10px;font-size:16px;color:#111827">Reportes</h2>
           @foreach($reportes as $reporte)
-            @php
-              $reportText = $reporte->contenido_texto ?: trim(strip_tags((string) $reporte->contenido_html));
-            @endphp
             <div style="border:1px solid #e2e8f0;border-radius:12px;padding:14px;margin-bottom:10px;background:#ffffff">
               <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:8px">
                 Reporte #{{ $reporte->id }} · {{ format_user_date($reporte->created_at) ?: 'Sin fecha' }}
               </div>
-              <div style="font-size:14px;line-height:1.7;color:#334155">{!! nl2br(e($reportText ?: 'Sin contenido registrado.')) !!}</div>
+              <div style="font-size:14px;line-height:1.7;color:#334155">Incluido como archivo PDF adjunto en este correo.</div>
             </div>
           @endforeach
         @endif
@@ -69,7 +66,7 @@
         @endif
 
         <p style="margin:24px 0 0;font-size:12px;line-height:1.6;color:#64748b">
-          Los enlaces pueden abrirse desde el navegador para visualizar o descargar los archivos.
+          Las capturas se incluyen como adjuntos JPG/PNG y tambien pueden abrirse desde sus enlaces. Los videos van como enlace y los reportes como PDF adjunto.
         </p>
 
         <p style="margin:18px 0 0;font-size:12px;line-height:1.6;color:#64748b">
