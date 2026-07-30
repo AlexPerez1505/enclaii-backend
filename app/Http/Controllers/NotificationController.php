@@ -4,14 +4,22 @@ namespace App\Http\Controllers;
 
 use App\Models\Anuncio;
 use App\Models\Notification;
+use App\Services\DesktopAppReleaseNotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Throwable;
 
 class NotificationController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(DesktopAppReleaseNotificationService $desktopAppNotifier): JsonResponse
     {
+        try {
+            $desktopAppNotifier->notifyCurrentReleaseForUser(Auth::user());
+        } catch (Throwable $exception) {
+            report($exception);
+        }
+
         $notifications = Notification::query()
             ->where('user_id', Auth::id())
             ->orderByDesc('created_at')

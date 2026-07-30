@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\DesktopAppRelease;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -13,8 +14,9 @@ class DesktopAppDownloadController extends Controller
         abort_unless($request->user()?->subscribed(), 403);
 
         $disk = Storage::disk('downloads');
-        $installerPath = (string) config('desktop_app.installer_path');
-        $downloadName = (string) config('desktop_app.download_name');
+        $release = DesktopAppRelease::current();
+        $installerPath = (string) $release['installer_path'];
+        $downloadName = (string) $release['download_name'];
 
         abort_unless($installerPath !== '' && $disk->exists($installerPath), 404, 'El instalador no está disponible.');
 
