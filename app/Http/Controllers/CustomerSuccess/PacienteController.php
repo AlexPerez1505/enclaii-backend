@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Paciente;
 use App\Services\ActivityLogger;
+use App\Services\MediaPathService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -11,6 +12,7 @@ class PacienteController extends Controller
 {
     public function __construct(
         private readonly ActivityLogger $activity,
+        private readonly MediaPathService $mediaPaths,
     ) {}
 
     public function index()
@@ -70,14 +72,16 @@ class PacienteController extends Controller
                 'estudios_archivos.*' => ['nullable', 'file', 'max:20480'],
             ]);
 
-            if ($request->hasFile('foto')) {
-                $validated['foto'] = media_store(
-                    $request->file('foto'),
-                    'clinicas/'.$request->user()->clinica_id.'/pacientes'
-                );
-            }
+            $paciente = Paciente::create(collect($validated)->except('estudios_archivos', 'foto')->toArray());
 
-            $paciente = Paciente::create(collect($validated)->except('estudios_archivos')->toArray());
+            if ($request->hasFile('foto')) {
+                $paciente->update([
+                    'foto' => media_store(
+                        $request->file('foto'),
+                        $this->mediaPaths->patientProfile($paciente)
+                    ),
+                ]);
+            }
             $this->activity->record(
                 'patient_created',
                 'patients',
@@ -88,7 +92,7 @@ class PacienteController extends Controller
 
             if ($request->hasFile('estudios_archivos')) {
                 foreach ($request->file('estudios_archivos') as $archivo) {
-                    $path = media_store($archivo, 'paciente_docs/' . $paciente->id);
+                    $path = media_store($archivo, $this->mediaPaths->patientDocuments($paciente));
                     \App\Models\PacienteDocumento::create([
                         'paciente_id' => $paciente->id,
                         'path' => $path,
@@ -173,7 +177,7 @@ class PacienteController extends Controller
 
             $validated['foto'] = media_store(
                 $request->file('foto'),
-                'clinicas/'.$request->user()->clinica_id.'/pacientes'
+                $this->mediaPaths->patientProfile($paciente)
             );
         }
 
@@ -192,7 +196,7 @@ class PacienteController extends Controller
         if ($request->hasFile('estudios_archivos')) {
             foreach ($request->file('estudios_archivos') as $archivo) {
                 \Log::info('Guardando archivo: ' . $archivo->getClientOriginalName());
-                $path = media_store($archivo, 'paciente_docs/' . $paciente->id);
+                $path = media_store($archivo, $this->mediaPaths->patientDocuments($paciente));
                 \App\Models\PacienteDocumento::create([
                     'paciente_id' => $paciente->id,
                     'path' => $path,

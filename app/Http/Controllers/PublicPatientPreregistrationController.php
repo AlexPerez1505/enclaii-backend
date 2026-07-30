@@ -5,17 +5,21 @@ namespace App\Http\Controllers;
 use App\Models\PatientPreregistration;
 use App\Models\PatientRegistrationLink;
 use App\Models\User;
+use App\Services\MediaPathService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class PublicPatientPreregistrationController extends Controller
 {
+    public function __construct(
+        private readonly MediaPathService $mediaPaths,
+    ) {}
+
     public function show(string $token): View
     {
         $link = $this->findLink($token);
@@ -151,9 +155,9 @@ class PublicPatientPreregistrationController extends Controller
                 }
 
                 if ($photo) {
-                    $photoPath = $photo->store(
-                        'clinicas/'.$link->clinica_id.'/pacientes',
-                        'public',
+                    $photoPath = media_store(
+                        $photo,
+                        $this->mediaPaths->patientPreregistrationPhotos($link->clinica_id),
                     );
                 }
 
@@ -194,7 +198,7 @@ class PublicPatientPreregistrationController extends Controller
             });
         } catch (\Throwable $exception) {
             if ($photoPath) {
-                Storage::disk('public')->delete($photoPath);
+                media_delete($photoPath);
             }
 
             throw $exception;

@@ -913,6 +913,10 @@
   margin-bottom:16px;
   color:var(--txt);
 }
+.historial-section h4 span{
+  color:var(--txt-soft);
+  font-weight:600;
+}
 .historial-list{
   display:flex;
   flex-direction:column;
@@ -944,10 +948,17 @@
   border:1px solid var(--stroke);
   border-radius:var(--r-md);
   transition:all 150ms ease;
+  color:inherit;
+  cursor:pointer;
+  text-decoration:none;
 }
 .historial-item:hover{
   border-color:var(--stroke-strong);
   background:var(--card);
+}
+.historial-item:focus-visible{
+  outline:2px solid var(--cyan);
+  outline-offset:2px;
 }
 .historial-icon{
   width:36px;
@@ -2240,7 +2251,7 @@
     {{-- Contenido Tab Historial --}}
     <div id="tab-historial" class="tab-content">
       <div class="historial-section">
-        <h4>Historial de estudios</h4>
+        <h4>Historial de estudios <span id="historialCount"></span></h4>
         <div class="historial-list" id="historialList">
           {{-- Se llena dinámicamente con JavaScript --}}
         </div>
@@ -2343,7 +2354,12 @@
           $iniciales = mb_substr($nombre, 0, 2);
       }
 
-      $estudios = \App\Models\Estudio::where('paciente_id', $paciente->id)->get();
+      $estudios = $paciente->estudios()
+          ->with(['reportes' => fn ($q) => $q->orderByDesc('created_at')])
+          ->withCount(['archivos', 'capturas', 'videos', 'reportes'])
+          ->orderByDesc('fecha')
+          ->orderByDesc('id')
+          ->get();
       $tieneEstudios = $estudios->count() > 0;
       $ultimoEstudio = $estudios->sortByDesc('fecha')->first();
 
@@ -2354,18 +2370,26 @@
           ->orderBy('hora')
           ->first();
 
-      $estudiosLista = $estudios->map(function($est) {
-          $reportesEst = $est->reportes()->orderByDesc('created_at')->get();
+      $estudiosLista = $estudios->map(function($est) use ($paciente) {
+          $reportesEst = $est->reportes;
           return [
               'id' => $est->id,
+              'folio' => $est->folio,
               'tipo' => $est->tipo ?? 'Sin tipo',
               'fecha' => $est->fecha ? format_user_date($est->fecha) : 'Sin fecha',
+              'fecha_raw' => $est->fecha ? $est->fecha->format('Y-m-d') : '',
               'estado' => $est->estado ?? 'completado',
+              'estado_texto' => $est->estado_texto,
+              'medico' => $est->medico ?: ($paciente->medico ?? ''),
               'reporte_path' => $est->reporte_path,
               'video_path' => $est->video_path,
+              'archivos_count' => $est->archivos_count ?? 0,
+              'capturas_count' => $est->capturas_count ?? 0,
+              'videos_count' => $est->videos_count ?? 0,
               'tiene_reporte' => $reportesEst->count() > 0,
               'total_reportes' => $reportesEst->count(),
               'hay_criticos' => $reportesEst->contains(fn($r) => $r->contiene_hallazgos_criticos),
+              'url' => route('nuevo-estudio', ['paciente' => $paciente->id, 'estudio_id' => $est->id]),
               'reportes_lista' => $reportesEst->map(fn($r) => [
                   'id' => $r->id,
                   'fecha' => $r->created_at ? format_user_date($r->created_at) : 'Sin fecha',
@@ -2962,6 +2986,24 @@ function savePatientToCache(patient) {
   } catch(e) {}
 }
 
+function studySortKey(estudio) {
+  return estudio?.fecha_raw || '';
+}
+
+function studyUrl(patient, estudio) {
+  if (estudio?.url) return estudio.url;
+  const params = new URLSearchParams();
+  if (patient?.id) params.set('paciente', patient.id);
+  if (estudio?.id) params.set('estudio_id', estudio.id);
+  return `${routes.nuevoEstudio}?${params.toString()}`;
+}
+
+function studyStatusClass(estado) {
+  if (estado === 'en_proceso') return 'espera';
+  if (estado === 'cancelado') return 'urgente';
+  return 'completado';
+}
+
 function openPanel(index) {
   _currentPanelIndex = index;
   const patient = patientsData[index] || patientsData[0];
@@ -2994,9 +3036,8 @@ function openPanel(index) {
     const estudios = patient.estudios || [];
     if (estudios.length > 0) {
       const sorted = [...estudios].sort((a, b) => {
-        const da = a.fecha ? a.fecha.split('/').reverse().join('-') : '';
-        const db = b.fecha ? b.fecha.split('/').reverse().join('-') : '';
-        return db.localeCompare(da);
+        const byDate = studySortKey(b).localeCompare(studySortKey(a));
+        return byDate || ((b.id || 0) - (a.id || 0));
       });
       const last = sorted[0];
       panelLastStudy.textContent = `${last.tipo || 'Estudio'} (${last.fecha || 'Sin fecha'})`;
@@ -3023,35 +3064,47 @@ function openPanel(index) {
 
   const historialList = document.getElementById('historialList');
   const historialEmpty = document.getElementById('historialEmpty');
+  const historialCount = document.getElementById('historialCount');
   if (historialList && historialEmpty) {
     historialList.innerHTML = '';
     const estudios = patient.estudios || [];
+    if (historialCount) historialCount.textContent = estudios.length ? `(${estudios.length})` : '';
     if (estudios.length > 0) {
       historialEmpty.style.display = 'none';
       const sorted = [...estudios].sort((a, b) => {
-        const da = a.fecha ? a.fecha.split('/').reverse().join('-') : '';
-        const db = b.fecha ? b.fecha.split('/').reverse().join('-') : '';
-        return db.localeCompare(da);
+        const byDate = studySortKey(b).localeCompare(studySortKey(a));
+        return byDate || ((b.id || 0) - (a.id || 0));
       });
       sorted.forEach(est => {
-        const item = document.createElement('div');
+        const item = document.createElement('a');
         item.className = 'historial-item';
+        item.href = studyUrl(patient, est);
+        item.setAttribute('aria-label', `Abrir estudio ${est.folio || est.id || ''}`);
+        const estadoTexto = est.estado_texto || statusTexts[est.estado] || est.estado || 'Completado';
+        const folioTexto = est.folio ? `Folio: ${est.folio}` : `ID: ${est.id || ''}`;
+        const metaTexto = [
+          folioTexto,
+          est.medico ? `Médico: ${est.medico}` : '',
+          est.archivos_count ? `${est.archivos_count} archivo(s)` : '',
+        ].filter(Boolean).join(' · ');
         item.innerHTML = `
           <div class="historial-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
           </div>
           <div class="historial-info">
             <div class="historial-title">${est.tipo || 'Estudio'}</div>
-            <div class="historial-doctor">ID: ${est.id || ''}</div>
+            <div class="historial-doctor">${metaTexto}</div>
           </div>
           <div class="historial-right">
             <div class="historial-date">${est.fecha || 'Sin fecha'}</div>
+            <span class="status-tag ${studyStatusClass(est.estado)}">${estadoTexto}</span>
           </div>
         `;
         historialList.appendChild(item);
       });
     } else {
       historialEmpty.style.display = 'block';
+      if (historialCount) historialCount.textContent = '';
     }
   }
   updateReportesIATab(patient);

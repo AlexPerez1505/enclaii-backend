@@ -7,6 +7,7 @@ use App\Models\AiAttachment;
 use App\Models\AiConversation;
 use App\Models\Cita;
 use App\Models\Paciente;
+use App\Services\MediaPathService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -308,13 +309,10 @@ class AiAssistantController extends Controller
     private function storeAttachments(Request $request, int $messageId): array
     {
         $saved = [];
+        $mediaPaths = app(MediaPathService::class);
 
         foreach ($request->file('attachments', []) as $file) {
-            $path = media_store($file, 'clinicas/'.$request->user()->clinica_id.'/ai_uploads/'.now()->format('Y/m'));
-            $path = $file->store(
-                'clinicas/'.$request->user()->clinica_id.'/ai_uploads/'.now()->format('Y/m'),
-                'public',
-            );
+            $path = media_store($file, $mediaPaths->userAiUploads($request->user()));
 
             $attachment = AiAttachment::create([
                 'ai_message_id' => $messageId,

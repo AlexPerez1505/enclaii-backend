@@ -16,6 +16,16 @@ class GaleriaImagenDeleteTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config([
+            'filesystems.media_disk' => 'public',
+            'filesystems.media_signed_urls' => false,
+        ]);
+    }
+
     public function test_patient_gallery_groups_media_by_study(): void
     {
         $user = User::create([
@@ -122,6 +132,95 @@ class GaleriaImagenDeleteTest extends TestCase
             ->assertOk()
             ->assertHeader('Content-Type', 'video/webm')
             ->assertHeader('Content-Disposition', 'attachment; filename="video-prueba.webm"; filename*=UTF-8\'\'video-prueba.webm');
+    }
+
+    public function test_authenticated_user_can_stream_a_gallery_video_inline_with_range(): void
+    {
+        $disk = media_disk();
+        Storage::fake($disk);
+
+        $user = User::create([
+            'name' => 'Doctor Stream',
+            'email' => 'doctor-video-stream@example.com',
+            'password' => 'password',
+            'subscription_status' => 'active',
+        ]);
+        $paciente = Paciente::create([
+            'folio' => 'P-VIDEO-STREAM',
+            'nombre_completo' => 'Paciente Video Stream',
+        ]);
+        $estudio = Estudio::create([
+            'paciente_id' => $paciente->id,
+            'paciente_nombre' => $paciente->nombre_completo,
+            'folio' => 'E-VIDEO-STREAM',
+            'fecha' => today(),
+        ]);
+
+        $path = "estudios/{$estudio->id}/archivos/video-stream.webm";
+        Storage::disk($disk)->put($path, '0123456789');
+        $video = EstudioArchivo::create([
+            'estudio_id' => $estudio->id,
+            'paciente_id' => $paciente->id,
+            'tipo' => 'video',
+            'nombre_original' => 'video-stream.webm',
+            'nombre' => 'video-stream',
+            'path' => $path,
+            'mime_type' => 'video/webm',
+            'size_bytes' => 10,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->withHeader('Range', 'bytes=2-5')
+            ->get(route('galeria.video.stream', $video))
+            ->assertStatus(206)
+            ->assertHeader('Accept-Ranges', 'bytes')
+            ->assertHeader('Content-Range', 'bytes 2-5/10')
+            ->assertHeader('Content-Type', 'video/webm')
+            ->assertHeader('Content-Disposition', 'inline; filename="video-stream.webm"; filename*=UTF-8\'\'video-stream.webm');
+
+        $this->assertSame('2345', $response->streamedContent());
+    }
+
+    public function test_video_editor_uses_same_origin_stream_url_for_capture(): void
+    {
+        $disk = media_disk();
+        Storage::fake($disk);
+
+        $user = User::create([
+            'name' => 'Doctor Editor',
+            'email' => 'doctor-video-editor@example.com',
+            'password' => 'password',
+            'subscription_status' => 'active',
+        ]);
+        $paciente = Paciente::create([
+            'folio' => 'P-VIDEO-EDITOR',
+            'nombre_completo' => 'Paciente Video Editor',
+        ]);
+        $estudio = Estudio::create([
+            'paciente_id' => $paciente->id,
+            'paciente_nombre' => $paciente->nombre_completo,
+            'folio' => 'E-VIDEO-EDITOR',
+            'fecha' => today(),
+        ]);
+
+        $path = "estudios/{$estudio->id}/archivos/video-editor.webm";
+        Storage::disk($disk)->put($path, 'video');
+        $video = EstudioArchivo::create([
+            'estudio_id' => $estudio->id,
+            'paciente_id' => $paciente->id,
+            'tipo' => 'video',
+            'nombre_original' => 'video-editor.webm',
+            'nombre' => 'video-editor',
+            'path' => $path,
+            'mime_type' => 'video/webm',
+            'size_bytes' => 5,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('galeria.video.editar', ['id' => $video->id, 'paciente' => $paciente->id]))
+            ->assertOk()
+            ->assertSee(route('galeria.video.stream', $video, false), false)
+            ->assertSee(route('galeria.video.archivo', $video, false), false);
     }
 
     public function test_authenticated_user_can_delete_a_gallery_image(): void

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Paciente;
 use App\Models\PacienteDocumento;
 use App\Services\ActivityLogger;
+use App\Services\MediaPathService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ class TauriPatientController extends Controller
 {
     public function __construct(
         private readonly ActivityLogger $activity,
+        private readonly MediaPathService $mediaPaths,
     ) {
     }
 
@@ -193,18 +195,18 @@ class TauriPatientController extends Controller
                     $data['clinica_id'] =
                         $user->clinica_id;
 
-                    if ($request->hasFile('foto')) {
-                        $data['foto'] = media_store(
-                            $request->file('foto'),
-                            'clinicas/' .
-                                $user->clinica_id .
-                                '/pacientes'
-                        );
-                    }
-
                     $paciente = Paciente::create(
                         $data
                     );
+
+                    if ($request->hasFile('foto')) {
+                        $paciente->update([
+                            'foto' => media_store(
+                                $request->file('foto'),
+                                $this->mediaPaths->patientProfile($paciente)
+                            ),
+                        ]);
+                    }
 
                     $this->storeDocuments(
                         $request,
@@ -456,9 +458,7 @@ class TauriPatientController extends Controller
 
                         $data['foto'] = media_store(
                             $request->file('foto'),
-                            'clinicas/' .
-                                $user->clinica_id .
-                                '/pacientes'
+                            $this->mediaPaths->patientProfile($paciente)
                         );
                     }
 
@@ -1135,8 +1135,7 @@ class TauriPatientController extends Controller
 
             $path = media_store(
                 $file,
-                'paciente_docs/' .
-                    $paciente->id
+                $this->mediaPaths->patientDocuments($paciente)
             );
 
             PacienteDocumento::create([

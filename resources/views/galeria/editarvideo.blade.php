@@ -10,7 +10,8 @@
   $folioEstudio = $estudio?->folio ?? ('Video #'.$archivo->id);
   $tituloVideo = $archivo->nombre_original ?? $archivo->nombre ?? 'Video del estudio';
   $tipoEstudio = $estudio?->tipo ?: 'Video del estudio';
-  $videoUrl = media_url($archivo->path);
+  $videoUrl = route('galeria.video.stream', $archivo->id);
+  $videoDownloadUrl = route('galeria.video.archivo', $archivo->id);
   $downloadName = $archivo->nombre_original ?: ('video-'.$archivo->id.'.webm');
   $editorConfig = array_merge([
     'brillo' => 100,
@@ -166,7 +167,7 @@
 
       <div class="ev-actions">
         <button class="ev-act-btn" id="evCaptureFrame" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Capturar imagen</button>
-        <a class="ev-act-btn" href="{{ $videoUrl }}" download="{{ $downloadName }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Exportar video</a>
+        <a class="ev-act-btn" href="{{ $videoDownloadUrl }}" download="{{ $downloadName }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Exportar video</a>
         <button class="ev-act-btn" id="evPrint" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Imprimir informe</button>
         <button class="ev-act-btn email" type="button" data-gallery-email-open><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><polyline points="3 7 12 13 21 7"/></svg>Enviar por correo</button>
         <a class="ev-act-btn ia" href="{{ route('ia-reportes.generar', ['estudio' => $estudio?->id, 'paciente' => $pacienteId]) }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>IA Reportes</a>

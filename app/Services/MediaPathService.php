@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Estudio;
 use App\Models\Paciente;
+use App\Models\User;
+
 class MediaPathService
 {
     public function clinic(int|string|null $clinicId): string
@@ -27,6 +29,34 @@ class MediaPathService
     public function patientDocuments(Paciente|int|string $patient, int|string|null $clinicId = null): string
     {
         return $this->patient($patient, $clinicId).'/documents';
+    }
+
+    public function user(User|int|string $user, int|string|null $clinicId = null): string
+    {
+        $userId = $user instanceof User ? $user->id : $user;
+        $clinicId = $clinicId ?: ($user instanceof User ? $user->clinica_id : null);
+
+        return $this->clinic($clinicId).'/users/'.$this->segment($userId);
+    }
+
+    public function userProfile(User|int|string $user, int|string|null $clinicId = null): string
+    {
+        return $this->user($user, $clinicId).'/profile';
+    }
+
+    public function userTaxDocuments(User|int|string $user, int|string|null $clinicId = null): string
+    {
+        return $this->user($user, $clinicId).'/tax-documents';
+    }
+
+    public function userAiUploads(User|int|string $user, int|string|null $clinicId = null): string
+    {
+        return $this->user($user, $clinicId).'/ai-uploads/'.now()->format('Y/m');
+    }
+
+    public function patientPreregistrationPhotos(int|string|null $clinicId): string
+    {
+        return $this->clinic($clinicId).'/preregistrations/photos';
     }
 
     public function study(Estudio|int|string $study, Paciente|int|string|null $patient = null, int|string|null $clinicId = null): string

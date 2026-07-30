@@ -15,6 +15,7 @@ use App\Http\Controllers\CustomerSuccess\TicketController as CsTicketController;
 use App\Http\Controllers\CustomerSuccessController;
 use App\Http\Controllers\DesktopAppDownloadController;
 use App\Http\Controllers\GalleryImageEmailController;
+use App\Http\Controllers\GalleryVideoFileController;
 use App\Http\Controllers\GalleryVideoEmailController;
 use App\Http\Controllers\IaReporteController;
 use App\Http\Controllers\LaunchPromoRegistrationController;
@@ -30,10 +31,12 @@ use App\Http\Controllers\SignatureController;
 use App\Http\Controllers\SoporteChatController;
 use App\Http\Controllers\SoporteController;
 use App\Http\Controllers\StorageServeController;
+use App\Http\Controllers\StudyShareEmailController;
 use App\Http\Controllers\StripeController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\UserSessionController;
 use App\Http\Controllers\WhatsAppController;
+use App\Models\Estudio;
 use App\Models\Paciente;
 use App\Models\Reporte;
 use Illuminate\Http\Request;
@@ -723,9 +726,22 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
         /* Limpiar sesión de estudio al volver al dashboard */
         session()->forget(['estudio_activo_id', 'ultimo_estudio_completado_id']);
 
-        $paciente = $request->filled('paciente')
-            ? Paciente::find($request->query('paciente'))
-            : null;
+        $estudio = null;
+        $paciente = null;
+
+        if ($request->filled('estudio_id')) {
+            $estudio = Estudio::with(['paciente', 'archivos', 'reportes.usuario'])
+                ->findOrFail($request->integer('estudio_id'));
+            $paciente = $estudio->paciente;
+
+            abort_unless($paciente, 404);
+            abort_if(
+                $request->filled('paciente') && (int) $request->query('paciente') !== (int) $paciente->id,
+                404
+            );
+        } elseif ($request->filled('paciente')) {
+            $paciente = Paciente::findOrFail($request->query('paciente'));
+        }
 
         $pacientes = Paciente::select('id', 'nombre_completo', 'folio', 'edad', 'sexo', 'telefono', 'email', 'foto')
             ->orderBy('nombre_completo')
@@ -738,6 +754,7 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
         if ($paciente) {
             $archivos = \App\Models\EstudioArchivo::with('estudio')
                 ->where('paciente_id', $paciente->id)
+                ->when($estudio, fn ($q) => $q->where('estudio_id', $estudio->id))
                 ->orderByDesc('capturado_en')
                 ->orderByDesc('id')
                 ->get();
@@ -747,6 +764,7 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
 
             $reportes = Reporte::with(['estudio', 'usuario'])
                 ->whereHas('estudio', fn ($q) => $q->where('paciente_id', $paciente->id))
+                ->when($estudio, fn ($q) => $q->where('estudio_id', $estudio->id))
                 ->latest()
                 ->get();
         }
@@ -757,6 +775,7 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
             'galImagenes' => $galImagenes,
             'galVideos' => $galVideos,
             'reportes' => $reportes,
+            'estudio' => $estudio,
         ]);
     })->name('nuevo-estudio');
 
@@ -775,6 +794,10 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
 
     Route::post('/nuevo-estudio', [NuevoEstudioController::class, 'store'])
         ->name('nuevo-estudio.store');
+
+    Route::post('/nuevo-estudio/{estudio}/correo', [StudyShareEmailController::class, 'store'])
+        ->middleware('throttle:12,1')
+        ->name('nuevo-estudio.correo.send');
 
     Route::get('/nuevo-estudio/capturas', [NuevoEstudioController::class, 'capturas'])
         ->name('nuevo-estudio.capturas');
@@ -843,23 +866,11 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
         ]);
     })->name('galeria.paciente');
 
-    Route::get('/galeria/video/{id}/archivo', function ($id) {
-        $archivo = \App\Models\EstudioArchivo::where('tipo', 'video')->findOrFail($id);
-        abort_unless($archivo->path && media_exists($archivo->path), 404);
+    Route::get('/galeria/video/{id}/archivo', [GalleryVideoFileController::class, 'download'])
+        ->name('galeria.video.archivo');
 
-        $disk = \Illuminate\Support\Facades\Storage::disk(media_disk());
-        $filename = $archivo->nombre_original ?: basename((string) $archivo->path);
-        $filename = preg_replace('/[\r\n"]+/', '', $filename) ?: 'video-'.$archivo->id;
-
-        return new \Symfony\Component\HttpFoundation\StreamedResponse(function () use ($disk, $archivo) {
-            fpassthru($disk->readStream($archivo->path));
-        }, 200, [
-            'Content-Type' => $archivo->mime_type ?: ($disk->mimeType($archivo->path) ?: 'application/octet-stream'),
-            'Content-Length' => (string) ($archivo->size_bytes ?: $disk->size($archivo->path)),
-            'Content-Disposition' => 'attachment; filename="'.$filename.'"; filename*=UTF-8\'\''.rawurlencode($filename),
-            'Cache-Control' => 'private, max-age=300',
-        ]);
-    })->name('galeria.video.archivo');
+    Route::get('/galeria/video/{id}/stream', [GalleryVideoFileController::class, 'stream'])
+        ->name('galeria.video.stream');
 
     Route::post('/galeria/video/{archivo}/correo', [GalleryVideoEmailController::class, 'store'])
         ->middleware('throttle:12,1')
@@ -1154,7 +1165,11 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
         $oldPath = $archivo->path;
         $path = media_store(
             $file,
-            app(\App\Services\MediaPathService::class)->studyImages($archivo->estudio ?? $archivo->estudio_id, $archivo->paciente_id)
+            app(\App\Services\MediaPathService::class)->studyImages(
+                $archivo->estudio ?? $archivo->estudio_id,
+                $archivo->paciente_id,
+                $archivo->clinica_id
+            )
         );
 
         $archivo->update([
@@ -1190,7 +1205,11 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
         $file = $request->file('image');
         $path = media_store(
             $file,
-            app(\App\Services\MediaPathService::class)->studyImages($archivo->estudio ?? $archivo->estudio_id, $archivo->paciente_id)
+            app(\App\Services\MediaPathService::class)->studyImages(
+                $archivo->estudio ?? $archivo->estudio_id,
+                $archivo->paciente_id,
+                $archivo->clinica_id
+            )
         );
         $copy = \App\Models\EstudioArchivo::create([
             'estudio_id' => $archivo->estudio_id,
