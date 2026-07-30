@@ -534,7 +534,7 @@ class AiAssistantController extends Controller
         $validator = validator($args, [
             'paciente_nombre' => 'required|string|max:255',
             'procedimiento' => 'required|string|max:255',
-            'fecha' => 'required|date',
+            'fecha' => 'required|date|after_or_equal:today',
             'hora' => 'required|string|max:20',
             'sala' => 'nullable|string|max:100',
             'notas' => 'nullable|string|max:1000',
@@ -623,12 +623,18 @@ class AiAssistantController extends Controller
 
     private function systemPrompt(): array
     {
+        $hoy = now()->locale('es')->isoFormat('dddd D [de] MMMM [de] YYYY');
+        $fechaIso = now()->format('Y-m-d');
+
         return [
             'role' => 'system',
             'content' =>
                 "Eres el asistente de ENCLAII, plataforma médica de endoscopía. ".
                 "Ayudas con agenda, pacientes, reportes, capturas de pantalla y dudas del sistema. ".
                 "Responde siempre en español de México, breve y claro.\n\n".
+
+                "FECHA Y HORA ACTUAL DEL SISTEMA: hoy es {$hoy} ({$fechaIso}).\n".
+                "Cuando el usuario mencione una fecha sin año (ej. \"4 de agosto\"), usa el año actual o el próximo si esa fecha ya pasó este año. NUNCA uses un año anterior al actual ni inventes años pasados.\n\n".
 
                 "Si el usuario adjunta una captura del sistema, analiza visualmente la pantalla y explica:\n".
                 "1. **Qué pantalla es o qué módulo parece ser**.\n".
