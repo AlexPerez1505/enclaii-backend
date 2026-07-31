@@ -5,11 +5,11 @@ namespace App\Support;
 final class DesktopAppRelease
 {
     private const CURRENT = [
-        'version' => '0.2.1',
+        'version' => '0.2.2',
         'architecture' => '64 bits',
-        'size' => '18.7 MB',
-        'installer_path' => 'windows/releases/0.2.1/ENCLAII_0.2.1_x64_es-ES.msi',
-        'download_name' => 'ENCLAII_0.2.1_x64_es-ES.msi',
+        'size' => '16.9 MB',
+        'installer_path' => 'windows/releases/0.2.2/ENCLAII_0.2.2_x64-setup.exe',
+        'download_name' => 'ENCLAII_0.2.2_x64-setup.exe',
     ];
 
     public static function current(): array

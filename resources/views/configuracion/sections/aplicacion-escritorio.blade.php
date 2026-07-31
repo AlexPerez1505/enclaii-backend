@@ -284,7 +284,7 @@ html[data-theme="light"] .desktop-security-cloud{
               </span>
               <div>
                 <div class="desktop-download-title">Windows <span class="desktop-version-pill">v{{ $desktopAppVersion }}</span></div>
-                <div class="desktop-download-meta">{{ $desktopAppArchitecture }} &bull; Instalador MSI recomendado</div>
+                <div class="desktop-download-meta">{{ $desktopAppArchitecture }} &bull; Instalador EXE recomendado</div>
                 <a class="desktop-download-btn" href="{{ route('desktop-app.download') }}">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
