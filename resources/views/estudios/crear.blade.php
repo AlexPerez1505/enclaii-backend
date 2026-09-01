@@ -136,15 +136,20 @@
 }
 .np-results-head svg { width: 14px; height: 14px; color: var(--txt-soft); }
 .np-res-list {
-  display: flex; flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+  padding: 14px;
 }
 .np-res-item {
   display: flex; align-items: center; gap: 14px;
   padding: 14px 18px; cursor: pointer;
-  border-bottom: 1px solid var(--stroke); transition: background 120ms;
+  border: 1px solid var(--stroke);
+  border-radius: 12px;
+  background: var(--card-bg);
+  transition: background 120ms, border-color 120ms, transform 120ms;
 }
-.np-res-item:last-child { border-bottom: none; }
-.np-res-item:hover { background: var(--hover-bg); }
+.np-res-item:hover { background: var(--hover-bg); border-color: var(--blue); transform: translateY(-1px); }
 .np-res-item.active { background: var(--hover-bg-strong); }
 html[data-theme="light"] .np-res-item:hover { background: var(--hover-bg); }
 html[data-theme="light"] .np-res-item.active { background: var(--hover-bg-strong); }
@@ -156,7 +161,10 @@ html[data-theme="light"] .np-res-item.active { background: var(--hover-bg-strong
 }
 .np-res-name { font-size: 14.5px; font-weight: 700; color: var(--txt); margin-bottom: 3px; }
 .np-res-meta { font-size: 12px; color: var(--txt-soft); }
-.np-res-empty { padding: 22px; text-align: center; font-size: 13px; color: var(--txt-soft); }
+.np-res-info { min-width: 0; }
+.np-res-name,
+.np-res-meta { overflow-wrap: anywhere; }
+.np-res-empty { grid-column: 1 / -1; padding: 22px; text-align: center; font-size: 13px; color: var(--txt-soft); }
 
 /* Card principal */
 .np-card {
@@ -901,7 +909,50 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
 .rptd-sign[data-pos="right"]{justify-content:flex-end;}
 .rptd-sign .sign-box{min-width:250px;text-align:center;padding-top:8px;border-top:1px solid var(--txt);font-size:13px;}
 html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shadow:0 8px 40px rgba(0,0,0,.08);}
-@media print{.rpt-toolbar{display:none!important;}.rpt-doc-wrap{padding:0;}.rpt-doc,.rptd-doc{box-shadow:none;border:none;border-radius:0;max-width:100%;}}
+@media print{
+  @page{size:letter;margin:.4in}
+  .rpt-toolbar{display:none!important;}
+  .rpt-doc-wrap{padding:0;}
+  .rpt-doc,.rptd-doc{box-shadow:none;border:none;border-radius:0;max-width:100%;}
+  body.print-report-only{background:#fff!important;margin:0!important;padding:0!important;}
+  body.print-report-only > :not(.dash),
+  body.print-report-only .side,
+  body.print-report-only .head,
+  body.print-report-only .mobile-nav,
+  body.print-report-only .app-alert,
+  body.print-report-only .np-patient-toolbar,
+  body.print-report-only .np-tabs,
+  body.print-report-only #tab-pacientes,
+  body.print-report-only #tab-galeria,
+  body.print-report-only #tab-reportes > :not(.rpt-doc-wrap){display:none!important;}
+  body.print-report-only .dash,
+  body.print-report-only .main,
+  body.print-report-only #tab-reportes,
+  body.print-report-only .rpt-doc-wrap{
+    display:block!important;
+    width:auto!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:visible!important;
+    background:#fff!important;
+  }
+  body.print-report-only #rptDoc{
+    position:static!important;
+    width:100%!important;
+    max-width:none!important;
+    margin:0!important;
+    padding:0!important;
+    background:#fff!important;
+    color:#111!important;
+  }
+  body.print-report-only #rptDoc .rptd-clinic{background:#e8f4f3!important;color:#143036!important;}
+  body.print-report-only #rptDoc .rptd-h4{color:#0275a8!important;}
+  body.print-report-only #rptDoc .rptd-header,
+  body.print-report-only #rptDoc .rptd-meta,
+  body.print-report-only #rptDoc .rptd-imgs,
+  body.print-report-only #rptDoc .rptd-sign{break-inside:avoid;page-break-inside:avoid;}
+}
 
 /* ===== Modal Tauri / Iniciar estudio ===== */
 .tauri-modal {
@@ -1102,7 +1153,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
 
 <div class="np-results rise d2" id="npResults">
   <div class="np-results-head">
-    <span>Resultados</span>
+    <span id="npResultsTitle">Pacientes registrados</span>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
   </div>
   <div class="np-res-list" id="npResList"></div>
@@ -1512,14 +1563,14 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
       <span class="rpt-badge" id="rptBadge">{{ $rptCritico ? 'Crítico' : 'Normal' }}</span>
     </div>
     <div class="rpt-toolbar-right">
-      <button class="rpt-act-btn" onclick="window.print()">
+      <button class="rpt-act-btn" type="button" data-print-report>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
         Imprimir
       </button>
-      <button class="rpt-act-btn primary">
+      <a class="rpt-act-btn primary" href="{{ route('ia-reportes.pdf', $rpt) }}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Descargar PDF
-      </button>
+      </a>
       <a class="rpt-act-btn accent" href="{{ url('/ia-reportes') }}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>
         Editar con IA
@@ -1813,10 +1864,15 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
     var input   = document.getElementById('npSearch');
     var results = document.getElementById('npResults');
     var list    = document.getElementById('npResList');
+    var title   = document.getElementById('npResultsTitle');
     if (!input || !results || !list) return;
 
     function normalize(str){
       return (str || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    }
+
+    function openPaciente(p) {
+      window.location.href = '{{ route('nuevo-estudio') }}?paciente=' + encodeURIComponent(p.id);
     }
 
     function renderItems(items){
@@ -1828,15 +1884,44 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
       items.forEach(function(p){
         var el = document.createElement('div');
         el.className = 'np-res-item';
-        var avatar = p.foto
-          ? '<img src="' + p.foto + '" alt="' + p.nombre + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
-          : p.iniciales;
-        var meta = [p.folio ? 'Folio ' + p.folio : '', p.edad ? p.edad + ' años' : '', p.sexo, p.telefono].filter(Boolean).join(' · ');
-        el.innerHTML = '<div class="np-res-av">' + avatar + '</div>'
-          + '<div class="np-res-info"><div class="np-res-name">' + p.nombre + '</div>'
-          + '<div class="np-res-meta">' + (meta || 'Sin información adicional') + '</div></div>';
-        el.addEventListener('click', function(){
-          window.location.href = '{{ route('nuevo-estudio') }}?paciente=' + encodeURIComponent(p.id);
+        el.setAttribute('role', 'button');
+        el.setAttribute('tabindex', '0');
+
+        var avatar = document.createElement('div');
+        avatar.className = 'np-res-av';
+        if (p.foto) {
+          var img = document.createElement('img');
+          img.src = p.foto;
+          img.alt = p.nombre;
+          img.style.width = '100%';
+          img.style.height = '100%';
+          img.style.objectFit = 'cover';
+          img.style.borderRadius = '50%';
+          avatar.appendChild(img);
+        } else {
+          avatar.textContent = p.iniciales;
+        }
+
+        var info = document.createElement('div');
+        info.className = 'np-res-info';
+        var name = document.createElement('div');
+        name.className = 'np-res-name';
+        name.textContent = p.nombre;
+        var metaText = [p.folio ? 'Folio ' + p.folio : '', p.edad ? p.edad + ' años' : '', p.sexo, p.telefono].filter(Boolean).join(' · ');
+        var meta = document.createElement('div');
+        meta.className = 'np-res-meta';
+        meta.textContent = metaText || 'Sin información adicional';
+        info.appendChild(name);
+        info.appendChild(meta);
+
+        el.appendChild(avatar);
+        el.appendChild(info);
+        el.addEventListener('click', function(){ openPaciente(p); });
+        el.addEventListener('keydown', function(e){
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openPaciente(p);
+          }
         });
         list.appendChild(el);
       });
@@ -1844,13 +1929,17 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
 
     function search(q){
       var term = normalize(q).trim();
-      if (!term){ results.classList.remove('open'); return; }
-      var filtered = PACIENTES.filter(function(p){
-        return normalize(p.nombre).includes(term)
-          || normalize(p.folio).includes(term)
-          || normalize(p.telefono).includes(term)
-          || normalize(p.email).includes(term);
-      });
+      var filtered = term
+        ? PACIENTES.filter(function(p){
+            return normalize(p.nombre).includes(term)
+              || normalize(p.folio).includes(term)
+              || normalize(p.telefono).includes(term)
+              || normalize(p.email).includes(term);
+          })
+        : PACIENTES;
+      if (title) {
+        title.textContent = term ? 'Resultados' : 'Pacientes registrados';
+      }
       renderItems(filtered);
       results.classList.add('open');
     }
@@ -1861,12 +1950,8 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
       var val = this.value;
       debounce = setTimeout(function(){ search(val); }, 150);
     });
-    input.addEventListener('focus', function(){ if (this.value.trim()) search(this.value); });
-    document.addEventListener('click', function(e){
-      if (!e.target.closest('#npSearchBar') && !e.target.closest('#npResults')){
-        results.classList.remove('open');
-      }
-    });
+    input.addEventListener('focus', function(){ search(this.value); });
+    search('');
   }
 
   function showForm(){
@@ -1904,6 +1989,29 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
     });
   }
   setupMediaFilter('npGalSearch', '#tab-galeria');
+
+  function setupReportPrint(){
+    var btn = document.querySelector('[data-print-report]');
+    if (!btn) return;
+
+    var restorePrintMode = function(){
+      document.body.classList.remove('print-report-only');
+      window.removeEventListener('afterprint', restorePrintMode);
+    };
+
+    btn.addEventListener('click', function(){
+      if (!document.getElementById('rptDoc')) {
+        window.print();
+        return;
+      }
+
+      document.body.classList.add('print-report-only');
+      window.removeEventListener('afterprint', restorePrintMode);
+      window.addEventListener('afterprint', restorePrintMode);
+      window.print();
+    });
+  }
+  setupReportPrint();
 
   /* Si hay paciente (abierto desde la seccion del paciente) se cargan sus datos.
      Si no (abierto desde el boton del dashboard) se muestra el buscador. */

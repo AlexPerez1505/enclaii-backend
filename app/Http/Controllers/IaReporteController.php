@@ -9,6 +9,7 @@ use App\Models\Plantilla;
 use App\Models\Reporte;
 use App\Services\MediaPathService;
 use App\Services\OpenAiReportService;
+use App\Services\ReportPdfGenerator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -447,6 +448,17 @@ class IaReporteController extends Controller
                 'plantilla_id' => $r->plantilla_id,
                 'plantilla_clave' => $r->plantilla?->clave,
             ],
+        ]);
+    }
+
+    public function descargarPdf(Reporte $reporte, ReportPdfGenerator $pdfGenerator)
+    {
+        $pdf = $pdfGenerator->make($reporte);
+
+        return response($pdf['data'], 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$pdf['name'].'"',
+            'Cache-Control' => 'private, no-store',
         ]);
     }
 

@@ -619,6 +619,9 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
     Route::post('/ia-reportes/guardar', [IaReporteController::class, 'guardar'])
         ->name('ia-reportes.guardar');
 
+    Route::get('/ia-reportes/{reporte}/pdf', [IaReporteController::class, 'descargarPdf'])
+        ->name('ia-reportes.pdf');
+
     Route::get('/ia-reportes/hallazgos-lista', [IaReporteController::class, 'listarHallazgos'])
         ->name('ia-reportes.hallazgos-lista');
 

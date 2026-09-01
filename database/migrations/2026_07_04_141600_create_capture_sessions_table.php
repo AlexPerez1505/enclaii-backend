@@ -13,8 +13,10 @@ return new class extends Migration
 
             $table->unsignedBigInteger('tenant_id')->nullable()->index();
             $table->unsignedBigInteger('user_id')->nullable()->index();
-            $table->unsignedBigInteger('study_id')->index();
-            $table->unsignedBigInteger('capture_device_id')->index();
+            $table->unsignedBigInteger('paciente_id')->nullable()->index();
+            $table->unsignedBigInteger('estudio_id')->nullable()->index();
+            $table->unsignedBigInteger('study_id')->nullable()->index();
+            $table->unsignedBigInteger('capture_device_id')->nullable()->index();
 
             $table->string('status')->default('active');
 

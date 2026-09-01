@@ -6,6 +6,7 @@ use App\Mail\GalleryVideoShareMail;
 use App\Models\EstudioArchivo;
 use App\Models\Paciente;
 use App\Models\WhatsAppMessage;
+use App\Services\MailSenderResolver;
 use App\Services\WhatsAppCloudService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -18,9 +19,7 @@ use Throwable;
 
 class WhatsAppController extends Controller
 {
-    public function __construct(private readonly WhatsAppCloudService $whatsapp)
-    {
-    }
+    public function __construct(private readonly WhatsAppCloudService $whatsapp) {}
 
     public function index(Request $request)
     {
@@ -194,6 +193,13 @@ class WhatsAppController extends Controller
             ], 422);
         }
 
+        $mailSender = app(MailSenderResolver::class);
+        if (! $mailSender->applyToConfig()) {
+            return response()->json([
+                'message' => $mailSender->configurationMessage(),
+            ], 422);
+        }
+
         $recipients = collect(preg_split('/[;,\s]+/', $validated['recipients']) ?: [])
             ->map(fn (string $email) => trim($email))
             ->filter()
@@ -244,7 +250,7 @@ class WhatsAppController extends Controller
             report($exception);
 
             return response()->json([
-                'message' => 'No se pudo enviar el correo en este momento.',
+                'message' => $mailSender->deliveryFailureMessage($exception),
             ], 502);
         }
 

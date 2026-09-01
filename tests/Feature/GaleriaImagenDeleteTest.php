@@ -276,7 +276,7 @@ class GaleriaImagenDeleteTest extends TestCase
     {
         Mail::fake();
         config([
-            'mail.from.address' => 'gmail-clinic@example.com',
+            'mail.from.address' => 'gmail-clinic@enclaii.com',
             'mail.from.name' => 'ENCLAII Gmail',
         ]);
 
@@ -331,10 +331,11 @@ class GaleriaImagenDeleteTest extends TestCase
             return $mail->archivo->is($imagen)
                 && $mail->sender->email === 'imagen@example.com'
                 && $mail->subjectLine === 'Imagen de Endoscopia'
-                && $mail->hasFrom('gmail-clinic@example.com', 'ENCLAII Gmail')
+                && $mail->hasFrom('gmail-clinic@enclaii.com', 'ENCLAII Gmail')
                 && $mail->hasReplyTo('imagen@example.com', 'Dra. Imagen')
                 && $mail->hasTo('contacto@example.com')
-                && $mail->hasTo('familiar@example.com');
+                && $mail->hasTo('familiar@example.com')
+                && $mail->hasAttachedData('contenido de imagen', 'captura-correo.jpg', ['mime' => 'image/jpeg']);
         });
     }
 

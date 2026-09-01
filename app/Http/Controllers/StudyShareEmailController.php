@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\StudyShareMail;
 use App\Models\Estudio;
+use App\Services\MailSenderResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -28,10 +29,10 @@ class StudyShareEmailController extends Controller
             ], 422);
         }
 
-        $fromAddress = (string) config('mail.from.address');
-        if (! filter_var($fromAddress, FILTER_VALIDATE_EMAIL)) {
+        $mailSender = app(MailSenderResolver::class);
+        if (! $mailSender->applyToConfig()) {
             return response()->json([
-                'message' => 'Configura un correo Gmail valido para enviar correos reales.',
+                'message' => $mailSender->configurationMessage(),
             ], 422);
         }
 
@@ -86,7 +87,7 @@ class StudyShareEmailController extends Controller
             report($exception);
 
             return response()->json([
-                'message' => 'No se pudo enviar el correo real en este momento.',
+                'message' => $mailSender->deliveryFailureMessage($exception),
             ], 502);
         }
 

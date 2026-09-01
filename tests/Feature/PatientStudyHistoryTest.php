@@ -68,7 +68,7 @@ class PatientStudyHistoryTest extends TestCase
         Storage::fake('public');
         config([
             'filesystems.media_disk' => 'public',
-            'mail.from.address' => 'gmail-clinic@example.com',
+            'mail.from.address' => 'gmail-clinic@enclaii.com',
             'mail.from.name' => 'ENCLAII Gmail',
         ]);
 

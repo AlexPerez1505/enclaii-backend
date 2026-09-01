@@ -104,7 +104,7 @@ class WhatsAppIntegrationTest extends TestCase
     {
         Mail::fake();
         config([
-            'mail.from.address' => 'gmail-clinic@example.com',
+            'mail.from.address' => 'gmail-clinic@enclaii.com',
             'mail.from.name' => 'ENCLAII Gmail',
         ]);
 
@@ -161,7 +161,7 @@ class WhatsAppIntegrationTest extends TestCase
             return $mail->archivo->is($video)
                 && $mail->sender->email === 'doctora@example.com'
                 && $mail->subjectLine === 'Video de Endoscopia'
-                && $mail->hasFrom('gmail-clinic@example.com', 'ENCLAII Gmail')
+                && $mail->hasFrom('gmail-clinic@enclaii.com', 'ENCLAII Gmail')
                 && $mail->hasReplyTo('doctora@example.com', 'Dra. Correo')
                 && $mail->hasTo('contacto@example.com')
                 && $mail->hasTo('familiar@example.com');
@@ -213,6 +213,67 @@ class WhatsAppIntegrationTest extends TestCase
             ->assertSee('Enviar video por Gmail')
             ->assertSee(route('galeria.video.correo.send', $video, false), false)
             ->assertDontSee('canal=email', false);
+    }
+
+    public function test_gallery_video_email_uses_authenticated_gmail_when_from_address_is_placeholder(): void
+    {
+        Mail::fake();
+        config([
+            'mail.mailers.smtp.host' => 'smtp.gmail.com',
+            'mail.mailers.smtp.username' => 'clinic.sender@gmail.com',
+            'mail.from.address' => 'hello@example.com',
+            'mail.from.name' => 'ENCLAII Gmail',
+        ]);
+
+        $disk = media_disk();
+        Storage::fake($disk);
+        Storage::disk($disk)->put('videos/video-gmail.webm', 'contenido del video');
+
+        $user = User::create([
+            'name' => 'Dra. Gmail',
+            'email' => 'doctora.gmail@example.com',
+            'password' => 'password',
+            'subscription_status' => 'active',
+        ]);
+        $patient = Paciente::create([
+            'folio' => 'P-GMAIL-001',
+            'nombre_completo' => 'Paciente Gmail',
+            'email' => 'paciente.gmail@example.com',
+        ]);
+        $study = Estudio::create([
+            'paciente_id' => $patient->id,
+            'paciente_nombre' => $patient->nombre_completo,
+            'folio' => 'E-GMAIL',
+            'tipo' => 'Endoscopia',
+            'fecha' => '2026-07-17',
+            'estado' => 'completado',
+        ]);
+        $video = EstudioArchivo::create([
+            'estudio_id' => $study->id,
+            'paciente_id' => $patient->id,
+            'tipo' => 'video',
+            'nombre_original' => 'video-gmail.webm',
+            'nombre' => 'video-gmail.webm',
+            'path' => 'videos/video-gmail.webm',
+            'mime_type' => 'video/webm',
+            'size_bytes' => 128,
+            'capturado_en' => now(),
+        ]);
+
+        $this->actingAs($user)
+            ->postJson(route('galeria.video.correo.send', $video), [
+                'recipients' => 'paciente.gmail@example.com',
+                'subject' => 'Video de Endoscopia',
+                'message' => 'Te comparto el video del estudio.',
+            ])
+            ->assertOk()
+            ->assertJsonPath('message', 'Correo enviado correctamente.');
+
+        Mail::assertSent(GalleryVideoShareMail::class, function (GalleryVideoShareMail $mail): bool {
+            $mail->build();
+
+            return $mail->hasFrom('clinic.sender@gmail.com', 'ENCLAII Gmail');
+        });
     }
 
     public function test_text_messages_require_an_open_whatsapp_customer_service_window(): void
