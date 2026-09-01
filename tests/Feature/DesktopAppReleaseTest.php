@@ -29,8 +29,9 @@ class DesktopAppReleaseTest extends TestCase
         $this->assertSame('macOS', $macRelease['platform']);
         $this->assertSame('0.1.0', $macRelease['version']);
         $this->assertSame('16.8 MB', $macRelease['size']);
-        $this->assertSame('mac/releases/0.1.0/endoscopy-capture.app.zip', $macRelease['installer_path']);
-        $this->assertSame('endoscopy-capture.app.zip', $macRelease['download_name']);
+        $this->assertSame('mac/releases/0.1.0/endoscopy-capture.dmg', $macRelease['installer_path']);
+        $this->assertSame('endoscopy-capture.dmg', $macRelease['download_name']);
+        $this->assertSame('application/x-apple-diskimage', $macRelease['mime_type']);
     }
 
     public function test_subscribed_user_can_download_macos_release(): void
@@ -38,7 +39,7 @@ class DesktopAppReleaseTest extends TestCase
         $release = DesktopAppRelease::forPlatform('mac');
 
         Storage::fake('downloads');
-        Storage::disk('downloads')->put($release['installer_path'], 'zip');
+        Storage::disk('downloads')->put($release['installer_path'], 'dmg');
 
         $temporaryUrlCall = [];
 
@@ -49,7 +50,7 @@ class DesktopAppReleaseTest extends TestCase
                 'options' => $options,
             ];
 
-            return 'https://downloads.example.test/endoscopy-capture.app.zip';
+            return 'https://downloads.example.test/endoscopy-capture.dmg';
         });
 
         $clinica = Clinica::create([
@@ -68,11 +69,12 @@ class DesktopAppReleaseTest extends TestCase
 
         $response = $this->actingAs($user)->get(route('desktop-app.download.mac'));
 
-        $response->assertRedirect('https://downloads.example.test/endoscopy-capture.app.zip');
+        $response->assertRedirect('https://downloads.example.test/endoscopy-capture.dmg');
 
-        $this->assertSame('mac/releases/0.1.0/endoscopy-capture.app.zip', $temporaryUrlCall['path']);
+        $this->assertSame('mac/releases/0.1.0/endoscopy-capture.dmg', $temporaryUrlCall['path']);
         $this->assertInstanceOf(DateTimeInterface::class, $temporaryUrlCall['expiration']);
-        $this->assertStringContainsString('filename="endoscopy-capture.app.zip"', $temporaryUrlCall['options']['ResponseContentDisposition']);
+        $this->assertSame('application/x-apple-diskimage', $temporaryUrlCall['options']['ResponseContentType']);
+        $this->assertStringContainsString('filename="endoscopy-capture.dmg"', $temporaryUrlCall['options']['ResponseContentDisposition']);
     }
 
     public function test_desktop_app_settings_show_macos_download(): void
@@ -87,7 +89,7 @@ class DesktopAppReleaseTest extends TestCase
         $this->actingAs($user)
             ->get(route('configuracion', ['tab' => 'aplicacion-escritorio']))
             ->assertOk()
-            ->assertSee('Descargar para macOS')
+            ->assertSee('Descargar app para macOS')
             ->assertSee('v0.1.0')
             ->assertSee(route('desktop-app.download.mac'), false)
             ->assertDontSee('Descarga no disponible');

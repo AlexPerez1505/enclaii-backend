@@ -26,8 +26,9 @@ final class DesktopAppRelease
             'version' => '0.1.0',
             'architecture' => 'Universal',
             'size' => '16.8 MB',
-            'installer_path' => 'mac/releases/0.1.0/endoscopy-capture.app.zip',
-            'download_name' => 'endoscopy-capture.app.zip',
+            'installer_path' => 'mac/releases/0.1.0/endoscopy-capture.dmg',
+            'download_name' => 'endoscopy-capture.dmg',
+            'mime_type' => 'application/x-apple-diskimage',
         ],
     ];
 

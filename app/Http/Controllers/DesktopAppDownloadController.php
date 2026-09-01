@@ -26,12 +26,18 @@ class DesktopAppDownloadController extends Controller
 
         $ttl = max(1, (int) config('filesystems.downloads_url_ttl', 10));
 
+        $options = [
+            'ResponseContentDisposition' => 'attachment; filename="'.$downloadName.'"; filename*=UTF-8\'\''.rawurlencode($downloadName),
+        ];
+
+        if (filled($release['mime_type'] ?? null)) {
+            $options['ResponseContentType'] = (string) $release['mime_type'];
+        }
+
         $url = $disk->temporaryUrl(
             $installerPath,
             now()->addMinutes($ttl),
-            [
-                'ResponseContentDisposition' => 'attachment; filename="'.$downloadName.'"; filename*=UTF-8\'\''.rawurlencode($downloadName),
-            ],
+            $options,
         );
 
         return redirect()->away($url);

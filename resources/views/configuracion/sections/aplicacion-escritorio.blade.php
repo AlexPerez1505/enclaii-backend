@@ -309,14 +309,14 @@ html[data-theme="light"] .desktop-security-cloud{
               </span>
               <div>
                 <div class="desktop-download-title">macOS <span class="desktop-version-pill">v{{ $desktopMacVersion }}</span></div>
-                <div class="desktop-download-meta">{{ $desktopMacArchitecture }} &bull; Para Intel y Apple Silicon</div>
+                <div class="desktop-download-meta">{{ $desktopMacArchitecture }} &bull; DMG con ENCLAII Desktop.app</div>
                 <a class="desktop-download-btn" href="{{ route('desktop-app.download.mac') }}">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                     <path d="M7 10l5 5 5-5"/>
                     <path d="M12 15V3"/>
                   </svg>
-                  Descargar para macOS
+                  Descargar app para macOS
                 </a>
                 <div class="desktop-download-size">Tamaño: {{ $desktopMacSize }}</div>
               </div>
@@ -424,7 +424,7 @@ html[data-theme="light"] .desktop-security-cloud{
               Guía de instalación
             </span>
           </div>
-          <p>Descarga el instalador de tu sistema operativo, ejecútalo y sigue los pasos para conectar tu equipo.</p>
+          <p>En Windows descarga el instalador; en macOS abre el DMG y mueve ENCLAII Desktop.app a Aplicaciones.</p>
         </div>
         <span class="desktop-guide-art" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
