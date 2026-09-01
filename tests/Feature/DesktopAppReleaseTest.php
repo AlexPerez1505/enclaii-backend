@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\Clinica;
 use App\Models\Notification;
 use App\Models\User;
+use App\Support\DesktopAppRelease;
+use DateTimeInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +23,74 @@ class DesktopAppReleaseTest extends TestCase
         $this->assertSame('16.9 MB', config('desktop_app.size'));
         $this->assertSame('windows/releases/0.2.3/ENCLAII_0.2.3_x64-setup.exe', config('desktop_app.installer_path'));
         $this->assertSame('ENCLAII_0.2.3_x64-setup.exe', config('desktop_app.download_name'));
+
+        $macRelease = DesktopAppRelease::forPlatform('mac');
+
+        $this->assertSame('macOS', $macRelease['platform']);
+        $this->assertSame('0.1.0', $macRelease['version']);
+        $this->assertSame('16.8 MB', $macRelease['size']);
+        $this->assertSame('mac/releases/0.1.0/endoscopy-capture.app.zip', $macRelease['installer_path']);
+        $this->assertSame('endoscopy-capture.app.zip', $macRelease['download_name']);
+    }
+
+    public function test_subscribed_user_can_download_macos_release(): void
+    {
+        $release = DesktopAppRelease::forPlatform('mac');
+
+        Storage::fake('downloads');
+        Storage::disk('downloads')->put($release['installer_path'], 'zip');
+
+        $temporaryUrlCall = [];
+
+        Storage::disk('downloads')->buildTemporaryUrlsUsing(function ($path, $expiration, array $options) use (&$temporaryUrlCall) {
+            $temporaryUrlCall = [
+                'path' => $path,
+                'expiration' => $expiration,
+                'options' => $options,
+            ];
+
+            return 'https://downloads.example.test/endoscopy-capture.app.zip';
+        });
+
+        $clinica = Clinica::create([
+            'nombre' => 'Clinica Mac Desktop',
+            'is_shared' => false,
+        ]);
+
+        $user = User::create([
+            'clinica_id' => $clinica->id,
+            'clinica_rol' => 'propietario',
+            'name' => 'Doctor Mac Desktop',
+            'email' => 'doctor-mac-desktop@example.com',
+            'password' => 'SecurePassword1',
+            'subscription_status' => 'active',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('desktop-app.download.mac'));
+
+        $response->assertRedirect('https://downloads.example.test/endoscopy-capture.app.zip');
+
+        $this->assertSame('mac/releases/0.1.0/endoscopy-capture.app.zip', $temporaryUrlCall['path']);
+        $this->assertInstanceOf(DateTimeInterface::class, $temporaryUrlCall['expiration']);
+        $this->assertStringContainsString('filename="endoscopy-capture.app.zip"', $temporaryUrlCall['options']['ResponseContentDisposition']);
+    }
+
+    public function test_desktop_app_settings_show_macos_download(): void
+    {
+        $user = User::create([
+            'name' => 'Doctor Config Mac',
+            'email' => 'doctor-config-mac@example.com',
+            'password' => 'SecurePassword1',
+            'subscription_status' => 'active',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('configuracion', ['tab' => 'aplicacion-escritorio']))
+            ->assertOk()
+            ->assertSee('Descargar para macOS')
+            ->assertSee('v0.1.0')
+            ->assertSee(route('desktop-app.download.mac'), false)
+            ->assertDontSee('Descarga no disponible');
     }
 
     public function test_desktop_app_update_command_notifies_current_release_once(): void

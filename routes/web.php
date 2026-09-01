@@ -237,7 +237,12 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
     })->name('plan.only');
 
     Route::get('/descargas/enclaii-desktop/windows', DesktopAppDownloadController::class)
+        ->defaults('platform', 'windows')
         ->name('desktop-app.download');
+
+    Route::get('/descargas/enclaii-desktop/mac', DesktopAppDownloadController::class)
+        ->defaults('platform', 'mac')
+        ->name('desktop-app.download.mac');
 
     Route::patch('/configuracion/general', [SettingsController::class, 'update'])
         ->name('configuracion.general.update');

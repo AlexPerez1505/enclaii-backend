@@ -223,7 +223,7 @@ class DesktopAppReleaseNotificationService
             'download_name' => trim((string) ($release['download_name'] ?? '')),
             'installer_path' => trim((string) ($release['installer_path'] ?? '')),
             'size' => trim((string) ($release['size'] ?? '')),
-            'platform' => 'Windows',
+            'platform' => trim((string) ($release['platform'] ?? 'Windows')) ?: 'Windows',
         ];
     }
 

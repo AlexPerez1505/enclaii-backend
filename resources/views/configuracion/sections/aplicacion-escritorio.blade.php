@@ -3,6 +3,10 @@
   $desktopAppVersion = $desktopAppRelease['version'];
   $desktopAppArchitecture = $desktopAppRelease['architecture'];
   $desktopAppSize = $desktopAppRelease['size'];
+  $desktopMacRelease = \App\Support\DesktopAppRelease::forPlatform('mac');
+  $desktopMacVersion = $desktopMacRelease['version'];
+  $desktopMacArchitecture = $desktopMacRelease['architecture'];
+  $desktopMacSize = $desktopMacRelease['size'];
   $desktopAppManualUrl = asset('docs/manual-instalacion-enclaii-endoscopy.pdf');
 @endphp
 
@@ -297,17 +301,24 @@ html[data-theme="light"] .desktop-security-cloud{
               </div>
             </article>
 
-            <article class="desktop-download-card disabled" aria-label="macOS próximamente">
+            <article class="desktop-download-card">
               <span class="desktop-os-icon apple" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="currentColor">
                   <path d="M17.7 12.8c0-2.2 1.8-3.2 1.9-3.3-1-1.5-2.6-1.7-3.2-1.7-1.4-.1-2.6.8-3.3.8-.7 0-1.8-.8-2.9-.8-1.5 0-2.9.9-3.7 2.2-1.6 2.8-.4 7 1.1 9.3.8 1.1 1.7 2.3 2.9 2.3 1.1 0 1.6-.7 3-.7s1.8.7 3 .7c1.2 0 2-.9 2.8-2 .9-1.3 1.2-2.5 1.2-2.6 0 0-2.8-1.1-2.8-4.2ZM15.5 6.3c.6-.8 1.1-1.9 1-3-.9 0-2 .6-2.7 1.4-.6.7-1.1 1.8-1 2.9 1 .1 2-.5 2.7-1.3Z"/>
                 </svg>
               </span>
               <div>
-                <div class="desktop-download-title">macOS <span class="desktop-version-pill">Próximamente</span></div>
-                <div class="desktop-download-meta">Universal &bull; Para Intel y Apple Silicon</div>
-                <span class="desktop-download-btn disabled">Descarga no disponible</span>
-                <div class="desktop-download-size">En preparación</div>
+                <div class="desktop-download-title">macOS <span class="desktop-version-pill">v{{ $desktopMacVersion }}</span></div>
+                <div class="desktop-download-meta">{{ $desktopMacArchitecture }} &bull; Para Intel y Apple Silicon</div>
+                <a class="desktop-download-btn" href="{{ route('desktop-app.download.mac') }}">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <path d="M7 10l5 5 5-5"/>
+                    <path d="M12 15V3"/>
+                  </svg>
+                  Descargar para macOS
+                </a>
+                <div class="desktop-download-size">Tamaño: {{ $desktopMacSize }}</div>
               </div>
             </article>
           </div>
@@ -375,7 +386,7 @@ html[data-theme="light"] .desktop-security-cloud{
           <div>
             <h4>macOS</h4>
             <ul class="desktop-side-list">
-              <li>Soporte en preparación</li>
+              <li>Descarga disponible para macOS</li>
               <li>Compatible con Intel y Apple Silicon</li>
               <li>8 GB de RAM recomendado</li>
               <li>Conexión a internet para sincronización</li>
@@ -392,12 +403,12 @@ html[data-theme="light"] .desktop-security-cloud{
             </svg>
             Novedades de esta versión
           </span>
-          <span class="desktop-version-pill">v{{ $desktopAppVersion }}</span>
+          <span class="desktop-version-pill">Win v{{ $desktopAppVersion }} / Mac v{{ $desktopMacVersion }}</span>
         </div>
         <ul class="desktop-release-list">
           <li>Mejoras en captura y estabilidad del instalador.</li>
           <li>Sincronización más rápida con la nube.</li>
-          <li>Optimización del flujo de descarga para Windows.</li>
+          <li>Descarga disponible para Windows y macOS.</li>
           <li>Corrección de errores y mejoras generales.</li>
         </ul>
       </article>
@@ -413,7 +424,7 @@ html[data-theme="light"] .desktop-security-cloud{
               Guía de instalación
             </span>
           </div>
-          <p>Descarga el instalador MSI, ejecútalo en Windows y sigue los pasos para conectar tu equipo.</p>
+          <p>Descarga el instalador de tu sistema operativo, ejecútalo y sigue los pasos para conectar tu equipo.</p>
         </div>
         <span class="desktop-guide-art" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
