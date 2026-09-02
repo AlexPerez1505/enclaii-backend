@@ -23,11 +23,11 @@ final class DesktopAppRelease
         self::PLATFORM_MAC => [
             'platform_key' => self::PLATFORM_MAC,
             'platform' => 'macOS',
-            'version' => '0.1.0',
-            'architecture' => 'Universal',
-            'size' => '16.8 MB',
-            'installer_path' => 'mac/releases/0.1.0/endoscopy-capture.dmg',
-            'download_name' => 'endoscopy-capture.dmg',
+            'version' => '0.2.3',
+            'architecture' => '64 bits',
+            'size' => '19.3 MB',
+            'installer_path' => 'mac/releases/0.2.3r/ENCLAII_0.2.3_x64.dmg',
+            'download_name' => 'ENCLAII_0.2.3_x64.dmg',
             'mime_type' => 'application/x-apple-diskimage',
         ],
     ];

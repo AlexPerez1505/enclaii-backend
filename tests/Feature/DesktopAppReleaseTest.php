@@ -27,10 +27,10 @@ class DesktopAppReleaseTest extends TestCase
         $macRelease = DesktopAppRelease::forPlatform('mac');
 
         $this->assertSame('macOS', $macRelease['platform']);
-        $this->assertSame('0.1.0', $macRelease['version']);
-        $this->assertSame('16.8 MB', $macRelease['size']);
-        $this->assertSame('mac/releases/0.1.0/endoscopy-capture.dmg', $macRelease['installer_path']);
-        $this->assertSame('endoscopy-capture.dmg', $macRelease['download_name']);
+        $this->assertSame('0.2.3', $macRelease['version']);
+        $this->assertSame('19.3 MB', $macRelease['size']);
+        $this->assertSame('mac/releases/0.2.3r/ENCLAII_0.2.3_x64.dmg', $macRelease['installer_path']);
+        $this->assertSame('ENCLAII_0.2.3_x64.dmg', $macRelease['download_name']);
         $this->assertSame('application/x-apple-diskimage', $macRelease['mime_type']);
     }
 
@@ -50,7 +50,7 @@ class DesktopAppReleaseTest extends TestCase
                 'options' => $options,
             ];
 
-            return 'https://downloads.example.test/endoscopy-capture.dmg';
+            return 'https://downloads.example.test/ENCLAII_0.2.3_x64.dmg';
         });
 
         $clinica = Clinica::create([
@@ -69,12 +69,12 @@ class DesktopAppReleaseTest extends TestCase
 
         $response = $this->actingAs($user)->get(route('desktop-app.download.mac'));
 
-        $response->assertRedirect('https://downloads.example.test/endoscopy-capture.dmg');
+        $response->assertRedirect('https://downloads.example.test/ENCLAII_0.2.3_x64.dmg');
 
-        $this->assertSame('mac/releases/0.1.0/endoscopy-capture.dmg', $temporaryUrlCall['path']);
+        $this->assertSame('mac/releases/0.2.3r/ENCLAII_0.2.3_x64.dmg', $temporaryUrlCall['path']);
         $this->assertInstanceOf(DateTimeInterface::class, $temporaryUrlCall['expiration']);
         $this->assertSame('application/x-apple-diskimage', $temporaryUrlCall['options']['ResponseContentType']);
-        $this->assertStringContainsString('filename="endoscopy-capture.dmg"', $temporaryUrlCall['options']['ResponseContentDisposition']);
+        $this->assertStringContainsString('filename="ENCLAII_0.2.3_x64.dmg"', $temporaryUrlCall['options']['ResponseContentDisposition']);
     }
 
     public function test_desktop_app_settings_show_macos_download(): void
@@ -90,7 +90,7 @@ class DesktopAppReleaseTest extends TestCase
             ->get(route('configuracion', ['tab' => 'aplicacion-escritorio']))
             ->assertOk()
             ->assertSee('Descargar app para macOS')
-            ->assertSee('v0.1.0')
+            ->assertSee('v0.2.3')
             ->assertSee(route('desktop-app.download.mac'), false)
             ->assertDontSee('Descarga no disponible');
     }
