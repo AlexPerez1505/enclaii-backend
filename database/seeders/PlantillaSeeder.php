@@ -114,8 +114,10 @@ class PlantillaSeeder extends Seeder
             if ($tpl['tipo_estudio'] && file_exists(public_path('images/' . $tpl['tipo_estudio'] . '.png'))) {
                 $tplCfg['anatImg'] = '/images/' . $tpl['tipo_estudio'] . '.png';
             }
+            // clinica_id => null: siempre debe apuntar a la plantilla GLOBAL, nunca
+            // a la copia personalizada de alguna clínica que comparta la misma clave.
             Plantilla::updateOrCreate(
-                ['clave' => $tpl['clave']],
+                ['clave' => $tpl['clave'], 'clinica_id' => null],
                 array_merge($tpl, [
                     'tipo_plantilla' => 'informe',
                     'columnas' => null,
@@ -139,7 +141,7 @@ class PlantillaSeeder extends Seeder
         $orden = 1;
         foreach ($imagenes as $tpl) {
             Plantilla::updateOrCreate(
-                ['clave' => $tpl['clave']],
+                ['clave' => $tpl['clave'], 'clinica_id' => null],
                 [
                     'nombre' => $tpl['nombre'],
                     'descripcion' => null,

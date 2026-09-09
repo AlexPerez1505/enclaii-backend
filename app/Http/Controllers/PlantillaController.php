@@ -10,10 +10,23 @@ class PlantillaController extends Controller
 {
     /**
      * Actualiza la configuración visual / de imágenes de una plantilla.
+     *
+     * Las plantillas globales (clinica_id null) nunca se editan directamente:
+     * la primera vez que una clínica personaliza una, se clona como una copia
+     * propia (misma clave, su clinica_id) que sombrea a la global sin afectar
+     * a las demás clínicas del sistema.
      */
     public function update(Request $request, string $clave): JsonResponse
     {
-        $plantilla = Plantilla::where('clave', $clave)->firstOrFail();
+        $clinicaId = $request->user()->clinica_id;
+
+        $plantilla = Plantilla::where('clave', $clave)->where('clinica_id', $clinicaId)->first();
+
+        if (! $plantilla) {
+            $global = Plantilla::where('clave', $clave)->whereNull('clinica_id')->firstOrFail();
+            $plantilla = $global->replicate();
+            $plantilla->clinica_id = $clinicaId;
+        }
 
         $validated = $request->validate([
             'configuracion' => ['nullable', 'array'],

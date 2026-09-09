@@ -14,6 +14,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class EndoCareAuthController extends Controller
@@ -99,6 +100,7 @@ class EndoCareAuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', 'min:8'],
+            'vertical' => ['required', Rule::in(['medica', 'veterinaria'])],
             'promo_code' => ['nullable', 'string', 'max:60'],
         ], [
             'name.required' => 'El nombre completo es obligatorio.',
@@ -108,6 +110,8 @@ class EndoCareAuthController extends Controller
             'password.required' => 'La contraseña es obligatoria.',
             'password.confirmed' => 'Las contraseñas no coinciden.',
             'password.min' => 'La contraseña debe tener mínimo 8 caracteres.',
+            'vertical.required' => 'Selecciona el tipo de clínica.',
+            'vertical.in' => 'Selecciona un tipo de clínica válido.',
             'promo_code.max' => 'El cupon promocional no es valido.',
         ]);
 
@@ -143,6 +147,8 @@ class EndoCareAuthController extends Controller
             $user = User::create([
                 'clinica_id' => $clinica->id,
                 'clinica_rol' => $rol,
+                // Si viene de una invitación, hereda el vertical de la clínica existente.
+                'vertical' => $invitation ? $clinica->vertical : $data['vertical'],
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => $data['password'],
@@ -205,6 +211,7 @@ class EndoCareAuthController extends Controller
             $user = User::create([
                 'clinica_id' => $clinica->id,
                 'clinica_rol' => 'usuario',
+                'vertical' => $data['vertical'],
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => $data['password'],

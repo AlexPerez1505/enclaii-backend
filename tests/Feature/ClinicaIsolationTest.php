@@ -80,6 +80,7 @@ class ClinicaIsolationTest extends TestCase
             'email' => 'normal1@example.com',
             'password' => 'SecurePassword1',
             'password_confirmation' => 'SecurePassword1',
+            'vertical' => 'medica',
         ])->assertRedirect(route('plan.only'));
 
         $sharedClinic = Clinica::query()->where('is_shared', true)->firstOrFail();
@@ -95,6 +96,7 @@ class ClinicaIsolationTest extends TestCase
             'email' => 'normal2@example.com',
             'password' => 'SecurePassword1',
             'password_confirmation' => 'SecurePassword1',
+            'vertical' => 'medica',
         ])->assertRedirect(route('plan.only'));
 
         $this->assertSame(

@@ -53,8 +53,11 @@
                     'clinica' => [$fmtGb($storagePlans['clinica']['gb_per_person']) . ' por persona en almacenamiento en la nube', 'IA Reportes basica', 'Soporte por email'],
                     'hospital' => [$fmtGb($storagePlans['hospital']['gb_per_person']) . ' por persona en almacenamiento en la nube', 'IA Reportes avanzada', 'Soporte prioritario', 'Exportacion de reportes'],
                     'red_medica' => [$fmtGb($storagePlans['red_medica']['gb_per_person']) . ' por persona en almacenamiento en la nube', 'Integraciones avanzadas', 'Soporte 24/7'],
+                    'clinica_veterinaria' => [$fmtGb($storagePlans['clinica_veterinaria']['gb_per_person']) . ' por persona en almacenamiento en la nube', 'IA Reportes basica', 'Soporte por email'],
+                    'hospital_veterinario' => [$fmtGb($storagePlans['hospital_veterinario']['gb_per_person']) . ' por persona en almacenamiento en la nube', 'IA Reportes avanzada', 'Soporte prioritario', 'Exportacion de reportes'],
+                    'red_veterinaria' => [$fmtGb($storagePlans['red_veterinaria']['gb_per_person']) . ' por persona en almacenamiento en la nube', 'Integraciones avanzadas', 'Soporte 24/7'],
                   ];
-                  $currentPlan = str_replace('-', '_', $planUser->stripe_plan ?? 'clinica');
+                  $currentPlan = str_replace('-', '_', $planUser->stripe_plan ?? ($planUser->esVeterinaria() ? 'clinica_veterinaria' : 'clinica'));
                   $features = $planFeatures[$currentPlan] ?? ['Plan gratuito'];
                 @endphp
                 @foreach($features as $feat)

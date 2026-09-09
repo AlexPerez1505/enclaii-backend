@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\GenerarReporteIaJob;
 use App\Models\EstudioArchivo;
 use App\Models\EstudioHallazgo;
 use App\Models\Hallazgo;
 use App\Models\Plantilla;
 use App\Models\Reporte;
+use App\Models\SolicitudReporteIa;
 use App\Services\MediaPathService;
 use App\Services\OpenAiReportService;
 use App\Services\ReportPdfGenerator;
@@ -99,7 +101,13 @@ class IaReporteController extends Controller
         return view('ia-reportes.index', compact('kpis', 'reportes', 'hallazgos', 'estudiosSinReporte'));
     }
 
-    public function generar(Request $request, OpenAiReportService $service): JsonResponse
+    /**
+     * Encola la generación del reporte con IA y devuelve de inmediato el id
+     * de la solicitud para que el frontend consulte el progreso (ver
+     * estadoGenerar). La llamada a OpenAI puede tardar hasta ~2 minutos con
+     * imágenes, así que nunca se ejecuta de forma síncrona en el request.
+     */
+    public function generar(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'estudio_id' => [
@@ -120,39 +128,39 @@ class IaReporteController extends Controller
         $validated['paciente'] = $validated['paciente'] ?? 'No especificado';
         $validated['tipo_estudio'] = $validated['tipo_estudio'] ?? 'Estudio endoscópico';
         $validated['fecha'] = $validated['fecha'] ?? now()->toDateString();
+        // Resolver las imágenes a data URLs aquí (I/O local rápido) para que el
+        // Job solo dependa de datos ya resueltos, no de que los archivos originales
+        // sigan disponibles en el mismo estado cuando se ejecute.
         $validated['imagenes'] = ! empty($validated['imagen_ids'])
             ? $this->resolverImagenesPorIds($validated['estudio_id'], $validated['imagen_ids'])
             : $this->resolverImagenes($validated['imagenes'] ?? []);
 
-        try {
-            $reporte = $service->generarReporte($validated);
-        } catch (Throwable $e) {
-            return response()->json([
-                'ok' => false,
-                'message' => $e->getMessage(),
-            ], 422);
-        }
-
-        // Persistir hallazgos detectados por la IA en estudio_hallazgos.
-        $this->persistirHallazgosIa($validated['estudio_id'], $reporte);
-
-        // Persistir el reporte preliminar en la BD para conservar formato e imágenes.
-        $tipoKey = $this->tipoEstudioToKey($validated['tipo_estudio']);
-        $plantillaId = Plantilla::where('clave', $tipoKey)->value('id');
-        $html = $this->reporteIaToHtml($reporte);
-        $nuevo = Reporte::create([
+        $solicitud = SolicitudReporteIa::create([
             'estudio_id' => $validated['estudio_id'],
             'usuario_id' => Auth::id(),
-            'plantilla_id' => $plantillaId,
-            'contenido_texto' => strip_tags($html),
-            'contenido_html' => $html,
-            'contiene_hallazgos_criticos' => false,
+            'estado' => SolicitudReporteIa::ESTADO_PENDIENTE,
         ]);
+
+        GenerarReporteIaJob::dispatch($solicitud->id, $validated);
 
         return response()->json([
             'ok' => true,
-            'reporte' => $reporte,
-            'reporte_id' => $nuevo->id,
+            'solicitud_id' => $solicitud->id,
+            'estado' => $solicitud->estado,
+        ], 202);
+    }
+
+    /**
+     * Consultado por polling desde el frontend mientras GenerarReporteIaJob procesa.
+     */
+    public function estadoGenerar(SolicitudReporteIa $solicitud): JsonResponse
+    {
+        return response()->json([
+            'ok' => true,
+            'estado' => $solicitud->estado,
+            'reporte' => $solicitud->resultado,
+            'reporte_id' => $solicitud->reporte_id,
+            'error_mensaje' => $solicitud->error_mensaje,
         ]);
     }
 
@@ -265,7 +273,7 @@ class IaReporteController extends Controller
      */
     public function apiPlantillas(): JsonResponse
     {
-        $plantillas = Plantilla::all()->mapWithKeys(fn ($p) => [
+        $plantillas = Plantilla::visibleForCurrentClinica()->mapWithKeys(fn ($p) => [
             $p->clave => [
                 'id' => $p->id,
                 'clave' => $p->clave,
@@ -460,61 +468,6 @@ class IaReporteController extends Controller
             'Content-Disposition' => 'attachment; filename="'.$pdf['name'].'"',
             'Cache-Control' => 'private, no-store',
         ]);
-    }
-
-    /**
-     * Mapea un tipo de estudio a la clave de plantilla del editor.
-     */
-    private function tipoEstudioToKey(?string $tipo): string
-    {
-        $t = Str::lower($tipo ?? '');
-        if (Str::contains($t, 'colono')) return 'colonoscopia';
-        if (Str::contains($t, 'gastro')) return 'gastroscopia';
-        if (Str::contains($t, 'duodeno')) return 'duodenoscopia';
-        if (Str::contains($t, 'bronco')) return 'broncoscopia';
-        return 'blanco';
-    }
-
-    /**
-     * Convierte el reporte estructurado de la IA en HTML con secciones y anexo de imágenes.
-     */
-    private function reporteIaToHtml(array $reporte): string
-    {
-        $inf = $reporte['informe'] ?? [];
-        $secciones = [
-            'INDICACIÓN' => $inf['indicacion'] ?? '',
-            'SEDACIÓN' => $inf['sedacion'] ?? '',
-            'HALLAZGOS' => $inf['hallazgos'] ?? [],
-            'IMPRESIÓN DIAGNÓSTICA' => $inf['impresion_diagnostica'] ?? '',
-            'PLAN Y RECOMENDACIONES' => $inf['plan_recomendaciones'] ?? [],
-            'OBSERVACIONES' => $inf['observaciones'] ?? '',
-        ];
-
-        $html = '';
-        foreach ($secciones as $titulo => $contenido) {
-            $html .= '<h4>' . e($titulo) . '</h4>';
-            if (is_array($contenido)) {
-                if (count($contenido)) {
-                    $html .= '<ul>';
-                    foreach ($contenido as $item) {
-                        $html .= '<li>' . e($item) . '</li>';
-                    }
-                    $html .= '</ul>';
-                }
-            } elseif (trim($contenido) !== '') {
-                $html .= '<p>' . e($contenido) . '</p>';
-            }
-        }
-
-        $anexo = $reporte['anexo'] ?? [];
-        if (count($anexo)) {
-            $html .= '<h4>ANEXO DE IMÁGENES</h4>';
-            foreach ($anexo as $i => $desc) {
-                $html .= '<p><b>Imagen ' . ($i + 1) . ':</b> ' . e($desc) . '</p>';
-            }
-        }
-
-        return $html;
     }
 
     public function chat(Request $request, OpenAiReportService $service): JsonResponse
@@ -1058,49 +1011,4 @@ class IaReporteController extends Controller
             ->all();
     }
 
-    /**
-     * Persiste los hallazgos detectados por la IA en la tabla estudio_hallazgos.
-     */
-    private function persistirHallazgosIa(int $estudioId, array $reporte): void
-    {
-        $hallazgos = collect();
-
-        // Hallazgos estructurados: { texto, confianza }
-        foreach ($reporte['hallazgos'] ?? [] as $h) {
-            $texto = trim((string) ($h['texto'] ?? ''));
-            if ($texto !== '') {
-                $hallazgos->push($texto);
-            }
-        }
-
-        // Hallazgos del informe: array de strings
-        foreach ($reporte['informe']['hallazgos'] ?? [] as $texto) {
-            $texto = trim((string) $texto);
-            if ($texto !== '') {
-                $hallazgos->push($texto);
-            }
-        }
-
-        $hallazgos = $hallazgos->unique()->values();
-        if ($hallazgos->isEmpty()) {
-            return;
-        }
-
-        foreach ($hallazgos as $nombre) {
-            $hallazgo = Hallazgo::firstOrCreate(
-                ['nombre' => $nombre],
-                ['es_critico' => false]
-            );
-
-            EstudioHallazgo::updateOrCreate(
-                [
-                    'estudio_id' => $estudioId,
-                    'hallazgo_id' => $hallazgo->id,
-                ],
-                [
-                    'detectado_por' => 'ia',
-                ]
-            );
-        }
-    }
 }

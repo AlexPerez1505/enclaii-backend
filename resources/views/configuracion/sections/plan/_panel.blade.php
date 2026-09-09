@@ -87,6 +87,84 @@
         </div>
 
         <div class="pl-plans">
+        @if(auth()->user()->esVeterinaria())
+          <div class="pl-card {{ $currentPlan === 'clinica_veterinaria' ? 'current' : '' }}" data-card="clinica_veterinaria">
+            <div class="pc-top">
+              <span class="pc-ico" style="color:var(--green)"><x-maki-veterinary /></span>
+              @if($currentPlan === 'clinica_veterinaria')
+                <span class="pc-badge">Plan actual</span>
+              @endif
+            </div>
+            <h4>{{ $storagePlans['clinica_veterinaria']['label'] }}</h4><div class="pc-gb">{{ $fmtGb($storagePlans['clinica_veterinaria']['gb_per_person']) }} por persona</div>
+            <div class="pc-gb">{{ $fmtGb($storagePlans['clinica_veterinaria']['total_gb_for_current_people']) }} para {{ $storageSummary['person_count'] }} {{ $storageSummary['person_count'] === 1 ? 'persona activa' : 'personas activas' }}</div>
+            <ul class="pc-feat">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Almacenamiento en la nube</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>IA Reportes básica</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Soporte por email</li>
+            </ul>
+            <div class="pc-interval" style="display:flex;gap:6px;margin:12px 0;justify-content:center">
+              <button class="pc-int-btn active" data-interval="month" data-price="$1,500" data-label="/mes">Mensual</button>
+              <button class="pc-int-btn" data-interval="quarter" data-price="$3,500" data-label="/3 meses">Trimestral</button>
+              <button class="pc-int-btn" data-interval="year" data-price="$5,000" data-label="/año">Anual</button>
+            </div>
+            <div class="pc-price">$1,500<span> /mes</span></div>
+            <a href="#" class="pc-cta {{ $currentPlan === 'clinica_veterinaria' || !$isClinicOwner ? 'disabled' : '' }}" data-plan="clinica_veterinaria" data-interval="month">
+              {{ $currentPlan === 'clinica_veterinaria' ? 'Plan actual' : ($isClinicOwner ? 'Cambiar a Clínica Veterinaria' : 'Solo el propietario') }}
+            </a>
+          </div>
+
+          <div class="pl-card {{ $currentPlan === 'hospital_veterinario' ? 'current' : '' }}" data-card="hospital_veterinario">
+            <div class="pc-top">
+              <span class="pc-ico" style="color:#a47bff"><x-maki-animal-shelter /></span>
+              @if($currentPlan === 'hospital_veterinario')
+                <span class="pc-badge">Plan actual</span>
+              @endif
+            </div>
+            <h4>{{ $storagePlans['hospital_veterinario']['label'] }}</h4><div class="pc-gb">{{ $fmtGb($storagePlans['hospital_veterinario']['gb_per_person']) }} por persona</div>
+            <div class="pc-gb">{{ $fmtGb($storagePlans['hospital_veterinario']['total_gb_for_current_people']) }} para {{ $storageSummary['person_count'] }} {{ $storageSummary['person_count'] === 1 ? 'persona activa' : 'personas activas' }}</div>
+            <ul class="pc-feat">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>IA Reportes avanzada</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Almacenamiento ampliado</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Soporte prioritario</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Exportación de reportes</li>
+            </ul>
+            <div class="pc-interval" style="display:flex;gap:6px;margin:12px 0;justify-content:center">
+              <button class="pc-int-btn active" data-interval="month" data-price="$2,500" data-label="/mes">Mensual</button>
+              <button class="pc-int-btn" data-interval="quarter" data-price="$4,000" data-label="/3 meses">Trimestral</button>
+              <button class="pc-int-btn" data-interval="year" data-price="$6,000" data-label="/año">Anual</button>
+            </div>
+            <div class="pc-price">$2,500<span> /mes</span></div>
+            <a href="#" class="pc-cta {{ $currentPlan === 'hospital_veterinario' || !$isClinicOwner ? 'disabled' : '' }}" data-plan="hospital_veterinario" data-interval="month">
+              {{ $currentPlan === 'hospital_veterinario' ? 'Plan actual' : ($isClinicOwner ? 'Cambiar a Hospital Veterinario' : 'Solo el propietario') }}
+            </a>
+          </div>
+
+          <div class="pl-card {{ $currentPlan === 'red_veterinaria' ? 'current' : '' }}" data-card="red_veterinaria">
+            <div class="pc-top">
+              <span class="pc-ico" style="color:var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
+              @if($currentPlan === 'red_veterinaria')
+                <span class="pc-badge">Plan actual</span>
+              @endif
+            </div>
+            <h4>{{ $storagePlans['red_veterinaria']['label'] }}</h4><div class="pc-gb">{{ $fmtGb($storagePlans['red_veterinaria']['gb_per_person']) }} por persona</div>
+            <div class="pc-gb">{{ $fmtGb($storagePlans['red_veterinaria']['total_gb_for_current_people']) }} para {{ $storageSummary['person_count'] }} {{ $storageSummary['person_count'] === 1 ? 'persona activa' : 'personas activas' }}</div>
+            <ul class="pc-feat">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Todo lo del plan Profesional</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Más almacenamiento</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Integraciones avanzadas</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Soporte 24/7</li>
+            </ul>
+            <div class="pc-interval" style="display:flex;gap:6px;margin:12px 0;justify-content:center">
+              <button class="pc-int-btn active" data-interval="month" data-price="$4,000" data-label="/mes">Mensual</button>
+              <button class="pc-int-btn" data-interval="quarter" data-price="$5,000" data-label="/3 meses">Trimestral</button>
+              <button class="pc-int-btn" data-interval="year" data-price="$7,000" data-label="/año">Anual</button>
+            </div>
+            <div class="pc-price">$4,000<span> /mes</span></div>
+            <a href="#" class="pc-cta {{ $currentPlan === 'red_veterinaria' || !$isClinicOwner ? 'disabled' : '' }}" data-plan="red_veterinaria" data-interval="month">
+              {{ $currentPlan === 'red_veterinaria' ? 'Plan actual' : ($isClinicOwner ? 'Cambiar a Red Veterinaria' : 'Solo el propietario') }}
+            </a>
+          </div>
+        @else
           <div class="pl-card {{ $currentPlan === 'clinica' ? 'current' : '' }}" data-card="clinica">
             <div class="pc-top">
               <span class="pc-ico" style="color:var(--green)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg></span>
@@ -163,7 +241,7 @@
               {{ $currentPlan === 'red_medica' ? 'Plan actual' : ($isClinicOwner ? 'Cambiar a Red Médica' : 'Solo el propietario') }}
             </a>
           </div>
-
+        @endif
         </div>
       </article>
       @endif
