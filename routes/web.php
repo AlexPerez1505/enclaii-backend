@@ -97,10 +97,14 @@ Route::post('/registro-promocion/{token}/checkout', [LaunchPromoRegistrationCont
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [EndoCareAuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [EndoCareAuthController::class, 'login'])->name('login.post');
+    Route::post('/login', [EndoCareAuthController::class, 'login'])
+        ->middleware('throttle:5,1')
+        ->name('login.post');
 
     Route::get('/registro', [EndoCareAuthController::class, 'showRegister'])->name('register');
-    Route::post('/registro', [EndoCareAuthController::class, 'register'])->name('register.post');
+    Route::post('/registro', [EndoCareAuthController::class, 'register'])
+        ->middleware('throttle:5,1')
+        ->name('register.post');
 });
 
 Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->group(function () {
@@ -575,8 +579,8 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
             'medico' => $estudio?->medico ?? $paciente?->medico ?? '',
         ];
 
-        // Plantillas guardadas (configuración persistida por clave)
-        $plantillasDb = \App\Models\Plantilla::all()->mapWithKeys(fn ($p) => [
+        // Plantillas guardadas (configuración persistida por clave, propia de la clínica o global)
+        $plantillasDb = \App\Models\Plantilla::visibleForCurrentClinica()->mapWithKeys(fn ($p) => [
             $p->clave => [
                 'id' => $p->id,
                 'titulo' => $p->titulo,
@@ -620,6 +624,9 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
 
     Route::post('/ia-reportes/generar', [IaReporteController::class, 'generar'])
         ->name('ia-reportes.generar.post');
+
+    Route::get('/ia-reportes/generar/{solicitud}/estado', [IaReporteController::class, 'estadoGenerar'])
+        ->name('ia-reportes.generar.estado');
 
     Route::post('/ia-reportes/guardar', [IaReporteController::class, 'guardar'])
         ->name('ia-reportes.guardar');
@@ -702,7 +709,7 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
             // Si el reporte no tiene plantilla asignada, cargar la que corresponda al tipo de estudio
             if ($reporte && ! $reporte->plantilla && $reporte->estudio?->tipo) {
                 $tipoKey = \Illuminate\Support\Str::lower($reporte->estudio->tipo);
-                $default = \App\Models\Plantilla::where('clave', $tipoKey)->first();
+                $default = \App\Models\Plantilla::forClave($tipoKey);
                 if ($default) {
                     $reporte->setRelation('plantilla', $default);
                 }
@@ -1407,18 +1414,22 @@ Route::middleware(['auth'])->group(function () {
 });
 
 
-Route::post('/procedimientos/store', [App\Http\Controllers\PacienteController::class, 'storeProcedimiento'])->name('procedimientos.store');
-Route::put('/procedimientos/{procedimiento}', [App\Http\Controllers\PacienteController::class, 'updateProcedimiento'])->name('procedimientos.update');
-Route::delete('/procedimientos/{procedimiento}', [App\Http\Controllers\PacienteController::class, 'destroyProcedimiento'])->name('procedimientos.destroy');
+// IMPORTANTE: estas rutas administran catálogos clínicos (procedimientos, personal,
+// salas) y deben requerir sesión autenticada igual que el resto del módulo clínico.
+Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->group(function () {
+    Route::post('/procedimientos/store', [App\Http\Controllers\PacienteController::class, 'storeProcedimiento'])->name('procedimientos.store');
+    Route::put('/procedimientos/{procedimiento}', [App\Http\Controllers\PacienteController::class, 'updateProcedimiento'])->name('procedimientos.update');
+    Route::delete('/procedimientos/{procedimiento}', [App\Http\Controllers\PacienteController::class, 'destroyProcedimiento'])->name('procedimientos.destroy');
 
-Route::post('/anestesiologos/store', [App\Http\Controllers\PacienteController::class, 'storeAnestesiologo'])->name('anestesiologos.store');
-Route::put('/anestesiologos/{anestesiologo}', [App\Http\Controllers\PacienteController::class, 'updateAnestesiologo'])->name('anestesiologos.update');
-Route::delete('/anestesiologos/{anestesiologo}', [App\Http\Controllers\PacienteController::class, 'destroyAnestesiologo'])->name('anestesiologos.destroy');
+    Route::post('/anestesiologos/store', [App\Http\Controllers\PacienteController::class, 'storeAnestesiologo'])->name('anestesiologos.store');
+    Route::put('/anestesiologos/{anestesiologo}', [App\Http\Controllers\PacienteController::class, 'updateAnestesiologo'])->name('anestesiologos.update');
+    Route::delete('/anestesiologos/{anestesiologo}', [App\Http\Controllers\PacienteController::class, 'destroyAnestesiologo'])->name('anestesiologos.destroy');
 
-Route::post('/medicos/store', [App\Http\Controllers\PacienteController::class, 'storeMedico'])->name('medicos.store');
-Route::put('/medicos/{medico}', [App\Http\Controllers\PacienteController::class, 'updateMedico'])->name('medicos.update');
-Route::delete('/medicos/{medico}', [App\Http\Controllers\PacienteController::class, 'destroyMedico'])->name('medicos.destroy');
+    Route::post('/medicos/store', [App\Http\Controllers\PacienteController::class, 'storeMedico'])->name('medicos.store');
+    Route::put('/medicos/{medico}', [App\Http\Controllers\PacienteController::class, 'updateMedico'])->name('medicos.update');
+    Route::delete('/medicos/{medico}', [App\Http\Controllers\PacienteController::class, 'destroyMedico'])->name('medicos.destroy');
 
-Route::post('/salas/store', [App\Http\Controllers\PacienteController::class, 'storeSala'])->name('salas.store');
-Route::put('/salas/{sala}', [App\Http\Controllers\PacienteController::class, 'updateSala'])->name('salas.update');
-Route::delete('/salas/{sala}', [App\Http\Controllers\PacienteController::class, 'destroySala'])->name('salas.destroy');
+    Route::post('/salas/store', [App\Http\Controllers\PacienteController::class, 'storeSala'])->name('salas.store');
+    Route::put('/salas/{sala}', [App\Http\Controllers\PacienteController::class, 'updateSala'])->name('salas.update');
+    Route::delete('/salas/{sala}', [App\Http\Controllers\PacienteController::class, 'destroySala'])->name('salas.destroy');
+});

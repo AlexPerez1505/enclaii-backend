@@ -70,6 +70,12 @@ class PacienteController extends Controller
                         ->where('clinica_id', $request->user()->clinica_id),
                 ],
                 'nombre_completo' => ['required', 'string', 'max:255'],
+                'especie' => ['nullable', 'string', 'max:255'],
+                'raza' => ['nullable', 'string', 'max:255'],
+                'esterilizado' => ['nullable', 'boolean'],
+                'color_pelaje' => ['nullable', 'string', 'max:255'],
+                'microchip' => ['nullable', 'string', 'max:255'],
+                'nombre_tutor' => ['nullable', 'string', 'max:255'],
                 'identificacion' => ['nullable', 'string', 'max:255'],
                 'fecha_nacimiento' => ['nullable', 'date'],
                 'edad' => ['nullable', 'integer', 'min:0', 'max:150'],
@@ -88,6 +94,10 @@ class PacienteController extends Controller
                 'foto' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
                 'estudios_archivos.*' => ['nullable', 'file', 'max:20480'],
             ]);
+
+            // El checkbox no envía nada cuando está desmarcado; se normaliza
+            // explícitamente para no depender de si la llave llegó o no.
+            $validated['esterilizado'] = $request->boolean('esterilizado');
 
             $paciente = Paciente::create(collect($validated)->except('estudios_archivos', 'foto')->toArray());
 
@@ -201,6 +211,12 @@ class PacienteController extends Controller
                     ->ignore($paciente->id),
             ],
             'nombre_completo' => ['required', 'string', 'max:255'],
+            'especie' => ['nullable', 'string', 'max:255'],
+            'raza' => ['nullable', 'string', 'max:255'],
+            'esterilizado' => ['nullable', 'boolean'],
+            'color_pelaje' => ['nullable', 'string', 'max:255'],
+            'microchip' => ['nullable', 'string', 'max:255'],
+            'nombre_tutor' => ['nullable', 'string', 'max:255'],
             'identificacion' => ['nullable', 'string', 'max:255'],
             'fecha_nacimiento' => ['nullable', 'date'],
             'edad' => ['nullable', 'integer', 'min:0', 'max:150'],
@@ -218,6 +234,10 @@ class PacienteController extends Controller
             'foto' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'estudios_archivos.*' => ['nullable', 'file', 'max:20480'],
         ]);
+
+        // El checkbox no envía nada cuando está desmarcado; se normaliza
+        // explícitamente para que desmarcarlo sí se refleje al guardar.
+        $validated['esterilizado'] = $request->boolean('esterilizado');
 
         if ($request->hasFile('foto')) {
             media_delete($paciente->foto);

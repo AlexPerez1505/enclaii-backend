@@ -173,6 +173,52 @@ body{
   letter-spacing:.04em;
 }
 
+/* ============ SELECTOR DE TIPO DE CLÍNICA ============ */
+.ec-vertical{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.ec-vertical-opt{
+  position:relative;
+}
+.ec-vertical-opt input{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  cursor:pointer;
+  margin:0;
+}
+.ec-vertical-card{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  height:100%;
+  padding:14px 10px;
+  border:1.5px solid var(--field-border);
+  border-radius:var(--r-md);
+  background:var(--field);
+  color:var(--ink-soft);
+  text-align:center;
+  transition:border-color 150ms var(--ease-out), background-color 150ms var(--ease-out), color 150ms var(--ease-out);
+}
+.ec-vertical-card svg{width:22px;height:22px;flex-shrink:0}
+.ec-vertical-card span{font-size:13.5px;font-weight:600}
+.ec-vertical-opt input:checked ~ .ec-vertical-card{
+  background:#fff;
+  border-color:var(--blue-500);
+  color:var(--blue-600);
+  box-shadow:0 0 0 4px rgba(46,123,246,.14);
+}
+.ec-vertical-opt input:focus-visible ~ .ec-vertical-card{
+  border-color:var(--blue-500);
+}
+@media (hover:hover) and (pointer:fine){
+  .ec-vertical-opt:hover .ec-vertical-card{border-color:var(--blue-500)}
+}
+.ec-vertical-card.is-invalid{border-color:var(--error)}
+
 .ec-link{
   color:var(--blue-600);
   font-weight:600;
@@ -257,6 +303,7 @@ body{
 .ec-stagger:nth-child(8){animation-delay:300ms}
 .ec-stagger:nth-child(9){animation-delay:350ms}
 .ec-stagger:nth-child(10){animation-delay:400ms}
+.ec-stagger:nth-child(11){animation-delay:450ms}
 @keyframes ec-rise{to{opacity:1;transform:translateY(0)}}
 
 /* Shake en errores de validación */
@@ -497,6 +544,34 @@ body{
       <div class="ec-stagger">
         <h1 class="ec-title">Crea tu cuenta</h1>
         <p class="ec-subtitle">Únete a la plataforma de endoscopia inteligente.</p>
+      </div>
+
+      <div class="ec-field ec-stagger">
+        <label class="ec-label">Tipo de clínica</label>
+        <div class="ec-vertical">
+          <label class="ec-vertical-opt">
+            <input type="radio" name="vertical" value="medica"
+                   {{ old('vertical', 'medica') === 'medica' ? 'checked' : '' }} required>
+            <span class="ec-vertical-card @error('vertical') is-invalid @enderror">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg>
+              <span>Clínica médica</span>
+            </span>
+          </label>
+          <label class="ec-vertical-opt">
+            <input type="radio" name="vertical" value="veterinaria"
+                   {{ old('vertical') === 'veterinaria' ? 'checked' : '' }} required>
+            <span class="ec-vertical-card @error('vertical') is-invalid @enderror">
+              <x-maki-veterinary />
+              <span>Veterinaria</span>
+            </span>
+          </label>
+        </div>
+        @error('vertical')
+          <p class="ec-error">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            {{ $message }}
+          </p>
+        @enderror
       </div>
 
       <div class="ec-field ec-stagger">

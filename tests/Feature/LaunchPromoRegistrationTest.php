@@ -108,6 +108,7 @@ class LaunchPromoRegistrationTest extends TestCase
             'email' => 'coupon@example.com',
             'password' => 'SecurePassword1',
             'password_confirmation' => 'SecurePassword1',
+            'vertical' => 'medica',
             'promo_code' => ' enclaii-launch-001 ',
         ])
             ->assertRedirect(route('plan.only'))
@@ -129,6 +130,7 @@ class LaunchPromoRegistrationTest extends TestCase
             'email' => 'unknown-coupon@example.com',
             'password' => 'SecurePassword1',
             'password_confirmation' => 'SecurePassword1',
+            'vertical' => 'medica',
             'promo_code' => 'NO-EXISTE',
         ])->assertSessionHasErrors('promo_code');
 
@@ -145,6 +147,7 @@ class LaunchPromoRegistrationTest extends TestCase
             'email' => 'not-linked@example.com',
             'password' => 'SecurePassword1',
             'password_confirmation' => 'SecurePassword1',
+            'vertical' => 'medica',
             'promo_code' => 'ENCLAII-LAUNCH-099',
         ])->assertSessionHasErrors('promo_code');
 

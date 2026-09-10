@@ -9,6 +9,7 @@ class Clinica extends Model
 {
     protected $fillable = [
         'nombre',
+        'vertical',
         'is_shared',
     ];
 
@@ -25,6 +26,14 @@ class Clinica extends Model
             ['is_shared' => true],
             ['nombre' => 'Espacio compartido'],
         );
+    }
+
+    /**
+     * Indica si la clínica opera en el vertical veterinario.
+     */
+    public function esVeterinaria(): bool
+    {
+        return $this->vertical === 'veterinaria';
     }
 
     public function usuarios(): HasMany

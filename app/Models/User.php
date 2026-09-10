@@ -26,6 +26,7 @@ class User extends Authenticatable
             $clinica = $hasPlan
                 ? Clinica::create([
                     'nombre' => 'Clínica de '.$user->name,
+                    'vertical' => $user->vertical ?? 'medica',
                     'is_shared' => false,
                 ])
                 : Clinica::shared();
@@ -48,6 +49,7 @@ class User extends Authenticatable
     protected $fillable = [
         'clinica_id',
         'clinica_rol',
+        'vertical',
         'name',
         'foto_perfil',
         'apellido_paterno',
@@ -110,6 +112,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Indica si el usuario opera en el vertical veterinario.
+     */
+    public function esVeterinaria(): bool
+    {
+        return $this->vertical === 'veterinaria';
+    }
+
+    /**
      * Indica si el usuario tiene una suscripción activa en Stripe.
      */
     public function subscribed(): bool
@@ -158,16 +168,18 @@ class User extends Authenticatable
     public function baseClinicMemberLimit(): int
     {
         return match ($this->billingUser()->stripe_plan) {
-            'red_medica' => 50,
-            'hospital' => 15,
-            'clinica' => 5,
+            'red_medica', 'red_veterinaria' => 50,
+            'hospital', 'hospital_veterinario' => 15,
+            'clinica', 'clinica_veterinaria' => 5,
             default => 1,
         };
     }
 
     public function clinicMemberUpgradeOffer(): array
     {
-        return match ($this->billingUser()->stripe_plan) {
+        $billingUser = $this->billingUser();
+
+        return match ($billingUser->stripe_plan) {
             'clinica' => [
                 'type' => 'plan_upgrade',
                 'target_plan' => 'hospital',
@@ -185,7 +197,29 @@ class User extends Authenticatable
                 'price_mxn' => 5000,
                 'additional_slots' => 1,
             ],
-            default => [
+            'clinica_veterinaria' => [
+                'type' => 'plan_upgrade',
+                'target_plan' => 'hospital_veterinario',
+                'target_label' => 'Hospital Veterinario',
+                'new_limit' => 15,
+            ],
+            'hospital_veterinario' => [
+                'type' => 'plan_upgrade',
+                'target_plan' => 'red_veterinaria',
+                'target_label' => 'Red Veterinaria',
+                'new_limit' => 50,
+            ],
+            'red_veterinaria' => [
+                'type' => 'member_addon',
+                'price_mxn' => 5000,
+                'additional_slots' => 1,
+            ],
+            default => $billingUser->esVeterinaria() ? [
+                'type' => 'plan_upgrade',
+                'target_plan' => 'clinica_veterinaria',
+                'target_label' => 'Clínica Veterinaria',
+                'new_limit' => 5,
+            ] : [
                 'type' => 'plan_upgrade',
                 'target_plan' => 'clinica',
                 'target_label' => 'Clínica',
@@ -212,6 +246,7 @@ class User extends Authenticatable
 
         $privateClinic = Clinica::create([
             'nombre' => 'Clínica de '.$this->name,
+            'vertical' => $this->vertical ?? 'medica',
             'is_shared' => false,
         ]);
 

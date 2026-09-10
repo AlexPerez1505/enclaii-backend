@@ -18,18 +18,25 @@ class StorageQuotaService
         'clinica' => 5,
         'hospital' => 10,
         'red_medica' => 15,
+        'clinica_veterinaria' => 5,
+        'hospital_veterinario' => 10,
+        'red_veterinaria' => 15,
     ];
 
     private const PLAN_LABELS = [
         'clinica' => 'Clínica',
         'hospital' => 'Hospital',
         'red_medica' => 'Red Médica',
+        'clinica_veterinaria' => 'Clínica Veterinaria',
+        'hospital_veterinario' => 'Hospital Veterinario',
+        'red_veterinaria' => 'Red Veterinaria',
     ];
 
     public function summaryFor(User $user, ?Collection $clinicMembers = null): array
     {
         $billingUser = $user->billingUser();
-        $plan = str_replace('-', '_', $billingUser->stripe_plan ?: 'clinica');
+        $defaultPlan = $billingUser->esVeterinaria() ? 'clinica_veterinaria' : 'clinica';
+        $plan = str_replace('-', '_', $billingUser->stripe_plan ?: $defaultPlan);
         $clinicId = $user->clinica_id;
         $personCount = $this->personCount($user, $clinicMembers);
         $quotaPerPersonGb = self::PLAN_STORAGE_PER_PERSON_GB[$plan] ?? 0;

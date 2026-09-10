@@ -21,6 +21,84 @@
 @endphp
 
 <div class="pl-plans">
+@if(auth()->user()->esVeterinaria())
+  {{-- Plan Clinica Veterinaria --}}
+  <div class="pl-card {{ auth()->user()->stripe_plan === 'clinica_veterinaria' ? 'current' : '' }}" data-card="clinica_veterinaria">
+    <div class="pc-top">
+      <span class="pc-ico" style="color:var(--green)"><x-maki-veterinary /></span>
+      @if(auth()->user()->stripe_plan === 'clinica_veterinaria')
+        <span class="pc-badge">Plan actual</span>
+      @endif
+    </div>
+    <h4>Clínica Veterinaria</h4><div class="pc-gb">5 GB por persona</div>
+    <ul class="pc-feat">
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Almacenamiento en la nube</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>IA Reportes básica</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Soporte por email</li>
+    </ul>
+    <div class="pc-interval">
+      <button class="pc-int-btn active" data-interval="month" data-price="$1,500" data-label="/mes">Mensual</button>
+      <button class="pc-int-btn" data-interval="quarter" data-price="$3,500" data-label="/3 meses">Trimestral</button>
+      <button class="pc-int-btn" data-interval="year" data-price="$5,000" data-label="/año">Anual</button>
+    </div>
+    <div class="pc-price">$1,500<span> /mes</span></div>
+    <a href="#" class="pc-cta {{ auth()->user()->stripe_plan === 'clinica_veterinaria' ? 'disabled' : '' }}" data-plan="clinica_veterinaria" data-interval="month">
+      {{ auth()->user()->stripe_plan === 'clinica_veterinaria' ? 'Plan actual' : 'Contratar plan de Clínica Veterinaria' }}
+    </a>
+  </div>
+
+  {{-- Plan Hospital Veterinario --}}
+  <div class="pl-card {{ auth()->user()->stripe_plan === 'hospital_veterinario' ? 'current' : '' }}" data-card="hospital_veterinario">
+    <div class="pc-top">
+      <span class="pc-ico" style="color:#a47bff"><x-maki-animal-shelter /></span>
+      @if(auth()->user()->stripe_plan === 'hospital_veterinario')
+        <span class="pc-badge">Plan actual</span>
+      @endif
+    </div>
+    <h4>Hospital Veterinario</h4><div class="pc-gb">10 GB por persona</div>
+    <ul class="pc-feat">
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>IA Reportes avanzada</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Almacenamiento ampliado</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Soporte prioritario</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Exportación de reportes</li>
+    </ul>
+    <div class="pc-interval">
+      <button class="pc-int-btn active" data-interval="month" data-price="$2,500" data-label="/mes">Mensual</button>
+      <button class="pc-int-btn" data-interval="quarter" data-price="$4,000" data-label="/3 meses">Trimestral</button>
+      <button class="pc-int-btn" data-interval="year" data-price="$6,000" data-label="/año">Anual</button>
+    </div>
+    <div class="pc-price">$2,500<span> /mes</span></div>
+    <a href="#" class="pc-cta {{ auth()->user()->stripe_plan === 'hospital_veterinario' ? 'disabled' : '' }}" data-plan="hospital_veterinario" data-interval="month">
+      {{ auth()->user()->stripe_plan === 'hospital_veterinario' ? 'Plan actual' : 'Contratar plan de Hospital Veterinario' }}
+    </a>
+  </div>
+
+  {{-- Plan Red Veterinaria --}}
+  <div class="pl-card {{ auth()->user()->stripe_plan === 'red_veterinaria' ? 'current' : '' }}" data-card="red_veterinaria">
+    <div class="pc-top">
+      <span class="pc-ico" style="color:var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
+      @if(auth()->user()->stripe_plan === 'red_veterinaria')
+        <span class="pc-badge">Plan actual</span>
+      @endif
+    </div>
+    <h4>Red Veterinaria</h4><div class="pc-gb">15 GB por persona</div>
+    <ul class="pc-feat">
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Todo lo del plan Profesional</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Más almacenamiento</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Integraciones avanzadas</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Soporte 24/7</li>
+    </ul>
+    <div class="pc-interval">
+      <button class="pc-int-btn active" data-interval="month" data-price="$4,000" data-label="/mes">Mensual</button>
+      <button class="pc-int-btn" data-interval="quarter" data-price="$5,000" data-label="/3 meses">Trimestral</button>
+      <button class="pc-int-btn" data-interval="year" data-price="$7,000" data-label="/año">Anual</button>
+    </div>
+    <div class="pc-price">$4,000<span> /mes</span></div>
+    <a href="#" class="pc-cta {{ auth()->user()->stripe_plan === 'red_veterinaria' ? 'disabled' : '' }}" data-plan="red_veterinaria" data-interval="month">
+      {{ auth()->user()->stripe_plan === 'red_veterinaria' ? 'Plan actual' : 'Contratar plan de Red Veterinaria' }}
+    </a>
+  </div>
+@else
   {{-- Plan Clinica --}}
   <div class="pl-card {{ auth()->user()->stripe_plan === 'clinica' ? 'current' : '' }}" data-card="clinica">
     <div class="pc-top">
@@ -97,6 +175,7 @@
       {{ auth()->user()->stripe_plan === 'red_medica' ? 'Plan actual' : 'Contratar plan de Red Médica' }}
     </a>
   </div>
+@endif
 </div>
 
 {{-- Modal de pago (Payment Element) --}}

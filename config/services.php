@@ -75,6 +75,23 @@ return [
                 'quarter' => env('STRIPE_PRICE_EMPRESARIAL_QUARTER'),
                 'year' => env('STRIPE_PRICE_EMPRESARIAL_YEAR'),
             ],
+
+            // Planes del vertical veterinario (vertical = 'veterinaria').
+            'clinica_veterinaria' => [
+                'month' => env('STRIPE_PRICE_CLINICA_VETERINARIA_MONTH'),
+                'quarter' => env('STRIPE_PRICE_CLINICA_VETERINARIA_QUARTER'),
+                'year' => env('STRIPE_PRICE_CLINICA_VETERINARIA_YEAR'),
+            ],
+            'hospital_veterinario' => [
+                'month' => env('STRIPE_PRICE_HOSPITAL_VETERINARIO_MONTH'),
+                'quarter' => env('STRIPE_PRICE_HOSPITAL_VETERINARIO_QUARTER'),
+                'year' => env('STRIPE_PRICE_HOSPITAL_VETERINARIO_YEAR'),
+            ],
+            'red_veterinaria' => [
+                'month' => env('STRIPE_PRICE_RED_VETERINARIA_MONTH'),
+                'quarter' => env('STRIPE_PRICE_RED_VETERINARIA_QUARTER'),
+                'year' => env('STRIPE_PRICE_RED_VETERINARIA_YEAR'),
+            ],
         ],
 
         // Almacenamiento adicional (suscripción recurrente mensual).

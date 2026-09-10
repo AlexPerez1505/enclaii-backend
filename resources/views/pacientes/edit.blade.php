@@ -941,16 +941,50 @@ textarea{
       {{-- Campos personales --}}
       <div class="form-grid personal" style="flex:1;">
       <div class="form-group span-2">
-        <label>Nombre completo</label>
+        <label>{{ auth()->user()->esVeterinaria() ? 'Nombre de la mascota' : 'Nombre completo' }}</label>
         <input type="text" name="nombre_completo" value="{{ old('nombre_completo', $paciente->nombre_completo) }}" required>
       </div>
+
+      @if(auth()->user()->esVeterinaria())
+      <div class="form-group span-2">
+        <label>Nombre del tutor</label>
+        <input type="text" name="nombre_tutor" value="{{ old('nombre_tutor', $paciente->nombre_tutor) }}" placeholder="Nombre de la persona responsable">
+      </div>
+      <div class="form-group">
+        <label>Especie</label>
+        <input type="text" name="especie" value="{{ old('especie', $paciente->especie) }}" placeholder="Ej. Perro, Gato, Equino">
+      </div>
+      <div class="form-group">
+        <label>Raza</label>
+        <input type="text" name="raza" value="{{ old('raza', $paciente->raza) }}" placeholder="Raza (opcional)">
+      </div>
+      <div class="form-group">
+        <label>Color / pelaje</label>
+        <input type="text" name="color_pelaje" value="{{ old('color_pelaje', $paciente->color_pelaje) }}" placeholder="Color o pelaje (opcional)">
+      </div>
+      <div class="form-group">
+        <label>Microchip</label>
+        <input type="text" name="microchip" value="{{ old('microchip', $paciente->microchip) }}" placeholder="Número de microchip (opcional)">
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:8px;margin-top:22px;">
+        <input type="checkbox" name="esterilizado" id="esterilizadoInputEdit" value="1" {{ old('esterilizado', $paciente->esterilizado) ? 'checked' : '' }} style="width:auto;">
+        <label for="esterilizadoInputEdit" style="margin:0;">Esterilizado / castrado</label>
+      </div>
+      @endif
+
+      @unless(auth()->user()->esVeterinaria())
       <div class="form-group">
         <label>Fecha de nacimiento</label>
         <input type="date" name="fecha_nacimiento" id="fechaNacimientoEdit" value="{{ old('fecha_nacimiento', optional($paciente->fecha_nacimiento)->format('Y-m-d')) }}" style="color-scheme:dark;">
       </div>
+      @endunless
       <div class="form-group">
         <label>Edad</label>
+        @if(auth()->user()->esVeterinaria())
+        <input type="number" name="edad" id="edadCalculadaEdit" value="{{ old('edad', $paciente->edad) }}" placeholder="Edad en años">
+        @else
         <input type="number" name="edad" id="edadCalculadaEdit" value="{{ old('edad', $paciente->edad) }}" readonly style="background:var(--panel-2);color:var(--txt-soft);">
+        @endif
       </div>
       <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -977,31 +1011,41 @@ textarea{
         <label>Peso</label>
         <input type="number" step="0.01" name="peso" value="{{ old('peso', $paciente->peso) }}">
       </div>
+      @unless(auth()->user()->esVeterinaria())
       <div class="form-group">
         <label>Altura</label>
         <input type="number" step="0.01" name="altura" value="{{ old('altura', $paciente->altura) }}">
       </div>
+      @endunless
 
       <div class="form-group">
         <label>Sexo</label>
+        @if(auth()->user()->esVeterinaria())
+        <select name="sexo">
+          <option value="">Selecciona sexo</option>
+          <option value="masculino" {{ old('sexo', $paciente->sexo) == 'masculino' ? 'selected' : '' }}>Macho</option>
+          <option value="femenino" {{ old('sexo', $paciente->sexo) == 'femenino' ? 'selected' : '' }}>Hembra</option>
+        </select>
+        @else
         <select name="sexo">
           <option value="">Selecciona sexo</option>
           <option value="femenino" {{ old('sexo', $paciente->sexo) == 'femenino' ? 'selected' : '' }}>Femenino</option>
           <option value="masculino" {{ old('sexo', $paciente->sexo) == 'masculino' ? 'selected' : '' }}>Masculino</option>
           <option value="otro" {{ old('sexo', $paciente->sexo) == 'otro' ? 'selected' : '' }}>Otro</option>
         </select>
+        @endif
       </div>
       <div class="form-group span-2">
-        <label>Dirección</label>
+        <label>Dirección{{ auth()->user()->esVeterinaria() ? ' del tutor' : '' }}</label>
         <input type="text" name="direccion" value="{{ old('direccion', $paciente->direccion) }}">
       </div>
 
       <div class="form-group">
-        <label>Teléfono</label>
+        <label>Teléfono{{ auth()->user()->esVeterinaria() ? ' del tutor' : '' }}</label>
         <input type="tel" name="telefono" value="{{ old('telefono', $paciente->telefono) }}" placeholder="7221620815" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/\D/g,'').slice(0,10)">
       </div>
       <div class="form-group span-3">
-        <label>e-mail</label>
+        <label>e-mail{{ auth()->user()->esVeterinaria() ? ' del tutor' : '' }}</label>
         <input type="email" name="email" value="{{ old('email', $paciente->email) }}">
       </div>
       </div>{{-- /form-grid personal --}}

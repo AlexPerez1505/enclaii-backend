@@ -360,22 +360,19 @@
     const original = label.textContent;
     btn.disabled = true;
     btn.style.opacity = '.7';
-    label.textContent = 'Generando...';
+    label.textContent = 'Enviando...';
 
-    try {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'X-CSRF-TOKEN': csrf,
-        },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.ok) {
-        throw new Error(data.message || 'No se pudo generar el reporte.');
-      }
+    const fail = (message) => {
+      alert('Error: ' + message);
+      btn.disabled = false;
+      btn.style.opacity = '';
+      label.textContent = original;
+    };
+
+    // La generación corre en segundo plano (cola) porque puede tardar hasta
+    // ~2 minutos con imágenes; aquí solo encolamos y luego consultamos el
+    // progreso por polling en vez de esperar la respuesta en la misma petición.
+    const finish = (data) => {
       // Muestra en la vista previa las propuestas de la IA (diagnóstico, hallazgos
       // y recomendaciones) obtenidas tras analizar las imágenes y observaciones.
       render(data.reporte);
@@ -396,11 +393,60 @@
       nextUrl.searchParams.set('reporte', data.reporte_id);
       nextUrl.searchParams.set('estudio', ESTUDIO_ID);
       setTimeout(() => { window.location.href = nextUrl.toString(); }, 1400);
+    };
+
+    const POLL_INTERVAL_MS = 2500;
+    const POLL_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutos de margen
+
+    const pollEstado = async (solicitudId, startedAt) => {
+      if (Date.now() - startedAt > POLL_TIMEOUT_MS) {
+        fail('La generación está tardando demasiado. Intenta de nuevo en unos minutos.');
+        return;
+      }
+
+      try {
+        const res = await fetch(`{{ url('/ia-reportes/generar') }}/${solicitudId}/estado`, {
+          headers: { 'Accept': 'application/json' },
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          throw new Error(data.message || 'No se pudo consultar el estado del reporte.');
+        }
+
+        if (data.estado === 'listo') {
+          finish(data);
+          return;
+        }
+        if (data.estado === 'error') {
+          throw new Error(data.error_mensaje || 'No se pudo generar el reporte.');
+        }
+
+        label.textContent = data.estado === 'procesando' ? 'Analizando...' : 'En cola...';
+        setTimeout(() => pollEstado(solicitudId, startedAt), POLL_INTERVAL_MS);
+      } catch (e) {
+        fail(e.message);
+      }
+    };
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': csrf,
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.message || 'No se pudo iniciar la generación del reporte.');
+      }
+
+      label.textContent = 'En cola...';
+      pollEstado(data.solicitud_id, Date.now());
     } catch (e) {
-      alert('Error: ' + e.message);
-      btn.disabled = false;
-      btn.style.opacity = '';
-      label.textContent = original;
+      fail(e.message);
     }
   });
 })();

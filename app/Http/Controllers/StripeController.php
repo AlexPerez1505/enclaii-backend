@@ -24,6 +24,9 @@ class StripeController extends Controller
         'hospital',
         'red_medica',
         'empresarial',
+        'clinica_veterinaria',
+        'hospital_veterinario',
+        'red_veterinaria',
         'storage_50',
         'storage_100',
     ];

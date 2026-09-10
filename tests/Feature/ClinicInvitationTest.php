@@ -83,6 +83,7 @@ class ClinicInvitationTest extends TestCase
             'email' => 'invited@example.com',
             'password' => 'SecurePassword1',
             'password_confirmation' => 'SecurePassword1',
+            'vertical' => 'medica',
         ])
             ->assertRedirect(route('dashboard'));
 
@@ -200,6 +201,7 @@ class ClinicInvitationTest extends TestCase
             'email' => 'unlisted@example.com',
             'password' => 'SecurePassword1',
             'password_confirmation' => 'SecurePassword1',
+            'vertical' => 'medica',
         ])
             ->assertRedirect(route('plan.only'));
 
