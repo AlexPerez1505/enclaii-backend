@@ -1,13 +1,11 @@
-@extends('layouts.app')
-
-@section('title', 'Nuevo Paciente')
-@section('active', 'pacientes')
-@section('header-title', 'Nuevo Paciente')
-@section('header-sub')
+<?php $__env->startSection('title', 'Nuevo Paciente'); ?>
+<?php $__env->startSection('active', 'pacientes'); ?>
+<?php $__env->startSection('header-title', 'Nuevo Paciente'); ?>
+<?php $__env->startSection('header-sub'); ?>
   Ingresa los datos correctamente de tu paciente
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
 /* ============ ESTILOS NUEVO PACIENTE ============ */
 
@@ -1030,45 +1028,47 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
 .camera-frame.camera-active .avatar-preview{display:none}
 
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 
-  {{-- Link volver --}}
-  <a href="{{ route('pacientes.index') }}" class="back-link rise d1">
+  
+  <a href="<?php echo e(route('pacientes.index')); ?>" class="back-link rise d1">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
     Volver a pacientes
   </a>
 
-  {{-- Mensajes de sesión --}}
-  @if(session('error'))
+  
+  <?php if(session('error')): ?>
     <div style="margin-bottom:20px;padding:14px 18px;background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.4);border-radius:var(--r-md);color:#ff6b6b;font-size:14px;">
-      {{ session('error') }}
-    </div>
-  @endif
-  @if(session('success'))
-    <div style="margin-bottom:20px;padding:14px 18px;background:rgba(46,204,113,.15);border:1px solid rgba(46,204,113,.4);border-radius:var(--r-md);color:#2ecc71;font-size:14px;">
-      {{ session('success') }}
-    </div>
-  @endif
+      <?php echo e(session('error')); ?>
 
-  {{-- Formulario --}}
-  <form id="pacienteForm" class="form-card rise d2" action="{{ route('pacientes.store') }}" method="POST" enctype="multipart/form-data">
-    @csrf
+    </div>
+  <?php endif; ?>
+  <?php if(session('success')): ?>
+    <div style="margin-bottom:20px;padding:14px 18px;background:rgba(46,204,113,.15);border:1px solid rgba(46,204,113,.4);border-radius:var(--r-md);color:#2ecc71;font-size:14px;">
+      <?php echo e(session('success')); ?>
+
+    </div>
+  <?php endif; ?>
+
+  
+  <form id="pacienteForm" class="form-card rise d2" action="<?php echo e(route('pacientes.store')); ?>" method="POST" enctype="multipart/form-data">
+    <?php echo csrf_field(); ?>
     
-    {{-- Sección Información Personal --}}
+    
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
       <h2 class="section-title" style="margin:0;">Información personal</h2>
       <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-md);font-size:13px;">
         <span style="color:var(--txt-soft);">Folio:</span>
-        <span style="font-weight:700;color:var(--cyan);">{{ old('folio', $folio ?? 'P-001') }}</span>
-        <input type="hidden" name="folio" id="folioInput" value="{{ old('folio', $folio ?? 'P-001') }}">
-        <input type="hidden" name="identificacion" id="identificacionInput" value="{{ old('identificacion', old('folio', $folio ?? 'P-001')) }}">
+        <span style="font-weight:700;color:var(--cyan);"><?php echo e(old('folio', $folio ?? 'P-001')); ?></span>
+        <input type="hidden" name="folio" id="folioInput" value="<?php echo e(old('folio', $folio ?? 'P-001')); ?>">
+        <input type="hidden" name="identificacion" id="identificacionInput" value="<?php echo e(old('identificacion', old('folio', $folio ?? 'P-001'))); ?>">
       </div>
     </div>
 
     <div class="personal-layout">
-      {{-- Foto --}}
+      
       <div class="personal-photo-col">
         <div class="patient-photo-container" id="patientPhotoContainer">
           <div class="patient-photo-placeholder" id="patientPhotoPlaceholder"></div>
@@ -1080,53 +1080,53 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
           Agregar foto
         </button>
       </div>
-      {{-- Campos personales --}}
+      
       <div class="form-grid personal" style="flex:1;">
       <div class="form-group span-2">
-        <label>{{ auth()->user()->esVeterinaria() ? 'Nombre de la mascota' : 'Nombre completo' }}</label>
-        <input type="text" name="nombre_completo" value="{{ old('nombre_completo') }}" placeholder="{{ auth()->user()->esVeterinaria() ? 'Nombre de la mascota' : 'Nombre completo del paciente' }}" required>
+        <label><?php echo e(auth()->user()->esVeterinaria() ? 'Nombre de la mascota' : 'Nombre completo'); ?></label>
+        <input type="text" name="nombre_completo" value="<?php echo e(old('nombre_completo')); ?>" placeholder="<?php echo e(auth()->user()->esVeterinaria() ? 'Nombre de la mascota' : 'Nombre completo del paciente'); ?>" required>
       </div>
 
-      @if(auth()->user()->esVeterinaria())
+      <?php if(auth()->user()->esVeterinaria()): ?>
       <div class="form-group span-2">
         <label>Nombre del tutor</label>
-        <input type="text" name="nombre_tutor" value="{{ old('nombre_tutor') }}" placeholder="Nombre de la persona responsable">
+        <input type="text" name="nombre_tutor" value="<?php echo e(old('nombre_tutor')); ?>" placeholder="Nombre de la persona responsable">
       </div>
       <div class="form-group">
         <label>Especie</label>
-        <input type="text" name="especie" value="{{ old('especie') }}" placeholder="Ej. Perro, Gato, Equino">
+        <input type="text" name="especie" value="<?php echo e(old('especie')); ?>" placeholder="Ej. Perro, Gato, Equino">
       </div>
       <div class="form-group">
         <label>Raza</label>
-        <input type="text" name="raza" value="{{ old('raza') }}" placeholder="Raza (opcional)">
+        <input type="text" name="raza" value="<?php echo e(old('raza')); ?>" placeholder="Raza (opcional)">
       </div>
       <div class="form-group">
         <label>Color / pelaje</label>
-        <input type="text" name="color_pelaje" value="{{ old('color_pelaje') }}" placeholder="Color o pelaje (opcional)">
+        <input type="text" name="color_pelaje" value="<?php echo e(old('color_pelaje')); ?>" placeholder="Color o pelaje (opcional)">
       </div>
       <div class="form-group">
         <label>Microchip</label>
-        <input type="text" name="microchip" value="{{ old('microchip') }}" placeholder="Número de microchip (opcional)">
+        <input type="text" name="microchip" value="<?php echo e(old('microchip')); ?>" placeholder="Número de microchip (opcional)">
       </div>
       <div class="form-group" style="display:flex;align-items:center;gap:8px;margin-top:22px;">
-        <input type="checkbox" name="esterilizado" id="esterilizadoInput" value="1" {{ old('esterilizado') ? 'checked' : '' }} style="width:auto;">
+        <input type="checkbox" name="esterilizado" id="esterilizadoInput" value="1" <?php echo e(old('esterilizado') ? 'checked' : ''); ?> style="width:auto;">
         <label for="esterilizadoInput" style="margin:0;">Esterilizado / castrado</label>
       </div>
-      @endif
+      <?php endif; ?>
 
-      @unless(auth()->user()->esVeterinaria())
+      <?php if (! (auth()->user()->esVeterinaria())): ?>
       <div class="form-group">
         <label>Fecha de nacimiento</label>
-        <input type="date" name="fecha_nacimiento" id="fechaNacimiento" value="{{ old('fecha_nacimiento') }}" style="color-scheme:dark;" onclick="this.showPicker && this.showPicker()" onfocus="this.showPicker && this.showPicker()">
+        <input type="date" name="fecha_nacimiento" id="fechaNacimiento" value="<?php echo e(old('fecha_nacimiento')); ?>" style="color-scheme:dark;" onclick="this.showPicker && this.showPicker()" onfocus="this.showPicker && this.showPicker()">
       </div>
-      @endunless
+      <?php endif; ?>
       <div class="form-group">
         <label>Edad</label>
-        @if(auth()->user()->esVeterinaria())
-        <input type="number" name="edad" id="edadCalculada" value="{{ old('edad') }}" placeholder="Edad en años">
-        @else
-        <input type="number" name="edad" id="edadCalculada" value="{{ old('edad') }}" placeholder="--" readonly style="background:var(--panel-2);color:var(--txt-soft);cursor:default;">
-        @endif
+        <?php if(auth()->user()->esVeterinaria()): ?>
+        <input type="number" name="edad" id="edadCalculada" value="<?php echo e(old('edad')); ?>" placeholder="Edad en años">
+        <?php else: ?>
+        <input type="number" name="edad" id="edadCalculada" value="<?php echo e(old('edad')); ?>" placeholder="--" readonly style="background:var(--panel-2);color:var(--txt-soft);cursor:default;">
+        <?php endif; ?>
       </div>
       <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1151,38 +1151,38 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
       </script>
       <div class="form-group">
         <label>Peso</label>
-        <input type="number" step="0.01" name="peso" value="{{ old('peso') }}" placeholder="Peso en kg">
+        <input type="number" step="0.01" name="peso" value="<?php echo e(old('peso')); ?>" placeholder="Peso en kg">
       </div>
-      @unless(auth()->user()->esVeterinaria())
+      <?php if (! (auth()->user()->esVeterinaria())): ?>
       <div class="form-group">
         <label>Altura</label>
-        <input type="number" step="0.01" name="altura" value="{{ old('altura') }}" placeholder="Altura en metros">
+        <input type="number" step="0.01" name="altura" value="<?php echo e(old('altura')); ?>" placeholder="Altura en metros">
       </div>
-      @endunless
+      <?php endif; ?>
 
       <div class="form-group">
         <label>Sexo</label>
-        @if(auth()->user()->esVeterinaria())
+        <?php if(auth()->user()->esVeterinaria()): ?>
         <select name="sexo">
           <option value="">Selecciona sexo</option>
-          <option value="masculino" {{ old('sexo') == 'masculino' ? 'selected' : '' }}>Macho</option>
-          <option value="femenino" {{ old('sexo') == 'femenino' ? 'selected' : '' }}>Hembra</option>
+          <option value="masculino" <?php echo e(old('sexo') == 'masculino' ? 'selected' : ''); ?>>Macho</option>
+          <option value="femenino" <?php echo e(old('sexo') == 'femenino' ? 'selected' : ''); ?>>Hembra</option>
         </select>
-        @else
+        <?php else: ?>
         <select name="sexo">
           <option value="">Selecciona sexo</option>
-          <option value="femenino" {{ old('sexo') == 'femenino' ? 'selected' : '' }}>Femenino</option>
-          <option value="masculino" {{ old('sexo') == 'masculino' ? 'selected' : '' }}>Masculino</option>
-          <option value="otro" {{ old('sexo') == 'otro' ? 'selected' : '' }}>Otro</option>
+          <option value="femenino" <?php echo e(old('sexo') == 'femenino' ? 'selected' : ''); ?>>Femenino</option>
+          <option value="masculino" <?php echo e(old('sexo') == 'masculino' ? 'selected' : ''); ?>>Masculino</option>
+          <option value="otro" <?php echo e(old('sexo') == 'otro' ? 'selected' : ''); ?>>Otro</option>
         </select>
-        @endif
+        <?php endif; ?>
       </div>
       <div class="form-group span-2">
-        <label>Dirección{{ auth()->user()->esVeterinaria() ? ' del tutor' : '' }}</label>
-        <input type="text" name="direccion" value="{{ old('direccion') }}" placeholder="CALLE, CP">
+        <label>Dirección<?php echo e(auth()->user()->esVeterinaria() ? ' del tutor' : ''); ?></label>
+        <input type="text" name="direccion" value="<?php echo e(old('direccion')); ?>" placeholder="CALLE, CP">
       </div>
 
-      @php
+      <?php
         $telefonoCompleto = trim((string) old('telefono', ''));
         $telefonoLadaOld = old('telefono_lada');
         $telefonoNumeroOld = old('telefono_numero');
@@ -1197,40 +1197,41 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
                 $telefonoNumero = $telefonoCompleto;
             }
         }
-      @endphp
+      ?>
       <div class="form-group">
-        <label>Teléfono{{ auth()->user()->esVeterinaria() ? ' del tutor' : '' }}</label>
-        <input type="hidden" name="telefono" id="telefonoCompleto" value="{{ $telefonoCompleto }}">
+        <label>Teléfono<?php echo e(auth()->user()->esVeterinaria() ? ' del tutor' : ''); ?></label>
+        <input type="hidden" name="telefono" id="telefonoCompleto" value="<?php echo e($telefonoCompleto); ?>">
         <div class="phone-composite">
-          <input class="phone-lada" type="text" name="telefono_lada" id="telefonoLada" value="{{ $telefonoLada }}" placeholder="+52" maxlength="5" inputmode="tel" autocomplete="tel-country-code" aria-label="Lada del telefono">
-          <input class="phone-number" type="tel" name="telefono_numero" id="telefonoNumero" value="{{ $telefonoNumero }}" placeholder="722 162 0815" maxlength="20" inputmode="tel" autocomplete="tel-national" aria-label="Numero de telefono">
+          <input class="phone-lada" type="text" name="telefono_lada" id="telefonoLada" value="<?php echo e($telefonoLada); ?>" placeholder="+52" maxlength="5" inputmode="tel" autocomplete="tel-country-code" aria-label="Lada del telefono">
+          <input class="phone-number" type="tel" name="telefono_numero" id="telefonoNumero" value="<?php echo e($telefonoNumero); ?>" placeholder="722 162 0815" maxlength="20" inputmode="tel" autocomplete="tel-national" aria-label="Numero de telefono">
         </div>
       </div>
       <div class="form-group span-3">
-        <label>e-mail{{ auth()->user()->esVeterinaria() ? ' del tutor' : '' }}</label>
-        <input type="email" name="email" value="{{ old('email') }}" placeholder="correo@ejemplo.com">
+        <label>e-mail<?php echo e(auth()->user()->esVeterinaria() ? ' del tutor' : ''); ?></label>
+        <input type="email" name="email" value="<?php echo e(old('email')); ?>" placeholder="correo@ejemplo.com">
       </div>
-      </div>{{-- /form-grid personal --}}
-    </div>{{-- /personal-layout --}}
+      </div>
+    </div>
 
     <hr style="border:none;border-top:1px solid var(--stroke);margin:28px 0;">
 
-    {{-- Sección Información Médica --}}
+    
     <h2 class="section-title">Información médica</h2>
 
     <div style="display:flex;gap:32px;align-items:flex-start;">
-      {{-- Columna izquierda: Procedimiento + Fecha --}}
+      
       <div style="flex:1;">
         <div class="form-group" style="margin-bottom:18px;">
           <label>Médico</label>
           <div class="select-with-add">
             <select id="medicoSelectMed" name="medico" data-campo="medico" style="flex:1;">
               <option value="">Seleccione un médico...</option>
-              @foreach($listaMedicos as $m)
-                <option value="{{ $m->nombre_completo }}">
-                  {{ $m->nombre_completo }}
+              <?php $__currentLoopData = $listaMedicos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $m): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <option value="<?php echo e($m->nombre_completo); ?>">
+                  <?php echo e($m->nombre_completo); ?>
+
                 </option>
-              @endforeach
+              <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </select>
             <button type="button" class="btn-add-procedimiento" onclick="window.addMedicoMed()" title="Agregar médico">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -1242,11 +1243,12 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
           <div class="select-with-add">
             <select id="procedimientoSelect" name="procedimiento" data-campo="procedimiento" style="flex:1;">
               <option value="">Seleccione un procedimiento...</option>
-              @foreach($listaProcedimientos as $p)
-                <option value="{{ $p->nombre }}">
-                  {{ $p->nombre }}
+              <?php $__currentLoopData = $listaProcedimientos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $p): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <option value="<?php echo e($p->nombre); ?>">
+                  <?php echo e($p->nombre); ?>
+
                 </option>
-              @endforeach
+              <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </select>
             <button type="button" class="btn-add-procedimiento" onclick="window.addNuevoProcedimiento()" title="Agregar procedimiento">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -1259,11 +1261,12 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
           <div class="select-with-add">
             <select id="anestesiologoSelect" name="anestesiologo" data-campo="anestesiologo" style="flex:1;">
               <option value="">Seleccione un anestesiólogo...</option>
-              @foreach($listaAnestesiologos as $a)
-                <option value="{{ $a->nombre_completo }}">
-                  {{ $a->nombre_completo }}
+              <?php $__currentLoopData = $listaAnestesiologos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $a): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <option value="<?php echo e($a->nombre_completo); ?>">
+                  <?php echo e($a->nombre_completo); ?>
+
                 </option>
-              @endforeach
+              <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </select>
             <button type="button" class="btn-add-procedimiento" onclick="window.addAnestesiologo()" title="Agregar anestesiólogo">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -1271,26 +1274,26 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
           </div>
         </div>
       </div>
-      {{-- Columna derecha: Diagnóstico --}}
+      
       <div style="flex:1;display:flex;flex-direction:column;">
         <div class="form-group" style="flex:1;">
           <label>Diagnóstico Preliminar</label>
-          <textarea name="diagnostico_preliminar" placeholder="Define lo que podría tener" style="min-height:220px;width:100%;">{{ old('diagnostico_preliminar') }}</textarea>
+          <textarea name="diagnostico_preliminar" placeholder="Define lo que podría tener" style="min-height:220px;width:100%;"><?php echo e(old('diagnostico_preliminar')); ?></textarea>
         </div>
       </div>
     </div>
 
     <hr style="border:none;border-top:1px solid var(--stroke);margin:28px 0;">
 
-    {{-- Enfermedad, Alergias y Estudios --}}
+    
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
       <div class="form-group">
         <label>Enfermedad</label>
-        <textarea name="enfermedad" placeholder="Describe la enfermedad o padecimiento del paciente" style="min-height:110px;width:100%;">{{ old('enfermedad') }}</textarea>
+        <textarea name="enfermedad" placeholder="Describe la enfermedad o padecimiento del paciente" style="min-height:110px;width:100%;"><?php echo e(old('enfermedad')); ?></textarea>
       </div>
       <div class="form-group">
         <label>Alergias</label>
-        <textarea name="alergias" placeholder="Especifica las alergias del paciente (medicamentos, alimentos, etc.)" style="min-height:110px;width:100%;">{{ old('alergias') }}</textarea>
+        <textarea name="alergias" placeholder="Especifica las alergias del paciente (medicamentos, alimentos, etc.)" style="min-height:110px;width:100%;"><?php echo e(old('alergias')); ?></textarea>
       </div>
     </div>
 
@@ -1309,7 +1312,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
           <p style="font-size:12px;font-weight:700;color:var(--txt-soft);margin:0 0 10px;text-transform:uppercase;letter-spacing:.5px;">Por subir</p>
           <div id="estudiosArchivosGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;"></div>
         </div>
-        {{-- Modal visor --}}
+        
         <div id="visorArchivoOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);align-items:center;justify-content:center;">
           <div style="background:var(--card);border:1px solid var(--stroke);border-radius:16px;width:min(960px,95vw);max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.6);">
             <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--stroke);flex-shrink:0;">
@@ -1330,7 +1333,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
       </div>
     </div>
 
-    {{-- Botón guardar --}}
+    
     <div style="display:flex;justify-content:flex-end;margin-top:28px;">
       <button type="submit" class="btn-save" id="btnGuardarPaciente">
         Guardar paciente
@@ -1341,7 +1344,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
   </form>
 
 
-  {{-- Toast cita guardada --}}
+  
   <div class="cita-toast" id="citaToast">
     <div class="cita-toast-header">
       <div class="cita-toast-icon">
@@ -1356,7 +1359,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
     </div>
   </div>
 
-  {{-- Modal detalle de cita --}}
+  
   <div class="modal-cita-overlay" id="modalDetalleCita">
     <div class="modal-cita">
       <h3>Detalles de la cita</h3>
@@ -1367,7 +1370,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
     </div>
   </div>
 
-  {{-- Modal Agendar Cita --}}
+  
   <div class="modal-cita-overlay" id="modalCita">
     <div class="modal-cita">
       <h3>Agendar cita</h3>
@@ -1394,7 +1397,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
     </div>
   </div>
 
-  {{-- Modal de éxito al guardar paciente --}}
+  
   <div class="modal-success-overlay" id="modalSuccess">
     <div class="modal-success">
       <div class="modal-success-icon">
@@ -1404,14 +1407,14 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
       </div>
       <h2>¡Paciente registrado!</h2>
       <p>El paciente ha sido registrado exitosamente en el sistema.</p>
-      <button class="btn-aceptar" onclick="window.location.href='{{ route('agendar') }}'">
+      <button class="btn-aceptar" onclick="window.location.href='<?php echo e(route('agendar')); ?>'">
         Ir a agenda
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       </button>
     </div>
   </div>
 
-  {{-- Modal de captura de foto --}}
+  
   <div class="modal-overlay" id="modalFoto">
     <div class="modal-photo">
       <div class="modal-header">
@@ -1420,7 +1423,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
       </div>
 
       <div class="modal-body">
-        {{-- Panel izquierdo: Preview --}}
+        
         <div class="preview-panel">
           <h3>Vista previa</h3>
           <div class="camera-frame">
@@ -1452,7 +1455,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
           </div>
         </div>
 
-        {{-- Panel derecho: Opciones --}}
+        
         <div class="options-panel">
           <div class="option-section">
             <h4>Seleccionar fuente</h4>
@@ -1508,9 +1511,9 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
     </div>
   </div>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 (function(){
 
@@ -1546,7 +1549,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
 
       // Si es procedimiento, crear registro real en la base de datos
       if (_selId === 'procedimientoSelect') {
-        fetch('{{ route("procedimientos.store") }}', {
+        fetch('<?php echo e(route("procedimientos.store")); ?>', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -1573,7 +1576,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
 
       // Si es anestesiologo, crear registro real en la base de datos
       if (_selId === 'anestesiologoSelect') {
-        fetch('{{ route("anestesiologos.store") }}', {
+        fetch('<?php echo e(route("anestesiologos.store")); ?>', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -1601,7 +1604,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
 
       // Si es medico, crear registro real en la base de datos
       if (_selId === 'medicoSelectMed') {
-        fetch('{{ route("medicos.store") }}', {
+        fetch('<?php echo e(route("medicos.store")); ?>', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -1629,7 +1632,7 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
 
       // Si el select tiene data-campo y estamos editando (hay paciente_id), guardar en base de datos
       if (campo && pacienteId) {
-        fetch('{{ route("pacientes.update-campo", ":paciente_id") }}'.replace(':paciente_id', pacienteId), {
+        fetch('<?php echo e(route("pacientes.update-campo", ":paciente_id")); ?>'.replace(':paciente_id', pacienteId), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -2502,4 +2505,6 @@ html[data-theme="light"] .mini-modal-overlay{background:rgba(0,0,0,.3);}
   }
 
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\LENOVO\enclaii-backend\resources\views/pacientes/create.blade.php ENDPATH**/ ?>

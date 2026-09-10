@@ -14,7 +14,13 @@ class Paciente extends Model
         'clinica_id',
         'folio',
         'nombre_completo',
+        'especie',
+        'raza',
+        'esterilizado',
+        'color_pelaje',
+        'microchip',
         'identificacion',
+        'nombre_tutor',
         'fecha_nacimiento',
         'edad',
         'peso',
@@ -39,6 +45,7 @@ class Paciente extends Model
         'edad' => 'integer',
         'peso' => 'decimal:2',
         'altura' => 'decimal:2',
+        'esterilizado' => 'boolean',
     ];
 
     public function estudios(): HasMany
