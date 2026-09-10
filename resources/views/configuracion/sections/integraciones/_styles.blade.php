@@ -58,8 +58,9 @@
   color:var(--txt-soft);border:1px solid var(--stroke);transition:color .15s,background .15s;
 }
 .int-backup-action svg{width:13px;height:13px}
-.int-backup-action.restore{color:var(--cyan)}
-.int-backup-action.delete{color:var(--red)}
+.int-backup-action.restore{color:var(--cyan);width:auto;display:inline-flex;align-items:center;gap:5px;padding:0 10px;height:28px}
+.int-backup-action.delete{color:var(--red);width:auto;display:inline-flex;align-items:center;gap:5px;padding:0 10px;height:28px}
+.int-backup-action-label{font-size:11px;font-weight:600;white-space:nowrap}
 @media (hover:hover){.int-backup-action:hover{background:rgba(46,123,246,.1);color:var(--txt)}}
 .int-backup-empty{padding:17px;text-align:center;border:1px dashed var(--stroke);border-radius:10px;color:var(--txt-soft);font-size:11.5px}
 @media (max-width:620px){
@@ -119,6 +120,7 @@
 .int-bk-btn{height:38px;padding:0 16px;border-radius:10px;font:inherit;font-size:12.5px;font-weight:700}
 .int-bk-btn.cancel{border:1px solid var(--stroke);color:var(--txt-soft)}
 .int-bk-btn.submit{color:#fff;background:linear-gradient(135deg,var(--blue),var(--cyan))}
+.int-bk-btn.danger{color:#fff;background:var(--red)}
 .int-bk-btn:disabled{opacity:.55;cursor:wait}
 @media (max-width:520px){.int-bk-modes{grid-template-columns:1fr}}
 
@@ -210,8 +212,10 @@
 
 /* Tarjetas inferiores */
 .int-bottom{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-@media (max-width:1100px){.int-bottom{grid-template-columns:repeat(2,1fr)}}
-@media (max-width:560px){.int-bottom{grid-template-columns:1fr}}
+.int-bottom:has(> .card:only-child){grid-template-columns:repeat(2,1fr)}
+.int-bottom > .card:only-child{grid-column:1 / -1}
+@media (max-width:1100px){.int-bottom{grid-template-columns:repeat(2,1fr)}.int-bottom > .card:only-child{grid-column:1 / -1}}
+@media (max-width:560px){.int-bottom{grid-template-columns:1fr}.int-bottom:has(> .card:only-child){grid-template-columns:1fr}}
 .int-dev-head{display:flex;align-items:flex-start;gap:11px;margin-bottom:12px}
 .int-dev-ico{width:40px;height:40px;flex:none;border-radius:10px;display:grid;place-items:center;color:var(--cyan);background:rgba(56,199,244,.1);border:1px solid rgba(56,199,244,.2)}
 .int-dev-ico svg{width:20px;height:20px}
@@ -229,6 +233,9 @@
 .int-dev-btns{display:flex;gap:8px;margin-top:13px}
 .int-dev-btn{flex:1;text-align:center;padding:8px;border-radius:9px;border:1px solid var(--stroke-strong);font-size:11.5px;font-weight:700;color:var(--cyan);transition:background-color .15s}
 @media (hover:hover){.int-dev-btn:hover{background:rgba(56,199,244,.1)}}
+
+.int-section-divider{width:100%;height:1px;margin:24px 0;border:0;background:linear-gradient(90deg,transparent,var(--stroke-strong),transparent);opacity:.6}
+@media (max-width:620px){.int-section-divider{margin:18px 0}}
 
 /* ===== Catálogo de hospital ===== */
 .cat-hospital-card{background:var(--card);border:1px solid var(--stroke);border-radius:var(--r-lg);padding:20px;box-shadow:0 16px 40px rgba(0,0,0,.25)}
@@ -282,5 +289,22 @@
   .cat-tabs{gap:14px}
   .cat-tab{font-size:12px}
 }
+
+/* Modal de confirmación de eliminación */
+.cat-delete-overlay{position:fixed;inset:0;z-index:970;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.66);backdrop-filter:blur(5px);opacity:0;visibility:hidden;transition:opacity .18s,visibility .18s}
+.cat-delete-overlay.open{opacity:1;visibility:visible}
+.cat-delete-modal{width:min(400px,100%);background:var(--card);border:1px solid var(--stroke-strong);border-radius:18px;box-shadow:0 26px 70px rgba(0,0,0,.55);padding:26px 24px 22px;text-align:center;transform:translateY(10px) scale(.98);transition:transform .18s var(--ease-out)}
+.cat-delete-overlay.open .cat-delete-modal{transform:none}
+.cat-delete-ico{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;margin:0 auto 16px;color:var(--red);background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25)}
+.cat-delete-ico svg{width:28px;height:28px}
+.cat-delete-title{font-family:'Sora',sans-serif;font-size:16px;font-weight:700;margin-bottom:8px}
+.cat-delete-text{font-size:13px;color:var(--txt-soft);line-height:1.5;margin-bottom:22px}
+.cat-delete-actions{display:flex;gap:10px;justify-content:center}
+.cat-delete-btn{height:40px;padding:0 18px;border-radius:10px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:background-color .15s,opacity .15s}
+.cat-delete-btn.cancel{border:1px solid var(--stroke-strong);color:var(--txt);background:var(--panel-2)}
+.cat-delete-btn.cancel:hover{background:rgba(110,160,255,.1)}
+.cat-delete-btn.danger{color:#fff;background:var(--red);border:1px solid var(--red)}
+.cat-delete-btn.danger:hover{opacity:.88}
+@media (max-width:480px){.cat-delete-actions{flex-direction:column}.cat-delete-btn{width:100%}}
 </style>
 @endpush

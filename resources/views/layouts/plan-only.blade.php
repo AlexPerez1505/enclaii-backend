@@ -38,6 +38,9 @@ body{font-family:'Hanken Grotesk',system-ui,sans-serif;background:var(--bg);colo
 .po-title{font-family:'Sora',sans-serif;font-size:28px;font-weight:800;margin-bottom:8px}
 .po-sub{font-size:15px;color:var(--txt-soft);line-height:1.5}
 .po-alert{margin:20px auto 0;max-width:500px;padding:14px 20px;border-radius:var(--r-md);background:rgba(245,158,45,.1);border:1px solid rgba(245,158,45,.3);color:var(--orange);font-size:13px;font-weight:600;text-align:center}
+.po-alert.info{background:rgba(59,130,246,.1);border-color:rgba(59,130,246,.28);color:var(--blue)}
+.po-alert.success{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.28);color:var(--green)}
+.po-alert.error{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.28);color:var(--red)}
 .po-content{width:100%;max-width:1100px}
 .po-logout{margin-top:30px}
 .po-logout button{background:none;border:1px solid var(--stroke-strong);color:var(--txt-soft);padding:10px 24px;border-radius:var(--r-md);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
@@ -56,6 +59,15 @@ body{font-family:'Hanken Grotesk',system-ui,sans-serif;background:var(--bg);colo
     <p class="po-sub">@yield('po-sub', 'Elige el plan que mejor se adapte a tus necesidades para comenzar a usar EndoCare.')</p>
     @if(session('warning'))
       <div class="po-alert">{{ session('warning') }}</div>
+    @endif
+    @if(session('info'))
+      <div class="po-alert info">{{ session('info') }}</div>
+    @endif
+    @if(session('success'))
+      <div class="po-alert success">{{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+      <div class="po-alert error">{{ session('error') }}</div>
     @endif
   </div>
 

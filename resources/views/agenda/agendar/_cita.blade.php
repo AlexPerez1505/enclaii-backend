@@ -67,13 +67,25 @@ html[data-theme="light"] .cita-icon-wrap svg{color:#5B6A99}
 @push('scripts')
 <script>
 (function(){
-  function fechaDdMmYyyyToKey(fecha) {
-    const match = String(fecha || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (!match) return '';
-    const y = parseInt(match[3], 10);
-    const m = parseInt(match[2], 10);
-    const d = parseInt(match[1], 10);
-    return `${y}-${m}-${d}`;
+  const DATE_FORMAT = @json(auth()->user()?->settings['date_format'] ?? 'DD/MM/YYYY');
+
+  function fechaToKey(fecha) {
+    const value = String(fecha || '').trim();
+    const ymdMatch = value.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (ymdMatch) {
+      return `${parseInt(ymdMatch[1], 10)}-${parseInt(ymdMatch[2], 10)}-${parseInt(ymdMatch[3], 10)}`;
+    }
+
+    const slashMatch = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (!slashMatch) return '';
+
+    const first = parseInt(slashMatch[1], 10);
+    const second = parseInt(slashMatch[2], 10);
+    const year = parseInt(slashMatch[3], 10);
+    const month = DATE_FORMAT === 'MM/DD/YYYY' ? first : second;
+    const day = DATE_FORMAT === 'MM/DD/YYYY' ? second : first;
+
+    return `${year}-${month}-${day}`;
   }
 
   function hora12ToMinutes(hora) {
@@ -106,7 +118,7 @@ html[data-theme="light"] .cita-icon-wrap svg{color:#5B6A99}
     const duracionInput = document.getElementById('citaDuracion');
     if (!select || !fechaInput || !horaInput) return;
 
-    const key = fechaDdMmYyyyToKey(fechaInput.value);
+    const key = fechaToKey(fechaInput.value);
     const start = hora12ToMinutes(horaInput.value);
     if (!key || start === null) return;
 

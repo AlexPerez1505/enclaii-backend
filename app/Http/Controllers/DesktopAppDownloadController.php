@@ -2,31 +2,42 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\DesktopAppRelease;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class DesktopAppDownloadController extends Controller
 {
-    private const INSTALLER_PATH = 'windows/stable/ENCLAII-Setup.msi';
-    private const DOWNLOAD_NAME = 'ENCLAII_0.1.1_x64.msi';
-
     public function __invoke(Request $request): RedirectResponse
     {
         abort_unless($request->user()?->subscribed(), 403);
 
         $disk = Storage::disk('downloads');
+        $platform = (string) $request->route('platform', DesktopAppRelease::PLATFORM_WINDOWS);
+        $release = DesktopAppRelease::forPlatform($platform);
 
-        abort_unless($disk->exists(self::INSTALLER_PATH), 404, 'El instalador no está disponible.');
+        abort_unless($release !== [], 404, 'La descarga solicitada no esta disponible.');
+
+        $installerPath = (string) $release['installer_path'];
+        $downloadName = (string) $release['download_name'];
+
+        abort_unless($installerPath !== '' && $disk->exists($installerPath), 404, 'El instalador no esta disponible.');
 
         $ttl = max(1, (int) config('filesystems.downloads_url_ttl', 10));
 
+        $options = [
+            'ResponseContentDisposition' => 'attachment; filename="'.$downloadName.'"; filename*=UTF-8\'\''.rawurlencode($downloadName),
+        ];
+
+        if (filled($release['mime_type'] ?? null)) {
+            $options['ResponseContentType'] = (string) $release['mime_type'];
+        }
+
         $url = $disk->temporaryUrl(
-            self::INSTALLER_PATH,
+            $installerPath,
             now()->addMinutes($ttl),
-            [
-                'ResponseContentDisposition' => 'attachment; filename="'.self::DOWNLOAD_NAME.'"; filename*=UTF-8\'\''.rawurlencode(self::DOWNLOAD_NAME),
-            ],
+            $options,
         );
 
         return redirect()->away($url);

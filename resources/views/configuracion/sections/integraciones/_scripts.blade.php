@@ -9,6 +9,14 @@
   const submitButton = document.getElementById('intBackupSubmit');
   const scopes = document.getElementById('intBackupScopes');
   const csrf = form?.querySelector('input[name="_token"]')?.value;
+  const restoreModal = document.getElementById('intRestoreModal');
+  const restoreMessage = document.getElementById('intRestoreMessage');
+  const restoreConfirmBtn = document.getElementById('intRestoreConfirm');
+  const restoreCancelBtn = document.getElementById('intRestoreCancel');
+  const deleteModal = document.getElementById('intDeleteModal');
+  const deleteMessage = document.getElementById('intDeleteMessage');
+  const deleteConfirmBtn = document.getElementById('intDeleteConfirm');
+  const deleteCancelBtn = document.getElementById('intDeleteCancel');
   const configUrl = @json(route('configuracion'));
 
   if (!modal || !form || !csrf) return;
@@ -75,6 +83,68 @@
     return data;
   }
 
+  function confirmRestore(name) {
+    return new Promise(resolve => {
+      restoreMessage.textContent = `¿Restaurar “${name}”?`;
+      restoreModal.classList.add('open');
+      restoreModal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+
+      const onConfirm = () => cleanup(false);
+      const onCancel = () => cleanup(true);
+
+      function cleanup(cancel) {
+        restoreConfirmBtn.removeEventListener('click', onConfirm);
+        restoreCancelBtn.removeEventListener('click', onCancel);
+        restoreModal.removeEventListener('click', onOverlay);
+        document.removeEventListener('keydown', onKeydown);
+        restoreModal.classList.remove('open');
+        restoreModal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        resolve(!cancel);
+      }
+
+      function onOverlay(event) { if (event.target === restoreModal) onCancel(); }
+      function onKeydown(event) { if (event.key === 'Escape' && restoreModal.classList.contains('open')) onCancel(); }
+
+      restoreConfirmBtn.addEventListener('click', onConfirm);
+      restoreCancelBtn.addEventListener('click', onCancel);
+      restoreModal.addEventListener('click', onOverlay);
+      document.addEventListener('keydown', onKeydown);
+    });
+  }
+
+  function confirmDelete(name) {
+    return new Promise(resolve => {
+      deleteMessage.textContent = `¿Eliminar definitivamente la copia "${name}"?`;
+      deleteModal.classList.add('open');
+      deleteModal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+
+      const onConfirm = () => cleanup(false);
+      const onCancel = () => cleanup(true);
+
+      function cleanup(cancel) {
+        deleteConfirmBtn.removeEventListener('click', onConfirm);
+        deleteCancelBtn.removeEventListener('click', onCancel);
+        deleteModal.removeEventListener('click', onOverlay);
+        document.removeEventListener('keydown', onKeydown);
+        deleteModal.classList.remove('open');
+        deleteModal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        resolve(!cancel);
+      }
+
+      function onOverlay(event) { if (event.target === deleteModal) onCancel(); }
+      function onKeydown(event) { if (event.key === 'Escape' && deleteModal.classList.contains('open')) onCancel(); }
+
+      deleteConfirmBtn.addEventListener('click', onConfirm);
+      deleteCancelBtn.addEventListener('click', onCancel);
+      deleteModal.addEventListener('click', onOverlay);
+      document.addEventListener('keydown', onKeydown);
+    });
+  }
+
   openButton?.addEventListener('click', openModal);
   closeButton?.addEventListener('click', closeModal);
   cancelButton?.addEventListener('click', closeModal);
@@ -122,9 +192,7 @@
   document.querySelectorAll('[data-backup-restore]').forEach(button => {
     button.addEventListener('click', async () => {
       const name = button.dataset.backupName;
-      const accepted = window.confirm(
-        `¿Restaurar “${name}”? Antes de aplicar los cambios se creará una copia automática del estado actual.`
-      );
+      const accepted = await confirmRestore(name);
       if (!accepted) return;
 
       button.disabled = true;
@@ -142,7 +210,8 @@
   document.querySelectorAll('[data-backup-delete]').forEach(button => {
     button.addEventListener('click', async () => {
       const name = button.dataset.backupName;
-      if (!window.confirm(`¿Eliminar definitivamente la copia “${name}”?`)) return;
+      const accepted = await confirmDelete(name);
+      if (!accepted) return;
 
       button.disabled = true;
       try {

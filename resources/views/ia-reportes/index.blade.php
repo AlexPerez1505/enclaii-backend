@@ -12,7 +12,7 @@
 /* ============ ESTILOS SOLO DE IA REPORTES ============ */
 
 /* Compactar tarjetas en esta pantalla para que todo entre de primera */
-.main{padding-top:20px;padding-bottom:22px}
+.main{padding-top:20px;padding-bottom:22px;display:flex;flex-direction:column}
 .head{margin-bottom:16px}
 .card{padding:16px 18px}
 .stat::after{
@@ -23,9 +23,9 @@
   pointer-events:none;
   animation:cardShine 5.6s ease-in-out infinite;
 }
-/* En tema claro el brillo blanco no se aprecia: usar un brillo gris */
+/* En tema claro el brillo blanco no se aprecia: usar un brillo azul clarito */
 html[data-theme="light"] .stat::after{
-  background:linear-gradient(100deg,transparent 0%,rgba(110,120,140,.18) 50%,transparent 100%);
+  background:linear-gradient(100deg,transparent 0%,rgba(56,199,244,.22) 50%,transparent 100%);
 }
 /* El barrido ocurre solo en el primer 25% del ciclo; el resto queda fuera.
    Con los retardos escalonados, una tarjeta termina de brillar y empieza la siguiente. */
@@ -33,6 +33,10 @@ html[data-theme="light"] .stat::after{
   0%{left:-75%}
   25%{left:150%}
   100%{left:150%}
+}
+@keyframes scanner{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
 }
 .stat.d2::after{animation-delay:0s}
 .stat.d3::after{animation-delay:1.4s}
@@ -42,7 +46,29 @@ html[data-theme="light"] .stat::after{
   .stat::after{display:none}
 }
 .card h3{margin-bottom:10px}
-.tbl-link{margin-top:6px}
+.tbl-link{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  margin-top:auto;
+  padding:8px 13px;
+  border:0;
+  border-radius:var(--r-md);
+  background:linear-gradient(135deg,var(--blue),var(--cyan));
+  color:#fff;
+  font-size:13px;
+  font-weight:700;
+  text-decoration:none;
+  cursor:pointer;
+  align-self:flex-start;
+  box-shadow:0 8px 22px -8px rgba(46,123,246,.6);
+  transition:filter 150ms ease, transform 160ms var(--ease-out);
+}
+.tbl-link:active{transform:scale(.97)}
+.tbl-link svg{width:14px;height:14px}
+@media (hover:hover) and (pointer:fine){
+  .tbl-link:hover{filter:brightness(1.1)}
+}
 
 /* Fila de KPIs */
 .stats{
@@ -97,14 +123,16 @@ html[data-theme="light"] .stat::after{
 .rep-grid{
   display:grid;
   grid-template-columns:2.4fr 1fr;
+  grid-template-rows:1fr auto;
   gap:14px;
-  margin-bottom:14px;
+  flex:1 1 auto;
+  min-height:0;
   align-items:stretch;
 }
-.rep-tbl{grid-column:1;grid-row:1;min-width:0}
-.card-pred{grid-column:1;grid-row:2;min-width:0}
-.rep-hall{grid-column:2;grid-row:1}
-.rep-grid .recs{grid-column:2;grid-row:2}
+.rep-tbl{grid-column:1;grid-row:1;min-width:0;min-height:0;display:flex;flex-direction:column}
+.card-pred{grid-column:1;grid-row:2;min-width:0;min-height:0}
+.rep-hall{grid-column:2;grid-row:1;min-height:0;display:flex;flex-direction:column;overflow:auto}
+.rep-grid .recs{grid-column:2;grid-row:2;min-height:0;display:flex;flex-direction:column;overflow:auto}
 
 /* Cabecera de la tarjeta de reportes */
 .card-head{
@@ -143,7 +171,7 @@ html[data-theme="light"] .stat::after{
 }
 
 /* Tabla de reportes */
-.tbl-wrap{overflow-x:visible}
+.tbl-wrap{flex:1 1 auto;min-height:0;overflow:auto}
 table.tbl{width:100%;border-collapse:collapse;font-size:14px}
 .tbl th{
   text-align:left;
@@ -225,7 +253,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
 }
 .recs li svg{width:18px;height:18px;flex:none;color:var(--green);margin-top:1px}
 
-/* Análisis predictivo (fila inferior) */
+/* Estudios sin reporte (fila inferior) */
 .card-pred{
   border-color:rgba(56,199,244,.4);
   display:grid;
@@ -237,17 +265,6 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
 .card-pred > *:first-child{padding-left:0}
 .card-pred > *:last-child{padding-right:0}
 .card-pred > * + *{border-left:1px solid var(--stroke)}
-.pred-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px}
-.pred-head .orb{
-  width:44px;height:44px;flex:none;
-  border-radius:12px;
-  border:1px solid var(--stroke-strong);
-  display:grid;place-items:center;
-  color:var(--cyan);
-  background:rgba(56,199,244,.08);
-}
-.pred-head h3{margin-bottom:2px;font-size:16px}
-.pred-head p{font-size:12.5px;color:var(--txt-soft);line-height:1.4}
 .pred-pat{display:flex;align-items:center;gap:10px;font-size:13.5px;margin-bottom:6px}
 .pred-pat .mini{
   width:30px;height:30px;border-radius:50%;
@@ -255,6 +272,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
   border:1px solid var(--stroke-strong);
   display:grid;place-items:center;
   font-size:10.5px;font-weight:700;color:var(--cyan);
+  flex:none;
 }
 .pred-meta{font-size:12.5px;color:var(--txt-soft);line-height:1.6}
 .prob{display:flex;align-items:center;justify-content:center;gap:20px}
@@ -274,28 +292,49 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
   -webkit-mask:url('/images/Vector.png') no-repeat center/contain;
           mask:url('/images/Vector.png') no-repeat center/contain;
 }
-/* En tema claro se borra el fondo azul oscuro del estómago */
-html[data-theme="light"] .gauge .stomach{background:transparent}
-.gauge .stomach .water{position:absolute;inset:0;width:100%;height:100%}
-.prob h4,.risk h4{
+/* En tema claro se rellena la silueta del estómago de azul fuerte */
+html[data-theme="light"] .gauge .stomach{background:var(--blue)}
+/* Destello de luz que recorre la silueta */
+.gauge .stomach::before{
+  content:"";
+  position:absolute;top:0;bottom:0;left:-75%;width:55%;
+  background:linear-gradient(100deg,transparent 0%,rgba(255,255,255,.35) 50%,transparent 100%);
+  pointer-events:none;
+  animation:cardShine 4s ease-in-out infinite;
+}
+.gauge .stomach .water{position:absolute;inset:0;width:100%;height:100%;z-index:1}
+.prob h4{
   font-family:'Sora',sans-serif;
   font-size:13.5px;font-weight:600;
   color:var(--txt-soft);
   margin-bottom:14px;
 }
 .gauge{position:relative;width:122px;height:122px;margin:0 auto}
-.gauge svg{width:100%;height:100%;transform:rotate(-90deg)}
+.gauge::before{
+  content:"";
+  position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,.25) 40deg, transparent 80deg);
+  -webkit-mask:radial-gradient(circle, black 58px, transparent 60px);
+          mask:radial-gradient(circle, black 58px, transparent 60px);
+  pointer-events:none;
+  animation:scanner 2.4s linear infinite;
+  z-index:0;
+}
+html[data-theme="light"] .gauge::before{
+  background:conic-gradient(from 0deg, transparent 0deg, rgba(56,199,244,.30) 40deg, transparent 80deg);
+}
+.gauge svg{position:relative;z-index:1;width:100%;height:100%;transform:rotate(-90deg)}
 .gauge circle{fill:none;stroke-width:11;stroke-linecap:round}
 .gauge .track{stroke:rgba(110,160,255,.12)}
 .gauge .val{stroke:var(--cyan);transition:stroke-dashoffset 1.2s var(--ease-out)}
-.gauge-center{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.gauge-center{position:absolute;inset:0;display:grid;place-items:center;text-align:center;z-index:2}
 .gauge-center .pct{font-family:'Sora',sans-serif;font-size:26px;font-weight:800;line-height:1}
 .gauge-center .lbl{font-size:11px;color:var(--txt-soft);margin-top:2px}
 .risk{text-align:center}
 .risk .lvl{
   font-family:'Sora',sans-serif;
-  font-size:28px;font-weight:800;
-  color:var(--orange);
+  font-size:22px;font-weight:800;
+  color:var(--cyan);
 }
 .risk .sub{font-size:12.5px;color:var(--txt-soft);margin:6px 0 16px}
 .pred-fade{transition:opacity .35s ease}
@@ -316,14 +355,15 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
 /* Responsive */
 @media (max-width:1380px){
   .stats{grid-template-columns:1fr 1fr}
-  .rep-grid{grid-template-columns:1fr}
-  .rep-tbl,.card-pred,.rep-hall,.rep-grid .recs{grid-column:1;grid-row:auto}
+  .rep-grid{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto auto auto}
+  .rep-tbl,.card-pred,.rep-hall,.rep-grid .recs{grid-column:1;grid-row:auto;min-height:0}
   .card-pred{grid-template-columns:1fr;gap:14px}
   .card-pred > *{padding:0}
   .card-pred > * + *{border-left:0;border-top:1px solid var(--stroke);padding-top:14px}
 }
 @media (max-width:720px){
   .stats{grid-template-columns:1fr}
+  .main{padding:14px 16px 22px}
 }
 @media (prefers-reduced-motion: reduce){
   .bar i,.conf .ring .val,.gauge .val{transition:none}
@@ -462,35 +502,23 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
       </a>
     </article>
 
-    {{-- ============ Análisis predictivo IA ============ --}}
+    {{-- ============ Estudios sin reporte ============ --}}
+    @php $primerEstudio = $estudiosSinReporte->first(); @endphp
     <article class="card card-pred rise d7">
 
       <div>
-        <div class="pred-head">
-          <div class="orb">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>
-          </div>
-          <div>
-            <h3>Análisis predictivo IA</h3>
-          </div>
-        </div>
-        <div class="pred-pat pred-fade"><span class="mini" id="predMini">MG</span><b id="predName">María González</b></div>
+        <div class="pred-pat pred-fade"><span class="mini" id="predMini">{{ $primerEstudio['ini'] ?? '' }}</span><b id="predName">{{ $primerEstudio['paciente'] ?? 'Sin estudios pendientes' }}</b></div>
         <div class="pred-meta pred-fade" id="predMeta">
-          Estudio: Endoscopia digestiva alta<br>
-          Fecha: 08/05/2025
+          Estudio: {{ $primerEstudio['tipo'] ?? '—' }}<br>
+          Fecha: {{ $primerEstudio['fecha'] ?? '—' }}
         </div>
       </div>
 
       <div class="prob">
-        <div class="prob-info">
-          <h4 class="pred-fade"><span id="predProbTitle">Probabilidad de gastritis</span></h4>
-          <div class="prob-num"><span id="probGastritis" data-target="82">0</span>%</div>
-          <p class="prob-sub">Basado en patrones detectados por IA</p>
-        </div>
         <div class="gauge">
           <svg viewBox="0 0 120 120">
             <circle class="track" cx="60" cy="60" r="50"/>
-            <circle class="val" id="predGauge" cx="60" cy="60" r="50" stroke-dasharray="314.16" stroke-dashoffset="314.16" data-pct="82"/>
+            <circle class="val" id="predGauge" cx="60" cy="60" r="50" stroke-dasharray="314.16" stroke-dashoffset="314.16" data-pct="{{ $primerEstudio['pct'] ?? 0 }}"/>
           </svg>
           <div class="gauge-center">
             <div class="stomach">
@@ -548,11 +576,10 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
       </div>
 
       <div class="risk">
-        <h4>Nivel de riesgo</h4>
-        <div class="lvl pred-fade" id="predRisk">Moderado</div>
-        <div class="sub pred-fade" id="predRiskSub">Recomendación de seguimiento</div>
-        <a class="btn-line" id="predLink" href="{{ route('ia-reportes.analisis', ['p' => 0]) }}">
-          Ver análisis completo
+        <div class="lvl pred-fade" id="predRisk" style="{{ ($primerEstudio ?? null) ? '' : 'display:none' }}">Sin reporte</div>
+        <div class="sub pred-fade" id="predRiskSub">Requiere elaborar el reporte clínico</div>
+        <a class="btn-line pred-fade" id="predLink" href="{{ route('ia-reportes.redactar', ['estudio' => $primerEstudio['id'] ?? null]) }}" @if(! $primerEstudio) style="pointer-events:none;opacity:.5" @endif>
+          Acceder a su estudio
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </a>
       </div>
@@ -664,79 +691,49 @@ html[data-theme="light"] .gauge .stomach{background:transparent}
 
   setTimeout(drawAll, 400);
 
-  /* ============ Análisis predictivo: rotación de pacientes ============ */
-  const PRED = [
-    {ini:'MG', name:'María González', study:'Endoscopia digestiva alta', date:'08/05/2025', cond:'gastritis',      prob:82, risk:'Moderado', sub:'Recomendación de seguimiento',  color:'var(--orange)'},
-    {ini:'JL', name:'Jorge López',    study:'Endoscopia digestiva alta', date:'08/05/2025', cond:'reflujo',        prob:54, risk:'Bajo',     sub:'Control en 6 meses',           color:'var(--green)'},
-    {ini:'AR', name:'Ana Ramírez',    study:'Gastroscopia',              date:'07/05/2025', cond:'úlcera péptica', prob:91, risk:'Alto',     sub:'Requiere atención inmediata',  color:'var(--red)'},
-    {ini:'PT', name:'Pedro Torres',   study:'Colonoscopia',              date:'07/05/2025', cond:'pólipos',        prob:37, risk:'Bajo',     sub:'Seguimiento de rutina',        color:'var(--green)'},
-    {ini:'LM', name:'Laura Méndez',   study:'Endoscopia digestiva alta', date:'06/05/2025', cond:'esofagitis',     prob:68, risk:'Moderado', sub:'Recomendación de seguimiento', color:'var(--orange)'},
-  ];
+  /* ============ Estudios sin reporte: rotación de pacientes ============ */
+  const PRED = @json($estudiosSinReporte);
 
   const elMini  = document.getElementById('predMini');
   const elName  = document.getElementById('predName');
   const elMeta  = document.getElementById('predMeta');
-  const elTitle = document.getElementById('predProbTitle');
-  const elNum   = document.getElementById('probGastritis');
   const elGauge = document.getElementById('predGauge');
   const elWater = document.getElementById('waterLevel');
-  const elRisk  = document.getElementById('predRisk');
-  const elSub   = document.getElementById('predRiskSub');
   const elLink  = document.getElementById('predLink');
   const fades   = document.querySelectorAll('.pred-fade');
-  const analisisBase = @json(route('ia-reportes.analisis'));
-  const setLink = (i) => { if (elLink) elLink.href = analisisBase + '?p=' + i; };
+  const redactarBase = @json(route('ia-reportes.redactar'));
+  const setLink = (id) => { if (elLink) elLink.href = redactarBase + '?estudio=' + id; };
 
-  if (!elGauge) return;
-
-  let numTween = null;
-
-  const setNum = (to) => {
-    const from = parseInt(elNum.textContent, 10) || 0;
-    if (hasGsap) {
-      if (numTween) numTween.kill();
-      const o = { v: from };
-      numTween = gsap.to(o, { v: to, duration: 1.2, ease: 'expo.out',
-        onUpdate: () => { elNum.textContent = Math.round(o.v); } });
-    } else {
-      elNum.textContent = to;
-    }
-  };
+  if (!elGauge || !PRED.length) return;
 
   const applyPred = (p) => {
     // Gauge (anillo)
-    elGauge.dataset.pct = p.prob;
+    elGauge.dataset.pct = p.pct;
     drawRing(elGauge, 314.16);
-    // Nivel de agua: sube/baja según probabilidad
-    const dy = (62 * (1 - p.prob / 100)) - 27;
+    // Nivel de agua: sube/baja según el nivel de urgencia del estudio
+    const dy = (62 * (1 - p.pct / 100)) - 27;
     elWater.style.transform = 'translateY(' + dy + 'px)';
-    // Número
-    setNum(p.prob);
   };
 
   let idx = 0;
   applyPred(PRED[0]); // sincroniza nivel inicial
-  setLink(0);
+  setLink(PRED[0].id);
 
   const cycle = () => {
     idx = (idx + 1) % PRED.length;
     const p = PRED[idx];
     fades.forEach(f => f.style.opacity = '0');
     setTimeout(() => {
-      elMini.textContent  = p.ini;
-      elName.textContent  = p.name;
-      elMeta.innerHTML    = 'Estudio: ' + p.study + '<br>Fecha: ' + p.date;
-      elTitle.textContent = 'Probabilidad de ' + p.cond;
-      elRisk.textContent  = p.risk;
-      elRisk.style.color  = p.color;
-      elSub.textContent   = p.sub;
+      elMini.textContent = p.ini;
+      elName.textContent = p.paciente;
+      elMeta.innerHTML   = 'Estudio: ' + p.tipo + '<br>Fecha: ' + p.fecha;
       applyPred(p);
-      setLink(idx);
+      setLink(p.id);
       fades.forEach(f => f.style.opacity = '1');
     }, 350);
   };
 
-  setInterval(cycle, 9000);
+  if (PRED.length > 1) setInterval(cycle, 9000);
 })();
 </script>
 @endpush

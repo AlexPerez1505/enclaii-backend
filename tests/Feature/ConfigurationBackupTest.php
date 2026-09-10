@@ -144,8 +144,8 @@ class ConfigurationBackupTest extends TestCase
             ->assertSee('Copias de configuración')
             ->assertSee('Copia visible')
             ->assertSee('Crear copia de configuración')
-            ->assertDontSee('Catálogos del sistema')
-            ->assertDontSee('Agregar personal');
+            ->assertSee('Catálogos del sistema')
+            ->assertSee('Agregar personal');
     }
 
     private function user(array $attributes = []): User

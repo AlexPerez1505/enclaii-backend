@@ -49,6 +49,27 @@
 .pa-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
 .pa-section-title{font-family:'Sora',sans-serif;font-size:15px;font-weight:800}
 .pa-section-count{font-size:12px;color:var(--txt-soft)}
+.pa-study{
+  margin-bottom:16px;overflow:hidden;
+  background:var(--panel-2);border:1px solid var(--stroke);border-radius:13px;
+}
+.pa-study-head{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:14px;
+  padding:15px 16px;border-bottom:1px solid var(--stroke);background:var(--card);
+}
+.pa-study-title{font-family:'Sora',sans-serif;font-size:15px;font-weight:800;margin-bottom:5px}
+.pa-study-meta{font-size:12.5px;color:var(--txt-soft);line-height:1.45}
+.pa-study-counts{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.pa-study-pill{
+  padding:5px 9px;border:1px solid var(--stroke);border-radius:999px;
+  color:var(--txt-soft);font-size:11.5px;font-weight:800;background:var(--panel-2);
+}
+.pa-study-body{display:grid;gap:16px;padding:15px}
+.pa-media-title{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin-bottom:10px;font-size:13px;font-weight:900;color:var(--txt);
+}
+.pa-media-title span{font-size:11.5px;font-weight:700;color:var(--txt-soft)}
 .pa-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .pa-card{
   display:flex;flex-direction:column;overflow:hidden;
@@ -94,7 +115,7 @@
 .pa-tag{padding:6px 10px;border-radius:999px;border:1px solid var(--stroke);background:var(--card);font-size:12px;font-weight:700}
 .pa-empty{display:none;padding:34px 0;text-align:center;color:var(--txt-soft)}
 @media(max-width:1120px){.pa-shell{grid-template-columns:1fr}.pa-side{display:grid;grid-template-columns:1fr 1fr}}
-@media(max-width:760px){.pa-grid{grid-template-columns:1fr}.pa-hero{align-items:flex-start}.pa-stats{width:100%;margin-left:0;justify-content:flex-start}.pa-side{display:flex}}
+@media(max-width:760px){.pa-grid{grid-template-columns:1fr}.pa-hero{align-items:flex-start}.pa-stats{width:100%;margin-left:0;justify-content:flex-start}.pa-side{display:flex}.pa-study-head{flex-direction:column}.pa-study-counts{justify-content:flex-start}}
 </style>
 @endpush
 
@@ -104,8 +125,10 @@ $nombrePaciente = $paciente?->nombre_completo ?? 'Paciente';
 $iniciales = collect(explode(' ', $nombrePaciente))->filter()->take(2)->map(fn($p)=>mb_strtoupper(mb_substr($p,0,1)))->implode('') ?: 'PX';
 $totalFotos = $imagenes->count();
 $totalVideos = $videos->count();
-$totalEstudios = $imagenes->pluck('estudio_id')->merge($videos->pluck('estudio_id'))->filter()->unique()->count();
-$ultimoArchivo = $imagenes->first() ?? $videos->first();
+$archivos = $archivos ?? $imagenes->merge($videos)->sortByDesc('capturado_en')->values();
+$archivosPorEstudio = $archivosPorEstudio ?? collect();
+$totalEstudios = $archivosPorEstudio->count();
+$ultimoArchivo = $archivos->first();
 $ultimaFecha = format_user_date($ultimoArchivo?->capturado_en) ?: '—';
 @endphp
 
@@ -139,57 +162,101 @@ $ultimaFecha = format_user_date($ultimoArchivo?->capturado_en) ?: '—';
 
     <section class="pa-section">
       <div class="pa-section-head">
-        <h2 class="pa-section-title">Videos</h2>
-        <span class="pa-section-count">{{ count($videos) }} archivos</span>
+        <h2 class="pa-section-title">Archivos por estudio</h2>
+        <span class="pa-section-count">{{ $archivos->count() }} archivos</span>
       </div>
-      <div class="pa-grid">
-        @forelse($videos as $v)
-          <article class="pa-card" data-kind="video" data-title="{{ strtolower($v->nombre_original ?? 'video') }}">
-            <div class="pa-thumb">
-              <video src="{{ media_url($v->path) }}" preload="metadata" muted style="width:100%;height:100%;object-fit:cover"></video>
-              <span class="pa-badge video">VIDEO</span>
-              <div class="pa-play"><span><svg width="17" height="17" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg></span></div>
-            </div>
-            <div class="pa-body">
-              <div class="pa-name">{{ $v->nombre_original ?? 'Video del estudio' }}</div>
-              <div class="pa-meta">Estudio {{ $v->estudio?->folio }}<br>{{ format_user_date($v->capturado_en) }}</div>
-              <div class="pa-actions">
-                <a class="pa-btn primary" href="{{ route('galeria.video', ['id' => $v->id, 'paciente' => $id]) }}">Ver</a>
-                <a class="pa-btn" href="{{ route('galeria.video.editar', ['id' => $v->id, 'paciente' => $id]) }}">Editar</a>
-              </div>
-            </div>
-          </article>
-        @empty
-          <p style="color:var(--txt-soft);font-size:13px">No hay videos para este paciente.</p>
-        @endforelse
-      </div>
-    </section>
 
-    <section class="pa-section">
-      <div class="pa-section-head">
-        <h2 class="pa-section-title">Imágenes</h2>
-        <span class="pa-section-count" id="paImagesCount">{{ count($imagenes) }} archivos</span>
-      </div>
-      <div class="pa-grid" id="paImagesGrid">
-        @forelse($imagenes as $img)
-          <article class="pa-card" data-kind="imagen" data-title="{{ strtolower($img->titulo ?? '') }}">
-            <div class="pa-thumb">
-              <img src="{{ media_url($img->path) }}" alt="{{ $img->nombre_original ?? 'Captura' }}">
-              <span class="pa-badge image">IMG</span>
-              <span class="pa-duration">{{ format_user_time($img->capturado_en) }}</span>
+      @forelse($archivosPorEstudio as $grupo)
+        @php
+          $estudio = $grupo['estudio'];
+          $videosEstudio = $grupo['videos'];
+          $imagenesEstudio = $grupo['imagenes'];
+          $studyTitle = $estudio?->folio ? 'Estudio '.$estudio->folio : 'Estudio sin folio';
+          $studyMeta = collect([
+              $estudio?->tipo ?: 'Procedimiento no especificado',
+              format_user_date($estudio?->fecha) ?: 'Sin fecha',
+              $estudio?->medico ? 'Medico: '.$estudio->medico : null,
+          ])->filter()->implode(' / ');
+        @endphp
+
+        <article class="pa-study" data-study-group>
+          <div class="pa-study-head">
+            <div>
+              <div class="pa-study-title">{{ $studyTitle }}</div>
+              <div class="pa-study-meta">{{ $studyMeta }}</div>
             </div>
-            <div class="pa-body">
-              <div class="pa-name">{{ $img->nombre_original ?? 'Captura' }}</div>
-              <div class="pa-meta">Captura del estudio {{ $img->estudio?->folio }}<br>{{ format_user_date($img->capturado_en) }}</div>
-              <div class="pa-actions">
-                <a class="pa-btn primary" href="{{ route('galeria.imagen', ['id' => $img->id, 'paciente' => $id]) }}">Ver imagen</a>
+            <div class="pa-study-counts">
+              <span class="pa-study-pill">{{ $videosEstudio->count() }} videos</span>
+              <span class="pa-study-pill">{{ $imagenesEstudio->count() }} imagenes</span>
+            </div>
+          </div>
+
+          <div class="pa-study-body">
+            @if($videosEstudio->isNotEmpty())
+              <div>
+                <div class="pa-media-title">
+                  Videos
+                  <span>{{ $videosEstudio->count() }} archivos</span>
+                </div>
+                <div class="pa-grid">
+                  @foreach($videosEstudio as $v)
+                    @php
+                      $videoSearch = mb_strtolower(trim(($v->nombre_original ?? 'video').' '.$studyTitle.' '.($estudio?->tipo ?? '')));
+                    @endphp
+                    <article class="pa-card" data-kind="video" data-title="{{ $videoSearch }}">
+                      <div class="pa-thumb">
+                        <video src="{{ media_url($v->path) }}" preload="metadata" muted style="width:100%;height:100%;object-fit:cover"></video>
+                        <span class="pa-badge video">VIDEO</span>
+                        <div class="pa-play"><span><svg width="17" height="17" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg></span></div>
+                      </div>
+                      <div class="pa-body">
+                        <div class="pa-name">{{ $v->nombre_original ?? 'Video del estudio' }}</div>
+                        <div class="pa-meta">Estudio {{ $v->estudio?->folio ?? 'sin folio' }}<br>{{ format_user_date($v->capturado_en) }}</div>
+                        <div class="pa-actions">
+                          <a class="pa-btn primary" href="{{ route('galeria.video', ['id' => $v->id, 'paciente' => $id]) }}">Ver</a>
+                          <a class="pa-btn" href="{{ route('galeria.video.editar', ['id' => $v->id, 'paciente' => $id]) }}">Editar</a>
+                        </div>
+                      </div>
+                    </article>
+                  @endforeach
+                </div>
               </div>
-            </div>
-          </article>
-        @empty
-          <p style="color:var(--txt-soft);font-size:13px">No hay imágenes capturadas para este paciente.</p>
-        @endforelse
-      </div>
+            @endif
+
+            @if($imagenesEstudio->isNotEmpty())
+              <div>
+                <div class="pa-media-title">
+                  Imagenes
+                  <span>{{ $imagenesEstudio->count() }} archivos</span>
+                </div>
+                <div class="pa-grid">
+                  @foreach($imagenesEstudio as $img)
+                    @php
+                      $imageSearch = mb_strtolower(trim(($img->titulo ?? $img->nombre_original ?? 'imagen').' '.$studyTitle.' '.($estudio?->tipo ?? '')));
+                    @endphp
+                    <article class="pa-card" data-kind="imagen" data-title="{{ $imageSearch }}">
+                      <div class="pa-thumb">
+                        <img src="{{ media_url($img->path) }}" alt="{{ $img->nombre_original ?? 'Captura' }}">
+                        <span class="pa-badge image">IMG</span>
+                        <span class="pa-duration">{{ format_user_time($img->capturado_en) }}</span>
+                      </div>
+                      <div class="pa-body">
+                        <div class="pa-name">{{ $img->nombre_original ?? 'Captura' }}</div>
+                        <div class="pa-meta">Captura del estudio {{ $img->estudio?->folio ?? 'sin folio' }}<br>{{ format_user_date($img->capturado_en) }}</div>
+                        <div class="pa-actions">
+                          <a class="pa-btn primary" href="{{ route('galeria.imagen', ['id' => $img->id, 'paciente' => $id]) }}">Ver imagen</a>
+                        </div>
+                      </div>
+                    </article>
+                  @endforeach
+                </div>
+              </div>
+            @endif
+          </div>
+        </article>
+      @empty
+        <p style="color:var(--txt-soft);font-size:13px">No hay archivos para este paciente.</p>
+      @endforelse
     </section>
   </div>
 </div>
@@ -200,6 +267,7 @@ $ultimaFecha = format_user_date($ultimoArchivo?->capturado_en) ?: '—';
 (function(){
   const search = document.getElementById('paSearch');
   const cards = [...document.querySelectorAll('.pa-card')];
+  const groups = [...document.querySelectorAll('[data-study-group]')];
   const empty = document.getElementById('paEmpty');
 
   function apply(){
@@ -209,6 +277,10 @@ $ultimaFecha = format_user_date($ultimoArchivo?->capturado_en) ?: '—';
       const ok = !q || card.dataset.title.includes(q) || card.dataset.kind.includes(q);
       card.style.display = ok ? '' : 'none';
       if(ok) shown++;
+    });
+    groups.forEach(group => {
+      const hasVisibleCard = [...group.querySelectorAll('.pa-card')].some(card => card.style.display !== 'none');
+      group.style.display = hasVisibleCard ? '' : 'none';
     });
     empty.style.display = shown ? 'none' : 'block';
   }

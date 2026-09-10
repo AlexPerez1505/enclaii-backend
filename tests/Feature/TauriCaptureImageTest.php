@@ -7,7 +7,6 @@ use App\Models\Estudio;
 use App\Models\Paciente;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -73,7 +72,9 @@ class TauriCaptureImageTest extends TestCase
 
         $this->post('/api/tauri/images', [
             'session_id' => $sessionId,
-            'image' => UploadedFile::fake()->image('captura.jpg', 640, 480),
+            'filename' => 'captura.jpg',
+            'mime_type' => 'image/jpeg',
+            'data_base64' => 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
         ])
             ->assertOk()
             ->assertJsonPath('data.estudio_id', $estudioActual->id);

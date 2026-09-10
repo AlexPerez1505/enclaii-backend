@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\CitaEstadoChanged;
 use App\Models\AiAttachment;
 use App\Models\AiConversation;
 use App\Models\Cita;
 use App\Models\Paciente;
+use App\Services\MediaPathService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -307,13 +309,10 @@ class AiAssistantController extends Controller
     private function storeAttachments(Request $request, int $messageId): array
     {
         $saved = [];
+        $mediaPaths = app(MediaPathService::class);
 
         foreach ($request->file('attachments', []) as $file) {
-            $path = media_store($file, 'clinicas/'.$request->user()->clinica_id.'/ai_uploads/'.now()->format('Y/m'));
-            $path = $file->store(
-                'clinicas/'.$request->user()->clinica_id.'/ai_uploads/'.now()->format('Y/m'),
-                'public',
-            );
+            $path = media_store($file, $mediaPaths->userAiUploads($request->user()));
 
             $attachment = AiAttachment::create([
                 'ai_message_id' => $messageId,
@@ -470,7 +469,7 @@ class AiAssistantController extends Controller
 
                 $result = match ($name) {
                     'crear_paciente' => $this->crearPaciente($args, $request),
-                    'crear_cita' => $this->crearCita($args),
+                    'crear_cita' => $this->crearCita($args, $request),
                     default => ['ok' => false, 'error' => 'Función desconocida'],
                 };
 
@@ -528,12 +527,12 @@ class AiAssistantController extends Controller
     /* ============================================================
      |  Función: crear cita real
      |============================================================ */
-    private function crearCita(array $args): array
+    private function crearCita(array $args, Request $request): array
     {
         $validator = validator($args, [
             'paciente_nombre' => 'required|string|max:255',
             'procedimiento' => 'required|string|max:255',
-            'fecha' => 'required|date',
+            'fecha' => 'required|date|after_or_equal:today',
             'hora' => 'required|string|max:20',
             'sala' => 'nullable|string|max:100',
             'notas' => 'nullable|string|max:1000',
@@ -563,6 +562,8 @@ class AiAssistantController extends Controller
         }
 
         $cita = Cita::create($datos);
+
+        broadcast(new CitaEstadoChanged($cita->fresh(), '', $cita->estado, 'nueva'));
 
         return [
             'ok' => true,
@@ -620,12 +621,18 @@ class AiAssistantController extends Controller
 
     private function systemPrompt(): array
     {
+        $hoy = now()->locale('es')->isoFormat('dddd D [de] MMMM [de] YYYY');
+        $fechaIso = now()->format('Y-m-d');
+
         return [
             'role' => 'system',
             'content' =>
                 "Eres el asistente de ENCLAII, plataforma médica de endoscopía. ".
                 "Ayudas con agenda, pacientes, reportes, capturas de pantalla y dudas del sistema. ".
                 "Responde siempre en español de México, breve y claro.\n\n".
+
+                "FECHA Y HORA ACTUAL DEL SISTEMA: hoy es {$hoy} ({$fechaIso}).\n".
+                "Cuando el usuario mencione una fecha sin año (ej. \"4 de agosto\"), usa el año actual o el próximo si esa fecha ya pasó este año. NUNCA uses un año anterior al actual ni inventes años pasados.\n\n".
 
                 "Si el usuario adjunta una captura del sistema, analiza visualmente la pantalla y explica:\n".
                 "1. **Qué pantalla es o qué módulo parece ser**.\n".

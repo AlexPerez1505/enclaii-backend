@@ -14,6 +14,9 @@ use App\Http\Controllers\CustomerSuccess\RolesController;
 use App\Http\Controllers\CustomerSuccess\TicketController as CsTicketController;
 use App\Http\Controllers\CustomerSuccessController;
 use App\Http\Controllers\DesktopAppDownloadController;
+use App\Http\Controllers\GalleryImageEmailController;
+use App\Http\Controllers\GalleryVideoFileController;
+use App\Http\Controllers\GalleryVideoEmailController;
 use App\Http\Controllers\IaReporteController;
 use App\Http\Controllers\LaunchPromoRegistrationController;
 use App\Http\Controllers\NotificationController;
@@ -28,15 +31,18 @@ use App\Http\Controllers\SignatureController;
 use App\Http\Controllers\SoporteChatController;
 use App\Http\Controllers\SoporteController;
 use App\Http\Controllers\StorageServeController;
+use App\Http\Controllers\StudyShareEmailController;
 use App\Http\Controllers\StripeController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\UserSessionController;
 use App\Http\Controllers\WhatsAppController;
+use App\Models\Estudio;
 use App\Models\Paciente;
 use App\Models\Reporte;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TwoFactorController;
 
 Route::get('/storage/{path}', [StorageServeController::class, 'show'])
     ->where('path', '.*')
@@ -101,8 +107,17 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
 
     // Ruta de configuracion: si no tiene plan, muestra vista plan-only
     Route::get('/configuracion', function () {
+        $pendingPromoCode = \App\Models\LaunchPromoCode::query()
+            ->where('reserved_by', auth()->id())
+            ->where('status', \App\Models\LaunchPromoCode::STATUS_RESERVED)
+            ->whereNotNull('stripe_promotion_code_id')
+            ->latest()
+            ->first();
+
         if (!auth()->user()->subscribed()) {
-            return view('configuracion.plan-only');
+            return view('configuracion.plan-only', [
+                'pendingPromoCode' => $pendingPromoCode,
+            ]);
         }
 
         $userAgent = request()->userAgent() ?? '';
@@ -146,11 +161,50 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
                 ->latest()
                 ->paginate(8, ['*'], 'activity_page')
                 ->withQueryString(),
-            'connectedSessions' => request()->user()
-                ->connectedSessions()
-                ->where('last_activity', '>=', now()->subMinutes(config('session.lifetime'))->timestamp)
-                ->orderByDesc('last_activity')
-                ->get(),
+            'connectedSessions' => (function () {
+                $currentSessionId = request()->session()->getId();
+                $inactivityTimeout = (int) (request()->user()->resolvedSettings()['session_timeout'] ?? 0);
+                $inactivityTimeout = $inactivityTimeout > 0 ? $inactivityTimeout : (int) config('session.lifetime');
+
+                $webSessions = request()->user()
+                    ->connectedSessions()
+                    ->where('last_activity', '>=', now()->subMinutes($inactivityTimeout)->timestamp)
+                    ->orderByDesc('last_activity')
+                    ->get()
+                    ->map(function ($session) use ($currentSessionId) {
+                        return [
+                            'id' => $session->id,
+                            'type' => 'web',
+                            'device_label' => $session->deviceLabel(),
+                            'meta' => $session->ip_address ?? 'IP no disponible',
+                            'location' => $session->locationLabel(),
+                            'last_activity' => $session->lastActivityAt(),
+                            'is_current' => hash_equals($currentSessionId, (string) $session->id),
+                            'close_url' => route('configuracion.sessions.destroy', $session->id),
+                        ];
+                    });
+
+                $desktopTokens = request()->user()->tokens()
+                    ->where('name', 'tauri-app')
+                    ->orderByDesc('last_used_at')
+                    ->get()
+                    ->map(function ($token) {
+                        return [
+                            'id' => $token->id,
+                            'type' => 'desktop',
+                            'device_label' => 'Aplicación de escritorio',
+                            'meta' => 'Token: tauri-app',
+                            'location' => 'Dispositivo vinculado',
+                            'last_activity' => $token->last_used_at ?? $token->created_at,
+                            'is_current' => false,
+                            'close_url' => route('configuracion.devices.destroy', $token->id),
+                        ];
+                    });
+
+                return $webSessions->concat($desktopTokens)
+                    ->sortByDesc(fn ($row) => optional($row['last_activity'])->timestamp ?? 0)
+                    ->values();
+            })(),
             'currentSessionId' => request()->session()->getId(),
             'procedimientos' => \App\Models\Procedimiento::orderBy('nombre')->get(),
             'anestesiologos' => \App\Models\Anestesiologo::query()
@@ -170,11 +224,25 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
 
     // Ruta dedicada para seleccionar plan (sin sidebar ni header)
     Route::get('/seleccionar-plan', function () {
-        return view('configuracion.plan-only');
+        $pendingPromoCode = \App\Models\LaunchPromoCode::query()
+            ->where('reserved_by', auth()->id())
+            ->where('status', \App\Models\LaunchPromoCode::STATUS_RESERVED)
+            ->whereNotNull('stripe_promotion_code_id')
+            ->latest()
+            ->first();
+
+        return view('configuracion.plan-only', [
+            'pendingPromoCode' => $pendingPromoCode,
+        ]);
     })->name('plan.only');
 
     Route::get('/descargas/enclaii-desktop/windows', DesktopAppDownloadController::class)
+        ->defaults('platform', 'windows')
         ->name('desktop-app.download');
+
+    Route::get('/descargas/enclaii-desktop/mac', DesktopAppDownloadController::class)
+        ->defaults('platform', 'mac')
+        ->name('desktop-app.download.mac');
 
     Route::patch('/configuracion/general', [SettingsController::class, 'update'])
         ->name('configuracion.general.update');
@@ -218,6 +286,14 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
         ->middleware('critical.password:security_settings')
         ->name('configuracion.security-settings.update');
 
+    // ===== Autenticación de Dos Factores (2FA Email) =====
+    Route::post('/configuracion/seguridad/2fa/enviar', [TwoFactorController::class, 'enable'])
+        ->name('configuracion.2fa.send');
+    Route::post('/configuracion/seguridad/2fa/confirmar', [TwoFactorController::class, 'confirm'])
+        ->name('configuracion.2fa.confirm');
+    Route::delete('/configuracion/seguridad/2fa', [TwoFactorController::class, 'disable'])
+        ->name('configuracion.2fa.disable');
+
     Route::middleware('clinic.owner')->group(function () {
         Route::post('/configuracion/clinica/invitaciones', [ClinicaMemberController::class, 'storeInvitation'])
             ->name('configuracion.clinic-invitations.store');
@@ -231,6 +307,8 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
         ->name('configuracion.sessions.destroy-others');
     Route::delete('/configuracion/seguridad/sesiones/{session}', [UserSessionController::class, 'destroy'])
         ->name('configuracion.sessions.destroy');
+    Route::delete('/configuracion/seguridad/dispositivos/{token}', [UserSessionController::class, 'destroyDevice'])
+        ->name('configuracion.devices.destroy');
 
     // ===== Stripe (pagos y suscripciones) =====
     Route::post('/stripe/checkout', [StripeController::class, 'checkout'])
@@ -239,6 +317,8 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
         ->name('stripe.checkout.embedded');
     Route::post('/stripe/subscribe', [StripeController::class, 'createSubscriptionElement'])
         ->name('stripe.subscribe');
+    Route::post('/stripe/promo-subscribe', [StripeController::class, 'promoSubscribe'])
+        ->name('stripe.promo.subscribe');
     Route::post('/stripe/change-plan', [StripeController::class, 'changePlan'])
         ->name('stripe.change.plan');
     Route::post('/stripe/member-addon/checkout', [StripeController::class, 'memberAddonCheckout'])
@@ -266,8 +346,14 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
     Route::delete('/notifications', [NotificationController::class, 'destroy'])->name('notifications.destroy');
 
     Route::post('/logout', [EndoCareAuthController::class, 'logout'])->name('logout');
+    
 
 });
+
+// ===== 2FA challenge (sin auth) =====
+Route::get('/dos-pasos', [TwoFactorController::class, 'challenge'])->name('2fa.challenge');
+Route::post('/dos-pasos', [TwoFactorController::class, 'verifyChallenge'])->name('2fa.verify');
+Route::post('/dos-pasos/reenviar', [TwoFactorController::class, 'resend'])->name('2fa.resend');
 
 Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->group(function () {
 
@@ -405,6 +491,7 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
             'evidencias' => $evidencias,
             'datos' => $datos,
             'estudiosLista' => $estudiosLista,
+            'userSettings' => request()->user()->resolvedSettings(),
         ]);
     })->name('ia-reportes.generar');
 
@@ -537,6 +624,9 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
     Route::post('/ia-reportes/guardar', [IaReporteController::class, 'guardar'])
         ->name('ia-reportes.guardar');
 
+    Route::get('/ia-reportes/{reporte}/pdf', [IaReporteController::class, 'descargarPdf'])
+        ->name('ia-reportes.pdf');
+
     Route::get('/ia-reportes/hallazgos-lista', [IaReporteController::class, 'listarHallazgos'])
         ->name('ia-reportes.hallazgos-lista');
 
@@ -636,14 +726,30 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
     Route::post('/mensajes/whatsapp/enviar', [WhatsAppController::class, 'send'])
         ->middleware('throttle:30,1')
         ->name('mensajes.whatsapp.send');
+    Route::post('/mensajes/correo/enviar-video', [WhatsAppController::class, 'sendVideoEmail'])
+        ->middleware('throttle:12,1')
+        ->name('mensajes.correo.video.send');
 
     Route::get('/nuevo-estudio', function (\Illuminate\Http\Request $request) {
         /* Limpiar sesión de estudio al volver al dashboard */
         session()->forget(['estudio_activo_id', 'ultimo_estudio_completado_id']);
 
-        $paciente = $request->filled('paciente')
-            ? Paciente::find($request->query('paciente'))
-            : null;
+        $estudio = null;
+        $paciente = null;
+
+        if ($request->filled('estudio_id')) {
+            $estudio = Estudio::with(['paciente', 'archivos', 'reportes.usuario'])
+                ->findOrFail($request->integer('estudio_id'));
+            $paciente = $estudio->paciente;
+
+            abort_unless($paciente, 404);
+            abort_if(
+                $request->filled('paciente') && (int) $request->query('paciente') !== (int) $paciente->id,
+                404
+            );
+        } elseif ($request->filled('paciente')) {
+            $paciente = Paciente::findOrFail($request->query('paciente'));
+        }
 
         $pacientes = Paciente::select('id', 'nombre_completo', 'folio', 'edad', 'sexo', 'telefono', 'email', 'foto')
             ->orderBy('nombre_completo')
@@ -656,6 +762,7 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
         if ($paciente) {
             $archivos = \App\Models\EstudioArchivo::with('estudio')
                 ->where('paciente_id', $paciente->id)
+                ->when($estudio, fn ($q) => $q->where('estudio_id', $estudio->id))
                 ->orderByDesc('capturado_en')
                 ->orderByDesc('id')
                 ->get();
@@ -665,6 +772,7 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
 
             $reportes = Reporte::with(['estudio', 'usuario'])
                 ->whereHas('estudio', fn ($q) => $q->where('paciente_id', $paciente->id))
+                ->when($estudio, fn ($q) => $q->where('estudio_id', $estudio->id))
                 ->latest()
                 ->get();
         }
@@ -675,6 +783,7 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
             'galImagenes' => $galImagenes,
             'galVideos' => $galVideos,
             'reportes' => $reportes,
+            'estudio' => $estudio,
         ]);
     })->name('nuevo-estudio');
 
@@ -693,6 +802,10 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
 
     Route::post('/nuevo-estudio', [NuevoEstudioController::class, 'store'])
         ->name('nuevo-estudio.store');
+
+    Route::post('/nuevo-estudio/{estudio}/correo', [StudyShareEmailController::class, 'store'])
+        ->middleware('throttle:12,1')
+        ->name('nuevo-estudio.correo.send');
 
     Route::get('/nuevo-estudio/capturas', [NuevoEstudioController::class, 'capturas'])
         ->name('nuevo-estudio.capturas');
@@ -739,14 +852,37 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
 
         $imagenes = $archivos->where('tipo', 'imagen')->values();
         $videos = $archivos->where('tipo', 'video')->values();
+        $archivosPorEstudio = $archivos
+            ->groupBy(fn ($archivo) => $archivo->estudio_id ?: 'sin-estudio')
+            ->map(function ($archivosEstudio) {
+                return [
+                    'estudio' => $archivosEstudio->first()?->estudio,
+                    'imagenes' => $archivosEstudio->where('tipo', 'imagen')->values(),
+                    'videos' => $archivosEstudio->where('tipo', 'video')->values(),
+                    'total' => $archivosEstudio->count(),
+                ];
+            })
+            ->values();
 
         return view('galeria.paciente', [
             'id' => $id,
             'paciente' => $paciente,
             'imagenes' => $imagenes,
             'videos' => $videos,
+            'archivos' => $archivos,
+            'archivosPorEstudio' => $archivosPorEstudio,
         ]);
     })->name('galeria.paciente');
+
+    Route::get('/galeria/video/{id}/archivo', [GalleryVideoFileController::class, 'download'])
+        ->name('galeria.video.archivo');
+
+    Route::get('/galeria/video/{id}/stream', [GalleryVideoFileController::class, 'stream'])
+        ->name('galeria.video.stream');
+
+    Route::post('/galeria/video/{archivo}/correo', [GalleryVideoEmailController::class, 'store'])
+        ->middleware('throttle:12,1')
+        ->name('galeria.video.correo.send');
 
     Route::get('/galeria/video/{id}', function ($id) {
         $archivo = \App\Models\EstudioArchivo::with(['estudio.paciente', 'estudio.hallazgos'])
@@ -937,6 +1073,10 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
         ]);
     })->name('galeria.imagen.archivo');
 
+    Route::post('/galeria/imagen/{archivo}/correo', [GalleryImageEmailController::class, 'store'])
+        ->middleware('throttle:12,1')
+        ->name('galeria.imagen.correo.send');
+
     Route::get('/galeria/imagen/{id}', function ($id) {
         $archivo = \App\Models\EstudioArchivo::with('estudio')->find($id);
         $paciente = $archivo ? Paciente::find($archivo->paciente_id) : null;
@@ -1033,7 +1173,11 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
         $oldPath = $archivo->path;
         $path = media_store(
             $file,
-            app(\App\Services\MediaPathService::class)->studyImages($archivo->estudio ?? $archivo->estudio_id, $archivo->paciente_id)
+            app(\App\Services\MediaPathService::class)->studyImages(
+                $archivo->estudio ?? $archivo->estudio_id,
+                $archivo->paciente_id,
+                $archivo->clinica_id
+            )
         );
 
         $archivo->update([
@@ -1069,7 +1213,11 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
         $file = $request->file('image');
         $path = media_store(
             $file,
-            app(\App\Services\MediaPathService::class)->studyImages($archivo->estudio ?? $archivo->estudio_id, $archivo->paciente_id)
+            app(\App\Services\MediaPathService::class)->studyImages(
+                $archivo->estudio ?? $archivo->estudio_id,
+                $archivo->paciente_id,
+                $archivo->clinica_id
+            )
         );
         $copy = \App\Models\EstudioArchivo::create([
             'estudio_id' => $archivo->estudio_id,
@@ -1104,6 +1252,8 @@ Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->grou
 
 
 Route::middleware(['auth', 'auth.session', 'session.limit', 'subscribed'])->group(function () {
+    Route::get('/pacientes/{paciente}/expediente-pdf', [PacienteController::class, 'expedientePdf'])
+        ->name('pacientes.expediente.pdf');
     Route::resource('pacientes', PacienteController::class)
         ->middlewareFor(['update', 'destroy'], 'critical.password:patients');
     Route::post('/pacientes/{paciente}/add-medico', [PacienteController::class, 'addMedico'])

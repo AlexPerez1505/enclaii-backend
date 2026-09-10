@@ -341,7 +341,7 @@ class AgendaController extends Controller
             'paciente_nombre' => $cita->paciente?->nombre_completo ?? $cita->paciente_nombre,
             'procedimiento' => $cita->procedimiento ?? '',
             'fecha' => optional($cita->fecha)->format('Y-m-d'),
-            'fecha_formato' => optional($cita->fecha)->format('d/m/Y'),
+            'fecha_formato' => format_user_date($cita->fecha),
             'hora' => $hora,
             'hora_formato' => Carbon::createFromFormat('H:i', $hora)->format('g:i A'),
             'duracion_minutos' => $cita->duracion_minutos ?? 60,

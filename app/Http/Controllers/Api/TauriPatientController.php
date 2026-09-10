@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Paciente;
 use App\Models\PacienteDocumento;
 use App\Services\ActivityLogger;
+use App\Services\MediaPathService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ class TauriPatientController extends Controller
 {
     public function __construct(
         private readonly ActivityLogger $activity,
+        private readonly MediaPathService $mediaPaths,
     ) {
     }
 
@@ -58,6 +60,12 @@ class TauriPatientController extends Controller
         return response()->json([
             'ok' => true,
             'success' => true,
+
+            // Hora del servidor en el momento de la respuesta. El cliente
+            // debe guardar este valor (no su propio reloj) para usarlo como
+            // 'updated_since' en el siguiente sync incremental, evitando
+            // huecos o duplicados por diferencias de reloj/zona horaria.
+            'server_time' => now()->toIso8601String(),
 
             'pacientes' => collect($pacientes->items())
                 ->map(
@@ -187,18 +195,18 @@ class TauriPatientController extends Controller
                     $data['clinica_id'] =
                         $user->clinica_id;
 
-                    if ($request->hasFile('foto')) {
-                        $data['foto'] = media_store(
-                            $request->file('foto'),
-                            'clinicas/' .
-                                $user->clinica_id .
-                                '/pacientes'
-                        );
-                    }
-
                     $paciente = Paciente::create(
                         $data
                     );
+
+                    if ($request->hasFile('foto')) {
+                        $paciente->update([
+                            'foto' => media_store(
+                                $request->file('foto'),
+                                $this->mediaPaths->patientProfile($paciente)
+                            ),
+                        ]);
+                    }
 
                     $this->storeDocuments(
                         $request,
@@ -450,9 +458,7 @@ class TauriPatientController extends Controller
 
                         $data['foto'] = media_store(
                             $request->file('foto'),
-                            'clinicas/' .
-                                $user->clinica_id .
-                                '/pacientes'
+                            $this->mediaPaths->patientProfile($paciente)
                         );
                     }
 
@@ -1129,8 +1135,7 @@ class TauriPatientController extends Controller
 
             $path = media_store(
                 $file,
-                'paciente_docs/' .
-                    $paciente->id
+                $this->mediaPaths->patientDocuments($paciente)
             );
 
             PacienteDocumento::create([
@@ -1474,6 +1479,32 @@ class TauriPatientController extends Controller
                     'fecha_nacimiento'
                 )
             );
+        }
+
+        // Sync incremental: el cliente manda el 'server_time' que recibió
+        // en su ultima respuesta y aqui solo se devuelven los pacientes
+        // creados o modificados despues de ese momento. Evita que el
+        // polling periodico tenga que descargar el listado completo cada
+        // vez si nada cambio.
+        if (
+            $request->filled(
+                'updated_since'
+            )
+        ) {
+            try {
+                $updatedSince = \Illuminate\Support\Carbon::parse(
+                    $request->input('updated_since')
+                );
+
+                $query->where(
+                    'updated_at',
+                    '>',
+                    $updatedSince
+                );
+            } catch (\Throwable $exception) {
+                // Timestamp invalido: se ignora el filtro
+                // en vez de romper la peticion.
+            }
         }
 
         $sort = $request

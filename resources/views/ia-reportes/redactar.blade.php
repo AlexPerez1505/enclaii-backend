@@ -1301,9 +1301,15 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     const tpl = TEMPLATES[currentKey];
     if (!tpl || tpl.imgOnly) return;
 
-    if (!tpl.cfg.secciones_borradas) tpl.cfg.secciones_borradas = [];
-    if (!tpl.cfg.secciones_borradas.includes(sectionName)) {
-      tpl.cfg.secciones_borradas.push(sectionName);
+    if (tpl.cfg.secciones_nuevas && tpl.cfg.secciones_nuevas.some(s => s.h === sectionName)) {
+      // Es una sección personalizada: se elimina por completo del array
+      tpl.cfg.secciones_nuevas = tpl.cfg.secciones_nuevas.filter(s => s.h !== sectionName);
+    } else {
+      // Es una sección original de la plantilla: se marca como borrada
+      if (!tpl.cfg.secciones_borradas) tpl.cfg.secciones_borradas = [];
+      if (!tpl.cfg.secciones_borradas.includes(sectionName)) {
+        tpl.cfg.secciones_borradas.push(sectionName);
+      }
     }
 
     // Guardar la configuración en la BD
@@ -1334,11 +1340,15 @@ select.ed-ctrl{appearance:none;-webkit-appearance:none;background-image:url("dat
     const sectionName = prompt('Nombre de la nueva sección:');
     if (!sectionName || !sectionName.trim()) return;
 
+    const nombreNormalizado = sectionName.trim().toUpperCase()
+      .replace(/Á/g,'A').replace(/É/g,'E').replace(/Í/g,'I').replace(/Ó/g,'O').replace(/Ú/g,'U');
+    const esLista = /HALLAZGO|PLAN|RECOMENDACION/.test(nombreNormalizado);
+
     if (!tpl.cfg.secciones_nuevas) tpl.cfg.secciones_nuevas = [];
     tpl.cfg.secciones_nuevas.push({
       h: sectionName.trim(),
-      ph: 'Escribe aquí...',
-      tipo: 'p'
+      ph: esLista ? 'Elemento…' : 'Escribe aquí...',
+      tipo: esLista ? 'ul' : 'p'
     });
 
     // Guardar la configuración en la BD

@@ -9,6 +9,7 @@ use App\Models\Plantilla;
 use App\Models\Reporte;
 use App\Services\MediaPathService;
 use App\Services\OpenAiReportService;
+use App\Services\ReportPdfGenerator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -73,7 +74,29 @@ class IaReporteController extends Controller
 
         $hallazgos = $this->hallazgosData()['hallazgos'];
 
-        return view('ia-reportes.index', compact('kpis', 'reportes', 'hallazgos'));
+        $estudiosSinReporte = \App\Models\Estudio::with('paciente')
+            ->whereDoesntHave('reportes')
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function ($e) {
+                $nombre = $e->paciente?->nombre_completo ?? $e->paciente_nombre ?? 'Sin paciente';
+                $ini = collect(explode(' ', $nombre))->filter()->take(2)->map(fn ($x) => mb_strtoupper(mb_substr($x, 0, 1)))->implode('') ?: 'NA';
+                $fechaBase = $e->fecha ?? $e->created_at;
+                $diasPendiente = max(0, $fechaBase->diffInDays(now()));
+
+                return [
+                    'id' => $e->id,
+                    'ini' => $ini,
+                    'paciente' => $nombre,
+                    'tipo' => $e->tipo ?? 'Estudio',
+                    'fecha' => optional($e->fecha)->format('d/m/Y') ?? format_user_date($e->created_at),
+                    'pct' => min(100, max(15, $diasPendiente * 20)),
+                ];
+            })
+            ->values();
+
+        return view('ia-reportes.index', compact('kpis', 'reportes', 'hallazgos', 'estudiosSinReporte'));
     }
 
     public function generar(Request $request, OpenAiReportService $service): JsonResponse
@@ -425,6 +448,17 @@ class IaReporteController extends Controller
                 'plantilla_id' => $r->plantilla_id,
                 'plantilla_clave' => $r->plantilla?->clave,
             ],
+        ]);
+    }
+
+    public function descargarPdf(Reporte $reporte, ReportPdfGenerator $pdfGenerator)
+    {
+        $pdf = $pdfGenerator->make($reporte);
+
+        return response($pdf['data'], 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$pdf['name'].'"',
+            'Cache-Control' => 'private, no-store',
         ]);
     }
 

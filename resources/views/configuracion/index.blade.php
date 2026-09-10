@@ -147,10 +147,11 @@
 .pl-detail .d{font-size:11.5px;color:var(--txt-soft);margin:3px 0 11px}
 
 /* planes disponibles */
-.pl-plans{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:14px}
-@media (max-width:1100px){.pl-plans{grid-template-columns:repeat(2,1fr)}}
+.pl-plans{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px;max-width:100%}
+@media (min-width:1500px){.pl-plans{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:1100px){.pl-plans{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:560px){.pl-plans{grid-template-columns:1fr}}
-.pl-card{padding:16px;border-radius:var(--r-md);border:1px solid var(--stroke);background:var(--panel-2);display:flex;flex-direction:column}
+.pl-card{min-width:0;padding:16px;border-radius:var(--r-md);border:1px solid var(--stroke);background:var(--panel-2);display:flex;flex-direction:column}
 .pl-card.current{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan) inset}
 .pl-card .pc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
 .pl-card .pc-ico svg{width:22px;height:22px}
@@ -160,6 +161,8 @@
 .pl-card .pc-feat{list-style:none;margin:12px 0;padding:0;display:flex;flex-direction:column;gap:8px;flex:1}
 .pl-card .pc-feat li{display:flex;align-items:flex-start;gap:7px;font-size:11.5px;color:var(--txt-soft)}
 .pl-card .pc-feat svg{width:14px;height:14px;color:var(--green);flex:none;margin-top:1px}
+.pl-card .pc-interval{flex-wrap:wrap}
+.pl-card .pc-int-btn{flex:1 1 74px;min-width:0;padding-left:8px;padding-right:8px}
 .pl-card .pc-price{font-family:'Sora',sans-serif;font-size:21px;font-weight:800;margin-top:auto}
 .pl-card .pc-price span{font-size:11.5px;font-weight:500;color:var(--txt-soft)}
 .pl-card .pc-cta{margin-top:12px;padding:9px;border-radius:var(--r-md);font-size:12.5px;font-weight:700;text-align:center;border:1px solid var(--stroke-strong);color:var(--txt);transition:background-color .15s,opacity .15s}

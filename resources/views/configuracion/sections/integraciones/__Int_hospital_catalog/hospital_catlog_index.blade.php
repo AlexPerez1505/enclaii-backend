@@ -68,6 +68,21 @@ $catIsClinicOwner = auth()->user()->clinica_rol === 'propietario';
     @include('configuracion.sections.integraciones.__Int_hospital_catalog.__process.__crud_process')
     @include('configuracion.sections.integraciones.__Int_hospital_catalog.__anesthesiologist.__crud_anesthesiologist')
     @include('configuracion.sections.integraciones.__Int_hospital_catalog.__rooms.__crud_rooms')
+
+    {{-- Modal de confirmación de eliminación --}}
+    <div class="cat-delete-overlay" id="catDeleteModal" aria-hidden="true">
+      <div class="cat-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="catDeleteTitle" aria-describedby="catDeleteText">
+        <div class="cat-delete-ico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="cat-delete-title" id="catDeleteTitle">Confirmar eliminación</div>
+        <div class="cat-delete-text" id="catDeleteText">¿Estás seguro?</div>
+        <div class="cat-delete-actions">
+          <button type="button" class="cat-delete-btn cancel" id="catDeleteCancel">Cancelar</button>
+          <button type="button" class="cat-delete-btn danger" id="catDeleteConfirm">Eliminar</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -371,15 +386,66 @@ $catIsClinicOwner = auth()->user()->clinica_rol === 'propietario';
   }
 
   function catReload(message) {
-    try { sessionStorage.setItem('enclaii-catalog-message', message); } catch (e) {}
+    try {
+      sessionStorage.setItem('enclaii-catalog-message', message);
+      sessionStorage.setItem('enclaii-catalog-active-tab', activeTab);
+    } catch (e) {}
     window.location.reload();
   }
+
+  const deleteModal = document.getElementById('catDeleteModal');
+  const deleteTitle = document.getElementById('catDeleteTitle');
+  const deleteText = document.getElementById('catDeleteText');
+  const deleteConfirm = document.getElementById('catDeleteConfirm');
+  const deleteCancel = document.getElementById('catDeleteCancel');
+  let deleteResolve = null;
+
+  function closeDeleteModal() {
+    if (!deleteModal) return;
+    deleteModal.classList.remove('open');
+    deleteModal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  function catConfirm(message) {
+    return new Promise(resolve => {
+      deleteResolve = resolve;
+      if (deleteTitle) deleteTitle.textContent = 'Confirmar eliminación';
+      if (deleteText) deleteText.textContent = message;
+      if (deleteModal) {
+        deleteModal.classList.add('open');
+        deleteModal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+      }
+      if (deleteConfirm) deleteConfirm.focus();
+    });
+  }
+
+  deleteConfirm?.addEventListener('click', () => {
+    closeDeleteModal();
+    const resolve = deleteResolve; deleteResolve = null;
+    if (resolve) resolve(true);
+  });
+
+  deleteCancel?.addEventListener('click', () => {
+    closeDeleteModal();
+    const resolve = deleteResolve; deleteResolve = null;
+    if (resolve) resolve(false);
+  });
+
+  deleteModal?.addEventListener('click', event => { if (event.target === deleteModal) { closeDeleteModal(); if (deleteResolve) { deleteResolve(false); deleteResolve = null; } } });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && deleteModal?.classList.contains('open')) {
+      closeDeleteModal();
+      if (deleteResolve) { deleteResolve(false); deleteResolve = null; }
+    }
+  });
 
   wrapper.querySelectorAll('.cat-member-remove').forEach(button => {
     button.addEventListener('click', async () => {
       const url = button.dataset.action;
       const name = button.dataset.memberName;
-      if (!url || !confirm(`¿Retirar a ${name} de la clínica?`)) return;
+      if (!url || !await catConfirm(`¿Retirar a ${name} de la clínica?`)) return;
       button.disabled = true;
       try {
         const data = await catApi(url, 'DELETE');
@@ -394,7 +460,7 @@ $catIsClinicOwner = auth()->user()->clinica_rol === 'propietario';
   wrapper.querySelectorAll('.cat-invite-revoke').forEach(button => {
     button.addEventListener('click', async () => {
       const url = button.dataset.action;
-      if (!url || !confirm('¿Cancelar esta invitación?')) return;
+      if (!url || !await catConfirm('¿Cancelar esta invitación?')) return;
       button.disabled = true;
       try {
         const data = await catApi(url, 'DELETE');
@@ -431,7 +497,7 @@ $catIsClinicOwner = auth()->user()->clinica_rol === 'propietario';
     button.addEventListener('click', async () => {
       const url = button.dataset.action;
       const name = button.dataset.anestName;
-      if (!url || !confirm(`¿Eliminar al anestesiólogo "${name}"?`)) return;
+      if (!url || !await catConfirm(`¿Eliminar al anestesiólogo "${name}"?`)) return;
       button.disabled = true;
       try {
         const data = await catApi(url, 'DELETE');
@@ -447,7 +513,7 @@ $catIsClinicOwner = auth()->user()->clinica_rol === 'propietario';
     button.addEventListener('click', async () => {
       const url = button.dataset.action;
       const name = button.dataset.procName;
-      if (!url || !confirm(`¿Eliminar el procedimiento "${name}"?`)) return;
+      if (!url || !await catConfirm(`¿Eliminar el procedimiento "${name}"?`)) return;
       button.disabled = true;
       try {
         const data = await catApi(url, 'DELETE');
@@ -472,7 +538,7 @@ $catIsClinicOwner = auth()->user()->clinica_rol === 'propietario';
     button.addEventListener('click', async () => {
       const url = button.dataset.action;
       const name = button.dataset.roomName;
-      if (!url || !confirm(`¿Eliminar la sala "${name}"?`)) return;
+      if (!url || !await catConfirm(`¿Eliminar la sala "${name}"?`)) return;
       button.disabled = true;
       try {
         const data = await catApi(url, 'DELETE');
@@ -483,5 +549,14 @@ $catIsClinicOwner = auth()->user()->clinica_rol === 'propietario';
       }
     });
   });
+
+  try {
+    const savedTab = sessionStorage.getItem('enclaii-catalog-active-tab');
+    if (savedTab && document.getElementById('catalog-panel-' + savedTab)) {
+      activateTab(savedTab);
+    }
+    sessionStorage.removeItem('enclaii-catalog-active-tab');
+    sessionStorage.removeItem('enclaii-catalog-message');
+  } catch (e) {}
 })();
 </script>

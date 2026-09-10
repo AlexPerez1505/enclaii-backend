@@ -12,7 +12,7 @@ class ProcedimientoSeeder extends Seeder
      */
     public function run(): void
     {
-    $items = ['Colonoscopia', 'Endoscopia', 'Gastroscopia', 'Biopsia'];
+    $items = ['Colonoscopia', 'Duodenoscopia', 'Endoscopia', 'Laparoscopia'];
     foreach ($items as $item) {
         \App\Models\Procedimiento::firstOrCreate(['nombre' => $item]);
     }

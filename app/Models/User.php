@@ -261,7 +261,18 @@ class User extends Authenticatable
             'require_password_for_studies' => $settings?->require_password_for_studies ?? true,
             'require_password_for_patients' => $settings?->require_password_for_patients ?? true,
             'audit_sensitive_actions' => $settings?->audit_sensitive_actions ?? true,
+            'two_factor_email_enabled' => $settings?->two_factor_email_enabled ?? false,
+            'two_factor_email_confirmed_at' => $settings?->two_factor_email_confirmed_at,
         ];
+    }
+
+    public function twoFactorEmailEnabled(): bool
+    {
+        $settings = $this->relationLoaded('securitySetting')
+            ? $this->getRelation('securitySetting')
+            : $this->securitySetting()->first();
+
+        return $settings?->two_factor_email_enabled ?? false;
     }
 
     public function criticalPasswordRequired(string $scope): bool
@@ -346,7 +357,12 @@ class User extends Authenticatable
             'capture_auto_capture' => true,
             'capture_auto_save' => true,
             'capture_auto_interval' => 30,
+            'ai_analyze_photos' => true,
+            'ai_suggest_diagnoses' => true,
+            'ai_recommend_procedures' => true,
             'dashboard_layout' => [],
+            'session_timeout' => 30, // 15, 30, 60 o 0 = "Nunca"
+            
         ];
     }
 

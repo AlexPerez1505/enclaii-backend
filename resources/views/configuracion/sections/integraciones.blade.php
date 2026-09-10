@@ -8,9 +8,12 @@
   </div>
 
   @include('configuracion.sections.integraciones._copias')
-  @include('configuracion.sections.integraciones._informacion-sistema')
-  @include('configuracion.sections.integraciones._servicios')
+  {{-- @include('configuracion.sections.integraciones._informacion-sistema') --}}
   @include('configuracion.sections.integraciones._catalogo-hospital')
+
+  <hr class="int-section-divider">
+
+  @include('configuracion.sections.integraciones._servicios')
   @include('configuracion.sections.integraciones._modal-copia')
   @include('configuracion.sections.integraciones._modal-firma')
 </div>

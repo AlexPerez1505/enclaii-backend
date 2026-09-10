@@ -40,6 +40,18 @@
 (function(){
   const CITA_EDITAR = @json($citaEditar ?? null);
   const ES_REPROGRAMACION = !!(CITA_EDITAR && CITA_EDITAR.id);
+  const DATE_FORMAT = @json(auth()->user()?->settings['date_format'] ?? 'DD/MM/YYYY');
+
+  function formatDateForUser(date) {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = String(date.getFullYear());
+
+    if (DATE_FORMAT === 'MM/DD/YYYY') return `${month}/${day}/${year}`;
+    if (DATE_FORMAT === 'YYYY-MM-DD') return `${year}-${month}-${day}`;
+
+    return `${day}/${month}/${year}`;
+  }
 
   window.__CITA_EDITAR_ID = ES_REPROGRAMACION ? CITA_EDITAR.id : null;
   window.__CITA_EDITAR_FECHA = ES_REPROGRAMACION ? CITA_EDITAR.fecha : null;
@@ -61,12 +73,10 @@
   }
 
   window.__agOnDateSelect = function(date) {
-    const d = String(date.getDate()).padStart(2,'0');
-    const m = String(date.getMonth()+1).padStart(2,'0');
-    const y = date.getFullYear();
+    const formattedDate = formatDateForUser(date);
 
-    document.getElementById('citaFecha').value = `${d}/${m}/${y}`;
-    document.getElementById('cfmFecha').textContent = `${d}/${m}/${y}`;
+    document.getElementById('citaFecha').value = formattedDate;
+    document.getElementById('cfmFecha').textContent = formattedDate;
     window.__agSelectedDate = date;
   };
 

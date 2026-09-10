@@ -1,10 +1,19 @@
 ﻿@extends('layouts.app')
 
-@section('title', 'Nuevo Estudio')
+@php
+  $paciente = $paciente ?? null;
+  $estudio = $estudio ?? null;
+  $pageTitle = $paciente ? 'Estudio del paciente' : 'Nuevo Estudio';
+  $pageSub = $estudio
+    ? trim(($estudio->tipo ?? 'Estudio').' · '.(format_user_date($estudio->fecha) ?: 'Sin fecha'))
+    : ($paciente ? 'Información del paciente' : 'Datos nuevos');
+@endphp
+
+@section('title', $pageTitle)
 @section('active', 'nuevo-estudio')
-@section('header-title', 'Nuevo Estudio')
+@section('header-title', $pageTitle)
 @section('header-sub')
-  Datos nuevos
+  {{ $pageSub }}
 @endsection
 
 @push('styles')
@@ -127,15 +136,20 @@
 }
 .np-results-head svg { width: 14px; height: 14px; color: var(--txt-soft); }
 .np-res-list {
-  display: flex; flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+  padding: 14px;
 }
 .np-res-item {
   display: flex; align-items: center; gap: 14px;
   padding: 14px 18px; cursor: pointer;
-  border-bottom: 1px solid var(--stroke); transition: background 120ms;
+  border: 1px solid var(--stroke);
+  border-radius: 12px;
+  background: var(--card-bg);
+  transition: background 120ms, border-color 120ms, transform 120ms;
 }
-.np-res-item:last-child { border-bottom: none; }
-.np-res-item:hover { background: var(--hover-bg); }
+.np-res-item:hover { background: var(--hover-bg); border-color: var(--blue); transform: translateY(-1px); }
 .np-res-item.active { background: var(--hover-bg-strong); }
 html[data-theme="light"] .np-res-item:hover { background: var(--hover-bg); }
 html[data-theme="light"] .np-res-item.active { background: var(--hover-bg-strong); }
@@ -147,7 +161,10 @@ html[data-theme="light"] .np-res-item.active { background: var(--hover-bg-strong
 }
 .np-res-name { font-size: 14.5px; font-weight: 700; color: var(--txt); margin-bottom: 3px; }
 .np-res-meta { font-size: 12px; color: var(--txt-soft); }
-.np-res-empty { padding: 22px; text-align: center; font-size: 13px; color: var(--txt-soft); }
+.np-res-info { min-width: 0; }
+.np-res-name,
+.np-res-meta { overflow-wrap: anywhere; }
+.np-res-empty { grid-column: 1 / -1; padding: 22px; text-align: center; font-size: 13px; color: var(--txt-soft); }
 
 /* Card principal */
 .np-card {
@@ -361,6 +378,21 @@ html[data-theme="light"] .np-filter-btn.open {
   text-decoration: none;
 }
 .np-new-study-btn:hover { background: #2563eb; border-color: #2563eb; transform: translateY(-1px); }
+.np-new-study-btn:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+  transform: none;
+}
+.np-share-study-btn {
+  background: rgba(14, 165, 233, .12);
+  border-color: rgba(56, 189, 248, .45);
+  color: var(--cyan);
+}
+.np-share-study-btn:hover {
+  background: rgba(14, 165, 233, .2);
+  border-color: rgba(56, 189, 248, .65);
+  color: var(--cyan);
+}
 
 /* Modal Nuevo Estudio */
 .ns-modal-backdrop {
@@ -416,6 +448,74 @@ html[data-theme="light"] .ns-modal-backdrop {
 .ns-option-desc { font-size: 12.5px; color: var(--txt-soft); margin-top: 3px; }
 .ns-option-arrow { color: var(--txt-soft); flex: none; transition: color 150ms, transform 150ms; }
 .ns-option:hover .ns-option-arrow { color: var(--txt); transform: translateX(3px); }
+.ns-field { display: flex; flex-direction: column; gap: 6px; }
+.ns-field label {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--txt-soft);
+  text-transform: uppercase;
+}
+.ns-field input,
+.ns-field textarea {
+  width: 100%;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  background: var(--panel-2);
+  color: var(--txt);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+  padding: 11px 12px;
+}
+.ns-field textarea { min-height: 112px; resize: vertical; line-height: 1.5; }
+.ns-field input:focus,
+.ns-field textarea:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(46, 123, 246, .14);
+}
+.ns-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 4px 0 2px;
+}
+.ns-summary span {
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  background: var(--panel-2);
+  color: var(--txt-soft);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 10px;
+  text-align: center;
+}
+.ns-status {
+  display: none;
+  border-radius: 10px;
+  border: 1px solid var(--stroke);
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.45;
+  padding: 10px 12px;
+}
+.ns-status.show { display: block; }
+.ns-status.ok {
+  background: rgba(34, 197, 94, .12);
+  border-color: rgba(34, 197, 94, .35);
+  color: var(--green);
+}
+.ns-status.error {
+  background: rgba(239, 68, 68, .12);
+  border-color: rgba(239, 68, 68, .35);
+  color: #ff7a90;
+}
+.ns-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+.ns-modal-actions button { min-width: 116px; justify-content: center; }
 
 .np-detail-search {
   flex: 1; max-width: 360px; height: 42px; display: flex; align-items: center; gap: 10px;
@@ -508,7 +608,7 @@ html[data-theme="light"] .ns-modal-backdrop {
 }
 
 /* Interfaz de galeria paciente (dentro de Nuevo Estudio) */
-.pa-shell{display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start}
+.pa-shell{display:grid;grid-template-columns:1fr;gap:18px;align-items:start}
 .pa-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
 .pa-back{
   height:40px;display:inline-flex;align-items:center;gap:8px;padding:0 16px;
@@ -583,6 +683,24 @@ html[data-theme="light"] .ns-modal-backdrop {
 .pa-btn:hover{border-color:rgba(46,123,246,.45);color:var(--blue)}
 .pa-btn.primary{background:rgba(46,123,246,.14);border-color:rgba(46,123,246,.35);color:var(--blue)}
 .pa-btn.primary:hover{background:rgba(46,123,246,.22)}
+.pa-report-list{display:grid;gap:10px}
+.pa-report-card{
+  display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;
+  background:var(--panel-2);border:1px solid var(--stroke);border-radius:12px;
+  padding:14px;
+}
+.pa-report-icon{
+  width:42px;height:42px;border-radius:12px;display:grid;place-items:center;
+  background:rgba(46,123,246,.14);border:1px solid rgba(46,123,246,.28);color:var(--blue);
+}
+.pa-report-title{font-size:13.5px;font-weight:800;color:var(--txt);margin-bottom:4px}
+.pa-report-preview{font-size:12.5px;color:var(--txt-soft);line-height:1.45}
+.pa-report-date{font-size:12px;color:var(--txt-soft);text-align:right}
+.pa-report-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  border-radius:999px;background:rgba(239,68,68,.13);border:1px solid rgba(239,68,68,.35);
+  color:#ff7a90;font-size:11px;font-weight:800;padding:4px 8px;margin-top:5px;
+}
 .pa-side{display:flex;flex-direction:column;gap:14px}
 .pa-panel{background:var(--panel-2);border:1px solid var(--stroke);border-radius:var(--r-lg);padding:16px}
 .pa-panel-title{font-family:'Sora',sans-serif;font-size:14px;font-weight:800;margin-bottom:12px}
@@ -612,6 +730,9 @@ html[data-theme="light"] .ns-modal-backdrop {
   .np-detail-stats { grid-column: auto; }
   .np-media-grid { grid-template-columns: 1fr; }
   .pa-grid { grid-template-columns: 1fr; }
+  .pa-report-card { grid-template-columns: auto 1fr; }
+  .pa-report-date { grid-column: 2; text-align: left; }
+  .ns-summary { grid-template-columns: 1fr; }
   .pa-hero { align-items: flex-start; }
   .pa-stats { width: 100%; margin-left: 0; justify-content: flex-start; }
   .pa-side { display: flex; }
@@ -685,6 +806,22 @@ html[data-theme="light"] .pa-btn.primary:hover { background: rgba(46,123,246,.22
   color: var(--txt);
   line-height: 1.2;
   pointer-events: none;
+}
+.np-study-info-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.np-study-info-grid .np-field-value {
+  line-height: 1.35;
+}
+@media (max-width: 1180px) {
+  .np-study-info-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 720px) {
+  .np-study-info-grid {
+    grid-template-columns: 1fr;
+  }
 }
 html[data-theme="light"] .np-info-box {
   background: rgba(248, 250, 252, 0.7);
@@ -772,7 +909,50 @@ html[data-theme="light"] .rpt-sello{background:rgba(46,123,246,.05);border-color
 .rptd-sign[data-pos="right"]{justify-content:flex-end;}
 .rptd-sign .sign-box{min-width:250px;text-align:center;padding-top:8px;border-top:1px solid var(--txt);font-size:13px;}
 html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shadow:0 8px 40px rgba(0,0,0,.08);}
-@media print{.rpt-toolbar{display:none!important;}.rpt-doc-wrap{padding:0;}.rpt-doc,.rptd-doc{box-shadow:none;border:none;border-radius:0;max-width:100%;}}
+@media print{
+  @page{size:letter;margin:.4in}
+  .rpt-toolbar{display:none!important;}
+  .rpt-doc-wrap{padding:0;}
+  .rpt-doc,.rptd-doc{box-shadow:none;border:none;border-radius:0;max-width:100%;}
+  body.print-report-only{background:#fff!important;margin:0!important;padding:0!important;}
+  body.print-report-only > :not(.dash),
+  body.print-report-only .side,
+  body.print-report-only .head,
+  body.print-report-only .mobile-nav,
+  body.print-report-only .app-alert,
+  body.print-report-only .np-patient-toolbar,
+  body.print-report-only .np-tabs,
+  body.print-report-only #tab-pacientes,
+  body.print-report-only #tab-galeria,
+  body.print-report-only #tab-reportes > :not(.rpt-doc-wrap){display:none!important;}
+  body.print-report-only .dash,
+  body.print-report-only .main,
+  body.print-report-only #tab-reportes,
+  body.print-report-only .rpt-doc-wrap{
+    display:block!important;
+    width:auto!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:visible!important;
+    background:#fff!important;
+  }
+  body.print-report-only #rptDoc{
+    position:static!important;
+    width:100%!important;
+    max-width:none!important;
+    margin:0!important;
+    padding:0!important;
+    background:#fff!important;
+    color:#111!important;
+  }
+  body.print-report-only #rptDoc .rptd-clinic{background:#e8f4f3!important;color:#143036!important;}
+  body.print-report-only #rptDoc .rptd-h4{color:#0275a8!important;}
+  body.print-report-only #rptDoc .rptd-header,
+  body.print-report-only #rptDoc .rptd-meta,
+  body.print-report-only #rptDoc .rptd-imgs,
+  body.print-report-only #rptDoc .rptd-sign{break-inside:avoid;page-break-inside:avoid;}
+}
 
 /* ===== Modal Tauri / Iniciar estudio ===== */
 .tauri-modal {
@@ -889,21 +1069,31 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
 @section('content')
 @php
   $paciente = $paciente ?? null;
+  $estudio = $estudio ?? null;
+  $isStudyDetail = (bool) $estudio;
   $galImagenes = $galImagenes ?? collect();
   $galVideos = $galVideos ?? collect();
+  $reportes = $reportes ?? collect();
   $galNombre = $paciente?->nombre_completo ?? 'Maria Gonzales';
   $galIni = $paciente
     ? (collect(explode(' ', $galNombre))->filter()->take(2)->map(fn($x)=>mb_strtoupper(mb_substr($x,0,1)))->implode('') ?: 'PX')
     : 'MG';
-  $galEstudios = $paciente
+  $galEstudios = $isStudyDetail
+    ? 1
+    : ($paciente
     ? $galImagenes->pluck('estudio_id')->merge($galVideos->pluck('estudio_id'))->filter()->unique()->count()
-    : 15;
+    : 15);
   $galUltimoArchivo = $galImagenes->first() ?? $galVideos->first();
-  $galUltimo = $paciente ? (format_user_date($galUltimoArchivo?->capturado_en) ?: '—') : '15/07/2025';
+  $galUltimo = $isStudyDetail
+    ? (format_user_date($estudio->fecha) ?: '—')
+    : ($paciente ? (format_user_date($galUltimoArchivo?->capturado_en) ?: '—') : '15/07/2025');
   $galSexo = $paciente?->sexo ?? 'Femenino';
   $galEdad = $paciente ? ($paciente->edad ? $paciente->edad.' años' : '—') : '38 años';
   $galCodigo = $paciente ? ($paciente->folio ?? $paciente->identificacion ?? '—') : '00012345';
-  $reportes = $reportes ?? collect();
+  $studyShareSubject = $isStudyDetail
+    ? 'Estudio '.$estudio->folio.' - '.$galNombre
+    : 'Estudio - '.$galNombre;
+  $studyShareHasContent = $galImagenes->isNotEmpty() || $galVideos->isNotEmpty() || $reportes->isNotEmpty();
 @endphp
 
 @if($paciente)
@@ -922,7 +1112,9 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
 <div class="np-tabs rise d1">
   <button class="np-tab active" data-tab="pacientes">Pacientes</button>
   <button class="np-tab hidden np-tab-extra" data-tab="galeria">Galeria</button>
+  @unless($isStudyDetail)
   <button class="np-tab hidden np-tab-extra" data-tab="reportes">Reportes</button>
+  @endunless
 </div>
 
 {{-- Panel Pacientes --}}
@@ -961,7 +1153,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
 
 <div class="np-results rise d2" id="npResults">
   <div class="np-results-head">
-    <span>Resultados</span>
+    <span id="npResultsTitle">Pacientes registrados</span>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
   </div>
   <div class="np-res-list" id="npResList"></div>
@@ -1062,6 +1254,80 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
       </div>
     </div>
 
+    @if($estudio)
+      @php
+        $duracionSegundos = (int) ($estudio->duracion_segundos ?? 0);
+        $duracionTexto = $duracionSegundos > 0
+          ? sprintf('%02d:%02d:%02d', intdiv($duracionSegundos, 3600), intdiv($duracionSegundos % 3600, 60), $duracionSegundos % 60)
+          : '—';
+      @endphp
+      <div class="np-card rise d3">
+        <div class="np-sec-header">Información del estudio</div>
+        <div class="np-info-grid np-study-info-grid">
+          <div class="np-info-box">
+            <label>Folio del estudio</label>
+            <div class="np-field-value">{{ $estudio->folio ?? '—' }}</div>
+          </div>
+          <div class="np-info-box">
+            <label>Procedimiento</label>
+            <div class="np-field-value">{{ $estudio->tipo ?? $paciente?->procedimiento ?? '—' }}</div>
+          </div>
+          <div class="np-info-box">
+            <label>Fecha del estudio</label>
+            <div class="np-field-value">{{ format_user_date($estudio->fecha) ?: '—' }}</div>
+          </div>
+          <div class="np-info-box">
+            <label>Estado</label>
+            <div class="np-field-value">{{ $estudio->estado_texto ?? '—' }}</div>
+          </div>
+          <div class="np-info-box">
+            <label>Médico</label>
+            <div class="np-field-value">{{ $estudio->medico ?? $paciente?->medico ?? '—' }}</div>
+          </div>
+          <div class="np-info-box">
+            <label>Sala</label>
+            <div class="np-field-value">{{ $estudio->sala ?? '—' }}</div>
+          </div>
+          <div class="np-info-box">
+            <label>Equipo</label>
+            <div class="np-field-value">{{ $estudio->equipo ?? '—' }}</div>
+          </div>
+          <div class="np-info-box">
+            <label>Hora de inicio</label>
+            <div class="np-field-value">{{ format_user_time($estudio->hora_inicio) ?: '—' }}</div>
+          </div>
+          <div class="np-info-box">
+            <label>Hora de fin</label>
+            <div class="np-field-value">{{ format_user_time($estudio->hora_fin) ?: '—' }}</div>
+          </div>
+          <div class="np-info-box">
+            <label>Duración</label>
+            <div class="np-field-value">{{ $duracionTexto }}</div>
+          </div>
+          <div class="np-info-box">
+            <label>Archivos</label>
+            <div class="np-field-value">{{ $galImagenes->count() }} imagen(es) / {{ $galVideos->count() }} video(s)</div>
+          </div>
+          <div class="np-info-box">
+            <label>Reportes</label>
+            <div class="np-field-value">{{ $reportes->count() }}</div>
+          </div>
+          <div class="np-info-box np-wide">
+            <label>Diagnóstico</label>
+            <div class="np-field-value np-textarea-value">{{ $estudio->diagnostico ?: '—' }}</div>
+          </div>
+          <div class="np-info-box np-wide">
+            <label>Descripción</label>
+            <div class="np-field-value np-textarea-value">{{ $estudio->descripcion ?: '—' }}</div>
+          </div>
+          <div class="np-info-box np-wide">
+            <label>Observaciones</label>
+            <div class="np-field-value np-textarea-value">{{ $estudio->observaciones ?: '—' }}</div>
+          </div>
+        </div>
+      </div>
+    @endif
+
   </form>
 
   {{-- Sidebar acciones --}}
@@ -1092,6 +1358,22 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
 <div class="np-tab-panel" id="tab-galeria">
 
   <div class="pa-topbar rise d2">
+    @if($isStudyDetail)
+    <button
+      class="np-new-study-btn np-share-study-btn"
+      type="button"
+      id="npShareStudyBtn"
+      data-study-email-open
+      @unless($studyShareHasContent) disabled @endunless
+      title="{{ $studyShareHasContent ? 'Enviar reportes, capturas y videos por correo' : 'Este estudio no tiene archivos ni reportes para enviar' }}"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="5" width="18" height="14" rx="2"/>
+        <path d="m3 7 9 6 9-6"/>
+      </svg>
+      Compartir por correo
+    </button>
+    @endif
     <button class="np-new-study-btn" type="button" id="npNewStudyBtnGal" style="margin-left:auto">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Agregar nuevo estudio
@@ -1110,6 +1392,9 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
           <div class="pa-stat"><strong id="npGalEstudios">{{ $galEstudios }}</strong><span>Estudios</span></div>
           <div class="pa-stat"><strong id="npGalFotos">{{ $paciente ? $galImagenes->count() : 126 }}</strong><span>Fotos</span></div>
           <div class="pa-stat"><strong id="npGalVideos">{{ $paciente ? $galVideos->count() : 12 }}</strong><span>Videos</span></div>
+          @if($isStudyDetail)
+          <div class="pa-stat"><strong>{{ $reportes->count() }}</strong><span>Reportes</span></div>
+          @endif
         </div>
       </section>
 
@@ -1203,33 +1488,55 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
           @endif
         </div>
       </section>
+
+      @if($isStudyDetail)
+      <section class="pa-section">
+        <div class="pa-section-head">
+          <h2 class="pa-section-title">Reportes</h2>
+          <span class="pa-section-count">{{ $reportes->count().' reportes' }}</span>
+        </div>
+        @if($reportes->isNotEmpty())
+        <div class="pa-report-list">
+          @foreach($reportes as $reporte)
+            @php
+              $reportPreview = $reporte->contenido_texto ?: trim(strip_tags((string) $reporte->contenido_html));
+            @endphp
+            <article class="pa-report-card" data-kind="reporte" data-title="{{ strtolower($reportPreview ?: 'reporte') }}">
+              <div class="pa-report-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+              </div>
+              <div>
+                <div class="pa-report-title">Reporte #{{ $reporte->id }}</div>
+                <div class="pa-report-preview">{{ \Illuminate\Support\Str::limit($reportPreview ?: 'Sin contenido registrado.', 180) }}</div>
+                @if($reporte->contiene_hallazgos_criticos)
+                <span class="pa-report-badge">Hallazgos críticos</span>
+                @endif
+              </div>
+              <div class="pa-report-date">
+                <div>{{ format_user_date($reporte->created_at) ?: 'Sin fecha' }}</div>
+                <a class="pa-btn primary" href="{{ route('ia-reportes.ver', ['reporte' => $reporte->id]) }}" style="margin-top:8px;min-width:92px">Ver reporte</a>
+              </div>
+            </article>
+          @endforeach
+        </div>
+        @else
+        <div class="pa-empty" style="display:block;text-align:left;padding:16px;border:1px dashed var(--stroke);border-radius:12px">
+          Este estudio no tiene reportes guardados.
+        </div>
+        @endif
+      </section>
+      @endif
     </div>
 
-    <aside class="pa-side">
-      <section class="pa-panel">
-        <h3 class="pa-panel-title">Informacion del paciente</h3>
-        <div class="pa-info">
-          <div class="pa-info-row"><span>ID</span><strong id="npGalSideId">{{ $galCodigo }}</strong></div>
-          <div class="pa-info-row"><span>Sexo</span><strong id="npGalSideSexo">{{ $galSexo }}</strong></div>
-          <div class="pa-info-row"><span>Edad</span><strong id="npGalSideEdad">{{ $galEdad }}</strong></div>
-          <div class="pa-info-row"><span>Estado</span><strong id="npGalSideEstado" style="color:var(--green)">Activo</strong></div>
-          <div class="pa-info-row"><span>Ultimo estudio</span><strong id="npGalSideUltimo">{{ $galUltimo }}</strong></div>
-        </div>
-      </section>
-
-      <section class="pa-panel">
-        <h3 class="pa-panel-title">Etiquetas frecuentes</h3>
-        <div class="pa-tag-list">
-          <span class="pa-tag">Estomago</span>
-          <span class="pa-tag">Antro</span>
-          <span class="pa-tag">Gastritis</span>
-          <span class="pa-tag">Duodeno</span>
-        </div>
-      </section>
-    </aside>
   </div>
 </div>
 
+@unless($isStudyDetail)
 {{-- Panel Reportes --}}
 <div class="np-tab-panel" id="tab-reportes">
 
@@ -1256,14 +1563,14 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
       <span class="rpt-badge" id="rptBadge">{{ $rptCritico ? 'Crítico' : 'Normal' }}</span>
     </div>
     <div class="rpt-toolbar-right">
-      <button class="rpt-act-btn" onclick="window.print()">
+      <button class="rpt-act-btn" type="button" data-print-report>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
         Imprimir
       </button>
-      <button class="rpt-act-btn primary">
+      <a class="rpt-act-btn primary" href="{{ route('ia-reportes.pdf', $rpt) }}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Descargar PDF
-      </button>
+      </a>
       <a class="rpt-act-btn accent" href="{{ url('/ia-reportes') }}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3C6.2 13.5 5 11.4 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>
         Editar con IA
@@ -1338,6 +1645,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   @endif
 
 </div>
+@endunless
 
 {{-- Modal Nuevo Estudio --}}
 <div class="ns-modal-backdrop" id="nsModalBackdrop">
@@ -1365,6 +1673,63 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
     </div>
   </div>
 </div>
+
+@if($isStudyDetail)
+{{-- Modal Compartir Estudio --}}
+<div class="ns-modal-backdrop" id="studyMailBackdrop" data-send-url="{{ route('nuevo-estudio.correo.send', $estudio) }}">
+  <div class="ns-modal" id="studyMailModal">
+    <form id="studyMailForm">
+      <div class="ns-modal-header">
+        <div>
+          <div class="ns-modal-title">Compartir estudio por correo</div>
+          <div class="ns-modal-subtitle">Envia reportes, capturas y videos de este estudio juntos.</div>
+        </div>
+        <button class="ns-modal-close" type="button" id="studyMailClose" aria-label="Cerrar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="ns-modal-body">
+        <div class="ns-summary">
+          <span>{{ $reportes->count() }} reporte(s)</span>
+          <span>{{ $galImagenes->count() }} captura(s)</span>
+          <span>{{ $galVideos->count() }} video(s)</span>
+        </div>
+
+        <div class="ns-field">
+          <label for="studyMailRecipients">Destinatarios</label>
+          <input id="studyMailRecipients" name="recipients" type="text" value="{{ $paciente?->email }}" placeholder="correo@ejemplo.com, otro@ejemplo.com" autocomplete="email" required>
+        </div>
+
+        <div class="ns-field">
+          <label for="studyMailSubject">Asunto</label>
+          <input id="studyMailSubject" name="subject" type="text" value="{{ $studyShareSubject }}" required>
+        </div>
+
+        <div class="ns-field">
+          <label for="studyMailMessage">Mensaje</label>
+          <textarea id="studyMailMessage" name="message" required>Hola, te comparto el estudio de {{ $galNombre }} con sus reportes, capturas y videos.</textarea>
+        </div>
+
+        <div class="ns-status" id="studyMailStatus"></div>
+
+        <div class="ns-modal-actions">
+          <button class="np-back-btn" type="button" id="studyMailCancel">Cancelar</button>
+          <button class="np-new-study-btn" type="submit" id="studyMailSubmit" @unless($studyShareHasContent) disabled @endunless>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="5" width="18" height="14" rx="2"/>
+              <path d="m3 7 9 6 9-6"/>
+            </svg>
+            Enviar correo
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+@endif
 
 {{-- Modal de conexión con Tauri --}}
 <div class="ns-modal-backdrop" id="dispositivoModalBackdrop">
@@ -1499,10 +1864,15 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
     var input   = document.getElementById('npSearch');
     var results = document.getElementById('npResults');
     var list    = document.getElementById('npResList');
+    var title   = document.getElementById('npResultsTitle');
     if (!input || !results || !list) return;
 
     function normalize(str){
       return (str || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    }
+
+    function openPaciente(p) {
+      window.location.href = '{{ route('nuevo-estudio') }}?paciente=' + encodeURIComponent(p.id);
     }
 
     function renderItems(items){
@@ -1514,15 +1884,44 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
       items.forEach(function(p){
         var el = document.createElement('div');
         el.className = 'np-res-item';
-        var avatar = p.foto
-          ? '<img src="' + p.foto + '" alt="' + p.nombre + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
-          : p.iniciales;
-        var meta = [p.folio ? 'Folio ' + p.folio : '', p.edad ? p.edad + ' años' : '', p.sexo, p.telefono].filter(Boolean).join(' · ');
-        el.innerHTML = '<div class="np-res-av">' + avatar + '</div>'
-          + '<div class="np-res-info"><div class="np-res-name">' + p.nombre + '</div>'
-          + '<div class="np-res-meta">' + (meta || 'Sin información adicional') + '</div></div>';
-        el.addEventListener('click', function(){
-          window.location.href = '{{ route('nuevo-estudio') }}?paciente=' + encodeURIComponent(p.id);
+        el.setAttribute('role', 'button');
+        el.setAttribute('tabindex', '0');
+
+        var avatar = document.createElement('div');
+        avatar.className = 'np-res-av';
+        if (p.foto) {
+          var img = document.createElement('img');
+          img.src = p.foto;
+          img.alt = p.nombre;
+          img.style.width = '100%';
+          img.style.height = '100%';
+          img.style.objectFit = 'cover';
+          img.style.borderRadius = '50%';
+          avatar.appendChild(img);
+        } else {
+          avatar.textContent = p.iniciales;
+        }
+
+        var info = document.createElement('div');
+        info.className = 'np-res-info';
+        var name = document.createElement('div');
+        name.className = 'np-res-name';
+        name.textContent = p.nombre;
+        var metaText = [p.folio ? 'Folio ' + p.folio : '', p.edad ? p.edad + ' años' : '', p.sexo, p.telefono].filter(Boolean).join(' · ');
+        var meta = document.createElement('div');
+        meta.className = 'np-res-meta';
+        meta.textContent = metaText || 'Sin información adicional';
+        info.appendChild(name);
+        info.appendChild(meta);
+
+        el.appendChild(avatar);
+        el.appendChild(info);
+        el.addEventListener('click', function(){ openPaciente(p); });
+        el.addEventListener('keydown', function(e){
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openPaciente(p);
+          }
         });
         list.appendChild(el);
       });
@@ -1530,13 +1929,17 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
 
     function search(q){
       var term = normalize(q).trim();
-      if (!term){ results.classList.remove('open'); return; }
-      var filtered = PACIENTES.filter(function(p){
-        return normalize(p.nombre).includes(term)
-          || normalize(p.folio).includes(term)
-          || normalize(p.telefono).includes(term)
-          || normalize(p.email).includes(term);
-      });
+      var filtered = term
+        ? PACIENTES.filter(function(p){
+            return normalize(p.nombre).includes(term)
+              || normalize(p.folio).includes(term)
+              || normalize(p.telefono).includes(term)
+              || normalize(p.email).includes(term);
+          })
+        : PACIENTES;
+      if (title) {
+        title.textContent = term ? 'Resultados' : 'Pacientes registrados';
+      }
       renderItems(filtered);
       results.classList.add('open');
     }
@@ -1547,12 +1950,8 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
       var val = this.value;
       debounce = setTimeout(function(){ search(val); }, 150);
     });
-    input.addEventListener('focus', function(){ if (this.value.trim()) search(this.value); });
-    document.addEventListener('click', function(e){
-      if (!e.target.closest('#npSearchBar') && !e.target.closest('#npResults')){
-        results.classList.remove('open');
-      }
-    });
+    input.addEventListener('focus', function(){ search(this.value); });
+    search('');
   }
 
   function showForm(){
@@ -1590,6 +1989,29 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
     });
   }
   setupMediaFilter('npGalSearch', '#tab-galeria');
+
+  function setupReportPrint(){
+    var btn = document.querySelector('[data-print-report]');
+    if (!btn) return;
+
+    var restorePrintMode = function(){
+      document.body.classList.remove('print-report-only');
+      window.removeEventListener('afterprint', restorePrintMode);
+    };
+
+    btn.addEventListener('click', function(){
+      if (!document.getElementById('rptDoc')) {
+        window.print();
+        return;
+      }
+
+      document.body.classList.add('print-report-only');
+      window.removeEventListener('afterprint', restorePrintMode);
+      window.addEventListener('afterprint', restorePrintMode);
+      window.print();
+    });
+  }
+  setupReportPrint();
 
   /* Si hay paciente (abierto desde la seccion del paciente) se cargan sus datos.
      Si no (abierto desde el boton del dashboard) se muestra el buscador. */
@@ -1631,6 +2053,104 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
   });
   document.addEventListener('keydown', function(e){
     if (e.key === 'Escape' && nsBackdrop?.classList.contains('open')) closeNsModal();
+  });
+
+  /* Modal Compartir Estudio */
+  const studyMailBackdrop = document.getElementById('studyMailBackdrop');
+  const studyMailBtn = document.getElementById('npShareStudyBtn');
+  const studyMailClose = document.getElementById('studyMailClose');
+  const studyMailCancel = document.getElementById('studyMailCancel');
+  const studyMailForm = document.getElementById('studyMailForm');
+  const studyMailSubmit = document.getElementById('studyMailSubmit');
+  const studyMailStatus = document.getElementById('studyMailStatus');
+  const studyMailCanSubmit = studyMailSubmit ? !studyMailSubmit.hasAttribute('disabled') : false;
+
+  function openStudyMailModal() {
+    if (!studyMailBackdrop) return;
+    studyMailBackdrop.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    studyMailStatus?.classList.remove('show', 'ok', 'error');
+    setTimeout(function(){
+      document.getElementById('studyMailRecipients')?.focus();
+    }, 80);
+  }
+
+  function closeStudyMailModal() {
+    if (!studyMailBackdrop) return;
+    studyMailBackdrop.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function setStudyMailLoading(isLoading) {
+    if (!studyMailSubmit) return;
+    studyMailSubmit.disabled = isLoading || !studyMailCanSubmit;
+    studyMailSubmit.style.opacity = isLoading ? '.72' : '';
+    studyMailSubmit.innerHTML = isLoading
+      ? 'Enviando...'
+      : `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="5" width="18" height="14" rx="2"/>
+          <path d="m3 7 9 6 9-6"/>
+        </svg>
+        Enviar correo
+      `;
+  }
+
+  function showStudyMailStatus(message, type) {
+    if (!studyMailStatus) return;
+    studyMailStatus.textContent = message;
+    studyMailStatus.classList.remove('ok', 'error');
+    studyMailStatus.classList.add('show', type === 'ok' ? 'ok' : 'error');
+  }
+
+  studyMailBtn?.addEventListener('click', function(e){
+    e.preventDefault();
+    if (studyMailBtn.disabled) return;
+    openStudyMailModal();
+  });
+  studyMailClose?.addEventListener('click', closeStudyMailModal);
+  studyMailCancel?.addEventListener('click', closeStudyMailModal);
+  studyMailBackdrop?.addEventListener('click', function(e){
+    if (e.target === studyMailBackdrop) closeStudyMailModal();
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && studyMailBackdrop?.classList.contains('open')) closeStudyMailModal();
+  });
+  studyMailForm?.addEventListener('submit', async function(e){
+    e.preventDefault();
+    const sendUrl = studyMailBackdrop?.dataset.sendUrl;
+    if (!sendUrl) return;
+
+    const formData = new FormData(studyMailForm);
+    setStudyMailLoading(true);
+    studyMailStatus?.classList.remove('show', 'ok', 'error');
+
+    try {
+      const response = await fetch(sendUrl, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': "{{ csrf_token() }}"
+        },
+        body: JSON.stringify({
+          recipients: formData.get('recipients'),
+          subject: formData.get('subject'),
+          message: formData.get('message')
+        })
+      });
+
+      const data = await response.json().catch(function(){ return {}; });
+      if (!response.ok) {
+        throw new Error(data.message || 'No se pudo enviar el estudio.');
+      }
+
+      showStudyMailStatus(data.message || 'Estudio enviado correctamente.', 'ok');
+    } catch (error) {
+      showStudyMailStatus(error.message || 'No se pudo enviar el estudio.', 'error');
+    } finally {
+      setStudyMailLoading(false);
+    }
   });
 
   /* Precarga datos del paciente (viene de Pacientes > Iniciar estudio) */
@@ -1733,7 +2253,7 @@ html[data-theme="light"] .rptd-doc{background:#fff;border-color:#e2e8f0;box-shad
         },
         body: JSON.stringify({
           paciente_id: "{{ $paciente?->id }}",
-          estudio_id: null
+          estudio_id: @json($estudio?->id)
         })
       });
 

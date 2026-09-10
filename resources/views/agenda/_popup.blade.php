@@ -153,8 +153,20 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
     const PACIENTE_LABELS = ['Datos del paciente','Datos del Paciente'];
     const INFORME_LABELS = ['Ver Informe'];
     const INICIAR_LABELS = ['Iniciar Estudio','Iniciar estudio'];
+    const DATE_FORMAT = @json(auth()->user()?->settings['date_format'] ?? 'DD/MM/YYYY');
 
-    function buildAgendarUrl(d, fechaTxt) {
+    function formatDateForUser(date) {
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = String(date.getFullYear());
+
+      if (DATE_FORMAT === 'MM/DD/YYYY') return `${month}/${day}/${year}`;
+      if (DATE_FORMAT === 'YYYY-MM-DD') return `${year}-${month}-${day}`;
+
+      return `${day}/${month}/${year}`;
+    }
+
+    function buildAgendarUrl(d, dayNum) {
       if (d.reprogramar_url) return d.reprogramar_url;
 
       if (d.id) {
@@ -165,9 +177,10 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
       if (d.fullName) params.set('paciente', d.fullName);
       if (d.proc)     params.set('proc', d.proc);
       if (d.time)     params.set('hora', d.time);
-      if (fechaTxt) {
-        const m = fechaTxt.match(/(\d+)/);
-        if (m) params.set('dia', m[1]);
+      if (Number.isInteger(dayNum)) {
+        params.set('dia', dayNum);
+        params.set('mes', cur_ref.m + 1);
+        params.set('anio', cur_ref.y);
       }
       return '{{ route("agendar") }}?' + params.toString();
     }
@@ -259,9 +272,8 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
           }
         }
       }
-      if (dayNum !== null && !fechaTxt) {
-        const dateObj = new Date(cur_ref.y, cur_ref.m, dayNum);
-        fechaTxt = `${DIAS_ES[dateObj.getDay()]} ${dayNum} de ${MESES[dateObj.getMonth()]}`;
+      if (dayNum !== null) {
+        fechaTxt = formatDateForUser(new Date(cur_ref.y, cur_ref.m, dayNum));
       }
 
       let liveCls = d.cls;
@@ -298,7 +310,7 @@ html[data-theme="light"] .ev-pop-btn.danger:hover{background:rgba(180,0,0,.14)!i
         if (REPROG_LABELS.includes(b.label)) {
           btn.addEventListener('click', ev => {
             ev.stopPropagation();
-            window.location.href = buildAgendarUrl(d, fechaTxt);
+            window.location.href = buildAgendarUrl(d, dayNum);
           });
         }
         if (PACIENTE_LABELS.includes(b.label)) {

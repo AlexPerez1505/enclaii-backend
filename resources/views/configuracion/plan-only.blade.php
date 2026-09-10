@@ -5,6 +5,20 @@
 @section('po-sub', 'Elige el plan que mejor se adapte a tus necesidades para comenzar a usar EndoCare.')
 
 @section('content')
+@php
+  $promoCheckout = session('promo_checkout');
+  $pendingPromoCode = $pendingPromoCode ?? null;
+
+  if (! $promoCheckout && $pendingPromoCode) {
+      $promoCheckout = [
+          'promo_code_id' => $pendingPromoCode->id,
+          'promo_code' => $pendingPromoCode->code,
+          'plan' => $pendingPromoCode->plan,
+          'interval' => $pendingPromoCode->interval,
+          'discount_months' => $pendingPromoCode->trial_months,
+      ];
+  }
+@endphp
 
 <div class="pl-plans">
   {{-- Plan Clinica --}}
@@ -213,11 +227,16 @@
 document.addEventListener('DOMContentLoaded', function(){
   const CSRF = "{{ csrf_token() }}";
   const SUBSCRIBE_URL = "{{ url('/stripe/subscribe') }}";
+  const SETUP_INTENT_URL = "{{ route('stripe.setup.intent') }}";
+  const PROMO_SUBSCRIBE_URL = "{{ route('stripe.promo.subscribe') }}";
   const RETURN_URL = "{{ route('stripe.success') }}";
   const STRIPE_PUBLISHABLE_KEY = "{{ config('services.stripe.key') }}";
+  const PROMO_CHECKOUT = @json($promoCheckout);
 
   let stripe;
   let elements;
+  let currentMode = 'subscription';
+  let currentPromoCodeId = null;
 
   if (STRIPE_PUBLISHABLE_KEY) {
     stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
@@ -240,23 +259,38 @@ document.addEventListener('DOMContentLoaded', function(){
     errorBox.textContent = '';
     errorBox.style.display = 'none';
   }
+  async function readJsonResponse(response) {
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      throw new Error('La sesion no pudo iniciar correctamente. Recarga la pagina e intenta de nuevo.');
+    }
+
+    return response.json();
+  }
+  function legalAccepted() {
+    return [...document.querySelectorAll('.sc-legal-cb')].every(cb => cb.checked);
+  }
   function setLoading(loading) {
-    submitBtn.disabled = loading;
+    submitBtn.disabled = loading || !legalAccepted();
     spinner.style.display = loading ? 'inline-block' : 'none';
     submitText.style.display = loading ? 'none' : 'inline';
   }
 
   // Abre el modal y monta el Payment Element
-  async function openPayment(plan, interval, planLabel, priceLabel) {
+  async function openPayment(plan, interval, planLabel, priceLabel, options = {}) {
     if (!stripe) {
       alert('Error: Stripe no está configurado correctamente.');
       return;
     }
 
+    currentMode = options.promoCodeId ? 'promo' : 'subscription';
+    currentPromoCodeId = options.promoCodeId || null;
     clearError();
     setLoading(true);
     planNameEl.textContent = planLabel;
     planPriceEl.textContent = priceLabel;
+    submitText.textContent = currentMode === 'promo' ? 'Activar promocion' : 'Suscribirme';
+    document.querySelectorAll('.sc-legal-cb').forEach(cb => { cb.checked = false; });
     modal.style.display = 'flex';
 
     // Limpiar Payment Element previo
@@ -264,16 +298,21 @@ document.addEventListener('DOMContentLoaded', function(){
       '<div style="display:flex;align-items:center;justify-content:center;height:100px;color:var(--txt-soft)">Cargando…</div>';
 
     try {
-      const response = await fetch(SUBSCRIBE_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': CSRF,
-        },
-        body: JSON.stringify({ plan, interval }),
-      });
+      const response = currentMode === 'promo'
+        ? await fetch(SETUP_INTENT_URL, {
+            headers: { 'Accept': 'application/json' },
+          })
+        : await fetch(SUBSCRIBE_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': CSRF,
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify({ plan, interval }),
+          });
 
-      const data = await response.json();
+      const data = await readJsonResponse(response);
       if (!response.ok) {
         throw new Error(data.error || 'Error al iniciar la suscripción');
       }
@@ -289,7 +328,7 @@ document.addEventListener('DOMContentLoaded', function(){
       document.getElementById('payment-element').innerHTML = '';
       paymentElement.mount('#payment-element');
 
-      setLoading(false);
+      updateSubmitState();
     } catch (error) {
       console.error('Error:', error);
       document.getElementById('payment-element').innerHTML = '';
@@ -301,8 +340,7 @@ document.addEventListener('DOMContentLoaded', function(){
   // --- Checkboxes legales: habilitar/deshabilitar botón ---
   const legalCheckboxes = document.querySelectorAll('.sc-legal-cb');
   function updateSubmitState() {
-    const allChecked = [...legalCheckboxes].every(cb => cb.checked);
-    submitBtn.disabled = !allChecked;
+    submitBtn.disabled = !legalAccepted();
   }
   legalCheckboxes.forEach(cb => cb.addEventListener('change', updateSubmitState));
 
@@ -336,6 +374,45 @@ document.addEventListener('DOMContentLoaded', function(){
       });
     } catch(err) {
       console.error('Error guardando aceptaciones legales:', err);
+    }
+
+    if (currentMode === 'promo') {
+      const { error, setupIntent } = await stripe.confirmSetup({
+        elements,
+        redirect: 'if_required',
+      });
+
+      if (error) {
+        showError(error.message || 'No se pudo guardar la tarjeta.');
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(PROMO_SUBSCRIBE_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': CSRF,
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          promo_code_id: currentPromoCodeId,
+          payment_method: setupIntent.payment_method,
+        }),
+      });
+      const data = await readJsonResponse(response);
+
+      if (!response.ok || !data.success) {
+        showError(data.error || 'No se pudo activar la promocion.');
+        setLoading(false);
+        return;
+      }
+
+      if (typeof showToast === 'function') {
+        showToast('Promocion activada', data.message);
+      }
+      window.location.href = data.redirect || RETURN_URL;
+      return;
     }
 
     const { error } = await stripe.confirmPayment({
@@ -401,6 +478,18 @@ document.addEventListener('DOMContentLoaded', function(){
       window.closeStripeModal();
     }
   });
+
+  if (PROMO_CHECKOUT && PROMO_CHECKOUT.promo_code_id) {
+    setTimeout(() => {
+      openPayment(
+        PROMO_CHECKOUT.plan || 'clinica',
+        PROMO_CHECKOUT.interval || 'month',
+        'Clinica',
+        '$0 / 6 meses',
+        { promoCodeId: PROMO_CHECKOUT.promo_code_id },
+      );
+    }, 250);
+  }
 });
 </script>
 @endpush

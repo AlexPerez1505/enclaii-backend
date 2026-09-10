@@ -115,6 +115,83 @@ class StripeService
     }
 
     /**
+     * Crea una sesion promocional con descuento de Stripe aplicado.
+     */
+    public function createPromoCouponCheckout(
+        User $user,
+        string $priceId,
+        string $promotionCodeId,
+        string $successUrl,
+        string $cancelUrl,
+        array $metadata = [],
+    ): \Stripe\Checkout\Session {
+        $sessionMetadata = array_merge(['user_id' => (string) $user->id], $metadata);
+
+        return $this->client->checkout->sessions->create([
+            'mode' => 'subscription',
+            'customer' => $this->resolveCustomer($user),
+            'line_items' => [[
+                'price' => $priceId,
+                'quantity' => 1,
+            ]],
+            'discounts' => [[
+                'promotion_code' => $promotionCodeId,
+            ]],
+            'success_url' => $successUrl,
+            'cancel_url' => $cancelUrl,
+            'payment_method_collection' => 'always',
+            'billing_address_collection' => 'auto',
+            'metadata' => $sessionMetadata,
+            'subscription_data' => [
+                'metadata' => $sessionMetadata,
+            ],
+        ]);
+    }
+
+    public function createRepeatingCoupon(
+        string $name,
+        int $durationMonths,
+        int $percentOff = 100,
+        array $metadata = [],
+    ): \Stripe\Coupon {
+        return $this->client->coupons->create([
+            'name' => $name,
+            'percent_off' => $percentOff,
+            'duration' => 'repeating',
+            'duration_in_months' => $durationMonths,
+            'metadata' => $metadata,
+        ]);
+    }
+
+    public function findActivePromotionCode(string $code): ?\Stripe\PromotionCode
+    {
+        $promotionCodes = $this->client->promotionCodes->all([
+            'code' => $code,
+            'active' => true,
+            'limit' => 1,
+        ]);
+
+        return $promotionCodes->data[0] ?? null;
+    }
+
+    public function createPromotionCode(
+        string $couponId,
+        string $code,
+        array $metadata = [],
+    ): \Stripe\PromotionCode {
+        return $this->client->promotionCodes->create([
+            'promotion' => [
+                'type' => 'coupon',
+                'coupon' => $couponId,
+            ],
+            'code' => $code,
+            'active' => true,
+            'max_redemptions' => 1,
+            'metadata' => $metadata,
+        ]);
+    }
+
+    /**
      * Crea una suscripción mensual independiente para una cuenta adicional.
      */
     public function createMemberAddonCheckout(User $user, string $successUrl, string $cancelUrl): \Stripe\Checkout\Session
@@ -185,6 +262,32 @@ class StripeService
             ],
             'expand' => ['latest_invoice.confirmation_secret'],
             'metadata' => array_merge(['user_id' => (string) $user->id], $metadata),
+        ]);
+    }
+
+    public function createPromoCouponSubscription(
+        User $user,
+        string $priceId,
+        string $promotionCodeId,
+        string $paymentMethodId,
+        array $metadata = [],
+    ): \Stripe\Subscription {
+        $subscriptionMetadata = array_merge(['user_id' => (string) $user->id], $metadata);
+
+        return $this->client->subscriptions->create([
+            'customer' => $this->resolveCustomer($user),
+            'items' => [[
+                'price' => $priceId,
+            ]],
+            'discounts' => [[
+                'promotion_code' => $promotionCodeId,
+            ]],
+            'default_payment_method' => $paymentMethodId,
+            'payment_settings' => [
+                'save_default_payment_method' => 'on_subscription',
+            ],
+            'metadata' => $subscriptionMetadata,
+            'expand' => ['latest_invoice.payment_intent'],
         ]);
     }
 

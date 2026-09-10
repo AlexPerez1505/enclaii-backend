@@ -32,10 +32,12 @@ $current = $current ?? 0;
 @include('galeria.verimagen._modal_comentarios')
 @include('galeria.verimagen._modal_compartir')
 @include('galeria.verimagen._modal_descarga')
+@if($archivo)
+  @include('galeria._image_email_modal')
+@endif
 
 @endsection
 
 @push('scripts')
 @include('galeria.verimagen._scripts')
 @endpush
-

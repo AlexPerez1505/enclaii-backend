@@ -412,9 +412,7 @@ class NuevoEstudioController extends Controller
     {
         $estudio = $archivo->estudio;
 
-        if ($archivo->path && Storage::disk('public')->exists($archivo->path)) {
-            Storage::disk('public')->delete($archivo->path);
-        }
+        media_delete($archivo->path);
 
         $archivo->delete();
         $this->activity->record(

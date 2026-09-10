@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\UserSession;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -24,6 +25,31 @@ class SessionLimitService
         return self::PLAN_SESSION_LIMITS[$plan] ?? 1;
     }
 
+
+    public function checkInactivity(Request $request, User $user)
+    {
+        $timeout = (int) ($user->resolvedSettings()['session_timeout'] ?? 30);
+
+        if ($timeout <= 0) {
+            return null;
+        }
+
+        $sessionId = $request->session()->getId();
+        $session = UserSession::find($sessionId);
+
+        if ($session && $session->last_activity < now()->subMinutes($timeout)->timestamp) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return $request->expectsJson()
+                ? response()->json(['message' => 'Sesión cerrada por inactividad.'], 401)
+                : redirect('/login')->with('status', 'Sesión cerrada por inactividad.');
+        }
+
+        return null;
+    }
+
     public function syncCurrentDatabaseSession(Request $request, User $user): void
     {
         if (! $this->databaseSessionsAvailable()) {
@@ -39,17 +65,34 @@ class SessionLimitService
             'last_activity' => now()->timestamp,
         ];
 
-        $updated = DB::table($table)
-            ->where('id', $sessionId)
-            ->update($attributes);
+        if (DB::table($table)->where('id', $sessionId)->exists()) {
+            DB::table($table)->where('id', $sessionId)->update($attributes);
 
-        if ($updated === 0) {
+            return;
+        }
+
+        try {
             DB::table($table)->insert([
                 'id' => $sessionId,
                 ...$attributes,
                 'payload' => '',
             ]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Condición de carrera: otra petición concurrente ya insertó la fila
+            // (p. ej. StartSession) entre nuestro exists() y el insert().
+            if ($this->isDuplicateKeyError($e)) {
+                DB::table($table)->where('id', $sessionId)->update($attributes);
+
+                return;
+            }
+
+            throw $e;
         }
+    }
+
+    private function isDuplicateKeyError(\Illuminate\Database\QueryException $e): bool
+    {
+        return (int) ($e->errorInfo[1] ?? 0) === 1062;
     }
 
     public function enforceDatabaseSessions(User $user, string $currentSessionId): int
@@ -59,7 +102,9 @@ class SessionLimitService
         }
 
         $limit = max(1, $this->limitFor($user));
-        $cutoff = now()->subMinutes((int) config('session.lifetime'))->timestamp;
+        $timeout = (int) ($user->resolvedSettings()['session_timeout'] ?? config('session.lifetime'));
+        $timeout = $timeout > 0 ? $timeout : (int) config('session.lifetime');
+        $cutoff = now()->subMinutes($timeout)->timestamp;
 
         UserSession::query()
             ->where('user_id', $user->id)

@@ -19,6 +19,16 @@ class QrPatientPreregistrationTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config([
+            'filesystems.media_disk' => 'public',
+            'filesystems.media_signed_urls' => false,
+        ]);
+    }
+
     public function test_doctor_can_generate_a_locally_rendered_encrypted_qr_link(): void
     {
         [, $owner] = $this->clinicOwner('qr-owner@example.com');
@@ -159,8 +169,10 @@ class QrPatientPreregistrationTest extends TestCase
         $this->post(route('qr.preregistrations.accept', $preregistration))
             ->assertRedirect();
 
-        $patient = Paciente::withoutGlobalScopes()->findOrFail($preregistration->fresh()->patient_id);
-        $this->assertSame($preregistration->foto, $patient->foto);
+        $accepted = $preregistration->fresh();
+        $patient = Paciente::withoutGlobalScopes()->findOrFail($accepted->patient_id);
+        $this->assertSame($accepted->foto, $patient->foto);
+        $this->assertStringContainsString('/patients/'.$patient->id.'/profile/', $patient->foto);
         Storage::disk('public')->assertExists($patient->foto);
     }
 

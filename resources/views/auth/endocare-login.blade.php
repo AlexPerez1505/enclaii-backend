@@ -372,53 +372,6 @@ body{
       }
     }
 
-    .ec-mode-footer {
-      margin-top: 18px;
-      padding-top: 18px;
-      border-top: 1px solid var(--field-border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .ec-mode-chip {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 32px;
-      padding: 7px 12px;
-      border-radius: 999px;
-      background: rgba(46, 123, 246, .10);
-      border: 1px solid rgba(46, 123, 246, .18);
-      color: var(--blue-600);
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .ec-mode-btn {
-      appearance: none;
-      border: 0;
-      background: transparent;
-      color: var(--ink-soft);
-      font-family: 'Hanken Grotesk', sans-serif;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      text-decoration: none;
-      transition: color 150ms ease, transform 160ms var(--ease-out);
-    }
-
-    .ec-mode-btn:hover {
-      color: var(--blue-600);
-      text-decoration: underline;
-    }
-
-    .ec-mode-btn:active {
-      transform: scale(.96);
-    }
-
     .ec-footer {
       margin-top: 24px;
       text-align: center;
@@ -779,11 +732,6 @@ body{
         margin-top: 16px;
         font-size: 13.5px;
       }
-
-      .ec-mode-footer {
-        justify-content: center;
-        text-align: center;
-      }
     }
 
     @media (max-width: 1024px) and (max-height: 640px) {
@@ -959,15 +907,6 @@ body{
           </button>
         </div>
 
-        <div class="ec-mode-footer ec-stagger">
-          <span id="modo_chip_login" class="ec-mode-chip">
-            Modo: Cliente
-          </span>
-
-          <button type="button" id="btn_toggle_modo_login" class="ec-mode-btn">
-            Soy colaborador
-          </button>
-        </div>
       </form>
     </main>
 
@@ -1062,37 +1001,6 @@ body{
           btn.setAttribute('aria-label', isPwd ? 'Ocultar contraseña' : 'Mostrar contraseña');
         });
       });
-
-      // Modo en LOGIN: solo cambia el enlace "Registrarse" para abrir el registro en modo Colaborador
-      const chip  = document.getElementById('modo_chip_login');
-      const btn   = document.getElementById('btn_toggle_modo_login');
-      const link  = document.getElementById('link_register');
-
-      if (chip && btn && link) {
-        let isColab = false;
-
-        function render(){
-          chip.textContent = 'Modo: ' + (isColab ? 'Colaborador' : 'Cliente');
-          btn.textContent  = isColab ? 'Usar registro de cliente' : 'Soy colaborador';
-
-          const url = new URL(link.getAttribute('href'), location.origin);
-
-          if (isColab) {
-            url.searchParams.set('internal', '1');
-          } else {
-            url.searchParams.delete('internal');
-          }
-
-          link.setAttribute('href', url.pathname + (url.search || ''));
-        }
-
-        btn.addEventListener('click', function(){
-          isColab = !isColab;
-          render();
-        });
-
-        render();
-      }
 
       // Estado de carga del botón
       const form = document.getElementById('loginForm');

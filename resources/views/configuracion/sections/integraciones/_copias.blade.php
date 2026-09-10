@@ -22,13 +22,6 @@
 
     <div class="int-backup-summary">
       <div class="int-backup-summary-main">
-        <span class="int-backup-ok">
-          @if($latestConfigurationBackup)
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-          @else
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          @endif
-        </span>
         <div>
           <strong>{{ $latestConfigurationBackup ? 'Última copia completada' : 'Todavía no hay copias' }}</strong>
           <span>
@@ -67,14 +60,16 @@
             </div>
           </div>
           <div class="int-backup-actions">
-            <button type="button" class="int-backup-action restore" data-backup-restore="{{ $backup->id }}" data-backup-name="{{ $backup->name }}" title="Restaurar">
+            <button type="button" class="int-backup-action restore" data-backup-restore="{{ $backup->id }}" data-backup-name="{{ $backup->name }}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.5 15a9 9 0 1 0 .5-5"/></svg>
+              <span class="int-backup-action-label">Restaurar</span>
             </button>
             <a class="int-backup-action" href="{{ route('configuracion.backups.download', $backup->id) }}" title="Descargar">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             </a>
-            <button type="button" class="int-backup-action delete" data-backup-delete="{{ $backup->id }}" data-backup-name="{{ $backup->name }}" title="Eliminar">
+            <button type="button" class="int-backup-action delete" data-backup-delete="{{ $backup->id }}" data-backup-name="{{ $backup->name }}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              <span class="int-backup-action-label">Eliminar</span>
             </button>
           </div>
         </div>

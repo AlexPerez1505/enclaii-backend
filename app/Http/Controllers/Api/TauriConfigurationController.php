@@ -4,14 +4,18 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\MediaPathService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
 
 class TauriConfigurationController extends Controller
 {
+    public function __construct(
+        private readonly MediaPathService $mediaPaths,
+    ) {}
+
     public function show(Request $request): JsonResponse
     {
         /** @var User $user */
@@ -205,7 +209,7 @@ class TauriConfigurationController extends Controller
         ]);
 
         $this->deleteStoredFile($user->foto_perfil);
-        $path = $request->file('foto')->store('profiles', 'public');
+        $path = media_store($request->file('foto'), $this->mediaPaths->userProfile($user));
 
         $user->foto_perfil = $path;
         $user->save();
@@ -213,7 +217,7 @@ class TauriConfigurationController extends Controller
         return response()->json([
             'ok' => true,
             'message' => 'Foto actualizada correctamente.',
-            'url' => Storage::disk('public')->url($path),
+            'url' => media_url($path),
         ]);
     }
 
@@ -242,7 +246,7 @@ class TauriConfigurationController extends Controller
         ]);
 
         $this->deleteStoredFile($user->constancia_fiscal);
-        $path = $request->file('constancia')->store('tax-documents', 'public');
+        $path = media_store($request->file('constancia'), $this->mediaPaths->userTaxDocuments($user));
 
         $user->constancia_fiscal = $path;
         $user->save();
@@ -250,7 +254,7 @@ class TauriConfigurationController extends Controller
         return response()->json([
             'ok' => true,
             'message' => 'Constancia fiscal actualizada.',
-            'url' => Storage::disk('public')->url($path),
+            'url' => media_url($path),
         ]);
     }
 
@@ -376,13 +380,11 @@ class TauriConfigurationController extends Controller
 
     private function mediaUrl(?string $path): ?string
     {
-        return $path ? Storage::disk('public')->url($path) : null;
+        return $path ? media_url($path) : null;
     }
 
     private function deleteStoredFile(?string $path): void
     {
-        if ($path) {
-            Storage::disk('public')->delete($path);
-        }
+        media_delete($path);
     }
 }

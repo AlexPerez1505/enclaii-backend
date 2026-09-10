@@ -22,9 +22,12 @@ class CronController extends Controller
         Artisan::call('anuncios:publicar-programados');
         $outputAnuncios = Artisan::output();
 
+        Artisan::call('desktop-app:notificar-actualizacion');
+        $outputDesktopApp = Artisan::output();
+
         return response()->json([
             'ok'     => true,
-            'output' => trim($outputCitas) . "\n" . trim($outputAnuncios),
+            'output' => trim($outputCitas) . "\n" . trim($outputAnuncios) . "\n" . trim($outputDesktopApp),
         ]);
     }
 

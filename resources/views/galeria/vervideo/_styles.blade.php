@@ -92,6 +92,7 @@
   font:inherit;font-size:12.5px;font-weight:600;
   background:var(--panel-2);border:1px solid var(--stroke);color:var(--txt);
   text-decoration:none;
+  cursor:pointer;
   transition:background-color 150ms ease,border-color 150ms ease,transform 160ms var(--ease-out);
   white-space:nowrap;
 }
@@ -101,6 +102,8 @@
 @media(hover:hover)and(pointer:fine){.vv-act-btn.ia:hover{background:rgba(56,199,244,.18)}}
 .vv-act-btn.wa{color:var(--green);border-color:rgba(61,220,151,.35);background:rgba(61,220,151,.08)}
 @media(hover:hover)and(pointer:fine){.vv-act-btn.wa:hover{background:rgba(61,220,151,.18)}}
+.vv-act-btn.email{color:var(--blue);border-color:rgba(46,123,246,.35);background:rgba(46,123,246,.08)}
+@media(hover:hover)and(pointer:fine){.vv-act-btn.email:hover{background:rgba(46,123,246,.16)}}
 
 /* Miniaturas */
 .vv-caps-title{font-size:13px;font-weight:600;margin-bottom:10px}

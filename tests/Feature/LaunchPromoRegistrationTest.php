@@ -90,6 +90,68 @@ class LaunchPromoRegistrationTest extends TestCase
         $this->assertDatabaseMissing('users', ['email' => 'other@example.com']);
     }
 
+    public function test_regular_registration_with_promo_redirects_to_local_payment_modal(): void
+    {
+        [$promo] = $this->promoCode([
+            'code' => 'ENCLAII-LAUNCH-001',
+            'stripe_coupon_id' => 'coupon_launch_6m',
+            'stripe_promotion_code_id' => 'promo_launch_001',
+        ]);
+
+        $stripe = Mockery::mock(StripeService::class);
+        $stripe->shouldNotReceive('priceId');
+        $stripe->shouldNotReceive('createPromoCouponCheckout');
+        $this->app->instance(StripeService::class, $stripe);
+
+        $this->post(route('register.post'), [
+            'name' => 'Usuario Coupon',
+            'email' => 'coupon@example.com',
+            'password' => 'SecurePassword1',
+            'password_confirmation' => 'SecurePassword1',
+            'promo_code' => ' enclaii-launch-001 ',
+        ])
+            ->assertRedirect(route('plan.only'))
+            ->assertSessionHas('promo_checkout');
+
+        $user = User::query()->where('email', 'coupon@example.com')->firstOrFail();
+        $promo->refresh();
+
+        $this->assertAuthenticatedAs($user);
+        $this->assertSame(LaunchPromoCode::STATUS_RESERVED, $promo->status);
+        $this->assertSame($user->id, $promo->reserved_by);
+        $this->assertNull($promo->checkout_session_id);
+    }
+
+    public function test_regular_registration_rejects_unknown_coupon_code(): void
+    {
+        $this->post(route('register.post'), [
+            'name' => 'Usuario Sin Coupon',
+            'email' => 'unknown-coupon@example.com',
+            'password' => 'SecurePassword1',
+            'password_confirmation' => 'SecurePassword1',
+            'promo_code' => 'NO-EXISTE',
+        ])->assertSessionHasErrors('promo_code');
+
+        $this->assertGuest();
+        $this->assertDatabaseMissing('users', ['email' => 'unknown-coupon@example.com']);
+    }
+
+    public function test_regular_registration_rejects_coupon_not_linked_to_stripe(): void
+    {
+        $this->promoCode(['code' => 'ENCLAII-LAUNCH-099']);
+
+        $this->post(route('register.post'), [
+            'name' => 'Usuario Sin Stripe',
+            'email' => 'not-linked@example.com',
+            'password' => 'SecurePassword1',
+            'password_confirmation' => 'SecurePassword1',
+            'promo_code' => 'ENCLAII-LAUNCH-099',
+        ])->assertSessionHasErrors('promo_code');
+
+        $this->assertGuest();
+        $this->assertDatabaseMissing('users', ['email' => 'not-linked@example.com']);
+    }
+
     public function test_stripe_webhook_marks_promo_redeemed_and_activates_trial(): void
     {
         [$promo] = $this->promoCode();
@@ -203,6 +265,187 @@ class LaunchPromoRegistrationTest extends TestCase
         $this->assertSame('sub_checkout_promo', $promo->stripe_subscription_id);
     }
 
+    public function test_checkout_completed_webhook_marks_coupon_promo_redeemed(): void
+    {
+        [$promo] = $this->promoCode([
+            'stripe_coupon_id' => 'coupon_launch_6m',
+            'stripe_promotion_code_id' => 'promo_launch_001',
+        ]);
+        $user = User::create([
+            'name' => 'Checkout Coupon',
+            'email' => 'checkout-coupon@example.com',
+            'password' => 'SecurePassword1',
+            'stripe_customer_id' => 'cus_checkout_coupon',
+        ]);
+        $promo->reserveFor($user);
+
+        $session = \Stripe\Checkout\Session::constructFrom([
+            'id' => 'cs_checkout_coupon',
+            'customer' => 'cus_checkout_coupon',
+            'subscription' => 'sub_checkout_coupon',
+            'metadata' => [
+                'user_id' => (string) $user->id,
+                'type' => 'promo_coupon',
+                'promo_code_id' => (string) $promo->id,
+                'promo_code' => $promo->code,
+                'plan' => 'clinica',
+                'interval' => 'month',
+            ],
+        ]);
+        $subscription = \Stripe\Subscription::constructFrom([
+            'id' => 'sub_checkout_coupon',
+            'customer' => 'cus_checkout_coupon',
+            'status' => 'active',
+            'current_period_end' => now()->addMonth()->timestamp,
+            'metadata' => [
+                'user_id' => (string) $user->id,
+                'type' => 'promo_coupon',
+                'promo_code_id' => (string) $promo->id,
+                'plan' => 'clinica',
+            ],
+        ]);
+        $event = \Stripe\Event::constructFrom([
+            'id' => 'evt_checkout_coupon',
+            'type' => 'checkout.session.completed',
+            'data' => ['object' => $session],
+        ]);
+
+        $stripe = Mockery::mock(StripeService::class);
+        $stripe->shouldReceive('constructWebhookEvent')
+            ->once()
+            ->andReturn($event);
+        $stripe->shouldReceive('retrieveSubscription')
+            ->once()
+            ->with('sub_checkout_coupon')
+            ->andReturn($subscription);
+        $this->app->instance(StripeService::class, $stripe);
+
+        $this->post(route('webhooks.stripe'), [], ['Stripe-Signature' => 'test'])
+            ->assertOk();
+
+        $user->refresh();
+        $promo->refresh();
+
+        $this->assertSame('active', $user->subscription_status);
+        $this->assertSame('clinica', $user->stripe_plan);
+        $this->assertSame(LaunchPromoCode::STATUS_REDEEMED, $promo->status);
+        $this->assertSame('sub_checkout_coupon', $promo->stripe_subscription_id);
+    }
+
+    public function test_promo_payment_modal_creates_subscription_and_redeems_coupon(): void
+    {
+        [$promo] = $this->promoCode([
+            'stripe_coupon_id' => 'coupon_launch_6m',
+            'stripe_promotion_code_id' => 'promo_launch_001',
+        ]);
+        $user = User::create([
+            'name' => 'Modal Coupon',
+            'email' => 'modal-coupon@example.com',
+            'password' => 'SecurePassword1',
+            'stripe_customer_id' => 'cus_modal_coupon',
+        ]);
+        $promo->reserveFor($user);
+
+        $paymentMethod = \Stripe\PaymentMethod::constructFrom([
+            'id' => 'pm_card_visa',
+            'type' => 'card',
+            'card' => [
+                'brand' => 'visa',
+                'last4' => '4242',
+            ],
+        ]);
+        $subscription = \Stripe\Subscription::constructFrom([
+            'id' => 'sub_modal_coupon',
+            'customer' => 'cus_modal_coupon',
+            'status' => 'active',
+            'current_period_end' => now()->addMonth()->timestamp,
+            'default_payment_method' => 'pm_card_visa',
+            'metadata' => [
+                'user_id' => (string) $user->id,
+                'type' => 'promo_coupon',
+                'promo_code_id' => (string) $promo->id,
+                'plan' => 'clinica',
+            ],
+        ]);
+
+        $stripe = Mockery::mock(StripeService::class);
+        $stripe->shouldReceive('priceId')
+            ->once()
+            ->with('clinica', 'month')
+            ->andReturn('price_clinica_month');
+        $stripe->shouldReceive('setDefaultPaymentMethod')
+            ->once()
+            ->withArgs(fn (User $candidate, string $paymentMethodId): bool => $candidate->is($user)
+                && $paymentMethodId === 'pm_card_visa')
+            ->andReturn($paymentMethod);
+        $stripe->shouldReceive('createPromoCouponSubscription')
+            ->once()
+            ->withArgs(function (
+                User $candidate,
+                string $priceId,
+                string $promotionCodeId,
+                string $paymentMethodId,
+                array $metadata,
+            ) use ($user, $promo): bool {
+                return $candidate->is($user)
+                    && $priceId === 'price_clinica_month'
+                    && $promotionCodeId === 'promo_launch_001'
+                    && $paymentMethodId === 'pm_card_visa'
+                    && $metadata['type'] === 'promo_coupon'
+                    && $metadata['promo_code_id'] === (string) $promo->id
+                    && $metadata['discount_months'] === '6';
+            })
+            ->andReturn($subscription);
+        $stripe->shouldReceive('retrievePaymentMethod')
+            ->once()
+            ->with('pm_card_visa')
+            ->andReturn($paymentMethod);
+        $this->app->instance(StripeService::class, $stripe);
+
+        $this->actingAs($user)
+            ->postJson(route('stripe.promo.subscribe'), [
+                'promo_code_id' => $promo->id,
+                'payment_method' => 'pm_card_visa',
+            ])
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $user->refresh();
+        $promo->refresh();
+
+        $this->assertSame('active', $user->subscription_status);
+        $this->assertSame('clinica', $user->stripe_plan);
+        $this->assertSame('card', $user->pm_type);
+        $this->assertSame('4242', $user->pm_last_four);
+        $this->assertSame(LaunchPromoCode::STATUS_REDEEMED, $promo->status);
+        $this->assertSame('sub_modal_coupon', $promo->stripe_subscription_id);
+    }
+
+    public function test_unsubscribed_promo_user_can_create_setup_intent_for_local_modal(): void
+    {
+        $user = User::create([
+            'name' => 'Setup Promo',
+            'email' => 'setup-promo@example.com',
+            'password' => 'SecurePassword1',
+        ]);
+        $intent = \Stripe\SetupIntent::constructFrom([
+            'id' => 'seti_promo',
+            'client_secret' => 'seti_promo_secret',
+        ]);
+
+        $stripe = Mockery::mock(StripeService::class);
+        $stripe->shouldReceive('createSetupIntent')
+            ->once()
+            ->withArgs(fn (User $candidate): bool => $candidate->is($user))
+            ->andReturn($intent);
+        $this->app->instance(StripeService::class, $stripe);
+
+        $this->actingAs($user)
+            ->getJson(route('stripe.setup.intent'))
+            ->assertOk()
+            ->assertJsonPath('clientSecret', 'seti_promo_secret');
+    }
+
     public function test_expired_trialing_user_is_not_subscribed(): void
     {
         $user = User::create([
@@ -217,10 +460,10 @@ class LaunchPromoRegistrationTest extends TestCase
         $this->assertFalse($user->subscribed());
     }
 
-    private function promoCode(): array
+    private function promoCode(array $overrides = []): array
     {
         $token = Str::random(64);
-        $promo = LaunchPromoCode::create([
+        $promo = LaunchPromoCode::create(array_merge([
             'code' => 'ENCLAII-LAUNCH-'.Str::upper(Str::random(6)),
             'token' => $token,
             'token_hash' => hash('sha256', $token),
@@ -229,7 +472,7 @@ class LaunchPromoRegistrationTest extends TestCase
             'interval' => 'month',
             'trial_months' => 6,
             'status' => LaunchPromoCode::STATUS_ACTIVE,
-        ]);
+        ], $overrides));
 
         return [$promo, $token];
     }

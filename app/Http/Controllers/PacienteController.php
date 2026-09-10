@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Paciente;
 use App\Services\ActivityLogger;
 use App\Services\MediaPathService;
+use App\Services\PatientRecordPdfGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -58,6 +59,8 @@ class PacienteController extends Controller
     public function store(Request $request)
     {
         try {
+            $this->prepareTelefono($request);
+
             $validated = $request->validate([
                 'folio' => [
                     'required',
@@ -74,7 +77,7 @@ class PacienteController extends Controller
                 'altura' => ['nullable', 'numeric', 'min:0', 'max:9.99'],
                 'sexo' => ['nullable', 'string', 'max:50'],
                 'direccion' => ['nullable', 'string', 'max:255'],
-                'telefono' => ['nullable', 'regex:/^\d{0,10}$/'],
+                'telefono' => ['nullable', 'string', 'max:50'],
                 'email' => ['nullable', 'email', 'max:255'],
                 'medico' => ['nullable', 'string', 'max:255'],
                 'procedimiento' => ['nullable', 'string', 'max:255'],
@@ -148,6 +151,17 @@ class PacienteController extends Controller
         return redirect()->route('pacientes.edit', $paciente);
     }
 
+    public function expedientePdf(Paciente $paciente, PatientRecordPdfGenerator $pdfGenerator)
+    {
+        $pdf = $pdfGenerator->make($paciente);
+
+        return response($pdf['data'], 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$pdf['name'].'"',
+            'Cache-Control' => 'private, no-store',
+        ]);
+    }
+
     // AQUÍ AGREGAS TU NUEVO MÉTODO edit
     public function edit(Paciente $paciente)
     {
@@ -175,6 +189,8 @@ class PacienteController extends Controller
 
     public function update(Request $request, Paciente $paciente)
     {
+        $this->prepareTelefono($request);
+
         $validated = $request->validate([
             'folio' => [
                 'required',
@@ -192,7 +208,7 @@ class PacienteController extends Controller
             'altura' => ['nullable', 'numeric', 'min:0', 'max:9.99'],
             'sexo' => ['nullable', 'string', 'max:50'],
             'direccion' => ['nullable', 'string', 'max:255'],
-            'telefono' => ['nullable', 'regex:/^\d{0,10}$/'],
+            'telefono' => ['nullable', 'string', 'max:50'],
             'email' => ['nullable', 'email', 'max:255'],
             'medico' => ['nullable', 'string', 'max:255'],
             'procedimiento' => ['nullable', 'string', 'max:255'],
@@ -514,6 +530,58 @@ class PacienteController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Sala eliminada.',
+        ]);
+    }
+
+    public function suggestions()
+    {
+        return response()->json([
+            'data' => [
+                'medicos' => Paciente::whereNotNull('medico')
+                    ->where('medico', '!=', '')
+                    ->distinct()
+                    ->orderBy('medico')
+                    ->pluck('medico'),
+
+                'procedimientos' => Paciente::whereNotNull('procedimiento')
+                    ->where('procedimiento', '!=', '')
+                    ->distinct()
+                    ->orderBy('procedimiento')
+                    ->pluck('procedimiento'),
+
+                'anestesiologos' => \App\Models\Anestesiologo::query()
+                    ->where('clinica_id', request()->user()->clinica_id)
+                    ->where('activo', true)
+                    ->orderBy('apellido_paterno')
+                    ->orderBy('nombres')
+                    ->get()
+                    ->map(fn ($a) => $a->nombre_completo),
+            ],
+        ]);
+    }
+
+    private function prepareTelefono(Request $request): void
+    {
+        $lada = trim((string) $request->input('telefono_lada', ''));
+        $numero = trim((string) $request->input('telefono_numero', ''));
+
+        if ($lada !== '' || $numero !== '') {
+            $ladaDigits = substr(preg_replace('/\D+/', '', $lada) ?? '', 0, 4);
+            $numeroDigits = substr(preg_replace('/\D+/', '', $numero) ?? '', 0, 20);
+
+            $request->merge([
+                'telefono' => $numeroDigits !== ''
+                    ? trim(($ladaDigits !== '' ? '+'.$ladaDigits.' ' : '').$numeroDigits)
+                    : null,
+            ]);
+
+            return;
+        }
+
+        $telefono = trim((string) $request->input('telefono', ''));
+
+        $request->merge([
+            'telefono' => $telefono !== '' ? $telefono : null,
         ]);
     }
 

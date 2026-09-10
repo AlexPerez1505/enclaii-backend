@@ -1020,12 +1020,9 @@ textarea{
           <div class="select-with-add">
             <select id="medicoSelectMed" name="medico" data-campo="medico" style="flex:1;">
               <option value="">Seleccione un médico...</option>
-              @foreach($listaMedicos as $m)
-                <option value="{{ $m->nombre_completo }}"
-                    {{ $paciente->medico == $m->nombre_completo ? 'selected' : '' }}>
-                    {{ $m->nombre_completo }}
-                </option>
-              @endforeach
+              @if($paciente->medico)
+                <option value="{{ $paciente->medico }}" selected>{{ $paciente->medico }}</option>
+              @endif
             </select>
             <button type="button" class="btn-add-procedimiento" onclick="addMedicoMed()" title="Agregar médico">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -1033,37 +1030,28 @@ textarea{
           </div>
         </div>
         <div class="form-group" style="margin-bottom:18px;">
-      <label>Procedimiento</label>
-    <div class="select-with-add">
-        <select id="procedimientoSelect" name="procedimiento" data-campo="procedimiento" style="flex:1;">
-            <option value="">Seleccione un procedimiento...</option>
-            
-            {{-- Recorremos la lista de la base de datos --}}
-            @foreach($listaProcedimientos as $p)
-                <option value="{{ $p->nombre }}" 
-                    {{ $paciente->procedimiento == $p->nombre ? 'selected' : '' }}>
-                    {{ $p->nombre }}
-                </option>
-            @endforeach
-        </select>
-        
-        <button type="button" class="btn-add-procedimiento" onclick="addNuevoProcedimiento()" title="Agregar procedimiento">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </button>
-    </div>
-    <div id="procedimientosAgregados" class="procedimientos-tags"></div>
-</div>
+          <label>Procedimiento</label>
+          <div class="select-with-add">
+            <select id="procedimientoSelect" name="procedimiento" data-campo="procedimiento" style="flex:1;">
+              <option value="">Seleccione un procedimiento...</option>
+              @if($paciente->procedimiento)
+                <option value="{{ $paciente->procedimiento }}" selected>{{ $paciente->procedimiento }}</option>
+              @endif
+            </select>
+            <button type="button" class="btn-add-procedimiento" onclick="addNuevoProcedimiento()" title="Agregar procedimiento">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+          </div>
+          <div id="procedimientosAgregados" class="procedimientos-tags"></div>
+        </div>
         <div class="form-group" style="margin-bottom:18px;">
           <label>Anestesiólogo</label>
           <div class="select-with-add">
             <select id="anestesiologoSelect" name="anestesiologo" data-campo="anestesiologo" style="flex:1;">
               <option value="">Seleccione un anestesiólogo...</option>
-              @foreach($listaAnestesiologos as $a)
-                <option value="{{ $a->nombre_completo }}" 
-                    {{ $paciente->anestesiologo == $a->nombre_completo ? 'selected' : '' }}>
-                    {{ $a->nombre_completo }}
-                </option>
-              @endforeach
+              @if($paciente->anestesiologo)
+                <option value="{{ $paciente->anestesiologo }}" selected>{{ $paciente->anestesiologo }}</option>
+              @endif
             </select>
             <button type="button" class="btn-add-procedimiento" onclick="addAnestesiologo()" title="Agregar anestesiólogo">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -1530,12 +1518,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(function(response){ return response.json(); })
         .then(function(data){
           if (data.success) {
-            s.innerHTML = '';
-            var o = document.createElement('option');
-            o.value = data.valor.toLowerCase().replace(/\s+/g,'-');
-            o.textContent = data.valor;
-            o.selected = true;
-            s.appendChild(o);
+            agregarOpcionSelect(s, data.valor);
             window.cerrarMiniModal();
           }
         })
@@ -1553,7 +1536,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function agregarOpcionSelect(s, n) {
       var o = document.createElement('option');
-      o.value = n.toLowerCase().replace(/\s+/g,'-');
+      o.value = n;
       o.textContent = n;
       o.selected = true;
       s.insertBefore(o, s.lastElementChild);

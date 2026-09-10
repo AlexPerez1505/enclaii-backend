@@ -133,6 +133,7 @@
 
 
 <?php $__env->startPush('scripts'); ?>
+<?php echo $__env->make('agenda._init', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 <script>
 (function(){
   const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
@@ -223,7 +224,7 @@
     else if (curView === 'dia')    buildDayAndSync(cur);
   };
 
-  setView('mes');
+  // La agenda se inicializa abajo mediante window.__initAgenda()
 
   setInterval(() => {
     if (curView === 'mes') buildCal(cur);
@@ -329,6 +330,7 @@
   };
 
   const cur_ref = { get y(){ return cur.getFullYear(); }, get m(){ return cur.getMonth(); } };
+  window.__initAgenda(<?php echo json_encode($citasAgenda, 15, 512) ?>, <?php echo json_encode($bloqueosData, 15, 512) ?>);
   window.__initPopup(window.__AGENDA_EVENTS, MESES, cur_ref, DIAS_ES);
   window.__initDayPicker(function(date) { buildDayAndSync(date); });
   window.__initBloqueos(window.__AGENDA_EVENTS, MESES, DIAS_ES, buildDayAndSync);

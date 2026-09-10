@@ -13,6 +13,7 @@
   $videoUrl = media_url($archivo->path);
   $videoExtension = strtoupper(pathinfo($archivo->nombre_original ?: $archivo->path, PATHINFO_EXTENSION) ?: 'VIDEO');
   $downloadName = $archivo->nombre_original ?: ('video-'.$archivo->id.'.'.strtolower($videoExtension));
+  $videoDownloadUrl = route('galeria.video.archivo', $archivo->id);
   $editorConfig = array_merge([
     'brillo' => 100,
     'contraste' => 100,
@@ -44,6 +45,7 @@
 
 @include('galeria.vervideo._styles')
 @include('galeria.vervideo._modal-descarga')
+@include('galeria._video_email_modal')
 
 @section('content')
   <div class="rise d2">

@@ -156,6 +156,22 @@ body{
   font-weight:500;
   color:var(--error);
 }
+.ec-help{
+  margin-top:7px;
+  font-size:12.5px;
+  font-weight:600;
+  color:var(--ink-soft);
+}
+.ec-label small{
+  margin-left:6px;
+  color:var(--ink-soft);
+  font-weight:500;
+}
+.ec-input.ec-input-code{
+  padding-right:16px;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
 
 .ec-link{
   color:var(--blue-600);
@@ -240,6 +256,7 @@ body{
 .ec-stagger:nth-child(7){animation-delay:250ms}
 .ec-stagger:nth-child(8){animation-delay:300ms}
 .ec-stagger:nth-child(9){animation-delay:350ms}
+.ec-stagger:nth-child(10){animation-delay:400ms}
 @keyframes ec-rise{to{opacity:1;transform:translateY(0)}}
 
 /* Shake en errores de validación */
@@ -546,6 +563,23 @@ body{
         </div>
       </div>
 
+      <div class="ec-field ec-stagger">
+        <label class="ec-label" for="promo_code">Cupon promocional <small>opcional</small></label>
+        <div class="ec-input-wrap">
+          <input id="promo_code" name="promo_code" type="text" autocomplete="off"
+                 value="{{ old('promo_code', request('coupon')) }}"
+                 placeholder="ENCLAII-LAUNCH-001"
+                 class="ec-input ec-input-code @error('promo_code') is-invalid @enderror">
+        </div>
+        <p class="ec-help">Si tienes un cupon, Stripe validara tu tarjeta antes de activar los 6 meses gratis.</p>
+        @error('promo_code')
+          <p class="ec-error">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            {{ $message }}
+          </p>
+        @enderror
+      </div>
+
       <div class="ec-stagger">
         <button type="submit" class="ec-btn" id="btnRegister" data-loading="false">
           <span class="ec-btn-content">
@@ -649,6 +683,11 @@ body{
       btn.setAttribute('aria-pressed', show);
       btn.setAttribute('aria-label', show ? 'Ocultar contraseña' : 'Mostrar contraseña');
     });
+  });
+
+  const promoInput = document.getElementById('promo_code');
+  promoInput?.addEventListener('input', () => {
+    promoInput.value = promoInput.value.toUpperCase().replace(/\s+/g, '');
   });
 
   /* ---- Estado de carga del botón ---- */

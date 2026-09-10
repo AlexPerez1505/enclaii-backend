@@ -35,8 +35,8 @@
 @media(hover:hover)and(pointer:fine){.vi-btn.report:hover{background:rgba(46,123,246,.25)}}
 .vi-btn.share{background:transparent;border:1px solid var(--stroke);color:var(--txt-soft)}
 @media(hover:hover)and(pointer:fine){.vi-btn.share:hover{background:rgba(110,160,255,.08);color:var(--txt)}}
-.vi-btn.wa{background:rgba(61,220,151,.12);border:1px solid rgba(61,220,151,.35);color:var(--green)}
-@media(hover:hover)and(pointer:fine){.vi-btn.wa:hover{background:rgba(61,220,151,.22)}}
+.vi-btn.email{background:rgba(46,123,246,.12);border:1px solid rgba(46,123,246,.35);color:var(--blue)}
+@media(hover:hover)and(pointer:fine){.vi-btn.email:hover{background:rgba(46,123,246,.22)}}
 .vi-btn.dl{background:var(--blue);border:none;color:#fff}
 @media(hover:hover)and(pointer:fine){.vi-btn.dl:hover{opacity:.88}}
 
